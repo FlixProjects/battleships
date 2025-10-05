@@ -14,8 +14,12 @@ export const createGameHandler = async (event: APIGatewayProxyEvent): Promise<AP
     try {
         return {
             statusCode: 200,
+            headers: {
+                'Access-Control-Allow-Origin': '*', // FIXME: restrict origins
+                'Access-Control-Allow-Headers': 'Content-Type',
+            },
             body: JSON.stringify({
-                message: 'hello world',
+                code: 'ABCD', // FIXME: generate code and also return playerId
             }),
         };
     } catch (err) {

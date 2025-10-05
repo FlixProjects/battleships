@@ -6,13 +6,17 @@ const gameAreaEl = document.getElementById("gameArea") as HTMLDivElement;
 
 const joinCodeInput = document.getElementById("joinCode") as HTMLInputElement;
 
-let gameCode: string | null = null;
 let playerId: string | null = null;
 
 const createBtn = document.getElementById("createGameBtn") as HTMLButtonElement;
-createBtn.addEventListener("click", createGame);
+createBtn.addEventListener("click", async () => {
+    const response = await createGame();
+    gameCode.innerText = response?.code || "error";
+});
 
 const joinBtn = document.getElementById("joinGameBtn") as HTMLButtonElement;
-joinBtn.addEventListener("click", () => {
-  joinGame(joinCodeInput.value);
+const gameCode = document.getElementById("gameCode") as HTMLSpanElement;
+
+joinBtn.addEventListener("click", async () => {
+    const response = await joinGame(joinCodeInput.value);
 });
