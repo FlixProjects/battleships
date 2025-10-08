@@ -8,7 +8,8 @@
     "license": "MIT",
     "scripts": {
         "start": "sam build && sam local start-api",
-        "compile": "tsc"
+        "compile": "tsc",
+        "build": "node scripts/build.mjs"
     },
     "dependencies": {
         "esbuild": "^0.14.14"
