@@ -23,15 +23,20 @@ jobs:
     deploy-to-s3:
         name: Deploy to S3
         runs-on: ubuntu-22.04
+        # environment:
+        # # Use environment to require approval to emulate manual execution
+        # # In Repo Settings > Environments > 
+        #   name: prd-deploy
         permissions:
             id-token: write
             contents: read
+        needs: build # build should upload artifacts
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v4
-              
+
             - name: Configure AWS Credentials
-              uses: aws-actions/configure-aws-credentials@v1
+              uses: aws-actions/configure-aws-credentials@v5.1.0
               with:
                   role-to-assume: ${{ secrets.IAMROLE_GITHUB }}
                   role-session-name: GitHub-Action-Role
