@@ -23,10 +23,12 @@ jobs:
     deploy-to-s3:
         name: Deploy to S3
         runs-on: ubuntu-22.04
-        # environment:
-        # # Use environment to require approval to emulate manual execution
-        # # In Repo Settings > Environments > 
-        #   name: prd-deploy
+        environment:
+            # Use environment to require approval to emulate manual execution
+            # In Repo Settings > Environments > add environment secrets
+            # you need to add `environment` to the sub claim
+            # repo:<OrgName>/<repo-name>:environment:prd-deploy
+            name: prd-deploy
         permissions:
             id-token: write
             contents: read
@@ -38,11 +40,10 @@ jobs:
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v5.1.0
               with:
-                  role-to-assume: ${{ secrets.IAMROLE_GITHUB }}
+                  role-to-assume: ${{ secrets.IAMROLE_GITHUB }} # copy the ARN from AWS
                   role-session-name: GitHub-Action-Role
                   aws-region: ${{ env.AWS_REGION }}
 
             - name: Upload Artifact to s3
               run: aws s3 cp ./public s3://${{ env.S3BUCKET }} --recursive # ./public/* does not work for s3, expansion is not recognized
-
-#  sample: https://github.com/aws-samples/aws-codedeploy-github-actions-deployment/blob/main/.github/workflows/deploy.yml
+# https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws
