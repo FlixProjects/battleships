@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { randomUUID } from "crypto";
-import { getNewBoard } from "../common/constants";
+import { getNewBoard } from "./common/constants";
 
 export const createGameHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
