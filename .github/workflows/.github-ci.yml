@@ -1,33 +1,49 @@
 name: Build and Deploy
 
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main
 
 env:
-  AWS_REGION: ap-southeast-1
-  S3BUCKET: battleships-poc
+    AWS_REGION: ap-southeast-1
+    S3BUCKET: battleships-poc
 
 jobs:
-  build:
-    name: Build and Package
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - uses: actions/checkout@v2
-        name: Checkout Repository
+    build:
+        name: Build and Package
+        runs-on: ubuntu-22.04
+        permissions:
+            id-token: write
+            contents: read
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
 
-      - uses: aws-actions/configure-aws-credentials@v1
-        name: Configure AWS Credentials
-        with:
-          role-to-assume: ${{ secrets.IAMROLE_GITHUB }}
-          role-session-name: GitHub-Action-Role
-          aws-region: ${{ env.AWS_REGION }}
+    get-credentials:
+        name: Get credentials
+        runs-on: ubuntu-22.04
+        needs: build
+        permissions:
+            id-token: write
+            contents: read
+        steps:
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  role-to-assume: ${{ secrets.IAMROLE_GITHUB }}
+                  role-session-name: GitHub-Action-Role
+                  aws-region: ${{ env.AWS_REGION }}
 
-      - name: Upload Artifact to s3
-        run: aws s3 cp ./public s3://${{ env.S3BUCKET }} --recursive # ./public/* does not work for s3, expansion is not recognized
-        
+    deploy-to-s3:
+        name: Deploy to S3
+        runs-on: ubuntu-22.04
+        needs: get-credentials
+        permissions:
+            id-token: write
+            contents: read
+        steps:
+            - name: Upload Artifact to s3
+              run: aws s3 cp ./public s3://${{ env.S3BUCKET }} --recursive # ./public/* does not work for s3, expansion is not recognized
+
 #  sample: https://github.com/aws-samples/aws-codedeploy-github-actions-deployment/blob/main/.github/workflows/deploy.yml
