@@ -1,5 +1,4 @@
 import * as esbuild from "esbuild";
-import { execSync } from "child_process";
 
 async function buildLambda() {
     const entryPoints = ["create-game/index.ts"];
@@ -14,14 +13,6 @@ async function buildLambda() {
         outbase: ".",
         tsconfig: "../tsconfig.json",
     });
-
-    entryPoints.forEach((zipTarget) => {
-        const input = `dist/` + zipTarget.replace(/\.ts$/, ".js");
-        const output = `dist/${zipTarget}`.replace(/\.ts$/, ".zip");
-        execSync(`zip ${output} ${input}`);
-    });
-
-    console.log(`✅ Built and zipped Lambda`);
 }
 
 buildLambda().catch((err) => {

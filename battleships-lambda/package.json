@@ -9,7 +9,7 @@
     "scripts": {
         "start": "sam build && sam local start-api",
         "compile": "tsc",
-        "build": "node scripts/build.mjs"
+        "build": "node scripts/esbuild.mjs && sh scripts/build.sh"
     },
     "dependencies": {
         "@aws-sdk/client-s3": "^3.908.0",
