@@ -7,7 +7,7 @@ on:
 
 env:
     AWS_REGION: ap-southeast-1
-    S3BUCKET: battleships-poc
+    S3BUCKET: battleships-dev
 
 jobs:
     build:
