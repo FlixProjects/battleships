@@ -19,6 +19,9 @@ Resources:
             Runtime: nodejs22.x
             Architectures:
                 - x86_64
+            Environment:
+                Variables:
+                    DEPLOY_ENV: local        
             Events:
                 CreateGame:
                     Type: Api
@@ -36,3 +39,5 @@ Resources:
                     - .js=.mjs
                 EntryPoints:
                     - index.ts
+                External:
+                    - "@aws-sdk/client-s3"
