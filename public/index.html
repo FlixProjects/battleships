@@ -1,40 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Battleships PoC</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-<div class="page">
-    <header class="hero">
-      <h1 class="title">Battleships — PoC</h1>
-      <p class="subtitle">2-player, 6×6 grid</p>
-    </header>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Battleships PoC</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <div class="page">
+            <header class="hero">
+                <h1 class="title">Battleships — PoC</h1>
+                <p class="subtitle">2-player, 6×6 grid</p>
+            </header>
 
-    <main class="card">
-      <div id="controls" class="controls">
-        <div class="left">
-          <button id="createGameBtn" class="btn primary">Create Game</button>
-          <h1 id="gameCode" class="title"></h1>
+            <main class="card">
+                <div id="controls" class="controls">
+                    <div class="left">
+                        <button id="createGameBtn" class="btn primary">Create Game</button>
+                        <h1 id="gameCode" class="title"></h1>
+                    </div>
+
+                    <div class="right join-group">
+                        <input type="text" id="joinCode" class="input" placeholder="Enter Code" maxlength="4" />
+                        <button id="joinGameBtn" class="btn">Join Game</button>
+                    </div>
+                </div>
+
+                <div id="status" class="status">Status: idle</div>
+                <div id="gameArea" class="game-area"></div>
+            </main>
+
+            <footer class="footer">
+                <small>Proof of Concept — demo UI</small>
+            </footer>
         </div>
 
-        <div class="right join-group">
-          <input type="text" id="joinCode" class="input" placeholder="Enter Code" maxlength="4" />
-          <button id="joinGameBtn" class="btn">Join Game</button>
-        </div>
-      </div>
-
-      <div id="status" class="status">Status: idle</div>
-      <div id="gameArea" class="game-area"></div>
-    </main>
-
-    <footer class="footer">
-      <small>Proof of Concept — demo UI</small>
-    </footer>
-  </div>
-
-  <script src="bundle.js"></script>
-</body>
+        <script src="bundle.js"></script>
+    </body>
 </html>
