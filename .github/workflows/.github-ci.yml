@@ -10,16 +10,6 @@ env:
     S3BUCKET: battleships-dev
 
 jobs:
-    build:
-        name: Build and Package
-        runs-on: ubuntu-22.04
-        permissions:
-            id-token: write
-            contents: read
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
-
     deploy-to-s3:
         name: Deploy to S3
         runs-on: ubuntu-22.04
@@ -32,10 +22,12 @@ jobs:
         permissions:
             id-token: write
             contents: read
-        needs: build # build should upload artifacts
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v4
+
+            - name: bundle
+              run: npm run build
 
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v5.1.0
