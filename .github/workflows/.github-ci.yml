@@ -40,4 +40,4 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Upload Artifact to s3
-        run: aws s3 cp ./public s3://${{ env.S3BUCKET }} --recursive # ./public/* does not work for s3, expansion is not recognized
+        run: aws s3 cp ./public s3://${{ env.S3BUCKET }}/public --recursive # ./public/* does not work for s3, expansion is not recognized
