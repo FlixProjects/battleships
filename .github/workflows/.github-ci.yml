@@ -1,41 +1,43 @@
 name: Build and Deploy
 
 on:
-    push:
-        branches:
-            - main
+  push:
+    branches:
+      - main
 
 env:
-    AWS_REGION: ap-southeast-1
-    S3BUCKET: battleships-dev
+  AWS_REGION: ap-southeast-1
+  S3BUCKET: battleships-dev
 
 jobs:
-    deploy-to-s3:
-        name: Deploy to S3
-        runs-on: ubuntu-22.04
-        environment:
-            # Use environment to require approval to emulate manual execution
-            # In Repo Settings > Environments > add environment secrets
-            # you need to add `environment` to the sub claim
-            # repo:<OrgName>/<repo-name>:environment:prd-deploy
-            name: prd-deploy
-        permissions:
-            id-token: write
-            contents: read
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
+  deploy-to-s3:
+    name: Deploy to S3
+    runs-on: ubuntu-22.04
+    environment:
+      # Use environment to require approval to emulate manual execution
+      # In Repo Settings > Environments > add environment secrets
+      # you need to add `environment` to the sub claim
+      # repo:<OrgName>/<repo-name>:environment:prd-deploy
+      name: prd-deploy
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.20.0"
+      - run: npm ci
+      - name: bundle
+        run: npm run build
 
-            - name: bundle
-              run: npm run build
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5.1.0
+        with:
+          role-to-assume: ${{ secrets.IAMROLE_GITHUB }} # copy the ARN from AWS
+          role-session-name: GitHub-Action-Role
+          aws-region: ${{ env.AWS_REGION }}
 
-            - name: Configure AWS Credentials
-              uses: aws-actions/configure-aws-credentials@v5.1.0
-              with:
-                  role-to-assume: ${{ secrets.IAMROLE_GITHUB }} # copy the ARN from AWS
-                  role-session-name: GitHub-Action-Role
-                  aws-region: ${{ env.AWS_REGION }}
-
-            - name: Upload Artifact to s3
-              run: aws s3 cp ./public s3://${{ env.S3BUCKET }} --recursive # ./public/* does not work for s3, expansion is not recognized
-# https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws
+      - name: Upload Artifact to s3
+        run: aws s3 cp ./public s3://${{ env.S3BUCKET }} --recursive # ./public/* does not work for s3, expansion is not recognized
