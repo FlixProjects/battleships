@@ -1,0 +1,1 @@
+export const FP_AUTH_TOKEN = "fp-auth-token";
