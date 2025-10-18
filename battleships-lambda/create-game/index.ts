@@ -1,9 +1,8 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { randomUUID } from "crypto";
 import { getNewBoard } from "./common/constants";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
-export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const handler = async () => {
     try {
         const env = process.env.DEPLOY_ENV;
         const LOCAL_ENV = "local";
