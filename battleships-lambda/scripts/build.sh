@@ -1,4 +1,8 @@
 #
+rm -rf dist
+mkdir dist
+
+node scripts/esbuild.mjs
 
 cd dist
 for dir in *; do 
