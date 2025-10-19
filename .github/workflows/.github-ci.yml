@@ -33,7 +33,7 @@ jobs:
         env:
           DEPLOY_ENV: ${{ secrets.DEPLOY_ENV }}
           BASE_API_URL: ${{ secrets.BASE_API_URL }}
-        run: echo $DEPLOY_ENV && npm run build
+        run: npm run build
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v5.1.0
