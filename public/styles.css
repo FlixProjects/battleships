@@ -129,6 +129,20 @@ body {
     color: var(--muted);
 }
 
+.btn.secondary {
+  background: #555;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.2rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn.secondary:hover {
+  background: #333;
+}
+
 /* status and game area */
 .status {
     font-size: 13px;
