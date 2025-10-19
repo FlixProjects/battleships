@@ -3,6 +3,8 @@ import { getNewBoard } from "./common/constants";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 export const handler = async () => {
+    const FP_AUTH_TOKEN = "fp-auth-token";
+    const FP_USER_ID = "fp-user-id";
     try {
         const env = process.env.DEPLOY_ENV;
         const LOCAL_ENV = "local";
@@ -34,6 +36,13 @@ export const handler = async () => {
             headers: {
                 "Access-Control-Allow-Origin": "*", // FIXME: restrict origins
                 "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Credentials": "true",
+            },
+            multiValueHeaders: {
+                "Set-Cookie": [
+                    `${FP_AUTH_TOKEN}=${playerId}; Secure; SameSite=None`,
+                    `${FP_USER_ID}=${playerId}; Secure; SameSite=None`,
+                ],
             },
             body: JSON.stringify({
                 code: gameCode,

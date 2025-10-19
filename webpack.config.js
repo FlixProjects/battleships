@@ -11,6 +11,14 @@ module.exports = {
             },
         ],
     },
+    devServer: {
+        proxy: [
+            {
+                context: ["/api"],
+                target: "http://localhost:3000",
+            },
+        ],
+    },
     resolve: {
         extensions: [".tsx", ".ts", ".js"],
     },
