@@ -21,12 +21,16 @@ export const handler = async (event: any) => {
         const playerId = randomUUID();
         const newPlayer = { id: playerId, ready: false, board: getNewBoard() };
         if (!isLocal) {
-            gameState = await s3.send(
+            const { Body } = await s3.send(
                 new GetObjectCommand({
                     Bucket: BUCKET_NAME,
                     Key: `games/${gameCode}.json`,
                 }),
             );
+
+            const bodyStr = await Body?.transformToString("utf-8");
+
+            gameState = bodyStr ? JSON.parse(bodyStr) : null;
         }
 
         if (!gameState || gameState.gameCode !== gameCode) {
