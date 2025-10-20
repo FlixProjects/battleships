@@ -6,6 +6,7 @@ import { appConfig } from "./config/app-config";
 import { FP_GAME_STATE } from "./constants";
 
 const token = ""; // FIXME: get from cookies
+const isLocal = appConfig.deployEnv === "local";
 
 const statusEl = document.getElementById("status") as HTMLDivElement;
 const gameAreaEl = document.getElementById("gameArea") as HTMLDivElement;
@@ -20,7 +21,7 @@ const createGameBtn = document.getElementById("createGameBtn") as HTMLButtonElem
 createGameBtn.addEventListener("click", async () => {
     const response = await createGame(token);
     const gameCode = response?.code;
-    if (appConfig.deployEnv === "local") {
+    if (isLocal) {
         sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(response.gameState));
     }
 
@@ -34,11 +35,13 @@ createGameBtn.addEventListener("click", async () => {
 
 joinBtn.addEventListener("click", async () => {
     const response = await joinGame(joinCodeInput.value);
-
+    if (isLocal) {
+        sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(response.gameState));
+    }
     addPlayer(response?.playerId);
 });
 
-if (appConfig.deployEnv === "local") {
+if (isLocal) {
     const switchPlayerButtonContainer = document.createElement("div");
 
     const switchPlayerButton = document.createElement("button");

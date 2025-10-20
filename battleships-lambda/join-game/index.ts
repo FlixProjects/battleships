@@ -20,7 +20,6 @@ export const handler = async (event: any) => {
 
         const playerId = randomUUID();
         const newPlayer = { id: playerId, ready: false, board: getNewBoard() };
-        
         if (!isLocal) {
             gameState = await s3.send(
                 new GetObjectCommand({
@@ -28,9 +27,20 @@ export const handler = async (event: any) => {
                     Key: `games/${gameCode}.json`,
                 }),
             );
+        }
 
-            gameState.players.push(newPlayer);
+        if (!gameState || gameState.gameCode !== gameCode) {
+            return {
+                statusCode: 404,
+                body: JSON.stringify({
+                    message: "Game not found",
+                }),
+            };
+        }
 
+        gameState.players.push(newPlayer);
+
+        if (!isLocal) {
             await s3.send(
                 new PutObjectCommand({
                     Bucket: BUCKET_NAME,
@@ -39,8 +49,6 @@ export const handler = async (event: any) => {
                     ContentType: "application/json",
                 }),
             );
-        } else {
-            gameState.players.push(newPlayer);
         }
 
         return {
