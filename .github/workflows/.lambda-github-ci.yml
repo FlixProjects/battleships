@@ -35,6 +35,8 @@ jobs:
                   role-to-assume: ${{ secrets.IAMROLE_GITHUB }} # copy the ARN from AWS
                   role-session-name: GitHub-Action-Role
                   aws-region: ${{ env.AWS_REGION }}
+
+            # needs GetFunctionConfiguration, UpdateFunctionConfiguration, UpdateFunctionCode
             - name: Deploy Lambda Functions
               uses: aws-actions/aws-lambda-deploy@v1.1.0
               with:

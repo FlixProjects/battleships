@@ -1,6 +1,8 @@
 import { createGame } from "./apis/create-game";
 import { joinGame } from "./apis/join-game";
+import { addPlayer } from "./components/add-player";
 import { appConfig } from "./config/app-config";
+import { FP_GAME_STATE } from "./constants";
 
 const token = ""; // FIXME: get from cookies
 
@@ -15,7 +17,13 @@ const createGameBtn = document.getElementById("createGameBtn") as HTMLButtonElem
 
 createGameBtn.addEventListener("click", async () => {
     const response = await createGame(token);
+
+    if (appConfig.deployEnv === "local") {
+        sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(response.gameState));
+    }
+
     gameCode.innerText = response?.code || "error";
+    addPlayer(response?.playerId);
 });
 
 const joinBtn = document.getElementById("joinGameBtn") as HTMLButtonElement;
@@ -23,6 +31,8 @@ const gameCode = document.getElementById("gameCode") as HTMLSpanElement;
 
 joinBtn.addEventListener("click", async () => {
     const response = await joinGame(joinCodeInput.value);
+
+    addPlayer(response?.playerId);
 });
 
 if (appConfig.deployEnv === "local") {

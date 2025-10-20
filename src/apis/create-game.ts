@@ -17,10 +17,7 @@ export const createGame = async (token?: string) => {
     try {
         const res = await fetch(url, config);
         const data = await res.json();
-
-        const { code, playerId } = data;
-
-        return { code, playerId };
+        return data;
     } catch (err) {
         console.error(err);
     }
