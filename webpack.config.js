@@ -1,4 +1,5 @@
 const path = require("path");
+const webpack = require("webpack");
 const Dotenv = require("dotenv-webpack");
 module.exports = {
     entry: "./src/index.ts",
@@ -33,6 +34,10 @@ module.exports = {
         path: path.resolve(__dirname, "public"),
     },
     plugins: [
+        new webpack.ProvidePlugin({
+            process: "process/browser",
+            Buffer: ["buffer", "Buffer"],
+        }),
         new Dotenv({
             systemvars: true,
         }),
