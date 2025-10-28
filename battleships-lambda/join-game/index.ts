@@ -10,7 +10,7 @@ export const handler = async (event: any) => {
         const LOCAL_ENV = "local";
         const isLocal = env === LOCAL_ENV;
 
-        const body = JSON.parse(event.body);
+        const body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
 
         const gameCode = body.code;
         let gameState = body.gameState;

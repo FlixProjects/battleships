@@ -1,6 +1,7 @@
 import { appConfig } from "../config/app-config";
 import { FP_AUTH_TOKEN, FP_GAME_STATE } from "../constants";
 import { GameState } from "../types";
+import { CryptoHelper } from "../utils/crypto-helper";
 
 export const joinGame = async (joinCodeInput: string) => {
     const code = joinCodeInput.trim();
@@ -11,13 +12,17 @@ export const joinGame = async (joinCodeInput: string) => {
     try {
         const path = `join`;
         const url = appConfig.deployEnv === "local" ? `/api/${path}` : `${appConfig.apiBaseUrl}/${path}`;
+
+        const reqBody: { code: string; gameState?: GameState } = { code };
+
         const config: RequestInit = {
             method: "POST",
             credentials: "include",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                "x-Amz-Content-Sha256": new CryptoHelper().hash(JSON.stringify(reqBody)),
+            },
         };
-
-        const reqBody: { code: string; gameState?: GameState } = { code };
 
         if (appConfig.deployEnv === "local") {
             const localState = sessionStorage.getItem(FP_GAME_STATE);
