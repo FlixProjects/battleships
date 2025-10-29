@@ -74,13 +74,21 @@ export const handler = async (event: any) => {
                 ...(env === LOCAL_ENV ? { gameState } : {}),
             }),
         };
-    } catch (err) {
-        console.log(err);
+    } catch (err: any) {
+        /**
+         * error shape
+         * {
+         *  code: string;
+         *  message: string;
+         *  name: string;
+         *  $fault: "client" | "server";
+         * }
+         */
         return {
-            statusCode: 500,
-            body: JSON.stringify({
-                message: "some error happened",
-            }),
+            statusCode: err.code ?? 500,
+            message: err.message,
+            name: err.name,
+            fault: err.$fault,
         };
     }
 };
