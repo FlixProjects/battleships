@@ -15,7 +15,7 @@ export const handler = async () => {
         const playerId = randomUUID();
 
         const initialGameState = {
-            gameCode,
+            code: gameCode,
             players: [{ id: playerId, ready: false, board: getNewBoard() }],
             createdAt: new Date().toISOString(),
         };
@@ -45,9 +45,9 @@ export const handler = async () => {
                 ],
             },
             body: JSON.stringify({
-                code: gameCode,
+                gameCode,
                 playerId,
-                ...(env === LOCAL_ENV ? { gameState: initialGameState } : {}),
+                gameState: initialGameState,
             }),
         };
     } catch (err) {

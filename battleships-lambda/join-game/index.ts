@@ -69,9 +69,9 @@ export const handler = async (event: any) => {
                 ],
             },
             body: JSON.stringify({
-                code: gameCode,
                 playerId,
-                ...(env === LOCAL_ENV ? { gameState } : {}),
+                gameCode,
+                gameState,
             }),
         };
     } catch (err: any) {

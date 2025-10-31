@@ -11,6 +11,36 @@ Globals:
         LoggingConfig:
             LogFormat: JSON
 Resources:
+    GetGameFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: get-game/
+            Handler: get-game/index.handler
+            Runtime: nodejs22.x
+            Architectures:
+                - x86_64
+            Environment:
+                Variables:
+                    DEPLOY_ENV: local
+            Events:
+                getGame:
+                    Type: Api
+                    Properties:
+                        Path: /api/
+                        Method: get
+        Metadata:
+            BuildMethod: esbuild
+            BuildProperties:
+                Format: esm
+                Minify: true
+                Target: es2020
+                Sourcemap: true
+                OutExtension:
+                    - .js=.mjs
+                EntryPoints:
+                    - index.ts
+                External:
+                    - "@aws-sdk/client-s3"
     CreateGameFunction:
         Type: AWS::Serverless::Function
         Properties:

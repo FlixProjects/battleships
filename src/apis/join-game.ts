@@ -1,11 +1,11 @@
 import { appConfig } from "../config/app-config";
 import { FP_AUTH_TOKEN, FP_GAME_STATE } from "../constants";
-import { GameState } from "../types";
+import { GameState, JoinGameRequest, JoinGameResponse } from "../types";
 import { CryptoHelper } from "../utils/crypto-helper";
 
 export const joinGame = async (joinCodeInput: string) => {
-    const code = joinCodeInput.trim();
-    if (!code) {
+    const gameCode = joinCodeInput.trim();
+    if (!gameCode) {
         console.log("Please enter a code");
         return;
     }
@@ -13,7 +13,7 @@ export const joinGame = async (joinCodeInput: string) => {
         const path = `join`;
         const url = appConfig.deployEnv === "local" ? `/api/${path}` : `${appConfig.apiBaseUrl}/${path}`;
 
-        const reqBody: { code: string; gameState?: GameState } = { code };
+        const reqBody: JoinGameRequest = { gameCode };
 
         const config: RequestInit = {
             method: "POST",
@@ -40,7 +40,7 @@ export const joinGame = async (joinCodeInput: string) => {
             body: JSON.stringify(reqBody),
             // for non-local, it should also set-cookie
         });
-        const data = await res.json();
+        const data: JoinGameResponse = await res.json();
 
         return data;
     } catch (err) {

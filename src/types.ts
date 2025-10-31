@@ -24,6 +24,30 @@ export interface Ship {
 }
 
 export interface GameState {
-    gameCode: string;
+    code: string;
     players: Player[];
+}
+
+export interface GetGameRequest {
+    gameCode: string;
+    gameState?: GameState;
+}
+
+export interface JoinGameRequest {
+    gameCode: string;
+    gameState?: GameState;
+}
+
+export interface GetGameResponse {
+    gameState: GameState;
+}
+
+export interface CreateGameResponse extends GetGameResponse {
+    playerId: string;
+    gameCode: string;
+}
+
+export interface JoinGameResponse extends GetGameResponse {
+    playerId: string;
+    gameCode: string;
 }

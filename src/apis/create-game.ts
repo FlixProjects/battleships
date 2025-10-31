@@ -1,8 +1,8 @@
 import { appConfig } from "../config/app-config";
 import { FP_AUTH_TOKEN } from "../constants";
+import { CreateGameResponse } from "../types";
 
 export const createGame = async (token?: string) => {
-
     const url = appConfig.deployEnv === "local" ? `/api/create` : `${appConfig.apiBaseUrl}/create`;
     const config: RequestInit = {
         method: "GET",
@@ -16,7 +16,8 @@ export const createGame = async (token?: string) => {
 
     try {
         const res = await fetch(url, config);
-        const data = await res.json();
+        const data: CreateGameResponse = await res.json();
+
         return data;
     } catch (err) {
         console.error(err);
