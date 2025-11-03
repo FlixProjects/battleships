@@ -55,6 +55,8 @@ export const handler = async (event: any) => {
             );
         }
 
+        const cookieConfig = LOCAL_ENV ? "Path=/; SameSite=Lax" : "Path=/; Secure; SameSite=None";
+
         return {
             statusCode: 200,
             headers: {
@@ -64,8 +66,8 @@ export const handler = async (event: any) => {
             },
             multiValueHeaders: {
                 "Set-Cookie": [
-                    `${FP_AUTH_TOKEN}=${playerId}; Secure; SameSite=None`,
-                    `${FP_USER_ID}=${playerId}; Secure; SameSite=None`,
+                    `${FP_AUTH_TOKEN}=${playerId}; ${cookieConfig}`,
+                    `${FP_USER_ID}=${playerId}; ${cookieConfig}`,
                 ],
             },
             body: JSON.stringify({

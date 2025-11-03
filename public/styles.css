@@ -254,14 +254,18 @@ body {
         gap: 12px;
     }
     .right.join-group {
+        flex-direction: column;
         justify-content: flex-start;
         gap: 8px;
+    }
+    .join-game-btn {
+        width: 100%;
     }
     .input {
         width: 100%;
     }
     .left {
-        justify-content: center;
+        justify-content: space-between;
         width: 100%;
     }
 }
