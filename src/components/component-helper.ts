@@ -1,4 +1,5 @@
 import { AppStatus, GameState, IAppState } from "../types";
+import { PlayerNameInput } from "./PlayerNameInput";
 
 const INITIAL_GAME_STATE: GameState = {
     code: "",
@@ -29,7 +30,7 @@ const getStaticComponents = () => {
 
     // Inputs
     const joinCodeInput = document.getElementById("joinCode") as HTMLInputElement;
-    const playerNameInput = document.getElementById("playerName") as HTMLInputElement;
+    const playerNameInput = new PlayerNameInput()
 
     return {
         button: {

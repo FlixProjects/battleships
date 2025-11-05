@@ -6,8 +6,9 @@ import { enableGameCodeCopy } from "../components/enable-game-code-copy";
 import { getComponents } from "../components/component-helper";
 import { appConfig } from "../config/app-config";
 import { FP_GAME_CODE, FP_GAME_STATE, FP_USER_ID } from "../constants";
-import { GameState } from "../types";
+import { GameState, Player } from "../types";
 import { getCookie } from "./cookie-helper";
+import { PlayerNameInput } from "../components/PlayerNameInput";
 
 interface ICheckGameResult {
     gameState?: GameState;
@@ -45,8 +46,13 @@ export const checkIfAlreadyInGame = async (): Promise<ICheckGameResult> => {
 
 export const checkIfNameIsFilled = () => {
     const playerNameInput = getComponents().input.playerName;
+    return !!playerNameInput.value;
+};
 
-    return !!playerNameInput.innerText;
+export const setCurrentPlayerName = (players: Player[]) => {
+    const playerNameInput = getComponents().input.playerName;
+    const playerName = players.find((p) => p.id === getCookie(FP_USER_ID))?.name;
+    playerNameInput.setValue(playerName ?? "");
 };
 
 export const initialiseExistingGame = async () => {
@@ -65,7 +71,7 @@ export const initialiseExistingGame = async () => {
         createGameBtn.disabled = true;
         joinGameBtn.disabled = true;
 
-        playerNameInput.innerText = getCookie(FP_USER_ID);
+        setCurrentPlayerName(gameState.players);
         addPlayer(gameState.players[0]?.id);
         addPlayer(gameState.players[1]?.id);
     } else {
@@ -78,8 +84,13 @@ export const initialiseCreateGameButton = () => {
     const isLocal = appConfig.deployEnv === "local";
     const createGameBtn = getComponents().button.createGame;
     const gameCodeEl = getComponents().span.gameCode;
+    const playerNameInput = new PlayerNameInput();
 
     createGameBtn.addEventListener("click", async () => {
+        if (!checkIfNameIsFilled()) {
+            return playerNameInput.shakeForAwhile();
+        }
+
         const response = await createGame();
 
         if (!response) {
@@ -108,7 +119,13 @@ export const initialiseJoinGameButton = () => {
     const joinGameBtn = getComponents().button.joinGame;
     const joinCodeInput = getComponents().input.joinCode;
 
+    const playerNameInput = getComponents().input.playerName;
+
     joinGameBtn.addEventListener("click", async () => {
+        if (!checkIfNameIsFilled()) {
+            return playerNameInput.shakeForAwhile();
+        }
+
         const response = await joinGame(joinCodeInput.value);
         if (isLocal) {
             sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(response?.gameState));

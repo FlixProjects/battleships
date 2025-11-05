@@ -307,6 +307,27 @@ body {
     }
 }
 
+@keyframes shake {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    20%,
+    60% {
+        transform: translateX(-6px);
+    }
+    40%,
+    80% {
+        transform: translateX(6px);
+    }
+}
+
+.input.shake {
+    animation: shake 0.4s ease;
+    border-color: #ff4d4d;
+    box-shadow: 0 0 8px rgba(255, 77, 77, 0.4);
+}
+
 #gameCode.appear {
     animation: pulseCode 1.4s ease-in-out;
 }

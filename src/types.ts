@@ -1,4 +1,5 @@
 export interface Player {
+    name: string;
     id: string;
     ready: boolean;
     board: Board;
