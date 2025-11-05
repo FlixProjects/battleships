@@ -6,7 +6,6 @@ export interface Player {
 }
 
 export interface Board {
-    playerId: string;
     grid: Grid;
 }
 
@@ -22,4 +21,9 @@ export interface Hull {
 
 export interface Ship {
     hullLocations: Hull[];
+}
+
+export interface GameState {
+    code: string;
+    players: Player[];
 }

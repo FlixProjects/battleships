@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { getNewBoard } from "./common/constants";
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { GameState } from "./common/types";
 
 export const handler = async (event: any) => {
     const FP_AUTH_TOKEN = "fp-auth-token";
@@ -12,14 +13,18 @@ export const handler = async (event: any) => {
 
         const body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
 
+        const playerName = body.playerName;
         const gameCode = body.code;
-        let gameState = body.gameState;
+        let gameState: GameState = body.gameState;
+
+        console.log("Request Body:", body);
 
         const s3 = new S3Client({ region: process.env.AWS_REGION }); // AWS_REGION is a reserved keyword for AWS, for now its okay to leave as is
         const BUCKET_NAME = process.env.GAMES_BUCKET!; // set in lambda, TODO: we should inject this value
 
         const playerId = randomUUID();
-        const newPlayer = { id: playerId, ready: false, board: getNewBoard() };
+        const newPlayer = { id: playerId, name: playerName, ready: false, board: getNewBoard() };
+
         if (!isLocal) {
             const { Body } = await s3.send(
                 new GetObjectCommand({
@@ -31,9 +36,11 @@ export const handler = async (event: any) => {
             const bodyStr = await Body?.transformToString("utf-8");
 
             gameState = bodyStr ? JSON.parse(bodyStr) : null;
+
+            console.log("Fetched Game State", gameState);
         }
 
-        if (!gameState || gameState.gameCode !== gameCode) {
+        if (!gameState || gameState.code !== gameCode) {
             return {
                 statusCode: 404,
                 body: JSON.stringify({

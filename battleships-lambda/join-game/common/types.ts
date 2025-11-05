@@ -1,4 +1,3 @@
-
 export interface Player {
     id: string;
     ready: boolean;
@@ -6,13 +5,12 @@ export interface Player {
 }
 
 export interface Board {
-    playerId: string;
     grid: Grid;
 }
 
 export type Grid = Array<Hull[]>; // grid[x][y]
 
-export type Cell = [number, number]
+export type Cell = [number, number];
 
 export interface Hull {
     shipId: number;
@@ -22,4 +20,9 @@ export interface Hull {
 
 export interface Ship {
     hullLocations: Hull[];
+}
+
+export interface GameState {
+    code: string;
+    players: Player[];
 }
