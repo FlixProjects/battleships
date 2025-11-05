@@ -51,3 +51,16 @@ export interface JoinGameResponse extends GetGameResponse {
     playerId: string;
     gameCode: string;
 }
+
+export const AppStatus = {
+    Initialising: "Initialising",
+    WaitingForPlayers: "WaitingForPlayers",
+} as const;
+
+type TAppStatus = (typeof AppStatus)[keyof typeof AppStatus];
+
+export interface IAppState {
+    status: TAppStatus;
+    loading: boolean;
+    gameState: Partial<GameState>;
+}
