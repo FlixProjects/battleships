@@ -1,4 +1,5 @@
 import { AppStatus, GameState, IAppState } from "../types";
+import { addPlayer } from "./add-player";
 import { PlayerNameInput } from "./PlayerNameInput";
 
 const INITIAL_GAME_STATE: GameState = {
@@ -30,7 +31,7 @@ const getStaticComponents = () => {
 
     // Inputs
     const joinCodeInput = document.getElementById("joinCode") as HTMLInputElement;
-    const playerNameInput = new PlayerNameInput()
+    const playerNameInput = new PlayerNameInput();
 
     return {
         button: {
@@ -45,4 +46,15 @@ const getStaticComponents = () => {
             playerName: playerNameInput,
         },
     };
+};
+export const updateComponents = (gameState: GameState) => {
+    _state.gameState = gameState;
+
+    updatePlayers();
+};
+
+const updatePlayers = () => {
+    _state.gameState.players.forEach((player) => {
+        addPlayer(player.id, player.name);
+    });
 };

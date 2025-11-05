@@ -1,14 +1,13 @@
 import { createGame } from "../apis/create-game";
 import { getGame } from "../apis/get-game";
 import { joinGame } from "../apis/join-game";
-import { addPlayer } from "../components/add-player";
+import { getComponents, updateComponents } from "../components/component-helper";
 import { enableGameCodeCopy } from "../components/enable-game-code-copy";
-import { getComponents } from "../components/component-helper";
+import { PlayerNameInput } from "../components/PlayerNameInput";
 import { appConfig } from "../config/app-config";
 import { FP_GAME_CODE, FP_GAME_STATE, FP_USER_ID } from "../constants";
 import { GameState, Player } from "../types";
 import { getCookie } from "./cookie-helper";
-import { PlayerNameInput } from "../components/PlayerNameInput";
 
 interface ICheckGameResult {
     gameState?: GameState;
@@ -72,8 +71,8 @@ export const initialiseExistingGame = async () => {
         joinGameBtn.disabled = true;
 
         setCurrentPlayerName(gameState.players);
-        addPlayer(gameState.players[0]?.id);
-        addPlayer(gameState.players[1]?.id);
+
+        updateComponents(gameState);
     } else {
         createGameBtn.disabled = false;
         joinGameBtn.disabled = false;
@@ -91,7 +90,7 @@ export const initialiseCreateGameButton = () => {
             return playerNameInput.shakeForAwhile();
         }
 
-        const response = await createGame();
+        const response = await createGame(playerNameInput.value);
 
         if (!response) {
             return;
@@ -107,9 +106,10 @@ export const initialiseCreateGameButton = () => {
         gameCodeEl.innerText = gameCode || "error";
 
         if (gameCode) {
-            addPlayer(response?.playerId);
             enableGameCodeCopy();
         }
+
+        updateComponents(response?.gameState!);
     });
 };
 
@@ -130,6 +130,7 @@ export const initialiseJoinGameButton = () => {
         if (isLocal) {
             sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(response?.gameState));
         }
-        addPlayer(response?.playerId);
+
+        updateComponents(response?.gameState!);
     });
 };
