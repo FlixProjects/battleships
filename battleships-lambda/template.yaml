@@ -57,7 +57,7 @@ Resources:
                     Type: Api
                     Properties:
                         Path: /api/create
-                        Method: get
+                        Method: post
         Metadata: # Manage esbuild properties
             BuildMethod: esbuild
             BuildProperties:

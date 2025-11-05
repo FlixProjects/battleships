@@ -40,6 +40,10 @@ export interface JoinGameRequest {
     gameState?: GameState;
 }
 
+export interface CreateGameRequest {
+    playerName: string;
+}
+
 export interface GetGameResponse {
     gameState: GameState;
 }

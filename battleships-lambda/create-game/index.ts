@@ -2,12 +2,15 @@ import { randomUUID } from "crypto";
 import { getNewBoard } from "./common/constants";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
-export const handler = async () => {
+export const handler = async (event: any) => {
     const FP_AUTH_TOKEN = "fp-auth-token";
     const FP_USER_ID = "fp-user-id";
     try {
         const env = process.env.DEPLOY_ENV;
         const LOCAL_ENV = "local";
+
+        const body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
+        const playerName = body.playerName;
 
         const s3 = new S3Client({ region: process.env.AWS_REGION }); // AWS_REGION is a reserved keyword for AWS, for now its okay to leave as is
         const BUCKET_NAME = process.env.GAMES_BUCKET!; // set in lambda, TODO: we should inject this value
@@ -16,7 +19,7 @@ export const handler = async () => {
 
         const initialGameState = {
             code: gameCode,
-            players: [{ id: playerId, ready: false, board: getNewBoard() }],
+            players: [{ id: playerId, name: playerName, ready: false, board: getNewBoard() }],
             createdAt: new Date().toISOString(),
         };
 

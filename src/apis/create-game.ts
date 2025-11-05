@@ -1,12 +1,20 @@
 import { appConfig } from "../config/app-config";
 import { FP_AUTH_TOKEN } from "../constants";
-import { CreateGameResponse } from "../types";
+import { CreateGameRequest, CreateGameResponse } from "../types";
+import { CryptoHelper } from "../utils/crypto-helper";
 
-export const createGame = async (token?: string) => {
+export const createGame = async (playerName: string) => {
     const url = appConfig.deployEnv === "local" ? `/api/create` : `${appConfig.apiBaseUrl}/create`;
+
+    const reqBody: CreateGameRequest = { playerName };
+
     const config: RequestInit = {
-        method: "GET",
+        method: "POST",
         credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+            "x-Amz-Content-Sha256": new CryptoHelper().hash(JSON.stringify(reqBody)),
+        },
     };
 
     if (appConfig.deployEnv !== "local") {
@@ -15,7 +23,7 @@ export const createGame = async (token?: string) => {
     }
 
     try {
-        const res = await fetch(url, config);
+        const res = await fetch(url, { ...config, body: JSON.stringify(reqBody) });
         const data: CreateGameResponse = await res.json();
 
         return data;
