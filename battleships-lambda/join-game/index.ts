@@ -14,10 +14,20 @@ export const handler = async (event: any) => {
         const body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
 
         const playerName = body.playerName;
-        const gameCode = body.code;
+        const gameCode = body.gameCode;
         let gameState: GameState = body.gameState;
 
         console.log("Request Body:", body);
+
+        if (!gameCode) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({
+                    message: "Bad request: missing game code",
+                    body,
+                }),
+            };
+        }
 
         const s3 = new S3Client({ region: process.env.AWS_REGION }); // AWS_REGION is a reserved keyword for AWS, for now its okay to leave as is
         const BUCKET_NAME = process.env.GAMES_BUCKET!; // set in lambda, TODO: we should inject this value

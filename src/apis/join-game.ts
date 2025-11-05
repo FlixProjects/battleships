@@ -3,7 +3,7 @@ import { FP_AUTH_TOKEN, FP_GAME_STATE } from "../constants";
 import { GameState, JoinGameRequest, JoinGameResponse } from "../types";
 import { CryptoHelper } from "../utils/crypto-helper";
 
-export const joinGame = async (joinCodeInput: string) => {
+export const joinGame = async (joinCodeInput: string, playerName: string) => {
     const gameCode = joinCodeInput.trim();
     if (!gameCode) {
         console.log("Please enter a code");
@@ -13,7 +13,7 @@ export const joinGame = async (joinCodeInput: string) => {
         const path = `join`;
         const url = appConfig.deployEnv === "local" ? `/api/${path}` : `${appConfig.apiBaseUrl}/${path}`;
 
-        const reqBody: JoinGameRequest = { gameCode };
+        const reqBody: JoinGameRequest = { gameCode, playerName };
 
         const config: RequestInit = {
             method: "POST",

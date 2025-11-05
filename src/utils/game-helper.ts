@@ -126,7 +126,7 @@ export const initialiseJoinGameButton = () => {
             return playerNameInput.shakeForAwhile();
         }
 
-        const response = await joinGame(joinCodeInput.value);
+        const response = await joinGame(joinCodeInput.value, playerNameInput.value);
         if (isLocal) {
             sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(response?.gameState));
         }

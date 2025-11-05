@@ -36,6 +36,7 @@ export interface GetGameRequest {
 
 export interface JoinGameRequest {
     gameCode: string;
+    playerName: string;
     gameState?: GameState;
 }
 
