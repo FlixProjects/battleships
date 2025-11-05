@@ -4,7 +4,7 @@ export const addPlayer = (playerId: string, playerName?: string) => {
     }
     const playerContainer = document.createElement("div");
 
-    playerContainer.className = "player";
+    playerContainer.className = "player-container";
     playerContainer.id = playerId;
 
     const playerNameEl = document.createElement("span");

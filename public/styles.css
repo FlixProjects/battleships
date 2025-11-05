@@ -195,7 +195,7 @@ body {
     gap: 1rem;
 }
 
-.player {
+.player-container {
     background: #2b2b2b;
     border-radius: 8px;
     padding: 0.6rem 1rem;

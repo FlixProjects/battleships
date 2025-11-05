@@ -54,7 +54,11 @@ export const updateComponents = (gameState: GameState) => {
 };
 
 const updatePlayers = () => {
-    _state.gameState.players.forEach((player) => {
+    const playerComponents = document.getElementsByClassName("player-container"); // TODO: make this a constant
+
+    Array.from(playerComponents).forEach((el) => el.remove());
+
+    _state.gameState?.players.forEach((player) => {
         addPlayer(player.id, player.name);
     });
 };
