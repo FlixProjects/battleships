@@ -30,7 +30,7 @@ export const joinGame = async (joinCodeInput: string, playerName: string) => {
         } else {
             // NOTE: append headers result in preflight OPTIONS getting called and blocked
             config["headers"] = {
-                ...config["headers"],
+                ...config.headers,
                 [FP_AUTH_TOKEN]: "test",
             }; // FIXME: replace with actual signed token later
         }
