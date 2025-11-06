@@ -63,3 +63,11 @@ jobs:
                   handler: index.handler
                   runtime: nodejs22.x
                   role: ${{ secrets.LAMBDA_EXECUTION_ROLE_ARN }}
+
+            - name: Invalidate CloudFront cache
+              env:
+                CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+              run: |
+                  aws cloudfront create-invalidation --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" --paths "/api/*"
+                
+              
