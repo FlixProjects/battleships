@@ -1,4 +1,3 @@
-import { getComponents } from "./component-helper";
 import { Input } from "./native/Input";
 
 export class PlayerNameInput extends Input {

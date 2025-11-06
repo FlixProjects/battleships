@@ -1,9 +1,11 @@
 import { appConfig } from "../config/app-config";
-import { FP_GAME_STATE, FP_GAME_CODE } from "../constants";
+import { FP_GAME_CODE, FP_GAME_STATE } from "../constants";
 import { AppStatus, GameState, IAppState } from "../types";
 import { addPlayer } from "./add-player";
 import { enableGameCodeCopy } from "./enable-game-code-copy";
 import { PlayerNameInput } from "./PlayerNameInput";
+import { RefreshButton } from "./RefreshButton";
+import { StatusText } from "./StatusText";
 
 const INITIAL_GAME_STATE: GameState = {
     code: "",
@@ -20,6 +22,12 @@ let _state: IAppState = DEFAULT_APP_STATE;
 
 const isLocal = appConfig.deployEnv === "local";
 
+const _components = {
+    refreshBtn: new RefreshButton(),
+    statusEl: new StatusText(),
+    playerNameInput: new PlayerNameInput(),
+};
+
 export const getComponents = () => {
     const button = { ...getStaticComponents().button };
     const span = { ...getStaticComponents().span };
@@ -29,39 +37,49 @@ export const getComponents = () => {
 };
 
 const getStaticComponents = () => {
+    // TODO: eventually convert to class components (am I just building React from scratch?)
     // Buttons
     const joinGameBtn = document.getElementById("joinGameBtn") as HTMLButtonElement;
     const createGameBtn = document.getElementById("createGameBtn") as HTMLButtonElement;
-
     // Spans
     const gameCodeEl = document.getElementById("gameCode") as HTMLSpanElement;
 
     // Inputs
     const joinCodeInput = document.getElementById("joinCode") as HTMLInputElement;
-    const playerNameInput = new PlayerNameInput();
 
     return {
         button: {
             joinGame: joinGameBtn,
             createGame: createGameBtn,
+            refresh: _components.refreshBtn,
         },
         span: {
             gameCode: gameCodeEl,
+            status: _components.statusEl,
         },
         input: {
             joinCode: joinCodeInput,
-            playerName: playerNameInput,
+            playerName: _components.playerNameInput,
         },
     };
 };
 
-export const updateComponents = (appState: Partial<IAppState>) => {
-    _state = { ..._state, ...appState };
+// TODO: We should be automating updateComponent calls instead of manually calling them
+export const updateComponents = (incomingState: Partial<IAppState>) => {
+    _state = { ..._state, ...incomingState };
 
     updateJoinButton();
     updateCreateButton();
     updateGameCodeSpan();
     updatePlayers();
+
+    Object.values(getComponents()).forEach((typeOfComponent) => {
+        Object.values(typeOfComponent).forEach((component) => {
+            if (component.updateState) {
+                component.updateState(_state);
+            }
+        });
+    });
 };
 
 const updatePlayers = () => {

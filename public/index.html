@@ -33,8 +33,12 @@
                         <button id="joinGameBtn" class="btn join-game-btn">Join Game</button>
                     </div>
                 </div>
-
-                <div id="status" class="status">Status: idle</div>
+                <div class="status-bar">
+                    <div id="status" class="status">Status:&nbsp;<span id="status-value">idle</span></div>
+                    <button id="refreshBtn" class="btn icon-btn" title="Refresh Game">
+                        <img src="assets/refresh-icon.svg" alt="Refresh" class="refresh-icon" draggable="false" />
+                    </button>
+                </div>
                 <div id="playerInfo" class="player-info">
                     <h3>Players</h3>
                     <div id="playerList" class="player-list">

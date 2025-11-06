@@ -54,21 +54,12 @@ export const setCurrentPlayerName = (players: Player[]) => {
 };
 
 export const initialiseExistingGame = async () => {
-    const joinGameBtn = getComponents().button.joinGame;
-    const createGameBtn = getComponents().button.createGame;
-    const gameCodeEl = getComponents().span.gameCode;
-
     const res = await checkIfAlreadyInGame();
 
     const { gameState } = res;
 
     if (gameState) {
-        gameCodeEl.innerText = gameState.code;
-        createGameBtn.disabled = true;
-        joinGameBtn.disabled = true;
-
         setCurrentPlayerName(gameState.players);
-
         updateComponents({
             status: AppStatus.Initialised,
             loading: false,
@@ -83,9 +74,7 @@ export const initialiseExistingGame = async () => {
 };
 
 export const initialiseCreateGameButton = () => {
-    const isLocal = appConfig.deployEnv === "local";
     const createGameBtn = getComponents().button.createGame;
-    const gameCodeEl = getComponents().span.gameCode;
     const playerNameInput = new PlayerNameInput();
 
     createGameBtn.addEventListener("click", async () => {
@@ -134,4 +123,14 @@ export const initialiseJoinGameButton = () => {
             updateComponents({ status: AppStatus.Error });
         }
     });
+};
+
+export const refresh = async () => {
+    try {
+        const gameCode = sessionStorage.getItem(FP_GAME_CODE);
+        const response = await getGame(gameCode);
+        updateComponents({ loading: false, gameState: response?.gameState });
+    } catch (error) {
+        updateComponents({ status: AppStatus.Error });
+    }
 };
