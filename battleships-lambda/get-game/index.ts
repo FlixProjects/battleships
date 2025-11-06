@@ -25,7 +25,7 @@ export const handler = async (event: any) => {
 
             gameState = bodyStr ? JSON.parse(bodyStr) : null;
 
-            if (!gameState || gameState.gameCode !== gameCode) {
+            if (!gameState || gameState.code !== gameCode) {
                 return {
                     statusCode: 404,
                     body: JSON.stringify({
