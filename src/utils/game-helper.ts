@@ -2,11 +2,10 @@ import { createGame } from "../apis/create-game";
 import { getGame } from "../apis/get-game";
 import { joinGame } from "../apis/join-game";
 import { getComponents, updateComponents } from "../components/component-helper";
-import { enableGameCodeCopy } from "../components/enable-game-code-copy";
 import { PlayerNameInput } from "../components/PlayerNameInput";
 import { appConfig } from "../config/app-config";
 import { FP_GAME_CODE, FP_GAME_STATE, FP_USER_ID } from "../constants";
-import { GameState, Player } from "../types";
+import { AppStatus, GameState, Player } from "../types";
 import { getCookie } from "./cookie-helper";
 
 interface ICheckGameResult {
@@ -59,8 +58,6 @@ export const initialiseExistingGame = async () => {
     const createGameBtn = getComponents().button.createGame;
     const gameCodeEl = getComponents().span.gameCode;
 
-    const playerNameInput = getComponents().input.playerName;
-
     const res = await checkIfAlreadyInGame();
 
     const { gameState } = res;
@@ -72,10 +69,16 @@ export const initialiseExistingGame = async () => {
 
         setCurrentPlayerName(gameState.players);
 
-        updateComponents(gameState);
+        updateComponents({
+            status: AppStatus.Initialised,
+            loading: false,
+            gameState,
+        });
     } else {
-        createGameBtn.disabled = false;
-        joinGameBtn.disabled = false;
+        updateComponents({
+            status: AppStatus.NewGame,
+            loading: false,
+        });
     }
 };
 
@@ -90,26 +93,21 @@ export const initialiseCreateGameButton = () => {
             return playerNameInput.shakeForAwhile();
         }
 
-        const response = await createGame(playerNameInput.value);
+        try {
+            const response = await createGame(playerNameInput.value);
 
-        if (!response) {
-            return;
+            if (!response) {
+                return;
+            }
+
+            updateComponents({
+                status: AppStatus.Initialised,
+                loading: false,
+                gameState: response?.gameState!,
+            });
+        } catch (error) {
+            updateComponents({ status: AppStatus.Error });
         }
-
-        const gameCode = response?.gameCode;
-
-        if (isLocal) {
-            sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(response?.gameState));
-        }
-        sessionStorage.setItem(FP_GAME_CODE, gameCode);
-
-        gameCodeEl.innerText = gameCode || "error";
-
-        if (gameCode) {
-            enableGameCodeCopy();
-        }
-
-        updateComponents(response?.gameState!);
     });
 };
 
@@ -125,12 +123,15 @@ export const initialiseJoinGameButton = () => {
         if (!checkIfNameIsFilled()) {
             return playerNameInput.shakeForAwhile();
         }
+        try {
+            const response = await joinGame(joinCodeInput.value, playerNameInput.value);
+            if (isLocal) {
+                sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(response?.gameState));
+            }
 
-        const response = await joinGame(joinCodeInput.value, playerNameInput.value);
-        if (isLocal) {
-            sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(response?.gameState));
+            updateComponents({ status: AppStatus.Initialised, loading: false, gameState: response?.gameState! });
+        } catch (error) {
+            updateComponents({ status: AppStatus.Error });
         }
-
-        updateComponents(response?.gameState!);
     });
 };

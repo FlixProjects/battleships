@@ -59,7 +59,10 @@ export interface JoinGameResponse extends GetGameResponse {
 }
 
 export const AppStatus = {
+    NewGame: "NewGame",
     Initialising: "Initialising",
+    Initialised: "Initialised",
+    Error: "Error",
     WaitingForPlayers: "WaitingForPlayers",
 } as const;
 
