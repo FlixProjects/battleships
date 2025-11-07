@@ -1,5 +1,5 @@
 import { appConfig } from "../config/app-config";
-import { FP_GAME_STATE } from "../constants";
+import { FP_GAME_CODE, FP_GAME_STATE } from "../constants";
 import { GameState, GetGameResponse } from "../types";
 import { deleteAuthCookie } from "../utils/cookie-helper";
 
@@ -32,6 +32,7 @@ export const getGame = async (gameCodeInput: string) => {
     } catch (err) {
         const errorCode: number = err.statusCode || err.code;
         if (errorCode === 403) {
+            sessionStorage.removeItem(FP_GAME_CODE);
             deleteAuthCookie();
         }
         console.error(err);
