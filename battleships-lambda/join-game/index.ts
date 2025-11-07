@@ -3,6 +3,18 @@ import { getNewBoard } from "./common/constants";
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { GameState } from "./common/types";
 
+interface JoinGameResponse {
+    statusCode: number;
+    headers: {
+        "fp-auth-token": `${string}-${string}-${string}-${string}-${string}`;
+        "Access-Control-Allow-Headers": string;
+        "Access-Control-Allow-Credentials": string;
+        "Access-Control-Allow-Origin": string;
+    };
+    body: string;
+    multiValueHeaders?: Record<string, Array<string>>;
+}
+
 export const handler = async (event: any) => {
     const FP_AUTH_TOKEN = "fp-auth-token";
     const FP_USER_ID = "fp-user-id";
@@ -72,20 +84,13 @@ export const handler = async (event: any) => {
             );
         }
 
-        const cookieConfig = LOCAL_ENV ? "Path=/; SameSite=Lax" : "Path=/; Secure; SameSite=None";
-
-        return {
+        const response: JoinGameResponse = {
             statusCode: 200,
             headers: {
+                [FP_AUTH_TOKEN]: playerId,
                 "Access-Control-Allow-Origin": "*", // FIXME: restrict origins
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Credentials": "true",
-            },
-            multiValueHeaders: {
-                "Set-Cookie": [
-                    `${FP_AUTH_TOKEN}=${playerId}; ${cookieConfig}`,
-                    `${FP_USER_ID}=${playerId}; ${cookieConfig}`,
-                ],
             },
             body: JSON.stringify({
                 playerId,
@@ -93,6 +98,19 @@ export const handler = async (event: any) => {
                 gameState,
             }),
         };
+
+        if (env === LOCAL_ENV) {
+            // we set cookie for local since prd is set thru LambdaEdge
+            const cookieConfig = "Path=/; SameSite=Lax";
+            response.headers["Access-Control-Allow-Origin"] = "*";
+            response.multiValueHeaders = {
+                "Set-Cookie": [`${FP_AUTH_TOKEN}=${playerId}; ${cookieConfig}`],
+            };
+        } else {
+            response.headers["Access-Control-Allow-Origin"] = process.env.BASE_URL ?? "*";
+        }
+
+        return response;
     } catch (err: any) {
         /**
          * error shape
