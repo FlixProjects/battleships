@@ -1,5 +1,5 @@
 import { appConfig } from "../config/app-config";
-import { FP_AUTH_TOKEN, FP_GAME_STATE } from "../constants";
+import { FP_GAME_STATE } from "../constants";
 import { GameState, JoinGameRequest, JoinGameResponse } from "../types";
 import { CryptoHelper } from "../utils/crypto-helper";
 
@@ -27,12 +27,6 @@ export const joinGame = async (joinCodeInput: string, playerName: string) => {
         if (appConfig.deployEnv === "local") {
             const localState = sessionStorage.getItem(FP_GAME_STATE);
             reqBody.gameState = localState ? (JSON.parse(localState) as GameState) : null;
-        } else {
-            // NOTE: append headers result in preflight OPTIONS getting called and blocked
-            config["headers"] = {
-                ...config.headers,
-                [FP_AUTH_TOKEN]: "test",
-            }; // FIXME: replace with actual signed token later
         }
 
         const res = await fetch(url, {

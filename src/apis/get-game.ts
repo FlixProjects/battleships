@@ -1,8 +1,9 @@
 import { appConfig } from "../config/app-config";
-import { FP_AUTH_TOKEN, FP_GAME_STATE } from "../constants";
+import { FP_GAME_STATE } from "../constants";
 import { GameState, GetGameResponse } from "../types";
+import { deleteAuthCookie } from "../utils/cookie-helper";
 
-export const getGame = async (gameCodeInput?: string) => {
+export const getGame = async (gameCodeInput: string) => {
     const gameCode = gameCodeInput.trim();
 
     if (!gameCode) {
@@ -18,14 +19,6 @@ export const getGame = async (gameCodeInput?: string) => {
             credentials: "include",
         };
 
-        if (appConfig.deployEnv !== "local") {
-            // NOTE: append headers result in preflight OPTIONS getting called and blocked
-            config["headers"] = {
-                ...config["headers"],
-                [FP_AUTH_TOKEN]: "test",
-            }; // FIXME: replace with actual signed token later
-        }
-
         const res = await fetch(url, config);
 
         const data: GetGameResponse = await res.json();
@@ -37,6 +30,10 @@ export const getGame = async (gameCodeInput?: string) => {
 
         return data;
     } catch (err) {
+        const errorCode: number = err.statusCode || err.code;
+        if (errorCode === 403) {
+            deleteAuthCookie();
+        }
         console.error(err);
     }
 };

@@ -2,10 +2,16 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
 export const handler = async (event: any) => {
     try {
-        const env = process.env.DEPLOY_ENV;
         const LOCAL_ENV = "local";
-        const isLocal = env === LOCAL_ENV;
+        const isLocal = process.env.DEPLOY_ENV === LOCAL_ENV;
+
         console.log("Get Game Event:", event);
+
+        const userId = getTokenCookie(event.cookies || event.multiValueHeaders.Cookie);
+
+        if (!userId) {
+            return NotFoundError;
+        }
 
         const gameCode = event.queryStringParameters?.code;
         let gameState = null;
@@ -26,21 +32,17 @@ export const handler = async (event: any) => {
             gameState = bodyStr ? JSON.parse(bodyStr) : null;
 
             if (!gameState || gameState.code !== gameCode) {
-                return {
-                    statusCode: 404,
-                    body: JSON.stringify({
-                        message: "Game not found",
-                    }),
-                };
+                return NotFoundError;
             }
 
-            // TODO: check header for player id and verify they are part of the game
+            if (!gameState.players?.find((p: { id: string }) => p.id === userId)) {
+                return WrongGameError;
+            }
         }
 
         return {
             statusCode: 200,
             headers: {
-                "Access-Control-Allow-Origin": "*", // FIXME: restrict origins
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Credentials": "true",
             },
@@ -55,3 +57,55 @@ export const handler = async (event: any) => {
         };
     }
 };
+
+const NotFoundError = {
+    statusCode: 404,
+    body: JSON.stringify({
+        message: "Game not found",
+    }),
+};
+
+const WrongGameError = {
+    statusCode: 403,
+    body: JSON.stringify({
+        message: "You are not authorised to join this game",
+    }),
+};
+
+const getTokenCookie = (cookies: string[]) => {
+    const FP_AUTH_TOKEN = "fp-auth-token";
+    return cookies?.map((cookie) => cookie.split("=")).find(([key, value]) => key === FP_AUTH_TOKEN)?.[1];
+};
+
+/**
+Reference shape for event
+{
+  version: '2.0',
+  routeKey: '$default',
+  rawPath: '/api',
+  rawQueryString: 'code=A4H0',
+  cookies: [ 'fp-auth-token=8961d64b-c766-410a-ab42-920350bb2ca6' ],
+  headers: {
+    ...
+  },
+  queryStringParameters: { code: 'A4H0' },
+  requestContext: {
+    accountId: "some-string-id",
+    apiId: <function-prefix>,
+    authorizer: { iam: [Object] },
+    domainName: '<function-prefix>.lambda-url.ap-southeast-1.on.aws',
+    domainPrefix: <function-prefix>,
+    http: {
+      method: 'GET',
+      path: '/api',
+      ...
+    },
+    requestId: 'ff8dad3c-a9bc-4825-9cdb-7a33b5291fcb',
+    routeKey: '$default',
+    stage: '$default',
+    time: '07/Nov/2025:07:17:28 +0000',
+    timeEpoch: 1762499848335
+  },
+  isBase64Encoded: false
+}
+ */
