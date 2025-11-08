@@ -5,8 +5,9 @@ import { getComponents, updateComponents } from "../components/component-helper"
 import { PlayerNameInput } from "../components/PlayerNameInput";
 import { appConfig } from "../config/app-config";
 import { FP_GAME_CODE, FP_GAME_STATE, FP_USER_ID } from "../constants";
-import { AppStatus, GameState, Player } from "../types";
+import { GameState, Player } from "../../shared";
 import { getCookie } from "./cookie-helper";
+import { AppStatus } from "../types";
 
 interface ICheckGameResult {
     gameState?: GameState;

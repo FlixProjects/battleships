@@ -1,4 +1,4 @@
-import { FP_AUTH_TOKEN } from "../constants";
+import { FP_AUTH_TOKEN } from "../../shared";
 
 const getCookies = () => {
     const cookies = {} as Record<string, string>;

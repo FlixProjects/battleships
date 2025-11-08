@@ -1,6 +1,7 @@
+import { GameState } from "../../shared";
 import { appConfig } from "../config/app-config";
 import { FP_GAME_CODE, FP_GAME_STATE } from "../constants";
-import { AppStatus, GameState, IAppState } from "../types";
+import { AppStatus, IAppState } from "../types";
 import { addPlayer } from "./add-player";
 import { enableGameCodeCopy } from "./enable-game-code-copy";
 import { PlayerNameInput } from "./PlayerNameInput";

@@ -1,7 +1,12 @@
 import * as esbuild from "esbuild";
 
 async function buildLambda() {
-    const entryPoints = ["create-game/index.ts", "join-game/index.ts", "get-game/index.ts"];
+    const entryPoints = [
+        "create-game/index.ts",
+        "join-game/index.ts",
+        "get-game/index.ts",
+        // "edge-auth-viewer-response/index.ts",
+    ];
 
     await esbuild.build({
         entryPoints,
