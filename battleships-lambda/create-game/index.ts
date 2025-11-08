@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { getNewBoard } from "./common/constants";
+import { getNewBoard } from "../../shared";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 interface CreateGameResponse {
@@ -81,7 +81,7 @@ export const handler = async (event: any) => {
 
             response.headers["Access-Control-Allow-Origin"] = process.env.BASE_URL ?? "*";
         }
-      
+
         return response;
     } catch (err) {
         console.log(err);

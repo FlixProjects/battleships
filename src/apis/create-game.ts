@@ -1,5 +1,5 @@
 import { appConfig } from "../config/app-config";
-import { CreateGameRequest, CreateGameResponse } from "../types";
+import { CreateGameRequest, CreateGameResponse } from "../../shared";
 import { CryptoHelper } from "../utils/crypto-helper";
 
 export const createGame = async (playerName: string) => {

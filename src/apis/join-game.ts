@@ -1,6 +1,6 @@
 import { appConfig } from "../config/app-config";
 import { FP_GAME_STATE } from "../constants";
-import { GameState, JoinGameRequest, JoinGameResponse } from "../types";
+import { GameState, JoinGameRequest, JoinGameResponse } from "../../shared";
 import { CryptoHelper } from "../utils/crypto-helper";
 
 export const joinGame = async (joinCodeInput: string, playerName: string) => {

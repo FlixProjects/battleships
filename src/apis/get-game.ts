@@ -1,6 +1,6 @@
 import { appConfig } from "../config/app-config";
 import { FP_GAME_CODE, FP_GAME_STATE } from "../constants";
-import { GameState, GetGameResponse } from "../types";
+import { GameState, GetGameResponse } from "../../shared";
 import { deleteAuthCookie } from "../utils/cookie-helper";
 
 export const getGame = async (gameCodeInput: string) => {

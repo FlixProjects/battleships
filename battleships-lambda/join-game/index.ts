@@ -1,7 +1,6 @@
 import { randomUUID } from "crypto";
-import { getNewBoard } from "./common/constants";
+import { getNewBoard, GameState } from "../../shared";
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
-import { GameState } from "./common/types";
 
 interface JoinGameResponse {
     statusCode: number;
