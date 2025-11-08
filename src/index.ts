@@ -1,4 +1,4 @@
-import { addSwitchPlayerBtn } from "./components/add-switch-player";
+import { SwitchPlayerButton } from "./components/add-switch-player";
 import { appConfig } from "./config/app-config";
 import { initialiseCreateGameButton, initialiseExistingGame, initialiseJoinGameButton } from "./utils/game-helper";
 
@@ -19,5 +19,5 @@ initialiseCreateGameButton();
 initialiseJoinGameButton();
 
 if (isLocal) {
-    addSwitchPlayerBtn();
+    new SwitchPlayerButton();
 }

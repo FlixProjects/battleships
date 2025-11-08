@@ -1,13 +1,33 @@
-export const addSwitchPlayerBtn = () => {
-    const switchPlayerButtonContainer = document.createElement("div");
+import { HTMLButton } from "./native/Button";
 
-    const switchPlayerButton = document.createElement("button");
+export class SwitchPlayerButton extends HTMLButton {
+    constructor() {
+        super();
+        this.build();
+    }
 
-    switchPlayerButton.id = "switchPlayerBtn";
-    switchPlayerButton.innerText = "Switch Player";
-    switchPlayerButton.className = "btn secondary";
+    build() {
+        const switchPlayerButtonContainer = document.createElement("div");
+        switchPlayerButtonContainer.id = "switchPlayerButtonContainer";
 
-    switchPlayerButtonContainer.appendChild(switchPlayerButton);
+        const switchPlayerButton = document.createElement("button");
 
-    document.getElementById("controls").appendChild(switchPlayerButtonContainer);
-};
+        this.ref = switchPlayerButton;
+
+        switchPlayerButton.id = "switchPlayerBtn";
+        switchPlayerButton.innerText = "Switch Player";
+        switchPlayerButton.className = "btn secondary";
+
+        switchPlayerButtonContainer.appendChild(switchPlayerButton);
+
+        document.getElementById("controls").appendChild(switchPlayerButtonContainer);
+    }
+
+    remove() {
+        document.getElementById("switchPlayerButtonContainer").remove();
+    }
+
+    onClick() {
+
+    }
+}
