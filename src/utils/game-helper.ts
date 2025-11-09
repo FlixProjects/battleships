@@ -10,6 +10,10 @@ export const getGameCode = () => {
     return sessionStorage.getItem(FP_GAME_CODE);
 };
 
+export const setGameCode = (gameCode: string) => {
+    return sessionStorage.setItem(FP_GAME_CODE, gameCode);
+};
+
 export const removeGameCode = () => {
     return sessionStorage.removeItem(FP_GAME_CODE);
 };

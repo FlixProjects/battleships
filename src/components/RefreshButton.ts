@@ -31,10 +31,14 @@ export class RefreshButton extends HTMLButton {
     updateState(appState: Partial<IAppState>) {
         const { status } = appState;
 
-        if (status !== AppStatus.Initialised && status !== AppStatus.WaitingForPlayers) {
-            this.ref.disabled = true;
-        } else {
-            this.ref.disabled = false;
+        switch (status) {
+            case AppStatus.Initialised:
+            case AppStatus.WaitingForPlayers:
+                this.ref.disabled = false;
+                break;
+            default:
+                this.ref.disabled = true;
+                break;
         }
     }
 }

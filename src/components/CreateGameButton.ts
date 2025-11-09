@@ -1,9 +1,9 @@
 import { gameManager } from "../";
-import { FP_GAME_CODE, FP_GAME_STATE } from "../../shared";
+import { FP_GAME_STATE } from "../../shared";
 import { createGame } from "../apis/create-game";
 import { isLocal } from "../config/app-config";
 import { AppStatus, IAppState } from "../types";
-import { checkIfNameIsFilled } from "../utils/game-helper";
+import { checkIfNameIsFilled, setGameCode } from "../utils/game-helper";
 import { getComponents, updateComponents } from "./component-helper";
 import { HTMLButton } from "./native/Button";
 
@@ -38,7 +38,7 @@ export class CreateGameButton extends HTMLButton {
                 sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameState));
             }
 
-            sessionStorage.setItem(FP_GAME_CODE, gameCode);
+            setGameCode(gameCode);
 
             const newState = {
                 status: AppStatus.Initialised,

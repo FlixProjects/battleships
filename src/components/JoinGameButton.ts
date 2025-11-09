@@ -3,7 +3,7 @@ import { FP_GAME_STATE } from "../../shared";
 import { joinGame } from "../apis/join-game";
 import { appConfig } from "../config/app-config";
 import { AppStatus, IAppState } from "../types";
-import { checkIfNameIsFilled } from "../utils/game-helper";
+import { checkIfNameIsFilled, setGameCode } from "../utils/game-helper";
 import { getComponents, updateComponents } from "./component-helper";
 import { HTMLButton } from "./native/Button";
 
@@ -33,7 +33,7 @@ export class JoinGameButton extends HTMLButton {
                 return;
             }
 
-            const { gameState, playerId } = response;
+            const { gameCode, gameState, playerId } = response;
             const newState = { status: AppStatus.Initialised, loading: false, gameState: gameState! };
 
             if (isLocal) {
@@ -43,9 +43,8 @@ export class JoinGameButton extends HTMLButton {
                 gameManager.setCurrentPlayer(playerId);
             }
 
-            if (playerId) {
-                gameManager.savePlayerState(playerId, newState);
-            }
+            setGameCode(gameCode);
+            gameManager.savePlayerState(playerId, newState);
 
             updateComponents(newState);
         } catch (error) {
