@@ -5,9 +5,10 @@ import { getComponents, updateComponents } from "../components/component-helper"
 import { PlayerNameInput } from "../components/PlayerNameInput";
 import { appConfig } from "../config/app-config";
 import { FP_GAME_CODE, FP_GAME_STATE, FP_USER_ID } from "../constants";
-import { GameState, Player } from "../../shared";
+import { GameState, Player, FP_AUTH_TOKEN } from "../../shared";
 import { getCookie } from "./cookie-helper";
 import { AppStatus } from "../types";
+import { gameManager } from "..";
 
 interface ICheckGameResult {
     gameState?: GameState;
@@ -50,7 +51,9 @@ export const checkIfNameIsFilled = () => {
 
 export const setCurrentPlayerName = (players: Player[]) => {
     const playerNameInput = getComponents().input.playerName;
+
     const playerName = players.find((p) => p.id === getCookie(FP_USER_ID))?.name;
+
     playerNameInput.setValue(playerName ?? "");
 };
 
@@ -61,11 +64,12 @@ export const initialiseExistingGame = async () => {
 
     if (gameState) {
         setCurrentPlayerName(gameState.players);
-        updateComponents({
+        const newState = gameManager.saveAndGetCurrentPlayerState({
             status: AppStatus.Initialised,
             loading: false,
             gameState,
         });
+        updateComponents(newState);
     } else {
         updateComponents({
             status: AppStatus.NewGame,
@@ -90,11 +94,18 @@ export const initialiseCreateGameButton = () => {
                 return;
             }
 
-            updateComponents({
+            const newState = {
                 status: AppStatus.Initialised,
                 loading: false,
                 gameState: response?.gameState!,
-            });
+            };
+
+            const playerId = getCookie(FP_AUTH_TOKEN);
+            if (playerId) {
+                gameManager.savePlayerState(playerId, newState);
+            }
+
+            updateComponents(newState);
         } catch (error) {
             updateComponents({ status: AppStatus.Error });
         }
@@ -119,7 +130,14 @@ export const initialiseJoinGameButton = () => {
                 sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(response?.gameState));
             }
 
-            updateComponents({ status: AppStatus.Initialised, loading: false, gameState: response?.gameState! });
+            const newState = { status: AppStatus.Initialised, loading: false, gameState: response?.gameState! };
+
+            const playerId = getCookie(FP_AUTH_TOKEN);
+            if (playerId) {
+                gameManager.savePlayerState(playerId, newState);
+            }
+
+            updateComponents(newState);
         } catch (error) {
             updateComponents({ status: AppStatus.Error });
         }
@@ -130,7 +148,11 @@ export const refresh = async () => {
     try {
         const gameCode = sessionStorage.getItem(FP_GAME_CODE);
         const response = await getGame(gameCode);
-        updateComponents({ loading: false, gameState: response?.gameState });
+        const newState = gameManager.saveAndGetCurrentPlayerState({
+            loading: false,
+            gameState: response?.gameState,
+        });
+        updateComponents(newState);
     } catch (error) {
         updateComponents({ status: AppStatus.Error });
     }

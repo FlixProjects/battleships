@@ -140,6 +140,10 @@ const updateGameCodeSpan = () => {
     const element = getComponents().span.gameCode;
     const { status, loading, gameState } = _state;
 
+    if (status === AppStatus.Initialising) {
+        element.innerText = "";
+    }
+
     if (status === AppStatus.Initialised) {
         element.innerText = gameState.code;
     }

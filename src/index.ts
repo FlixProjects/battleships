@@ -1,5 +1,6 @@
 import { SwitchPlayerButton } from "./components/add-switch-player";
 import { appConfig } from "./config/app-config";
+import { GameManager } from "./models/GameManager";
 import { initialiseCreateGameButton, initialiseExistingGame, initialiseJoinGameButton } from "./utils/game-helper";
 
 const token = ""; // FIXME: get from cookies
@@ -12,6 +13,7 @@ createGameBtn.disabled = true;
 joinGameBtn.disabled = true;
 
 let playerId: string | null = null;
+export const gameManager = new GameManager();
 
 initialiseExistingGame();
 
