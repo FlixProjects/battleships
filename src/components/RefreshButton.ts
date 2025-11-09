@@ -1,15 +1,23 @@
 import { AppStatus, IAppState } from "../types";
 import { refresh } from "../utils/game-helper";
+import { HTMLButton } from "./native/Button";
 
-export class RefreshButton {
+export class RefreshButton extends HTMLButton {
     public ref = document.getElementById("refreshBtn") as HTMLButtonElement;
 
     constructor() {
-        this.ref.addEventListener("click", async () => {
-            this.spin();
-            await refresh();
-            this.stopSpin();
-        });
+        super();
+        this.build();
+    }
+
+    build() {
+        this.addClickEventListener();
+    }
+
+    async onClick() {
+        this.spin();
+        await refresh();
+        this.stopSpin();
     }
 
     spin() {
@@ -23,10 +31,14 @@ export class RefreshButton {
     updateState(appState: Partial<IAppState>) {
         const { status } = appState;
 
-        if (status !== AppStatus.Initialised && status !== AppStatus.WaitingForPlayers) {
-            this.ref.disabled = true;
-        } else {
-            this.ref.disabled = false;
+        switch (status) {
+            case AppStatus.Initialised:
+            case AppStatus.WaitingForPlayers:
+                this.ref.disabled = false;
+                break;
+            default:
+                this.ref.disabled = true;
+                break;
         }
     }
 }

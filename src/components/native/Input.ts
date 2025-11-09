@@ -1,4 +1,6 @@
-export class Input {
+import { BaseComponent } from "../BaseComponent";
+
+export class HTMLInput extends BaseComponent {
     ref: HTMLInputElement;
 
     get innerText(): string {
