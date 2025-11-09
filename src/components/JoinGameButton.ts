@@ -40,7 +40,7 @@ export class JoinGameButton extends HTMLButton {
                 // if you join on local it means local multiplayer
                 // update source of truth
                 sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameState));
-                gameManager.savePlayerState(playerId, newState);
+                gameManager.setCurrentPlayer(playerId);
             }
 
             if (playerId) {
