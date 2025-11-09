@@ -1,4 +1,4 @@
-import { gameManager } from "..";
+import { gameManager } from "../";
 import { FP_GAME_CODE, FP_GAME_STATE } from "../../shared";
 import { createGame } from "../apis/create-game";
 import { isLocal } from "../config/app-config";
@@ -60,12 +60,16 @@ export class CreateGameButton extends HTMLButton {
         const element = this.ref;
         const { status } = _state;
 
-        if (status === AppStatus.Initialised) {
-            element.disabled = true;
-        }
-
-        if (status === AppStatus.NewGame) {
-            element.disabled = false;
+        switch(status) {
+            case AppStatus.Initialised:
+                element.disabled = true;
+                break;
+            case AppStatus.NewGame:
+                element.disabled = false;
+                break;
+            case AppStatus.Initialising:
+                element.disabled = true;
+                break;
         }
     }
 }
