@@ -1,12 +1,15 @@
 import { GameState } from "../../shared";
-import { appConfig } from "../config/app-config";
-import { FP_GAME_CODE, FP_GAME_STATE } from "../constants";
-import { AppStatus, IAppState } from "../types";
-import { addPlayer } from "./add-player";
-import { enableGameCodeCopy } from "./enable-game-code-copy";
+import { isLocal } from "../config/app-config";
+import { AppStatus, IAppState, IDynamicComponents } from "../types";
+import { CreateGameButton } from "./CreateGameButton";
+import { GameCodeText } from "./GameCodeText";
+import { JoinGameButton } from "./JoinGameButton";
+import { JoinGameInput } from "./JoinGameInput";
+import { PlayerCards } from "./player-cards/PlayerCards";
 import { PlayerNameInput } from "./PlayerNameInput";
 import { RefreshButton } from "./RefreshButton";
 import { StatusText } from "./StatusText";
+import { SwitchPlayerButton } from "./SwitchPlayerButton";
 
 const INITIAL_GAME_STATE: GameState = {
     code: "",
@@ -21,58 +24,69 @@ const DEFAULT_APP_STATE: IAppState = {
 
 let _state: IAppState = DEFAULT_APP_STATE;
 
-const isLocal = appConfig.deployEnv === "local";
-
 const _components = {
-    refreshBtn: new RefreshButton(),
-    statusEl: new StatusText(),
+    statusText: new StatusText(),
+    gameCodeText: new GameCodeText(),
+
     playerNameInput: new PlayerNameInput(),
+    joinCodeInput: new JoinGameInput(),
+
+    refreshBtn: new RefreshButton(),
+    joinGameBtn: new JoinGameButton(),
+    createGameBtn: new CreateGameButton(),
+
+    playerCardsContainer: new PlayerCards(),
 };
 
+// TODO: components should be also accessible via array?
 export const getComponents = () => {
-    const button = { ...getStaticComponents().button };
-    const span = { ...getStaticComponents().span };
-    const input = { ...getStaticComponents().input };
+    const button = { ...getStaticComponents().button, ...getDynamicComponents().button };
+    const span = { ...getStaticComponents().span, ...getDynamicComponents().span };
+    const input = { ...getStaticComponents().input, ...getDynamicComponents().input };
+    const div = { ...getStaticComponents().div, ...getDynamicComponents().div };
 
-    return { button, span, input };
+    return { button, span, input, div };
 };
 
 const getStaticComponents = () => {
-    // TODO: eventually convert to class components (am I just building React from scratch?)
-    // Buttons
-    const joinGameBtn = document.getElementById("joinGameBtn") as HTMLButtonElement;
-    const createGameBtn = document.getElementById("createGameBtn") as HTMLButtonElement;
-    // Spans
-    const gameCodeEl = document.getElementById("gameCode") as HTMLSpanElement;
-
-    // Inputs
-    const joinCodeInput = document.getElementById("joinCode") as HTMLInputElement;
-
     return {
         button: {
-            joinGame: joinGameBtn,
-            createGame: createGameBtn,
+            joinGame: _components.joinGameBtn,
+            createGame: _components.createGameBtn,
             refresh: _components.refreshBtn,
         },
         span: {
-            gameCode: gameCodeEl,
-            status: _components.statusEl,
+            gameCode: _components.gameCodeText,
+            status: _components.statusText,
         },
         input: {
-            joinCode: joinCodeInput,
+            joinCode: _components.joinCodeInput,
             playerName: _components.playerNameInput,
+        },
+        div: {
+            playerCards: _components.playerCardsContainer,
         },
     };
 };
 
-// TODO: We should be automating updateComponent calls instead of manually calling them
+const getDynamicComponents = () => {
+    const dynamicComponents: IDynamicComponents = {
+        button: {},
+        span: {},
+        input: {},
+        div: {},
+    };
+
+    if (isLocal) {
+        dynamicComponents.button["switchPlayerBtn"] = new SwitchPlayerButton();
+    }
+
+    return dynamicComponents;
+};
+
+// TODO: We should be automating updateComponent calls instead of manually calling updateComponents()
 export const updateComponents = (incomingState: Partial<IAppState>) => {
     _state = { ..._state, ...incomingState };
-
-    updateJoinButton();
-    updateCreateButton();
-    updateGameCodeSpan();
-    updatePlayers();
 
     Object.values(getComponents()).forEach((typeOfComponent) => {
         Object.values(typeOfComponent).forEach((component) => {
@@ -81,74 +95,4 @@ export const updateComponents = (incomingState: Partial<IAppState>) => {
             }
         });
     });
-};
-
-const updatePlayers = () => {
-    const playerComponents = document.getElementsByClassName("player-container"); // TODO: make this a constant
-
-    Array.from(playerComponents).forEach((el) => el.remove());
-
-    _state.gameState?.players.forEach((player) => {
-        addPlayer(player.id, player.name);
-    });
-};
-
-const updateJoinButton = () => {
-    const element = getComponents().button.joinGame;
-    const { status, loading, gameState } = _state;
-
-    if (status === AppStatus.Initialised) {
-        const gameCode = gameState.code;
-
-        if (isLocal) {
-            sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameState));
-        }
-        sessionStorage.setItem(FP_GAME_CODE, gameCode);
-
-        element.disabled = true;
-    }
-
-    if (status === AppStatus.NewGame) {
-        element.disabled = false;
-    }
-};
-
-const updateCreateButton = () => {
-    const element = getComponents().button.createGame;
-    const { status, loading, gameState } = _state;
-
-    if (status === AppStatus.Initialised) {
-        const gameCode = gameState.code;
-
-        if (isLocal) {
-            sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameState));
-        }
-        sessionStorage.setItem(FP_GAME_CODE, gameCode);
-
-        if (gameCode) {
-            enableGameCodeCopy();
-        }
-        element.disabled = true;
-    }
-
-    if (status === AppStatus.NewGame) {
-        element.disabled = false;
-    }
-};
-
-const updateGameCodeSpan = () => {
-    const element = getComponents().span.gameCode;
-    const { status, loading, gameState } = _state;
-
-    if (status === AppStatus.Initialising) {
-        element.innerText = "";
-    }
-
-    if (status === AppStatus.Initialised) {
-        element.innerText = gameState.code;
-    }
-
-    if (status === AppStatus.Error) {
-        element.innerHTML = "error";
-    }
 };

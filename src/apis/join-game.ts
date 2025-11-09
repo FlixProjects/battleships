@@ -1,6 +1,5 @@
-import { appConfig } from "../config/app-config";
-import { FP_GAME_STATE } from "../constants";
-import { GameState, JoinGameRequest, JoinGameResponse } from "../../shared";
+import { FP_GAME_STATE, GameState, JoinGameRequest, JoinGameResponse } from "../../shared";
+import { appConfig, isLocal } from "../config/app-config";
 import { CryptoHelper } from "../utils/crypto-helper";
 
 export const joinGame = async (joinCodeInput: string, playerName: string) => {
@@ -11,7 +10,7 @@ export const joinGame = async (joinCodeInput: string, playerName: string) => {
     }
     try {
         const path = `join`;
-        const url = appConfig.deployEnv === "local" ? `/api/${path}` : `${appConfig.apiBaseUrl}/${path}`;
+        const url = isLocal ? `/api/${path}` : `${appConfig.apiBaseUrl}/${path}`;
 
         const reqBody: JoinGameRequest = { gameCode, playerName };
 
@@ -24,7 +23,7 @@ export const joinGame = async (joinCodeInput: string, playerName: string) => {
             },
         };
 
-        if (appConfig.deployEnv === "local") {
+        if (isLocal) {
             const localState = sessionStorage.getItem(FP_GAME_STATE);
             reqBody.gameState = localState ? (JSON.parse(localState) as GameState) : null;
         }

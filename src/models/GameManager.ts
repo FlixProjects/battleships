@@ -12,22 +12,9 @@ export class GameManager {
         this.playerGameStates = this.loadAllPlayerStates();
     }
 
-    private loadAllPlayerStates(): PlayerGameStates {
-        const stored = sessionStorage.getItem(FP_PLAYER_STATES);
-        return stored ? JSON.parse(stored) : {};
-    }
-
-    private saveAllPlayerStates() {
-        sessionStorage.setItem(FP_PLAYER_STATES, JSON.stringify(this.playerGameStates));
-    }
-
     savePlayerState(playerId: string, state: IAppState) {
         this.playerGameStates[playerId] = state;
         this.saveAllPlayerStates();
-    }
-
-    loadPlayerState(playerId: string): IAppState | undefined {
-        return this.playerGameStates[playerId];
     }
 
     saveAndGetCurrentPlayerState(state: Partial<IAppState>) {
@@ -40,23 +27,31 @@ export class GameManager {
         return this.loadPlayerState(this.getCurrentPlayerId() || "");
     }
 
-    switchToPlayer(playerId: string) {
-        const state = this.loadPlayerState(playerId);
-        if (!state) return;
-
-        sessionStorage.setItem(FP_CURRENT_PLAYER, playerId);
+    switchLocalPlayerAuthToken(playerId: string) {
         document.cookie = `${FP_AUTH_TOKEN}=${playerId}; path=/; SameSite=Lax`;
-
-        if (state.gameState?.code) {
-            sessionStorage.setItem("fp-game-code", state.gameState.code);
-        }
     }
 
-    getCurrentPlayerId(): string | null {
-        return sessionStorage.getItem(FP_CURRENT_PLAYER);
+    setCurrentPlayer(playerId: string) {
+        sessionStorage.setItem(FP_CURRENT_PLAYER, playerId);
     }
 
     getAllPlayerIds(): string[] {
         return Object.keys(this.playerGameStates);
+    }
+
+    private loadPlayerState(playerId: string): IAppState | undefined {
+        return this.playerGameStates[playerId];
+    }
+
+    private loadAllPlayerStates(): PlayerGameStates {
+        const stored = sessionStorage.getItem(FP_PLAYER_STATES);
+        return stored ? JSON.parse(stored) : {};
+    }
+
+    private saveAllPlayerStates() {
+        sessionStorage.setItem(FP_PLAYER_STATES, JSON.stringify(this.playerGameStates));
+    }
+    private getCurrentPlayerId(): string | null {
+        return sessionStorage.getItem(FP_CURRENT_PLAYER);
     }
 }

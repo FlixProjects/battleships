@@ -1,7 +1,7 @@
-import { AppStatus, IAppState } from "../types";
-import { refresh } from "../utils/game-helper";
+import { IAppState } from "../types";
+import { HTMLSpan } from "./native/Span";
 
-export class StatusText {
+export class StatusText extends HTMLSpan {
     public ref = document.getElementById("status-value") as HTMLSpanElement;
 
     updateState(appState: Partial<IAppState>) {

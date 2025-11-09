@@ -1,6 +1,5 @@
-import { appConfig } from "../config/app-config";
-import { FP_GAME_CODE, FP_GAME_STATE } from "../constants";
-import { GameState, GetGameResponse } from "../../shared";
+import { FP_GAME_CODE, FP_GAME_STATE, GameState, GetGameResponse } from "../../shared";
+import { appConfig, isLocal } from "../config/app-config";
 import { deleteAuthCookie } from "../utils/cookie-helper";
 
 export const getGame = async (gameCodeInput: string) => {
@@ -11,8 +10,7 @@ export const getGame = async (gameCodeInput: string) => {
         return;
     }
     try {
-        const url =
-            appConfig.deployEnv === "local" ? `/api?code=${gameCode}` : `${appConfig.apiBaseUrl}?code=${gameCode}`;
+        const url = isLocal ? `/api?code=${gameCode}` : `${appConfig.apiBaseUrl}?code=${gameCode}`;
 
         const config: RequestInit = {
             method: "GET",
@@ -23,7 +21,7 @@ export const getGame = async (gameCodeInput: string) => {
 
         const data: GetGameResponse = await res.json();
 
-        if (appConfig.deployEnv === "local") {
+        if (isLocal) {
             const localState = sessionStorage.getItem(FP_GAME_STATE);
             data.gameState = localState ? (JSON.parse(localState) as GameState) : null;
         }

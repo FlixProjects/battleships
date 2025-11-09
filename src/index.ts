@@ -1,10 +1,5 @@
-import { SwitchPlayerButton } from "./components/add-switch-player";
-import { appConfig } from "./config/app-config";
 import { GameManager } from "./models/GameManager";
-import { initialiseCreateGameButton, initialiseExistingGame, initialiseJoinGameButton } from "./utils/game-helper";
-
-const token = ""; // FIXME: get from cookies
-const isLocal = appConfig.deployEnv === "local";
+import { initialiseExistingGame } from "./utils/game-helper";
 
 const joinGameBtn = document.getElementById("joinGameBtn") as HTMLButtonElement;
 const createGameBtn = document.getElementById("createGameBtn") as HTMLButtonElement;
@@ -12,14 +7,7 @@ const createGameBtn = document.getElementById("createGameBtn") as HTMLButtonElem
 createGameBtn.disabled = true;
 joinGameBtn.disabled = true;
 
-let playerId: string | null = null;
 export const gameManager = new GameManager();
 
 initialiseExistingGame();
 
-initialiseCreateGameButton();
-initialiseJoinGameButton();
-
-if (isLocal) {
-    new SwitchPlayerButton();
-}
