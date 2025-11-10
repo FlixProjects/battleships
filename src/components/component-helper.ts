@@ -2,6 +2,7 @@ import { GameState } from "../../shared";
 import { isLocal } from "../config/app-config";
 import { AppStatus, IAppState, IDynamicComponents } from "../types";
 import { CreateGameButton } from "./CreateGameButton";
+import { GameBoard } from "./GameBoard";
 import { GameCodeText } from "./GameCodeText";
 import { JoinGameButton } from "./JoinGameButton";
 import { JoinGameInput } from "./JoinGameInput";
@@ -36,6 +37,7 @@ const _components = {
     createGameBtn: new CreateGameButton(),
 
     playerCardsContainer: new PlayerCards(),
+    gameBoard: new GameBoard(),
 };
 
 // TODO: components should be also accessible via array?
@@ -65,6 +67,7 @@ const getStaticComponents = () => {
         },
         div: {
             playerCards: _components.playerCardsContainer,
+            gameBoard: _components.gameBoard,
         },
     };
 };

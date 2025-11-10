@@ -10,7 +10,7 @@ export const FP_GAME_CODE = "fp-game-code";
 export const FP_CURRENT_PLAYER = "fp-current-player";
 export const FP_PLAYER_STATES = "fp-player-states";
 
-export const LOCAL_TEMP_PLAYER_ID = "temp-id"
+export const LOCAL_TEMP_PLAYER_ID = "temp-id";
 
 export const INITIAL_GAME_STATE: GameState = {
     code: "",
@@ -22,3 +22,6 @@ export const DEFAULT_APP_STATE: IAppState = {
     loading: true,
     gameState: INITIAL_GAME_STATE,
 };
+
+export const BOARD_ROWS_PER_PLAYER = 7;
+export const BOARD_COLUMNS = 7;
