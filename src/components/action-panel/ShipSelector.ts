@@ -32,24 +32,9 @@ export class ShipSelector extends BaseComponent {
     }
 
     private renderShipRows() {
-        const countOfShip = this.getCountOfShips();
-        return Object.entries(countOfShip).map(([shipId, count]) => {
-            return this.renderShipRow(shipId, count);
+        return this.props.player?.ships?.forEach(({ id }) => {
+            return this.renderShipRow(id);
         });
-    }
-
-    private getCountOfShips() {
-        const shipIdToCount: Record<string, number> = {};
-
-        this.props.player?.ships?.forEach((ship) => {
-            if (!shipIdToCount[ship.id]) {
-                shipIdToCount[ship.id] = 1;
-            } else {
-                shipIdToCount[ship.id]++;
-            }
-        });
-
-        return shipIdToCount;
     }
 
     private buildTitle() {
@@ -69,8 +54,8 @@ export class ShipSelector extends BaseComponent {
         this.ref.appendChild(counter);
     }
 
-    private renderShipRow(shipId: string, count: number) {
-        const shipRow = new ShipRow({ shipId, count }).build();
+    private renderShipRow(shipId: string) {
+        const shipRow = new ShipRow({ shipId }).build();
         this.ref.appendChild(shipRow);
     }
 }

@@ -3,21 +3,10 @@ import { ShipIcon } from "../ships/ShipIcon";
 
 interface Props {
     shipId: string;
-    count: number;
 }
 export class ShipRow extends BaseComponent {
     constructor(private props: Props) {
         super();
-    }
-
-    renderShipCounter() {
-        const { count } = this.props;
-        const shipCounter = document.createElement("span");
-        shipCounter.textContent = `×${count}`;
-        shipCounter.style.fontSize = "18px";
-        shipCounter.style.fontWeight = "600";
-        shipCounter.style.color = "#6ee7b7";
-        this.ref.appendChild(shipCounter);
     }
 
     renderShipIcon() {
@@ -29,7 +18,6 @@ export class ShipRow extends BaseComponent {
         this.ref = document.createElement("div");
         this.addStyles();
         this.renderShipIcon();
-        this.renderShipCounter();
         return this.ref;
     }
 
