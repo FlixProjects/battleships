@@ -1,6 +1,6 @@
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import { getNewBoard, GameState } from "../../shared";
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { GameState, initialiseNewPlayer } from "../../shared";
 
 interface JoinGameResponse {
     statusCode: number;
@@ -44,7 +44,7 @@ export const handler = async (event: any) => {
         const BUCKET_NAME = process.env.GAMES_BUCKET!; // set in lambda, TODO: we should inject this value
 
         const playerId = randomUUID();
-        const newPlayer = { id: playerId, name: playerName, ready: false, board: getNewBoard() };
+        const newPlayer = initialiseNewPlayer(playerId, playerName);
 
         if (!isLocal) {
             const { Body } = await s3.send(

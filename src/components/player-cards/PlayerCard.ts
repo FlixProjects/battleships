@@ -26,6 +26,8 @@ export class PlayerCard extends BaseComponent {
 
         this.addPlayerName();
         this.addPlayerId();
+
+        return this.ref;
     }
 
     addPlayerName() {

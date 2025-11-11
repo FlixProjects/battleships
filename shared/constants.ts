@@ -1,5 +1,5 @@
 import { AppStatus, IAppState } from "../src/types";
-import { GameState } from "./types";
+import { GameState, IShip } from "./types";
 
 export const FP_AUTH_TOKEN = "fp-auth-token";
 export const FP_USER_ID = "fp-user-id";
@@ -25,3 +25,12 @@ export const DEFAULT_APP_STATE: IAppState = {
 
 export const BOARD_ROWS_PER_PLAYER = 7;
 export const BOARD_COLUMNS = 7;
+
+export const SHIPS_CONFIG: Record<string, IShip> = {
+    basic: {
+        id: "basic",
+        name: "Frigate",
+        deployed: false,
+        dimensions: [1, 1],
+    },
+};

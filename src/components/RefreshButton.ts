@@ -12,6 +12,7 @@ export class RefreshButton extends HTMLButton {
 
     build() {
         this.addClickEventListener();
+        return this.ref;
     }
 
     async onClick() {

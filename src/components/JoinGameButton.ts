@@ -16,6 +16,7 @@ export class JoinGameButton extends HTMLButton {
     build() {
         this.ref = document.getElementById("joinGameBtn") as HTMLButtonElement;
         this.addClickEventListener();
+        return this.ref;
     }
 
     async onClick() {

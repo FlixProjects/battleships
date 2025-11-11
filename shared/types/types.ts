@@ -3,6 +3,7 @@ export interface Player {
     id: string;
     ready: boolean;
     board: Board;
+    ships: IShip[];
 }
 
 export interface Board {
@@ -19,8 +20,12 @@ export interface Hull {
     hits: number;
 }
 
-export interface Ship {
-    hullLocations: Hull[];
+export interface IShip {
+    id: string;
+    name: string;
+    hullLocations?: Hull[];
+    dimensions: [number, number];
+    deployed: boolean;
 }
 
 export interface GameState {

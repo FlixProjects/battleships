@@ -1,4 +1,4 @@
-import { FP_AUTH_TOKEN, FP_CURRENT_PLAYER, FP_PLAYER_STATES } from "../../shared";
+import { FP_AUTH_TOKEN, FP_CURRENT_PLAYER, FP_PLAYER_STATES, Player } from "../../shared";
 import { IAppState } from "../types";
 
 interface PlayerGameStates {
@@ -37,6 +37,11 @@ export class GameManager {
 
     getAllPlayerIds(): string[] {
         return Object.keys(this.playerGameStates);
+    }
+
+    getPlayer(): Player {
+        const appState = this.getCurrentPlayerState();
+        return appState?.gameState?.players.find((p) => p.id === this.getCurrentPlayerId());
     }
 
     private loadPlayerState(playerId: string): IAppState | undefined {

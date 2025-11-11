@@ -2,7 +2,7 @@ import { GameState } from "../../shared";
 import { isLocal } from "../config/app-config";
 import { AppStatus, IAppState, IDynamicComponents } from "../types";
 import { CreateGameButton } from "./CreateGameButton";
-import { GameBoard } from "./GameBoard";
+import { GameBoard } from "./board/GameBoard";
 import { GameCodeText } from "./GameCodeText";
 import { JoinGameButton } from "./JoinGameButton";
 import { JoinGameInput } from "./JoinGameInput";
@@ -11,6 +11,7 @@ import { PlayerNameInput } from "./PlayerNameInput";
 import { RefreshButton } from "./RefreshButton";
 import { StatusText } from "./StatusText";
 import { SwitchPlayerButton } from "./SwitchPlayerButton";
+import { ActionPanel } from "./action-panel/ActionPanel";
 
 const INITIAL_GAME_STATE: GameState = {
     code: "",
@@ -38,6 +39,7 @@ const _components = {
 
     playerCardsContainer: new PlayerCards(),
     gameBoard: new GameBoard(),
+    // shipSelector: new ShipSelector(),
 };
 
 // TODO: components should be also accessible via array?
@@ -77,7 +79,9 @@ const getDynamicComponents = () => {
         button: {},
         span: {},
         input: {},
-        div: {},
+        div: {
+            actionPanel: new ActionPanel(),
+        },
     };
 
     if (isLocal) {

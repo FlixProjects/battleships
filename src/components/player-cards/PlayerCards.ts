@@ -18,6 +18,7 @@ export class PlayerCards extends BaseComponent {
 
     build() {
         this.ref = document.getElementById("playerList");
+        return this.ref;
     }
 
     addPlayerCard(playerName: string, playerId: string) {
