@@ -55,7 +55,7 @@ export class ShipSelector extends BaseComponent {
     }
 
     private renderShipRow(shipId: string) {
-        const shipRow = new ShipRow({ shipId }).build();
+        const shipRow = new ShipRow({ shipId, selected: false }).build();
         this.ref.appendChild(shipRow);
     }
 }

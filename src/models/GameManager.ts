@@ -44,6 +44,10 @@ export class GameManager {
         return appState?.gameState?.players.find((p) => p.id === this.getCurrentPlayerId());
     }
 
+    isFirstPlayer() {
+        return this.getCurrentPlayerState()?.gameState?.players?.[0].id === this.getCurrentPlayerId();
+    }
+
     private loadPlayerState(playerId: string): IAppState | undefined {
         return this.playerGameStates[playerId];
     }

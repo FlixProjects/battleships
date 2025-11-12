@@ -384,3 +384,14 @@ input:disabled {
 #gameCode.appear {
     animation: pulseCode 1.4s ease-in-out;
 }
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        filter: brightness(1.5);
+    }
+    50% {
+        opacity: 0.7;
+        filter: brightness(1);
+    }
+}

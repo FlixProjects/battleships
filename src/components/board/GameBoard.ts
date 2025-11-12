@@ -1,10 +1,11 @@
-import { BOARD_COLUMNS, BOARD_ROWS_PER_PLAYER } from "../../../shared";
+import { BOARD_COLUMNS, BOARD_ROWS_PER_PLAYER, ICell } from "../../../shared";
 import { IAppState } from "../../types";
 import { BaseComponent } from "../BaseComponent";
 import { Tile } from "./Tile";
 
 export class GameBoard extends BaseComponent {
     private container = document.getElementById("gameArea") as HTMLDivElement;
+    private tiles: Record<string, Tile> = {};
 
     constructor() {
         super();
@@ -12,16 +13,17 @@ export class GameBoard extends BaseComponent {
     }
 
     updateState(_state?: IAppState): void {
+        this.remove();
         if (_state?.gameState?.players?.length === 2) {
-            return this.show();
+             this.build();
+             return
         }
-
-        this.hide();
     }
 
-    renderTile() {
-        const tile = new Tile().build();
-        this.ref.appendChild(tile);
+    renderTile(key: string) {
+        const tile = new Tile();
+        this.tiles[key] = tile;
+        this.ref.appendChild(tile.build());
     }
 
     build() {
@@ -31,7 +33,7 @@ export class GameBoard extends BaseComponent {
 
         for (let row = 0; row < BOARD_ROWS_PER_PLAYER * 2; row++) {
             for (let col = 0; col < BOARD_COLUMNS; col++) {
-                this.renderTile();
+                this.renderTile(`${col},${row}`);
             }
         }
 
@@ -48,7 +50,13 @@ export class GameBoard extends BaseComponent {
         this.ref.style.padding = "12px";
     }
 
-    private show() {
-        this.ref.style.display = "grid";
+    updateSelectableTiles(validCells: [number, number][]) {
+        validCells.forEach((cell: ICell) => {
+            this.tiles[this.locationToKey(cell)]?.setSelectable(true);
+        });
+    }
+
+    locationToKey(location: ICell) {
+        return `${location[0]},${location[1]}`;
     }
 }

@@ -29,6 +29,7 @@ export const BOARD_COLUMNS = 7;
 export const SHIPS_CONFIG: Record<string, IShip> = {
     basic: {
         id: "basic",
+        refNo: "frigate0",
         name: "Frigate",
         deployed: false,
         dimensions: [1, 1],

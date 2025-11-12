@@ -10,20 +10,21 @@ export interface Board {
     grid: Grid;
 }
 
-export type Grid = Array<Hull[]>; // grid[x][y]
+export type Grid = Array<IHull[]>; // grid[x][y]
 
-export type Cell = [number, number];
+export type ICell = [number, number];
 
-export interface Hull {
+export interface IHull {
     shipId: number;
-    location: Cell;
+    location: ICell;
     hits: number;
 }
 
 export interface IShip {
     id: string;
+    refNo: string;
     name: string;
-    hullLocations?: Hull[];
+    hullLocations?: IHull[];
     dimensions: [number, number];
     deployed: boolean;
 }
@@ -32,3 +33,12 @@ export interface GameState {
     code: string;
     players: Player[];
 }
+
+export const ActionTypes = {
+    DEPLOY: "deploy",
+    ATTACK: "attack",
+    SELECT_FLEET: "select_fleet",
+    MOVE: "move",
+} as const;
+
+export type TActionTypes = (typeof ActionTypes)[keyof typeof ActionTypes];
