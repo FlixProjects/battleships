@@ -27,7 +27,7 @@ export interface IHull {
 }
 
 export interface IShip {
-    id: string;
+    id?: string;
     refNo: string;
     name: string;
     hullLocations?: IHull[];

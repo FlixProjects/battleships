@@ -1,3 +1,4 @@
+import { v7 as uuidv7 } from "uuid";
 import { Cell } from "../src/models/Cell";
 import { BOARD_COLUMNS, BOARD_ROWS, SHIPS_CONFIG } from "./constants";
 import { Board, ICellLoc, IShip, Player } from "./types/types";
@@ -27,10 +28,12 @@ export const initialiseNewPlayer = (id: string, name: string): Player => {
         name,
         id,
         ready: false,
-        ships: [getShip("basic"), getShip("basic")],
+        ships: [getShip("frigate0"), getShip("frigate0")],
     };
 };
 
 export const getShip = (id: string): IShip => {
-    return { ...SHIPS_CONFIG[id] };
+    const base = { ...SHIPS_CONFIG[id] };
+    base.id = uuidv7();
+    return base;
 };
