@@ -1,5 +1,13 @@
-export class Cell {
-    public loc: { x: number; y: number };
+import { ICell } from "../../shared";
+
+export class Cell implements ICell {
+    public loc: [number, number];
     public selectable = false;
-    public items: any[]
+    public items?: any[];
+    public hidden: boolean;
+    public visibleTo: string[];
+
+    constructor(props: Readonly<Cell>) {
+        Object.assign(this, props);
+    }
 }

@@ -1,5 +1,6 @@
 import { AppStatus, IAppState } from "../src/types";
 import { GameState, IShip } from "./types";
+import { getNewBoard } from "./utils";
 
 export const FP_AUTH_TOKEN = "fp-auth-token";
 export const FP_USER_ID = "fp-user-id";
@@ -15,6 +16,7 @@ export const LOCAL_TEMP_PLAYER_ID = "temp-id";
 export const INITIAL_GAME_STATE: GameState = {
     code: "",
     players: [],
+    board: getNewBoard(),
 };
 
 export const DEFAULT_APP_STATE: IAppState = {
@@ -23,7 +25,7 @@ export const DEFAULT_APP_STATE: IAppState = {
     gameState: INITIAL_GAME_STATE,
 };
 
-export const BOARD_ROWS_PER_PLAYER = 7;
+export const BOARD_ROWS = 14;
 export const BOARD_COLUMNS = 7;
 
 export const SHIPS_CONFIG: Record<string, IShip> = {

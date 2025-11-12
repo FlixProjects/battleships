@@ -1,8 +1,9 @@
-import { GameState } from "../../shared";
+import { INITIAL_GAME_STATE } from "../../shared";
 import { isLocal } from "../config/app-config";
 import { AppStatus, IAppState, IDynamicComponents } from "../types";
-import { CreateGameButton } from "./CreateGameButton";
+import { ActionPanel } from "./action-panel/ActionPanel";
 import { GameBoard } from "./board/GameBoard";
+import { CreateGameButton } from "./CreateGameButton";
 import { GameCodeText } from "./GameCodeText";
 import { JoinGameButton } from "./JoinGameButton";
 import { JoinGameInput } from "./JoinGameInput";
@@ -11,12 +12,6 @@ import { PlayerNameInput } from "./PlayerNameInput";
 import { RefreshButton } from "./RefreshButton";
 import { StatusText } from "./StatusText";
 import { SwitchPlayerButton } from "./SwitchPlayerButton";
-import { ActionPanel } from "./action-panel/ActionPanel";
-
-const INITIAL_GAME_STATE: GameState = {
-    code: "",
-    players: [],
-};
 
 const DEFAULT_APP_STATE: IAppState = {
     status: AppStatus.Initialising,
@@ -39,7 +34,6 @@ const _components = {
 
     playerCardsContainer: new PlayerCards(),
     gameBoard: new GameBoard(),
-    // shipSelector: new ShipSelector(),
 };
 
 // TODO: components should be also accessible via array?

@@ -1,4 +1,4 @@
-import { BOARD_COLUMNS, BOARD_ROWS_PER_PLAYER, ICell } from "../../../shared";
+import { BOARD_COLUMNS, BOARD_ROWS, ICellLoc } from "../../../shared";
 import { IAppState } from "../../types";
 import { BaseComponent } from "../BaseComponent";
 import { Tile } from "./Tile";
@@ -15,8 +15,8 @@ export class GameBoard extends BaseComponent {
     updateState(_state?: IAppState): void {
         this.remove();
         if (_state?.gameState?.players?.length === 2) {
-             this.build();
-             return
+            this.build();
+            return;
         }
     }
 
@@ -31,7 +31,7 @@ export class GameBoard extends BaseComponent {
 
         this.addStyles();
 
-        for (let row = 0; row < BOARD_ROWS_PER_PLAYER * 2; row++) {
+        for (let row = 0; row < BOARD_ROWS; row++) {
             for (let col = 0; col < BOARD_COLUMNS; col++) {
                 this.renderTile(`${col},${row}`);
             }
@@ -51,12 +51,12 @@ export class GameBoard extends BaseComponent {
     }
 
     updateSelectableTiles(validCells: [number, number][]) {
-        validCells.forEach((cell: ICell) => {
+        validCells.forEach((cell: ICellLoc) => {
             this.tiles[this.locationToKey(cell)]?.setSelectable(true);
         });
     }
 
-    locationToKey(location: ICell) {
+    locationToKey(location: ICellLoc) {
         return `${location[0]},${location[1]}`;
     }
 }

@@ -1,16 +1,32 @@
-import { BOARD_COLUMNS, SHIPS_CONFIG } from "./constants";
-import { Board, IShip, Player } from "./types/types";
+import { Cell } from "../src/models/Cell";
+import { BOARD_COLUMNS, BOARD_ROWS, SHIPS_CONFIG } from "./constants";
+import { Board, ICellLoc, IShip, Player } from "./types/types";
 
-export const getNewBoard = (): Board => ({
-    grid: Array(BOARD_COLUMNS).fill([]),
-});
+export const getNewCell = (cellLoc: ICellLoc): Cell =>
+    new Cell({
+        loc: cellLoc,
+        selectable: false,
+        items: [],
+        hidden: true,
+        visibleTo: [],
+    });
+
+export const getNewBoard = (): Board => {
+    const grid: Cell[] = [];
+
+    for (let i = 0; i < BOARD_COLUMNS; i++) {
+        for (let j = 0; j < BOARD_ROWS; j++) {
+            grid.push(getNewCell([i, j]));
+        }
+    }
+    return { grid };
+};
 
 export const initialiseNewPlayer = (id: string, name: string): Player => {
     return {
         name,
         id,
         ready: false,
-        board: getNewBoard(),
         ships: [getShip("basic"), getShip("basic")],
     };
 };

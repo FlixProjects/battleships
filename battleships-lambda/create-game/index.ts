@@ -1,6 +1,6 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import { initialiseNewPlayer } from "../../shared";
+import { GameState, getNewBoard, initialiseNewPlayer } from "../../shared";
 
 interface CreateGameResponse {
     statusCode: number;
@@ -31,10 +31,10 @@ export const handler = async (event: any) => {
         const gameCode = generateGameCode();
         const playerId = randomUUID();
         const newPlayer = initialiseNewPlayer(playerId, playerName);
-        const initialGameState = {
+        const initialGameState: GameState = {
             code: gameCode,
             players: [newPlayer],
-            createdAt: new Date().toISOString(),
+            board: getNewBoard(),
         };
 
         if (env !== LOCAL_ENV) {

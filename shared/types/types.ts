@@ -2,7 +2,6 @@ export interface Player {
     name: string;
     id: string;
     ready: boolean;
-    board: Board;
     ships: IShip[];
 }
 
@@ -10,13 +9,20 @@ export interface Board {
     grid: Grid;
 }
 
-export type Grid = Array<IHull[]>; // grid[x][y]
+export type Grid = Array<ICell>;
 
-export type ICell = [number, number];
+export interface ICell {
+    loc: ICellLoc;
+    selectable: boolean;
+    items?: any[];
+    hidden: boolean;
+    visibleTo?: string[];
+}
+export type ICellLoc = [number, number];
 
 export interface IHull {
     shipId: number;
-    location: ICell;
+    location: ICellLoc;
     hits: number;
 }
 
@@ -32,6 +38,7 @@ export interface IShip {
 export interface GameState {
     code: string;
     players: Player[];
+    board: Board;
 }
 
 export const ActionTypes = {
