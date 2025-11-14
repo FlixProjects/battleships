@@ -7,11 +7,12 @@ import { SubmitMoveButton } from "./SubmitMoveButton";
 export class ActionPanel extends BaseComponent {
     constructor() {
         super();
-        this.build();
     }
 
     updateState(_state?: IAppState): void {
-        this.remove();
+        if (this.ref) {
+            this.remove();
+        }
         if (_state?.gameState?.players?.length === 2) {
             this.build();
             this.show();
@@ -36,13 +37,14 @@ export class ActionPanel extends BaseComponent {
 
     renderShipSelector() {
         const player = gameManager.getPlayer();
-        const shipSelector = new ShipSelector({ player }).build();
-        this.ref.appendChild(shipSelector);
+        const shipSelector = new ShipSelector({ player });
+        this.addChild(shipSelector);
+        this.ref.appendChild(shipSelector.build());
     }
 
     private renderSubmitButton() {
-        const submitBtn = new SubmitMoveButton().build();
-        this.ref.appendChild(submitBtn);
+        const submitBtn = new SubmitMoveButton();
+        this.ref.appendChild(submitBtn.build());
     }
 
     protected addStyles() {
@@ -62,12 +64,6 @@ export class ActionPanel extends BaseComponent {
         this.ref.style.gap = "16px";
         this.ref.style.zIndex = "100";
     }
-
-    remove() {
-        this.ref.remove();
-    }
-
-    
 
     private show() {
         this.ref.style.display = "flex";

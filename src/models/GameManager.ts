@@ -1,4 +1,4 @@
-import { FP_AUTH_TOKEN, FP_CURRENT_PLAYER, FP_PLAYER_STATES, Player } from "../../shared";
+import { DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_CURRENT_PLAYER, FP_PLAYER_STATES, Player } from "../../shared";
 import { IAppState } from "../types";
 
 interface PlayerGameStates {
@@ -10,6 +10,10 @@ export class GameManager {
 
     constructor() {
         this.playerGameStates = this.loadAllPlayerStates();
+    }
+
+    get state(): IAppState {
+        return this.getCurrentPlayerState();
     }
 
     savePlayerState(playerId: string, state: IAppState) {
@@ -49,7 +53,7 @@ export class GameManager {
     }
 
     private loadPlayerState(playerId: string): IAppState | undefined {
-        return this.playerGameStates[playerId];
+        return this.playerGameStates[playerId] ?? DEFAULT_APP_STATE;
     }
 
     private loadAllPlayerStates(): PlayerGameStates {
