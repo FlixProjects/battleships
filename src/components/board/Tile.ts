@@ -17,6 +17,7 @@ export class Tile extends BaseComponent {
 
     build() {
         this.ref = document.createElement("div");
+        this.ref.classList.add("tile");
         this.addStyles();
         return this.ref;
     }

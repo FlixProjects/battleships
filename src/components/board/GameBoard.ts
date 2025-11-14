@@ -51,8 +51,13 @@ export class GameBoard extends BaseComponent {
     }
 
     updateSelectableTiles(validCells: [number, number][]) {
-        validCells.forEach((cell: ICellLoc) => {
-            this.tiles[this.locationToKey(cell)]?.setSelectable(true);
+        const validCellIndices = validCells.map((cell: ICellLoc) => this.locationToKey(cell));
+        Object.keys(this.tiles).forEach((tileIndex: string) => {
+            if (validCellIndices.includes(tileIndex)) {
+                this.tiles[tileIndex].setSelectable(true);
+            } else {
+                this.tiles[tileIndex].setSelectable(false);
+            }
         });
     }
 

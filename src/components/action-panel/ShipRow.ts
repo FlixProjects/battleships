@@ -33,6 +33,7 @@ export class ShipRow extends BaseComponent {
 
     build() {
         this.ref = document.createElement("div");
+        this.ref.classList.add("ship-row");
         this.addStyles();
         this.addClickEventListener();
         this.renderShipIcon();
