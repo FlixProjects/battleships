@@ -1,6 +1,5 @@
-import { INITIAL_GAME_STATE } from "../../shared";
-import { isLocal } from "../config/app-config";
-import { AppStatus, IAppState, IDynamicComponents } from "../types";
+import { gameManager } from "..";
+import { IAppState } from "../types";
 import { ActionPanel } from "./action-panel/ActionPanel";
 import { GameBoard } from "./board/GameBoard";
 import { CreateGameButton } from "./CreateGameButton";
@@ -13,14 +12,6 @@ import { RefreshButton } from "./RefreshButton";
 import { StatusText } from "./StatusText";
 import { SwitchPlayerButton } from "./SwitchPlayerButton";
 
-const DEFAULT_APP_STATE: IAppState = {
-    status: AppStatus.Initialising,
-    loading: true,
-    gameState: INITIAL_GAME_STATE,
-};
-
-let _state: IAppState = DEFAULT_APP_STATE;
-
 const _components = {
     statusText: new StatusText(),
     gameCodeText: new GameCodeText(),
@@ -31,17 +22,19 @@ const _components = {
     refreshBtn: new RefreshButton(),
     joinGameBtn: new JoinGameButton(),
     createGameBtn: new CreateGameButton(),
+    switchPlayerBtn: new SwitchPlayerButton(),
 
     playerCardsContainer: new PlayerCards(),
     gameBoard: new GameBoard(),
+    actionPanel: new ActionPanel(),
 };
 
 // TODO: components should be also accessible via array?
 export const getComponents = () => {
-    const button = { ...getStaticComponents().button, ...getDynamicComponents().button };
-    const span = { ...getStaticComponents().span, ...getDynamicComponents().span };
-    const input = { ...getStaticComponents().input, ...getDynamicComponents().input };
-    const div = { ...getStaticComponents().div, ...getDynamicComponents().div };
+    const button = { ...getStaticComponents().button };
+    const span = { ...getStaticComponents().span };
+    const input = { ...getStaticComponents().input };
+    const div = { ...getStaticComponents().div };
 
     return { button, span, input, div };
 };
@@ -64,30 +57,14 @@ const getStaticComponents = () => {
         div: {
             playerCards: _components.playerCardsContainer,
             gameBoard: _components.gameBoard,
+            actionPanel: _components.actionPanel,
         },
     };
-};
-
-const getDynamicComponents = () => {
-    const dynamicComponents: IDynamicComponents = {
-        button: {},
-        span: {},
-        input: {},
-        div: {
-            actionPanel: new ActionPanel(),
-        },
-    };
-
-    if (isLocal) {
-        dynamicComponents.button["switchPlayerBtn"] = new SwitchPlayerButton();
-    }
-
-    return dynamicComponents;
 };
 
 // TODO: We should be automating updateComponent calls instead of manually calling updateComponents()
-export const updateComponents = (incomingState: Partial<IAppState>) => {
-    _state = { ..._state, ...incomingState };
+export const updateComponents = (incomingState: Partial<IAppState> = {}) => {
+    const _state = { ...gameManager.state, ...incomingState };
 
     Object.values(getComponents()).forEach((typeOfComponent) => {
         Object.values(typeOfComponent).forEach((component) => {

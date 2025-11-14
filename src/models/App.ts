@@ -41,7 +41,7 @@ export class App {
 
             console.log("Existing game found:", response);
 
-            const newState = gameManager.saveAndGetCurrentPlayerState({
+            gameManager.saveAndGetCurrentPlayerState({
                 status: AppStatus.Initialised,
                 loading: false,
                 gameState: response?.gameState,
@@ -49,7 +49,7 @@ export class App {
 
             gameManager.setCurrentPlayer(getCookie(FP_AUTH_TOKEN));
 
-            updateComponents(newState);
+            updateComponents();
         } catch (error) {
             if (error.code === 404) {
                 console.log("Game not found or expired.");

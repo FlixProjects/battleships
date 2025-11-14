@@ -47,7 +47,7 @@ export class JoinGameButton extends HTMLButton {
             setGameCode(gameCode);
             gameManager.savePlayerState(playerId, newState);
 
-            updateComponents(newState);
+            updateComponents();
         } catch (error) {
             updateComponents({ status: AppStatus.Error });
         }

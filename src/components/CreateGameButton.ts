@@ -52,7 +52,7 @@ export class CreateGameButton extends HTMLButton {
                 gameManager.savePlayerState(playerId, newState);
             }
 
-            updateComponents(newState);
+            updateComponents();
         } catch (error) {
             updateComponents({ status: AppStatus.Error });
         }

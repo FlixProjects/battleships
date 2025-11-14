@@ -1,20 +1,21 @@
 import { IAppState } from "../types";
 
 export abstract class BaseComponent {
-    id?: string;
-    ref: HTMLElement;
+    public id?: string;
+    public ref: HTMLElement;
+
     protected children: BaseComponent[] = [];
 
-    addClickEventListener() {
+    public addClickEventListener() {
         this.ref.addEventListener("click", async () => await this.onClick());
     }
 
-    updateState(_state?: IAppState) {
+    public updateState(_state?: IAppState) {
         this.remove();
-        this.build()
+        this.build();
     }
 
-    async onClick() {
+    public async onClick() {
         //
     }
 
@@ -25,7 +26,7 @@ export abstract class BaseComponent {
     }
 
     protected remove() {
-        this.children.forEach(child => child.remove());
+        this.children.forEach((child) => child.remove());
         this.children = [];
         this.ref.remove();
     }

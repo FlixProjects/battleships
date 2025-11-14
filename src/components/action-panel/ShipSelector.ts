@@ -1,8 +1,6 @@
-import { gameManager } from "../..";
 import { Player } from "../../../shared";
 import { IAppState } from "../../types";
 import { BaseComponent } from "../BaseComponent";
-import { updateComponents } from "../component-helper";
 import { ShipRow } from "./ShipRow";
 
 interface Props {

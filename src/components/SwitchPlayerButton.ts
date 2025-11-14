@@ -1,5 +1,6 @@
 import { gameManager } from "..";
 import { DEFAULT_APP_STATE, FP_CURRENT_PLAYER, LOCAL_TEMP_PLAYER_ID } from "../../shared";
+import { isLocal } from "../config/app-config";
 import { IAppState } from "../types";
 import { updateComponents } from "./component-helper";
 import { HTMLButton } from "./native/Button";
@@ -7,7 +8,9 @@ import { HTMLButton } from "./native/Button";
 export class SwitchPlayerButton extends HTMLButton {
     constructor() {
         super();
-        this.build();
+        if (isLocal) {
+            this.build();
+        }
     }
 
     build() {
@@ -75,8 +78,7 @@ export class SwitchPlayerButton extends HTMLButton {
             return;
         }
 
-        const newState = gameManager.getCurrentPlayerState();
-        updateComponents(newState);
+        updateComponents();
     }
 
     updateState(_state?: IAppState): void {}

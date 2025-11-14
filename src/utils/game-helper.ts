@@ -30,11 +30,11 @@ export const checkIfNameIsFilled = () => {
 export const refresh = async () => {
     try {
         const response = await getGame(getGameCode());
-        const newState = gameManager.saveAndGetCurrentPlayerState({
+        gameManager.saveAndGetCurrentPlayerState({
             loading: false,
             gameState: response?.gameState,
         });
-        updateComponents(newState);
+        updateComponents();
     } catch (error) {
         updateComponents({ status: AppStatus.Error });
     }

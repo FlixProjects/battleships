@@ -10,9 +10,8 @@ export class ActionPanel extends BaseComponent {
     }
 
     updateState(_state?: IAppState): void {
-        if (this.ref) {
-            this.remove();
-        }
+        if (this.ref) this.remove();
+
         if (_state?.gameState?.players?.length === 2) {
             this.build();
             this.show();
