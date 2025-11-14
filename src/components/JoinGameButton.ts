@@ -38,14 +38,13 @@ export class JoinGameButton extends HTMLButton {
             const newState = { status: AppStatus.Initialised, loading: false, gameState: gameState! };
 
             if (isLocal) {
-                // if you join on local it means local multiplayer
-                // update source of truth
+                // DO NOT DELETE: this item simulates Object in S3
                 sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameState));
-                gameManager.setCurrentPlayer(playerId);
             }
+            gameManager.setCurrentPlayer(playerId);
 
             setGameCode(gameCode);
-            gameManager.savePlayerState(playerId, newState);
+            gameManager.saveCurrentPlayerState(newState);
 
             updateComponents();
         } catch (error) {

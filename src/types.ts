@@ -14,7 +14,7 @@ type TAppStatus = (typeof AppStatus)[keyof typeof AppStatus];
 export interface IAppState {
     status: TAppStatus;
     loading: boolean;
-    gameState: Partial<GameState>;
+    gameState: GameState;
     currentPlayer?: string;
 }
 

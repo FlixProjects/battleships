@@ -16,40 +16,43 @@ export class GameManager {
         return this.getCurrentPlayerState();
     }
 
-    savePlayerState(playerId: string, state: IAppState) {
-        this.playerGameStates[playerId] = state;
-        this.saveAllPlayerStates();
+    get isFirstPlayer() {
+        return this.getCurrentPlayerState()?.gameState?.players?.[0].id === this.getCurrentPlayerId();
     }
 
-    saveAndGetCurrentPlayerState(state: Partial<IAppState>) {
+    public saveCurrentPlayerState(state: Partial<IAppState>) {
         const playerId = this.getCurrentPlayerId();
-        this.playerGameStates[playerId] = { ...this.playerGameStates[playerId], ...state };
-        return this.loadPlayerState(playerId);
+        return this.savePlayerState(playerId, state);
     }
 
-    getCurrentPlayerState() {
-        return this.loadPlayerState(this.getCurrentPlayerId() || "");
-    }
-
-    switchLocalPlayerAuthToken(playerId: string) {
+    public switchLocalPlayerAuthToken(playerId: string) {
         document.cookie = `${FP_AUTH_TOKEN}=${playerId}; path=/; SameSite=Lax`;
     }
 
-    setCurrentPlayer(playerId: string) {
+    public setCurrentPlayer(playerId: string) {
         sessionStorage.setItem(FP_CURRENT_PLAYER, playerId);
     }
 
-    getAllPlayerIds(): string[] {
+    public getAllPlayerIds(): string[] {
         return Object.keys(this.playerGameStates);
     }
 
-    getPlayer(): Player {
-        const appState = this.getCurrentPlayerState();
-        return appState?.gameState?.players.find((p) => p.id === this.getCurrentPlayerId());
+    public getPlayer(): Player {
+        return this.state.gameState?.players.find((p) => p.id === this.getCurrentPlayerId());
     }
 
-    isFirstPlayer() {
-        return this.getCurrentPlayerState()?.gameState?.players?.[0].id === this.getCurrentPlayerId();
+    private savePlayerState(playerId: string, state: Partial<IAppState>) {
+        this.playerGameStates[playerId] = { ...this.playerGameStates[playerId], ...state };
+        this.savePlayerStates();
+        return this.playerGameStates[playerId];
+    }
+
+    private getCurrentPlayerState() {
+        const currentPlayerId = this.getCurrentPlayerId();
+        if (!currentPlayerId) {
+            return DEFAULT_APP_STATE;
+        }
+        return this.loadPlayerState(currentPlayerId);
     }
 
     private loadPlayerState(playerId: string): IAppState | undefined {
@@ -61,7 +64,7 @@ export class GameManager {
         return stored ? JSON.parse(stored) : {};
     }
 
-    private saveAllPlayerStates() {
+    private savePlayerStates() {
         sessionStorage.setItem(FP_PLAYER_STATES, JSON.stringify(this.playerGameStates));
     }
     private getCurrentPlayerId(): string | null {

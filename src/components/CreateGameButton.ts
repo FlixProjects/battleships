@@ -49,7 +49,8 @@ export class CreateGameButton extends HTMLButton {
             };
 
             if (playerId) {
-                gameManager.savePlayerState(playerId, newState);
+                // DO NOT DELETE: this item simulates Object in S3
+                gameManager.saveCurrentPlayerState(newState);
             }
 
             updateComponents();
@@ -62,7 +63,7 @@ export class CreateGameButton extends HTMLButton {
         const element = this.ref;
         const { status } = _state;
 
-        switch(status) {
+        switch (status) {
             case AppStatus.Initialised:
                 element.disabled = true;
                 break;

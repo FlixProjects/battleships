@@ -32,7 +32,7 @@ export class PlayerNameInput extends HTMLInput {
         let playerName = "";
 
         if (playerId) {
-            playerName = _state.gameState.players.find((p) => p.id === playerId)?.name;
+            playerName = _state.gameState?.players.find((p) => p.id === playerId)?.name;
         }
 
         if (playerName) {

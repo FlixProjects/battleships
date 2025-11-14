@@ -14,7 +14,7 @@ export class GameEngine {
     primeDeployShip(shipId: string): ICellLoc[] {
         const availableCells: ICellLoc[] = [];
 
-        if (gameManager.isFirstPlayer()) {
+        if (gameManager.isFirstPlayer) {
             for (let i = 0; i < BOARD_COLUMNS; i++) {
                 availableCells.push([i, 0]);
             }

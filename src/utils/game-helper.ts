@@ -30,7 +30,7 @@ export const checkIfNameIsFilled = () => {
 export const refresh = async () => {
     try {
         const response = await getGame(getGameCode());
-        gameManager.saveAndGetCurrentPlayerState({
+        gameManager.saveCurrentPlayerState({
             loading: false,
             gameState: response?.gameState,
         });

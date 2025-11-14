@@ -41,7 +41,7 @@ export class App {
 
             console.log("Existing game found:", response);
 
-            gameManager.saveAndGetCurrentPlayerState({
+            gameManager.saveCurrentPlayerState({
                 status: AppStatus.Initialised,
                 loading: false,
                 gameState: response?.gameState,
