@@ -1,8 +1,9 @@
+import { interactionManager } from "../..";
 import { Player } from "../../../shared";
 import { IAppState } from "../../types";
 import { BaseComponent } from "../BaseComponent";
-import { ShipRow } from "./ShipRow";
 import { getComponents } from "../component-helper";
+import { ShipRow } from "./ShipRow";
 
 interface Props {
     player: Player;
@@ -13,7 +14,6 @@ export class ShipSelector extends BaseComponent {
     private maxDeployment = 2;
     private selectedShip?: string;
     private shipRows: Map<string, ShipRow> = new Map();
-    private globalClickHandler = (e: MouseEvent) => this.handleGlobalClick(e);
 
     constructor(private props: Props) {
         super();
@@ -24,11 +24,6 @@ export class ShipSelector extends BaseComponent {
         this.build();
     }
 
-    remove(): void {
-        document.removeEventListener("click", this.globalClickHandler);
-        super.remove();
-    }
-
     public build() {
         this.ref = document.createElement("div");
         this.addStyles();
@@ -37,8 +32,6 @@ export class ShipSelector extends BaseComponent {
         this.buildCounter();
 
         this.renderShipRows();
-        
-        document.addEventListener("click", this.globalClickHandler);
 
         return this.ref;
     }
@@ -63,24 +56,15 @@ export class ShipSelector extends BaseComponent {
         this.shipRows.forEach((row, rowId) => {
             row.setSelected(rowId === id);
         });
+        interactionManager.handleDeployingShipEvent({
+            onDeselect: () => this.clearSelection(),
+        });
     }
 
     private clearSelection() {
         this.selectedShip = undefined;
         this.shipRows.forEach((row) => row.setSelected(false));
         getComponents().div.gameBoard.updateSelectableTiles([]);
-    }
-
-    private handleGlobalClick(e: MouseEvent) {
-        if (!this.selectedShip) return;
-        
-        const target = e.target as HTMLElement;
-        const clickedTile = target.closest(".tile");
-        const clickedShipRow = target.closest(".ship-row");
-        
-        if (!clickedTile && !clickedShipRow) {
-            this.clearSelection();
-        }
     }
 
     private buildTitle() {
