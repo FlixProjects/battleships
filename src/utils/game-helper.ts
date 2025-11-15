@@ -1,7 +1,9 @@
 import { gameManager } from "..";
 import { FP_CURRENT_PLAYER, FP_GAME_CODE, ICellLoc } from "../../shared";
 import { getGame } from "../apis/get-game";
+import { BaseComponent } from "../components/BaseComponent";
 import { getComponents, updateComponents } from "../components/component-helper";
+import { ShipIcon } from "../components/ships/ShipIcon";
 import { AppStatus } from "../types";
 
 // client functions
@@ -33,6 +35,12 @@ export const locationToKey = (location: ICellLoc) => {
 
 export const keyToLocation = (key: string): ICellLoc => {
     return key.split(",").map((x) => parseInt(x)) as ICellLoc;
+};
+
+export const renderShipIcon = (parentComponent: BaseComponent, shipId: string) => {
+    const shipIcon = new ShipIcon({ shipId });
+    parentComponent.addChild(shipIcon);
+    parentComponent.ref.appendChild(shipIcon.build());
 };
 
 export const refresh = async () => {

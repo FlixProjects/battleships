@@ -36,6 +36,14 @@ export class GameEngine {
 
     private commitDeployShip(shipId: string, location: ICellLoc) {
         this.moves.push(new DeployShipAction({ shipId, location }));
-        // we need to remove that ship from the available ships
+        const player = gameManager.getPlayer();
+        const deployedShip = player.ships.find((ship) => ship.id === shipId)
+
+        deployedShip.deployed = true;
+        deployedShip.hullLocations = [ { shipId, location, hits: 0 } ]
+
+        gameManager.updatePlayer({ ships: player.ships });    
+
+        // TODO: update the counter
     }
 }

@@ -1,7 +1,6 @@
 import { gameEngine } from "..";
-import { getComponents } from "../components/component-helper";
+import { getComponents, updateComponents } from "../components/component-helper";
 import { Selectable } from "../components/Selectable";
-import { ShipIcon } from "../components/ships/ShipIcon";
 import { keyToLocation, locationToKey } from "../utils/game-helper";
 
 export class InteractionManager {
@@ -17,7 +16,7 @@ export class InteractionManager {
     }
 
     private selectingShipsClickHandler(e: MouseEvent, event: DeployingShipIMEvent) {
-        const { shipId, onGlobalDeselect } = event;
+        const { shipId, onGlobalDeselect, onSuccessfulSelect } = event;
 
         const target = e.target as HTMLElement;
 
@@ -43,20 +42,18 @@ export class InteractionManager {
 
         validCellIndices.forEach((index) => {
             this.selectables[index].addOnSelect(() => {
-                const tile = this.selectables[index];
-                const shipIcon = new ShipIcon({ shipId });
-                tile.addChild(shipIcon);
-                tile.ref.appendChild(shipIcon.build());
-
+                updateComponents();
                 onGlobalDeselect();
                 this.removeGlobalClickEventListener();
             });
         });
 
         if (validCellIndices.includes(id)) {
-            gameEngine.commit.deployShip(id, keyToLocation(id));
+            gameEngine.commit.deployShip(shipId, keyToLocation(id));
             const tile = this.selectables[id];
             tile.runOnSelects();
+
+            onSuccessfulSelect?.();
         }
 
         this.uiState = IMEventType.IDLE;
@@ -97,5 +94,5 @@ export type TIMEventType = (typeof IMEventType)[keyof typeof IMEventType];
 export interface DeployingShipIMEvent {
     shipId: string;
     onGlobalDeselect?: () => void;
-    onSelect?: () => void;
+    onSuccessfulSelect?: () => void;
 }

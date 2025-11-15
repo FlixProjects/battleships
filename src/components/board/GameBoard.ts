@@ -1,6 +1,7 @@
-import { BOARD_COLUMNS, BOARD_ROWS, ICellLoc } from "../../../shared";
+import { gameManager } from "../..";
+import { BOARD_COLUMNS, BOARD_ROWS, ICellLoc, IShip, Player } from "../../../shared";
 import { IAppState } from "../../types";
-import { locationToKey } from "../../utils/game-helper";
+import { locationToKey, renderShipIcon } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 import { Tile } from "./Tile";
 
@@ -21,12 +22,6 @@ export class GameBoard extends BaseComponent {
         }
     }
 
-    renderTile(key: string) {
-        const tile = new Tile({ id: key });
-        this.tiles[key] = tile;
-        this.ref.appendChild(tile.build());
-    }
-
     build() {
         this.ref = document.createElement("div");
 
@@ -38,6 +33,7 @@ export class GameBoard extends BaseComponent {
             }
         }
 
+        this.renderPlayersShips();
         this.container.appendChild(this.ref);
 
         return this.ref;
@@ -51,7 +47,7 @@ export class GameBoard extends BaseComponent {
         this.ref.style.padding = "12px";
     }
 
-    updateSelectableTiles(validCells: [number, number][]) {
+    public updateSelectableTiles(validCells: [number, number][]) {
         const validCellIndices = validCells.map((cell: ICellLoc) => locationToKey(cell));
         Object.keys(this.tiles).forEach((tileIndex: string) => {
             if (validCellIndices.includes(tileIndex)) {
@@ -59,6 +55,37 @@ export class GameBoard extends BaseComponent {
             } else {
                 this.tiles[tileIndex].setSelectable(false);
             }
+        });
+    }
+
+    private renderTile(key: string) {
+        const tile = new Tile({ id: key });
+        this.tiles[key] = tile;
+        this.ref.appendChild(tile.build());
+    }
+
+    private renderPlayersShips() {
+        const gameState = gameManager.state.gameState;
+        console.log(gameState);
+        if (!gameState) return;
+        gameState.players?.forEach((p) => {
+            this.renderPlayerShips(p);
+        });
+    }
+
+    private renderPlayerShips(player: Player) {
+        player.ships
+            .filter((s) => s.deployed)
+            .forEach((ship) => {
+                this.renderShip(ship);
+            });
+    }
+
+    private renderShip(ship: IShip) {
+        const tiles = ship.hullLocations?.map((hull) => locationToKey(hull.location));
+        tiles.forEach((tileIndex) => {
+            const tile = this.tiles[tileIndex];
+            renderShipIcon(tile, ship.id);
         });
     }
 }

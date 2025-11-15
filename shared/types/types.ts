@@ -21,7 +21,7 @@ export interface ICell {
 export type ICellLoc = [number, number];
 
 export interface IHull {
-    shipId: number;
+    shipId: string;
     location: ICellLoc;
     hits: number;
 }

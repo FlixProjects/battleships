@@ -1,4 +1,4 @@
-import { DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_CURRENT_PLAYER, FP_PLAYER_STATES, Player } from "../../shared";
+import { Board, DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_CURRENT_PLAYER, FP_PLAYER_STATES, Player } from "../../shared";
 import { IAppState } from "../types";
 
 interface PlayerGameStates {
@@ -39,6 +39,31 @@ export class GameManager {
 
     public getPlayer(): Player {
         return this.state.gameState?.players.find((p) => p.id === this.getCurrentPlayerId());
+    }
+
+    public updatePlayer(playerState: Partial<Player>) {
+        const player = this.getPlayer();
+        const newPlayerState = { ...player, ...playerState };
+        const playerAppState = this.getCurrentPlayerState();
+
+        playerAppState.gameState.players = playerAppState.gameState.players.map((p) => {
+            if (p.id === player.id) {
+                return newPlayerState;
+            }
+            return p;
+        });
+
+        this.saveCurrentPlayerState(playerAppState);
+    }
+
+    public updateBoard(boardState: Partial<Board>) {
+        const playerAppState = this.getCurrentPlayerState();
+        const board = playerAppState.gameState.board;
+        const newBoardState = { ...board, ...boardState };
+
+        playerAppState.gameState.board = newBoardState;
+
+        this.saveCurrentPlayerState(playerAppState);
     }
 
     private savePlayerState(playerId: string, state: Partial<IAppState>) {

@@ -10,10 +10,10 @@ interface Props {
 }
 
 export class ShipSelector extends BaseComponent {
-    private deployed = 0;
+    private deployed = 0; // is this deployment per turn?
     private maxDeployment = 2;
     private selectedShip?: string;
-    private shipRows: Map<string, ShipRow> = new Map();
+    private shipRows: ShipRow[] = [];
 
     constructor(private props: Props) {
         super();
@@ -26,6 +26,7 @@ export class ShipSelector extends BaseComponent {
 
     public build() {
         this.ref = document.createElement("div");
+
         this.addStyles();
 
         this.buildTitle();
@@ -37,29 +38,32 @@ export class ShipSelector extends BaseComponent {
     }
 
     private renderShipRows() {
-        this.props.player?.ships?.forEach(({ id }) => {
-            if (!this.shipRows.has(id)) {
+        this.props.player?.ships?.forEach(({ id, deployed }, ) => {
+            if (!deployed) {
                 const shipRow = new ShipRow({
                     shipId: id,
                     selected: this.selectedShip === id,
                     onSelect: (shipId: string) => this.setSelected(shipId),
                 });
-                this.shipRows.set(id, shipRow);
+                this.shipRows.push(shipRow);
                 this.addChild(shipRow);
+                this.ref.appendChild(shipRow.build());
             }
-            this.ref.appendChild(this.shipRows.get(id)!.build());
         });
     }
 
     private setSelected(id: string) {
         this.selectedShip = id;
-        this.shipRows.forEach((row, rowId) => {
-            row.setSelected(rowId === id);
+        this.shipRows.forEach((row) => {
+            row.setSelected(row.id === id);
         });
         
         interactionManager.handleDeployingShipEvent({
             shipId: this.selectedShip,
             onGlobalDeselect: () => this.clearSelection(),
+            onSuccessfulSelect: () => {
+                this.deployed++;
+            },
         });
     }
 
