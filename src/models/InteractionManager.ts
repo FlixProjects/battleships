@@ -10,6 +10,7 @@ export class InteractionManager {
     private globalClickHandler: (e: MouseEvent) => void;
 
     public handleDeployingShipEvent(event: DeployingShipIMEvent) {
+        this.removeGlobalClickEventListener();
         this.uiState = IMEventType.DEPLOYING_SHIP;
         this.globalClickHandler = (e: MouseEvent) => this.selectingShipsClickHandler(e, event);
         this.addGlobalClickEventListener();
@@ -20,22 +21,25 @@ export class InteractionManager {
 
         const target = e.target as HTMLElement;
 
-        const clickedTile = target.closest(".tile");
-        const clickedShipRow = target.closest(".ship-row");
+        const clickedShipRow = target.closest(".ship-row"); // find way to replace this implementation
 
         const validCells = gameEngine.prime.deployShip(shipId);
         const gameBoard = getComponents().div.gameBoard;
 
         gameBoard.updateSelectableTiles(validCells);
 
-        if (!clickedTile && !clickedShipRow) {
+        const id = this.addGetIdOfClick(e);
+        const validCellIndices = validCells.map((cell) => locationToKey(cell));
+
+        if (!clickedShipRow && !validCellIndices.includes(id)) {
             onGlobalDeselect();
             this.removeGlobalClickEventListener();
+            return;
         }
 
-        const id = this.addGetIdOfClick(e);
-
-        const validCellIndices = validCells.map((cell) => locationToKey(cell));
+        validCellIndices.forEach((index) => {
+            this.selectables[index].clearOnSelect();
+        });
 
         validCellIndices.forEach((index) => {
             this.selectables[index].addOnSelect(() => {
@@ -43,6 +47,9 @@ export class InteractionManager {
                 const shipIcon = new ShipIcon({ shipId });
                 tile.addChild(shipIcon);
                 tile.ref.appendChild(shipIcon.build());
+
+                onGlobalDeselect();
+                this.removeGlobalClickEventListener();
             });
         });
 
@@ -52,11 +59,13 @@ export class InteractionManager {
             tile.runOnSelects();
         }
 
-        validCellIndices.forEach((index) => {
-            this.selectables[index].clearOnSelect();
-        });
-
         this.uiState = IMEventType.IDLE;
+    }
+
+    public clearAllOnSelects() {
+        Object.values(this.selectables).forEach((selectable) => {
+            selectable.clearOnSelect();
+        });
     }
 
     public register(selectable: Selectable) {

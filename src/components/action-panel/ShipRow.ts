@@ -52,6 +52,7 @@ export class ShipRow extends BaseComponent {
         this.ref.style.justifyContent = "space-between";
         this.ref.style.padding = "12px";
         this.ref.style.borderRadius = "8px";
+        this.ref.style.cursor = "pointer";
 
         this.updateStyles();
 
