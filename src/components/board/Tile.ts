@@ -35,6 +35,12 @@ export class Tile extends Selectable {
         this.ref.style.borderRadius = "6px";
         this.ref.style.transition = "all 0.2s ease";
         this.ref.style.cursor = "pointer";
+        this.ref.style.height = "100%";
+        this.ref.style.width = "100%";
+        this.ref.style.display = "flex";
+        this.ref.style.alignItems = "center";
+        this.ref.style.justifyContent = "center";
+        this.ref.style.padding = "4px"
     }
 
     setSelectable(selectable: boolean) {

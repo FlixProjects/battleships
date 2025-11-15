@@ -85,4 +85,9 @@ export class ShipSelector extends BaseComponent {
         counter.style.color = "#9aa4b2";
         this.ref.appendChild(counter);
     }
+
+    protected addStyles(): void {
+        this.ref.style.display = "flex";
+        this.ref.style.flexDirection = "column";
+    }
 }
