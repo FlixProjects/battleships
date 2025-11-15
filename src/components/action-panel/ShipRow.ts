@@ -43,8 +43,6 @@ export class ShipRow extends BaseComponent {
     async onClick(): Promise<void> {
         const { shipId, onSelect } = this.props;
         onSelect?.(shipId);
-        const validCells = gameEngine.prime().deployShip(shipId);
-        getComponents().div.gameBoard.updateSelectableTiles(validCells);
     }
 
     protected addStyles() {

@@ -1,12 +1,17 @@
 import { IAppState } from "../../types";
-import { BaseComponent } from "../BaseComponent";
+import { Selectable } from "../Selectable";
 
-export class Tile extends BaseComponent {
+interface Props {
+    id: string;
+}
+
+export class Tile extends Selectable {
     private isSelectable = false;
 
-    constructor() {
-        super();
+    constructor(props: Props) {
+        super(props.id);
     }
+
     updateState(_state?: IAppState): void {
         if (this.isSelectable) {
             this.setSelectableStyle();
@@ -17,6 +22,7 @@ export class Tile extends BaseComponent {
 
     build() {
         this.ref = document.createElement("div");
+        this.ref.id = this.id;
         this.ref.classList.add("tile");
         this.addStyles();
         return this.ref;

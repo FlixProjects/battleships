@@ -19,11 +19,11 @@ export abstract class BaseComponent {
         //
     }
 
-    protected addStyles() {}
-
-    protected addChild(child: BaseComponent) {
+    public addChild(child: BaseComponent) {
         this.children.push(child);
     }
+    
+    protected addStyles() {}
 
     protected remove() {
         this.children.forEach((child) => child.remove());

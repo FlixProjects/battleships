@@ -1,5 +1,6 @@
 import { BOARD_COLUMNS, BOARD_ROWS, ICellLoc } from "../../../shared";
 import { IAppState } from "../../types";
+import { locationToKey } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 import { Tile } from "./Tile";
 
@@ -21,7 +22,7 @@ export class GameBoard extends BaseComponent {
     }
 
     renderTile(key: string) {
-        const tile = new Tile();
+        const tile = new Tile({ id: key });
         this.tiles[key] = tile;
         this.ref.appendChild(tile.build());
     }
@@ -51,7 +52,7 @@ export class GameBoard extends BaseComponent {
     }
 
     updateSelectableTiles(validCells: [number, number][]) {
-        const validCellIndices = validCells.map((cell: ICellLoc) => this.locationToKey(cell));
+        const validCellIndices = validCells.map((cell: ICellLoc) => locationToKey(cell));
         Object.keys(this.tiles).forEach((tileIndex: string) => {
             if (validCellIndices.includes(tileIndex)) {
                 this.tiles[tileIndex].setSelectable(true);
@@ -59,9 +60,5 @@ export class GameBoard extends BaseComponent {
                 this.tiles[tileIndex].setSelectable(false);
             }
         });
-    }
-
-    locationToKey(location: ICellLoc) {
-        return `${location[0]},${location[1]}`;
     }
 }

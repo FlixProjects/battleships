@@ -1,17 +1,24 @@
 import { gameManager } from "..";
 import { BOARD_COLUMNS, BOARD_ROWS, ICellLoc } from "../../shared";
-import { Action } from "./Action";
+import { Action } from "./actions/Action";
+import { DeployShipAction } from "./actions/DeployShipAction";
 
 export class GameEngine {
     public moves: Action[] = [];
 
-    prime() {
+    get prime() {
         return {
             deployShip: (shipId: string) => this.primeDeployShip(shipId),
         };
     }
 
-    primeDeployShip(shipId: string): ICellLoc[] {
+    get commit() {
+        return {
+            deployShip: (shipId: string, location: ICellLoc) => this.commitDeployShip(shipId, location),
+        };
+    }
+
+    private primeDeployShip(shipId: string): ICellLoc[] {
         const availableCells: ICellLoc[] = [];
 
         if (gameManager.isFirstPlayer) {
@@ -25,5 +32,10 @@ export class GameEngine {
         }
 
         return availableCells;
+    }
+
+    private commitDeployShip(shipId: string, location: ICellLoc) {
+        this.moves.push(new DeployShipAction({ shipId, location }));
+        // we need to remove that ship from the available ships
     }
 }

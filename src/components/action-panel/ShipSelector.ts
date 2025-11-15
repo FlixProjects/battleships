@@ -56,8 +56,10 @@ export class ShipSelector extends BaseComponent {
         this.shipRows.forEach((row, rowId) => {
             row.setSelected(rowId === id);
         });
+        
         interactionManager.handleDeployingShipEvent({
-            onDeselect: () => this.clearSelection(),
+            shipId: this.selectedShip,
+            onGlobalDeselect: () => this.clearSelection(),
         });
     }
 

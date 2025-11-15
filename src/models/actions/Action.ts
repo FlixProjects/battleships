@@ -1,4 +1,4 @@
-import { TActionTypes } from "../../shared/types";
+import { TActionTypes } from "../../../shared/types";
 
 export class Action {
     id: string;

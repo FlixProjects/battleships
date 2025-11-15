@@ -1,5 +1,5 @@
 import { gameManager } from "..";
-import { FP_CURRENT_PLAYER, FP_GAME_CODE, GameState } from "../../shared";
+import { FP_CURRENT_PLAYER, FP_GAME_CODE, ICellLoc } from "../../shared";
 import { getGame } from "../apis/get-game";
 import { getComponents, updateComponents } from "../components/component-helper";
 import { AppStatus } from "../types";
@@ -25,6 +25,14 @@ export const setCurrentPlayer = (playerId: string) => {
 export const checkIfNameIsFilled = () => {
     const playerNameInput = getComponents().input.playerName;
     return !!playerNameInput.value;
+};
+
+export const locationToKey = (location: ICellLoc) => {
+    return `${location[0]},${location[1]}`;
+};
+
+export const keyToLocation = (key: string): ICellLoc => {
+    return key.split(",").map((x) => parseInt(x)) as ICellLoc;
 };
 
 export const refresh = async () => {
