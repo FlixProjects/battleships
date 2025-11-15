@@ -1,4 +1,4 @@
-import { gameManager } from "..";
+import { _components, gameManager } from "..";
 import { IAppState } from "../types";
 import { ActionPanel } from "./action-panel/ActionPanel";
 import { GameBoard } from "./board/GameBoard";
@@ -12,21 +12,23 @@ import { RefreshButton } from "./RefreshButton";
 import { StatusText } from "./StatusText";
 import { SwitchPlayerButton } from "./SwitchPlayerButton";
 
-const _components = {
-    statusText: new StatusText(),
-    gameCodeText: new GameCodeText(),
+export const loadComponents = () => {
+    return {
+        statusText: new StatusText(),
+        gameCodeText: new GameCodeText(),
 
-    playerNameInput: new PlayerNameInput(),
-    joinCodeInput: new JoinGameInput(),
+        playerNameInput: new PlayerNameInput(),
+        joinCodeInput: new JoinGameInput(),
 
-    refreshBtn: new RefreshButton(),
-    joinGameBtn: new JoinGameButton(),
-    createGameBtn: new CreateGameButton(),
-    switchPlayerBtn: new SwitchPlayerButton(),
+        refreshBtn: new RefreshButton(),
+        joinGameBtn: new JoinGameButton(),
+        createGameBtn: new CreateGameButton(),
+        switchPlayerBtn: new SwitchPlayerButton(),
 
-    playerCardsContainer: new PlayerCards(),
-    gameBoard: new GameBoard(),
-    actionPanel: new ActionPanel(),
+        playerCardsContainer: new PlayerCards(),
+        gameBoard: new GameBoard(),
+        actionPanel: new ActionPanel(),
+    };
 };
 
 // TODO: components should be also accessible via array?
@@ -37,6 +39,19 @@ export const getComponents = () => {
     const div = { ...getStaticComponents().div };
 
     return { button, span, input, div };
+};
+
+// TODO: We should be automating updateComponent calls instead of manually calling updateComponents()
+export const updateComponents = (incomingState: Partial<IAppState> = {}) => {
+    const _state = { ...gameManager.state, ...incomingState };
+
+    Object.values(getComponents()).forEach((typeOfComponent) => {
+        Object.values(typeOfComponent).forEach((component) => {
+            if (component.updateState) {
+                component.updateState(_state);
+            }
+        });
+    });
 };
 
 const getStaticComponents = () => {
@@ -60,17 +75,4 @@ const getStaticComponents = () => {
             actionPanel: _components.actionPanel,
         },
     };
-};
-
-// TODO: We should be automating updateComponent calls instead of manually calling updateComponents()
-export const updateComponents = (incomingState: Partial<IAppState> = {}) => {
-    const _state = { ...gameManager.state, ...incomingState };
-
-    Object.values(getComponents()).forEach((typeOfComponent) => {
-        Object.values(typeOfComponent).forEach((component) => {
-            if (component.updateState) {
-                component.updateState(_state);
-            }
-        });
-    });
 };
