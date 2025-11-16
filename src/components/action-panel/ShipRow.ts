@@ -10,7 +10,7 @@ interface Props {
     onSelect?: (id: string) => void;
 }
 export class ShipRow extends BaseComponent {
-    constructor(private props: Props) {
+    constructor(public props: Props) {
         super();
     }
 

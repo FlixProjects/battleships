@@ -38,7 +38,7 @@ export class ShipSelector extends BaseComponent {
     }
 
     private renderShipRows() {
-        this.props.player?.ships?.forEach(({ id, deployed }, ) => {
+        this.props.player?.ships?.forEach(({ id, deployed }) => {
             if (!deployed) {
                 const shipRow = new ShipRow({
                     shipId: id,
@@ -55,7 +55,8 @@ export class ShipSelector extends BaseComponent {
     private setSelected(id: string) {
         this.selectedShip = id;
         this.shipRows.forEach((row) => {
-            row.setSelected(row.id === id);
+            const isSelected = row.props.shipId === id;
+            row.setSelected(isSelected);
         });
         
         interactionManager.handleDeployingShipEvent({
