@@ -5,6 +5,7 @@ async function buildLambda() {
         "create-game/index.ts",
         "join-game/index.ts",
         "get-game/index.ts",
+        "submit-action/index.ts",
         // "edge-auth-viewer-response/index.ts",
     ];
 

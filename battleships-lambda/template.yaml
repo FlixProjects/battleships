@@ -102,3 +102,33 @@ Resources:
                     - battleships-lambda/join-game/index.ts
                 External:
                     - "@aws-sdk/client-s3"
+    SubmitActionFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: ../
+            Handler: index.handler
+            Runtime: nodejs22.x
+            Architectures:
+                - x86_64
+            Environment:
+                Variables:
+                    DEPLOY_ENV: local
+            Events:
+                CreateGame:
+                    Type: Api
+                    Properties:
+                        Path: /api/submit
+                        Method: post
+        Metadata: # Manage esbuild properties
+            BuildMethod: esbuild
+            BuildProperties:
+                Format: esm
+                Minify: true
+                Target: es2020
+                Sourcemap: true
+                OutExtension:
+                    - .js=.mjs
+                EntryPoints:
+                    - battleships-lambda/submit-action/index.ts
+                External:
+                    - "@aws-sdk/client-s3"

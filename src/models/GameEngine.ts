@@ -1,10 +1,8 @@
 import { gameManager } from "..";
-import { BOARD_COLUMNS, BOARD_ROWS, ICellLoc } from "../../shared";
-import { Action } from "./actions/Action";
-import { DeployShipAction } from "./actions/DeployShipAction";
+import { ActionTypes, BOARD_COLUMNS, BOARD_ROWS, getHull, IAction, ICellLoc, IDeployAction } from "../../shared";
 
 export class GameEngine {
-    public moves: Action[] = [];
+    public moves: IAction[] = [];
 
     get prime() {
         return {
@@ -14,7 +12,7 @@ export class GameEngine {
 
     get commit() {
         return {
-            deployShip: (shipId: string, location: ICellLoc) => this.commitDeployShip(shipId, location),
+            deployShip: (shipId: string, location: ICellLoc[]) => this.commitDeployShip(shipId, location),
         };
     }
 
@@ -34,15 +32,22 @@ export class GameEngine {
         return availableCells;
     }
 
-    private commitDeployShip(shipId: string, location: ICellLoc) {
-        this.moves.push(new DeployShipAction({ shipId, location }));
+    private commitDeployShip(shipId: string, locations: ICellLoc[]) {
+        const committedHullLocations = locations.map((loc) => getHull(shipId, loc));
+        const deployAction: IDeployAction = {
+            shipId,
+            hullLocations: committedHullLocations,
+            type: ActionTypes.DEPLOY,
+            playerId: gameManager.getPlayer().id,
+        };
+        this.moves.push(deployAction);
         const player = gameManager.getPlayer();
-        const deployedShip = player.ships.find((ship) => ship.id === shipId)
+        const deployedShip = player.ships.find((ship) => ship.id === shipId);
 
         deployedShip.deployed = true;
-        deployedShip.hullLocations = [ { shipId, location, hits: 0 } ]
+        deployedShip.hullLocations = committedHullLocations;
 
-        gameManager.updatePlayer({ ships: player.ships });    
+        gameManager.updatePlayer({ ships: player.ships, pendingActions: this.moves });
 
         // TODO: update the counter
     }

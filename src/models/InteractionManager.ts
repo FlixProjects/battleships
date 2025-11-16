@@ -49,7 +49,7 @@ export class InteractionManager {
         });
 
         if (validCellIndices.includes(id)) {
-            gameEngine.commit.deployShip(shipId, keyToLocation(id));
+            gameEngine.commit.deployShip(shipId, [keyToLocation(id)]); // FIXME: only single location for now
             const tile = this.selectables[id];
             tile.runOnSelects();
 

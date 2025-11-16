@@ -35,6 +35,7 @@ export const handler = async (event: any) => {
             code: gameCode,
             players: [newPlayer],
             board: getNewBoard(),
+            initiative: playerId,
         };
 
         if (env !== LOCAL_ENV) {

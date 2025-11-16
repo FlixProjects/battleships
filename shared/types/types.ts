@@ -1,8 +1,11 @@
+import { IAction } from "./action-types";
+
 export interface Player {
     name: string;
     id: string;
     ready: boolean;
     ships: IShip[];
+    pendingActions?: IAction[];
 }
 
 export interface Board {
@@ -21,6 +24,7 @@ export interface ICell {
 export type ICellLoc = [number, number];
 
 export interface IHull {
+    id: string;
     shipId: string;
     location: ICellLoc;
     hits: number;
@@ -37,15 +41,7 @@ export interface IShip {
 
 export interface GameState {
     code: string;
+    initiative?: string;
     players: Player[];
     board: Board;
 }
-
-export const ActionTypes = {
-    DEPLOY: "deploy",
-    ATTACK: "attack",
-    SELECT_FLEET: "select_fleet",
-    MOVE: "move",
-} as const;
-
-export type TActionTypes = (typeof ActionTypes)[keyof typeof ActionTypes];

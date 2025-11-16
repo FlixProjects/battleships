@@ -1,4 +1,9 @@
-import { IAppState } from "../../types";
+import { gameManager } from "../..";
+import { FP_GAME_STATE } from "../../../shared";
+import { submitAction } from "../../apis/submit-action";
+import { isLocal } from "../../config/app-config";
+import { AppStatus, IAppState } from "../../types";
+import { updateComponents } from "../component-helper";
 import { HTMLButton } from "../native/Button";
 
 export class SubmitMoveButton extends HTMLButton {
@@ -20,6 +25,16 @@ export class SubmitMoveButton extends HTMLButton {
     }
 
     async onClick() {
-        console.log("Submit move clicked");
+        try {
+            const { results, gameState } = await submitAction(gameManager.getPlayer().pendingActions);
+
+            if (isLocal) {
+                // DO NOT DELETE: this item simulates Object in S3
+                sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameState));
+            }
+            updateComponents();
+        } catch (error) {
+            updateComponents({ status: AppStatus.Error });
+        }
     }
 }
