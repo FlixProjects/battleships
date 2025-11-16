@@ -3,6 +3,7 @@ import { BaseComponent } from "../BaseComponent";
 interface Props {
     shipId: string;
     imgSrc?: string;
+    invert?: boolean;
 }
 export class ShipIcon extends BaseComponent {
     constructor(private props: Props) {
@@ -26,13 +27,17 @@ export class ShipIcon extends BaseComponent {
         this.ref.style.cursor = "pointer";
         this.ref.style.transition = "all 0.2s ease";
 
+        if (this.props.invert) {
+            this.ref.style.transform = "scaleY(-1)";
+        }
+
         this.ref.addEventListener("mouseenter", () => {
-            this.ref.style.transform = "scale(1.1)";
+            this.ref.style.transform = `scale(1.1, ${this.props.invert ? -1.1 : 1.1})`;
             this.ref.style.borderBottomColor = "rgba(110, 231, 183, 0.9)";
         });
 
         this.ref.addEventListener("mouseleave", () => {
-            this.ref.style.transform = "scale(1)";
+            this.ref.style.transform = `scale(1, ${this.props.invert ? -1 : 1})`;
             this.ref.style.borderBottomColor = "rgba(110, 231, 183, 0.6)";
         });
     }

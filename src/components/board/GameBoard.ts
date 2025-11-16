@@ -77,15 +77,18 @@ export class GameBoard extends BaseComponent {
         player.ships
             .filter((s) => s.deployed)
             .forEach((ship) => {
-                this.renderShip(ship);
+                this.renderShip(ship, gameManager.isFirstPlayer);
             });
     }
 
-    private renderShip(ship: IShip) {
-        const tiles = ship.hullLocations?.map((hull) => locationToKey(hull.location));
-        tiles.forEach((tileIndex) => {
-            const tile = this.tiles[tileIndex];
-            renderShipIcon(tile, ship.id);
+    private renderShip(ship: IShip, invert = false) {
+        const tiles = ship.hullLocations?.map((hull) => {
+            return { key: locationToKey(hull.location) };
+        });
+
+        tiles.forEach(({ key }) => {
+            const tile = this.tiles[key];
+            renderShipIcon(tile, ship.id, invert);
         });
     }
 }
