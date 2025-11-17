@@ -28,10 +28,6 @@ export class PlayerCards extends BaseComponent {
     }
 
     reset() {
-        // const playerComponents = document.getElementsByClassName("player-container"); // TODO: make this a constant
-
-        // Array.from(playerComponents).forEach((el) => el.remove());
-
         this.state.playerCards.forEach((playerCard) => {
             playerCard.ref.remove();
         });

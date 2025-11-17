@@ -1,3 +1,4 @@
+import { gameManager } from "../..";
 import { BaseComponent } from "../BaseComponent";
 
 interface Props {
@@ -26,6 +27,7 @@ export class PlayerCard extends BaseComponent {
 
         this.addPlayerName();
         this.addPlayerId();
+        this.addStyles();
 
         return this.ref;
     }
@@ -44,5 +46,14 @@ export class PlayerCard extends BaseComponent {
         playerIdEl.className = "player-id";
         playerIdEl.innerText = playerId;
         this.ref.appendChild(playerIdEl);
+    }
+
+    protected addStyles(): void {
+        this.ref.style.border = "6px solid";
+        if (this.props.playerId === gameManager.firstPlayerId) {
+            this.ref.style.borderColor = "rgba(245, 181, 44, 1)";
+        } else {
+            this.ref.style.borderColor = "rgba(110, 231, 183, 1)";
+        }
     }
 }

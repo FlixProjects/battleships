@@ -20,6 +20,10 @@ export class GameManager {
         return this.getCurrentPlayerState()?.gameState?.players?.[0].id === this.getCurrentPlayerId();
     }
 
+    get firstPlayerId() {
+        return this.getCurrentPlayerState()?.gameState?.players?.[0].id;
+    }
+
     public saveCurrentPlayerState(state: Partial<IAppState>) {
         const playerId = this.getCurrentPlayerId();
         return this.savePlayerState(playerId, state);
@@ -66,6 +70,10 @@ export class GameManager {
         this.saveCurrentPlayerState(playerAppState);
     }
 
+    private getCurrentPlayerId(): string | null {
+        return sessionStorage.getItem(FP_CURRENT_PLAYER);
+    }
+
     private savePlayerState(playerId: string, state: Partial<IAppState>) {
         this.playerGameStates[playerId] = { ...this.playerGameStates[playerId], ...state };
         this.savePlayerStates();
@@ -91,8 +99,5 @@ export class GameManager {
 
     private savePlayerStates() {
         sessionStorage.setItem(FP_PLAYER_STATES, JSON.stringify(this.playerGameStates));
-    }
-    private getCurrentPlayerId(): string | null {
-        return sessionStorage.getItem(FP_CURRENT_PLAYER);
     }
 }
