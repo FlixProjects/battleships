@@ -20,11 +20,9 @@ export class GameCodeText extends HTMLSpan {
         // Temporary visual feedback
         const original = element.textContent;
         element.textContent = "✅ Copied!";
-        element.classList.add("copied");
 
         setTimeout(() => {
             element.textContent = original!;
-            element.classList.remove("copied");
         }, 1200);
     }
 
