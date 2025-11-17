@@ -42,8 +42,10 @@ export const initialiseNewPlayer = (id: string, name: string): Player => {
         name,
         id,
         ready: false,
-        ships: [getShip("frigate0", id), getShip("frigate0", id)], // TODO: player should choose their ships
+        ships: [getShip("frigate0", id), getShip("flagship0", id), getShip("frigate0", id), getShip("frigate0", id)], // TODO: player should choose their ships
         pendingActions: [],
+        maxCommandPoints: 2, // can be increased with flagship
+        commandPoints: 2,
     };
 };
 

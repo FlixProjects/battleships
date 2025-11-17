@@ -87,7 +87,7 @@ export class GameBoard extends BaseComponent {
 
         tiles.forEach(({ key }) => {
             const tile = this.tiles[key];
-            renderShipIcon(tile, ship.id, isFirstPlayer);
+            renderShipIcon(tile, ship.id, ship.refNo, isFirstPlayer);
         });
     }
 }

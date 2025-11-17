@@ -2,6 +2,7 @@ import { interactionManager } from "..";
 import { BaseComponent } from "./BaseComponent";
 
 export class Selectable extends BaseComponent {
+    public isSelectableAction = true;
     private onSelects?: Array<() => void> = [];
     constructor(public id: string) {
         super();

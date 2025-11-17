@@ -22,11 +22,7 @@ const resolveActions = (thisPlayer: string, gameState: GameState, actions: IActi
 
     const { results, gameState: newGameState } = new ActionResolver(actions, otherPlayerActions, newState).resolve();
 
-    newGameState.players.forEach((p) => {
-        p.ready = false;
-    });
-
-    return { results, newGameState };
+    return { results, newGameState: refreshPlayers(newGameState) };
 };
 
 const saveActions = (thisPlayer: string, gameState: GameState, actions: IAction[]): ActionHandlerResult => {
@@ -45,6 +41,16 @@ const saveActions = (thisPlayer: string, gameState: GameState, actions: IAction[
     player.ready = true;
 
     return { results: [], newGameState: newState };
+};
+
+const refreshPlayers = (gameState: GameState) => {
+    const newState = { ...gameState };
+    newState.players.forEach((p) => {
+        p.ready = false;
+        p.commandPoints = p.maxCommandPoints;
+        p.pendingActions = [];
+    });
+    return newState;
 };
 
 const isOtherPlayerReady = (thisPlayer: string, gameState: GameState) => {

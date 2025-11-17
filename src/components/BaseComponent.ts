@@ -10,6 +10,10 @@ export abstract class BaseComponent {
         this.ref.addEventListener("click", async () => await this.onClick());
     }
 
+    public removeClickEventListener() {
+        this.ref.removeEventListener("click", async () => await this.onClick());
+    }
+
     public updateState(_state?: IAppState) {
         this.remove();
         this.build();

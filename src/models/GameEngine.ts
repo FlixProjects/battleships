@@ -33,21 +33,29 @@ export class GameEngine {
     }
 
     private commitDeployShip(shipId: string, locations: ICellLoc[]) {
+        const player = gameManager.getPlayer();
         const committedHullLocations = locations.map((loc) => getHull(shipId, loc));
+        const deployedShip = player.ships.find((ship) => ship.id === shipId);
+
+        const commandPointCost = deployedShip?.commandPointCost ? deployedShip.commandPointCost : 0;
+
         const deployAction: IDeployAction = {
             shipId,
             hullLocations: committedHullLocations,
             type: ActionTypes.DEPLOY,
             playerId: gameManager.getPlayer().id,
+            commandPointCost,
         };
-
-        const player = gameManager.getPlayer();
-        const deployedShip = player.ships.find((ship) => ship.id === shipId);
+       
 
         deployedShip.deployed = true;
         deployedShip.hullLocations = committedHullLocations;
 
-        gameManager.updatePlayer({ ships: player.ships, pendingActions: [...player.pendingActions, deployAction] });
+        gameManager.updatePlayer({
+            ships: player.ships,
+            pendingActions: [...player.pendingActions, deployAction],
+            commandPoints: player.commandPoints - commandPointCost,
+        });
 
         // TODO: update the counter
     }

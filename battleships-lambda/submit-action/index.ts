@@ -80,7 +80,6 @@ export const handler = async (event: any) => {
                     ContentType: "application/json",
                 }),
             );
-            gameState = removeActions(gameState);
         }
 
 

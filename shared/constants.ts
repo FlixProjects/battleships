@@ -34,6 +34,14 @@ export const SHIPS_CONFIG: Record<string, IShipTemplate> = {
         name: "Frigate",
         deployed: false,
         dimensions: [1, 1],
+        commandPointCost: 1,
+    },
+    flagship0: {
+        refNo: "flagship0",
+        name: "Flagship",
+        deployed: false,
+        dimensions: [1, 1],
+        commandPointCost: 0,
     },
 };
 

@@ -1,17 +1,20 @@
 import { gameManager } from "../..";
 import { COLOR } from "../../../shared";
 import { IAppState } from "../../types";
-import { BaseComponent } from "../BaseComponent";
+import { Selectable } from "../Selectable";
 import { ShipIcon } from "../ships/ShipIcon";
 
 interface Props {
     shipId: string;
+    refNo: string;
     selected: boolean;
     onSelect?: (id: string) => void;
+    selectable?: boolean;
 }
-export class ShipRow extends BaseComponent {
+export class ShipRow extends Selectable {
     constructor(public props: Props) {
-        super();
+        const { shipId } = props;
+        super(shipId);
     }
 
     updateState(_state?: IAppState): void {
@@ -25,13 +28,14 @@ export class ShipRow extends BaseComponent {
     }
 
     renderShipIcon() {
-        const { shipId } = this.props;
+        const { shipId, refNo } = this.props;
 
         const shipIcon = new ShipIcon({
+            refNo,
             shipId,
             color: gameManager.isFirstPlayer ? COLOR.TEAL : COLOR.ORANGE,
         });
-        
+
         this.addChild(shipIcon);
         this.ref.appendChild(shipIcon.build());
     }
@@ -39,13 +43,43 @@ export class ShipRow extends BaseComponent {
     build() {
         this.ref = document.createElement("div");
         this.ref.classList.add("ship-row");
+
         this.addStyles();
-        this.addClickEventListener();
+
+        if (this.props.selectable) {
+            this.setAsSelectable();
+        } else {
+            this.setAsUnselectable();
+        }
+
         this.renderShipIcon();
         return this.ref;
     }
 
-    async onClick(): Promise<void> {
+    public setAsUnselectable(): void {
+        // TODO: Extract to a ActionRow base class
+        this.removeClickEventListener();
+        this.ref.removeEventListener("mouseenter", this.mouseEnter);
+        this.ref.removeEventListener("mouseleave", this.mouseLeave);
+    }
+
+    public setAsSelectable(): void {
+        this.addClickEventListener();
+        this.ref.addEventListener("mouseenter", this.mouseEnter);
+        this.ref.addEventListener("mouseleave", this.mouseLeave);
+    }
+
+    private mouseEnter = () => {
+        this.ref.style.transform = "scale(1.1)";
+        this.ref.style.borderBottomColor = "rgba(110, 231, 183, 0.9)";
+    };
+
+    private mouseLeave = () => {
+        this.ref.style.transform = "scale(1)";
+        this.ref.style.borderBottomColor = "rgba(110, 231, 183, 0.6)";
+    };
+
+    public async onClick(): Promise<void> {
         const { shipId, onSelect } = this.props;
         onSelect?.(shipId);
     }
@@ -60,16 +94,6 @@ export class ShipRow extends BaseComponent {
         this.ref.style.cursor = "pointer";
 
         this.updateStyles();
-
-        this.ref.addEventListener("mouseenter", () => {
-            this.ref.style.transform = "scale(1.1)";
-            this.ref.style.borderBottomColor = "rgba(110, 231, 183, 0.9)";
-        });
-
-        this.ref.addEventListener("mouseleave", () => {
-            this.ref.style.transform = "scale(1)";
-            this.ref.style.borderBottomColor = "rgba(110, 231, 183, 0.6)";
-        });
     }
 
     private updateStyles() {

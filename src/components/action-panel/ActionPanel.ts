@@ -23,6 +23,7 @@ export class ActionPanel extends BaseComponent {
         this.ref = document.createElement("div");
         this.addStyles();
 
+        this.renderCommandPoints();
         this.renderOptions();
         this.renderSubmitButton();
 
@@ -43,7 +44,24 @@ export class ActionPanel extends BaseComponent {
 
     private renderSubmitButton() {
         const submitBtn = new SubmitMoveButton();
+        this.addChild(submitBtn);
         this.ref.appendChild(submitBtn.build());
+    }
+
+    private renderCommandPoints() {
+        const player = gameManager.getPlayer();
+        const commandPointsDiv = document.createElement("div");
+        commandPointsDiv.style.padding = "12px";
+        commandPointsDiv.style.background = "rgba(255, 255, 255, 0.05)";
+        commandPointsDiv.style.borderRadius = "8px";
+        commandPointsDiv.style.marginBottom = "8px";
+        commandPointsDiv.style.textAlign = "center";
+        commandPointsDiv.style.color = "#ffffff";
+        commandPointsDiv.style.fontSize = "14px";
+        commandPointsDiv.style.fontWeight = "bold";
+        commandPointsDiv.innerHTML = `Command Points: ${player.commandPoints}/${player.maxCommandPoints}`;
+
+        this.ref.appendChild(commandPointsDiv);
     }
 
     protected addStyles() {

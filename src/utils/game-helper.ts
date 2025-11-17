@@ -37,11 +37,11 @@ export const keyToLocation = (key: string): ICellLoc => {
     return key.split(",").map((x) => parseInt(x)) as ICellLoc;
 };
 
-export const renderShipIcon = (parentComponent: BaseComponent, shipId: string, isFirstPlayer = true) => {
+export const renderShipIcon = (parentComponent: BaseComponent, shipId: string, refNo: string, isFirstPlayer = true) => {
     const invert = isFirstPlayer;
     const color = isFirstPlayer ? COLOR.TEAL : COLOR.ORANGE;
 
-    const shipIcon = new ShipIcon({ shipId, invert, color });
+    const shipIcon = new ShipIcon({ shipId, invert, color, refNo });
     parentComponent.addChild(shipIcon);
     parentComponent.ref.appendChild(shipIcon.build());
 };

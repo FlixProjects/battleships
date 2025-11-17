@@ -12,6 +12,7 @@ export type TActionTypes = (typeof ActionTypes)[keyof typeof ActionTypes];
 export interface IAction {
     playerId: string;
     type: TActionTypes;
+    commandPointCost: number;
 }
 
 export interface IDeployAction extends IAction {

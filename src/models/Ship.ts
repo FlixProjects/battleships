@@ -8,4 +8,5 @@ export class Ship implements IShip {
     hullLocations?: IHull[];
     dimensions: [number, number];
     deployed: boolean;
+    commandPointCost: number;
 }

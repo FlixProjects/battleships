@@ -6,6 +6,9 @@ export class ActionResolver {
     constructor(public player1Actions: IAction[], public player2Actions: IAction[], public gameState: GameState) {}
 
     public resolve() {
+        if (this.player1Actions.length === 0 && this.player2Actions.length === 0) {
+            return { gameState: this.gameState, results: this.results };
+        }
         do {
             this.resolveTurn();
         } while (this.player1Actions.length > 0 || this.player2Actions.length > 0);

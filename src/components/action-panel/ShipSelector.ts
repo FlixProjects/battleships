@@ -1,4 +1,4 @@
-import { interactionManager } from "../..";
+import { gameManager, interactionManager } from "../..";
 import { Player } from "../../../shared";
 import { IAppState } from "../../types";
 import { BaseComponent } from "../BaseComponent";
@@ -10,8 +10,6 @@ interface Props {
 }
 
 export class ShipSelector extends BaseComponent {
-    private deployed = 0; // is this deployment per turn?
-    private maxDeployment = 2;
     private selectedShip?: string;
     private shipRows: ShipRow[] = [];
 
@@ -29,21 +27,20 @@ export class ShipSelector extends BaseComponent {
 
         this.addStyles();
 
-        this.buildTitle();
-        this.buildCounter();
-
         this.renderShipRows();
 
         return this.ref;
     }
 
     private renderShipRows() {
-        this.props.player?.ships?.forEach(({ id, deployed }) => {
+        this.props.player?.ships?.forEach(({ id, refNo, deployed, commandPointCost }) => {
             if (!deployed) {
                 const shipRow = new ShipRow({
                     shipId: id,
                     selected: this.selectedShip === id,
                     onSelect: (shipId: string) => this.setSelected(shipId),
+                    selectable: gameManager.getPlayer().commandPoints >= commandPointCost,
+                    refNo,
                 });
                 this.shipRows.push(shipRow);
                 this.addChild(shipRow);
@@ -58,13 +55,10 @@ export class ShipSelector extends BaseComponent {
             const isSelected = row.props.shipId === id;
             row.setSelected(isSelected);
         });
-        
+
         interactionManager.handleDeployingShipEvent({
             shipId: this.selectedShip,
             onGlobalDeselect: () => this.clearSelection(),
-            onSuccessfulSelect: () => {
-                this.deployed++;
-            },
         });
     }
 
@@ -72,23 +66,6 @@ export class ShipSelector extends BaseComponent {
         this.selectedShip = undefined;
         this.shipRows.forEach((row) => row.setSelected(false));
         getComponents().div.gameBoard.updateSelectableTiles([]);
-    }
-
-    private buildTitle() {
-        const title = document.createElement("h3");
-        title.textContent = "Deploy Ships";
-        title.style.margin = "0";
-        title.style.fontSize = "16px";
-        title.style.color = "#e6eef6";
-        this.ref.appendChild(title);
-    }
-
-    private buildCounter() {
-        const counter = document.createElement("div");
-        counter.textContent = `Deployed: ${this.deployed} / ${this.maxDeployment}`;
-        counter.style.fontSize = "14px";
-        counter.style.color = "#9aa4b2";
-        this.ref.appendChild(counter);
     }
 
     protected addStyles(): void {

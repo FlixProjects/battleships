@@ -6,6 +6,8 @@ export interface Player {
     ready: boolean;
     ships: IShip[];
     pendingActions?: IAction[];
+    maxCommandPoints: number;
+    commandPoints: number;
 }
 
 export interface Board {
@@ -35,6 +37,7 @@ export interface IShipTemplate {
     name: string;
     dimensions: [number, number];
     deployed: boolean;
+    commandPointCost: number;
 }
 
 export interface IShip extends IShipTemplate {
