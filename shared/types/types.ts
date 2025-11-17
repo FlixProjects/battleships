@@ -30,13 +30,17 @@ export interface IHull {
     hits: number;
 }
 
-export interface IShip {
-    id?: string;
+export interface IShipTemplate {
     refNo: string;
     name: string;
-    hullLocations?: IHull[];
     dimensions: [number, number];
     deployed: boolean;
+}
+
+export interface IShip extends IShipTemplate {
+    id: string;
+    playerId: string;
+    hullLocations?: IHull[];
 }
 
 export interface GameState {

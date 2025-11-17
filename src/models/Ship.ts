@@ -2,6 +2,7 @@ import { IHull, IShip } from "../../shared";
 
 export class Ship implements IShip {
     id: string;
+    playerId: string;
     refNo: string;
     name: string;
     hullLocations?: IHull[];

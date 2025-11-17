@@ -1,5 +1,5 @@
 import { AppStatus, IAppState } from "../src/types";
-import { GameState, IShip } from "./types";
+import { GameState, IShipTemplate } from "./types";
 import { getNewBoard } from "./utils";
 
 export const FP_AUTH_TOKEN = "fp-auth-token";
@@ -28,7 +28,7 @@ export const DEFAULT_APP_STATE: IAppState = {
 export const BOARD_ROWS = 14;
 export const BOARD_COLUMNS = 7;
 
-export const SHIPS_CONFIG: Record<string, IShip> = {
+export const SHIPS_CONFIG: Record<string, IShipTemplate> = {
     frigate0: {
         refNo: "frigate0",
         name: "Frigate",

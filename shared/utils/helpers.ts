@@ -42,14 +42,13 @@ export const initialiseNewPlayer = (id: string, name: string): Player => {
         name,
         id,
         ready: false,
-        ships: [getShip("frigate0"), getShip("frigate0")],
+        ships: [getShip("frigate0", id), getShip("frigate0", id)], // TODO: player should choose their ships
         pendingActions: [],
     };
 };
 
-export const getShip = (id: string): IShip => {
-    const base = { ...SHIPS_CONFIG[id] };
-    base.id = uuidv7();
+export const getShip = (refNo: string, playerId: string): IShip => {
+    const base: IShip = { ...SHIPS_CONFIG[refNo], id: uuidv7(), playerId };
     return base;
 };
 
