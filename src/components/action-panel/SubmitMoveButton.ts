@@ -27,11 +27,12 @@ export class SubmitMoveButton extends HTMLButton {
     async onClick() {
         try {
             const { results, gameState } = await submitAction(gameManager.getPlayer().pendingActions);
-
+            const newState = { loading: false, gameState };
             if (isLocal) {
                 // DO NOT DELETE: this item simulates Object in S3
                 sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameState));
             }
+            gameManager.saveCurrentPlayerState(newState);
             updateComponents();
         } catch (error) {
             updateComponents({ status: AppStatus.Error });

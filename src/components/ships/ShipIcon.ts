@@ -1,9 +1,12 @@
+import { TColor } from "../../../shared";
+import { getColorFilter } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 
 interface Props {
     shipId: string;
     imgSrc?: string;
     invert?: boolean;
+    color?: TColor;
 }
 export class ShipIcon extends BaseComponent {
     constructor(private props: Props) {
@@ -26,6 +29,9 @@ export class ShipIcon extends BaseComponent {
         this.ref.style.maxHeight = "100%";
         this.ref.style.cursor = "pointer";
         this.ref.style.transition = "all 0.2s ease";
+
+        this.ref.style.filter = getColorFilter(this.props.color);
+        
 
         if (this.props.invert) {
             this.ref.style.transform = "scaleY(-1)";

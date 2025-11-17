@@ -66,7 +66,6 @@ export class GameBoard extends BaseComponent {
 
     private renderPlayersShips() {
         const gameState = gameManager.state.gameState;
-        console.log(gameState);
         if (!gameState) return;
         gameState.players?.forEach((p) => {
             this.renderPlayerShips(p);
@@ -77,18 +76,18 @@ export class GameBoard extends BaseComponent {
         player.ships
             .filter((s) => s.deployed)
             .forEach((ship) => {
-                this.renderShip(ship, gameManager.isFirstPlayer);
+                this.renderShip(ship, gameManager.firstPlayerId === player.id);
             });
     }
 
-    private renderShip(ship: IShip, invert = false) {
+    private renderShip(ship: IShip, isFirstPlayer = true) {
         const tiles = ship.hullLocations?.map((hull) => {
             return { key: locationToKey(hull.location) };
         });
 
         tiles.forEach(({ key }) => {
             const tile = this.tiles[key];
-            renderShipIcon(tile, ship.id, invert);
+            renderShipIcon(tile, ship.id, isFirstPlayer);
         });
     }
 }

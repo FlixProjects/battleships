@@ -25,7 +25,7 @@ export const handler = async (event: any) => {
         const playerId = parseCookies(event.headers.Cookie)?.[FP_AUTH_TOKEN];
         const gameCode = body.gameCode;
         const actions = body.actions as IAction[];
-        console.log(">>>>actions", actions);
+
         let gameState: GameState = body.gameState;
 
         console.log("Request Body:", body);

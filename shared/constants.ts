@@ -36,3 +36,31 @@ export const SHIPS_CONFIG: Record<string, IShip> = {
         dimensions: [1, 1],
     },
 };
+
+export const COLOR = {
+    TEAL: "teal",
+    ORANGE: "orange",
+    PINK: "pink",
+} as const;
+export type TColor = typeof COLOR[keyof typeof COLOR];
+
+export const COLOR_FILTER = {
+    [COLOR.TEAL]:
+        "brightness(0) saturate(100%) invert(83%) sepia(10%) saturate(1623%) hue-rotate(101deg) brightness(97%) contrast(91%)",
+    [COLOR.ORANGE]:
+        "brightness(0) saturate(100%) invert(91%) sepia(13%) saturate(4577%) hue-rotate(332deg) brightness(96%) contrast(100%)",
+    [COLOR.PINK]:
+        "brightness(0) saturate(100%) invert(55%) sepia(16%) saturate(4155%) hue-rotate(292deg) brightness(94%) contrast(84%)",
+};
+
+export const COLOR_RGB_VALUE = {
+    [COLOR.TEAL]: "110, 231, 183",
+    [COLOR.ORANGE]: "245, 181, 44",
+    [COLOR.PINK]: "221, 94, 170",
+};
+
+export const COLOR_RGBA = {
+    [COLOR.TEAL]: `rgba(${COLOR_RGB_VALUE[COLOR.TEAL]}, 1)`,
+    [COLOR.ORANGE]: `rgba(${COLOR_RGB_VALUE[COLOR.ORANGE]}, 1)`,
+    [COLOR.PINK]: `rgba(${COLOR_RGB_VALUE[COLOR.PINK]}, 1)`,
+};

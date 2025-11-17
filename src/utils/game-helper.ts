@@ -1,5 +1,5 @@
 import { gameManager } from "..";
-import { FP_CURRENT_PLAYER, FP_GAME_CODE, ICellLoc } from "../../shared";
+import { COLOR, COLOR_FILTER, FP_CURRENT_PLAYER, FP_GAME_CODE, ICellLoc, TColor } from "../../shared";
 import { getGame } from "../apis/get-game";
 import { BaseComponent } from "../components/BaseComponent";
 import { getComponents, updateComponents } from "../components/component-helper";
@@ -37,10 +37,26 @@ export const keyToLocation = (key: string): ICellLoc => {
     return key.split(",").map((x) => parseInt(x)) as ICellLoc;
 };
 
-export const renderShipIcon = (parentComponent: BaseComponent, shipId: string, invert = false) => {
-    const shipIcon = new ShipIcon({ shipId, invert });
+export const renderShipIcon = (parentComponent: BaseComponent, shipId: string, isFirstPlayer = true) => {
+    const invert = isFirstPlayer;
+    const color = isFirstPlayer ? COLOR.TEAL : COLOR.ORANGE;
+
+    const shipIcon = new ShipIcon({ shipId, invert, color });
     parentComponent.addChild(shipIcon);
     parentComponent.ref.appendChild(shipIcon.build());
+};
+
+export const getColorFilter = (color: TColor) => {
+    switch (color) {
+        case COLOR.TEAL:
+            return COLOR_FILTER[COLOR.TEAL];
+        case COLOR.ORANGE:
+            return COLOR_FILTER[COLOR.ORANGE];
+        case COLOR.PINK:
+            return COLOR_FILTER[COLOR.PINK];
+        default:
+            return "";
+    }
 };
 
 export const refresh = async () => {

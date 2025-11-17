@@ -1,7 +1,7 @@
-import { gameEngine } from "../..";
+import { gameManager } from "../..";
+import { COLOR } from "../../../shared";
 import { IAppState } from "../../types";
 import { BaseComponent } from "../BaseComponent";
-import { getComponents } from "../component-helper";
 import { ShipIcon } from "../ships/ShipIcon";
 
 interface Props {
@@ -26,7 +26,12 @@ export class ShipRow extends BaseComponent {
 
     renderShipIcon() {
         const { shipId } = this.props;
-        const shipIcon = new ShipIcon({ shipId });
+
+        const shipIcon = new ShipIcon({
+            shipId,
+            color: gameManager.isFirstPlayer ? COLOR.TEAL : COLOR.ORANGE,
+        });
+        
         this.addChild(shipIcon);
         this.ref.appendChild(shipIcon.build());
     }
