@@ -32,7 +32,9 @@ export class SubmitMoveButton extends HTMLButton {
                 // DO NOT DELETE: this item simulates Object in S3
                 sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameState));
             }
-            gameManager.saveCurrentPlayerState(newState);
+
+            gameManager.saveCurrentPlayerStateV2(newState);
+
             updateComponents();
         } catch (error) {
             updateComponents({ status: AppStatus.Error });

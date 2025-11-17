@@ -62,10 +62,11 @@ export const getColorFilter = (color: TColor) => {
 export const refresh = async () => {
     try {
         const response = await getGame(getGameCode());
-        gameManager.saveCurrentPlayerState({
+        const newState = {
             loading: false,
             gameState: response?.gameState,
-        });
+        };
+        gameManager.saveCurrentPlayerStateV2(newState);
         updateComponents();
     } catch (error) {
         updateComponents({ status: AppStatus.Error });

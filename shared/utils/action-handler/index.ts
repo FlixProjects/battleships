@@ -1,4 +1,4 @@
-import { GameState, IAction, IResult } from "../../../shared";
+import { GameState, IAction, IResult } from "../..";
 import { ActionResolver } from "./ActionResolver";
 
 interface ActionHandlerResult {
@@ -43,7 +43,7 @@ const saveActions = (thisPlayer: string, gameState: GameState, actions: IAction[
 
     player.pendingActions = actions;
     player.ready = true;
-    
+
     return { results: [], newGameState: newState };
 };
 

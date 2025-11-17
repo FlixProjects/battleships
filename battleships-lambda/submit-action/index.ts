@@ -1,6 +1,6 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { FP_AUTH_TOKEN, GameState, IAction, parseCookies } from "../../shared";
-import { handleActions, removeActions } from "./action-handler";
+import { handleActions, removeActions } from "../../shared/utils/action-handler";
 
 interface SubmitActionResponse {
     statusCode: number;

@@ -38,15 +38,14 @@ export class App {
 
         try {
             const response = await getGame(getGameCode());
-
             console.log("Existing game found:", response);
-
-            gameManager.saveCurrentPlayerState({
+            const newState = {
                 status: AppStatus.Initialised,
                 loading: false,
                 gameState: response?.gameState,
-            });
+            };
 
+            gameManager.saveCurrentPlayerStateV2(newState);
             gameManager.setCurrentPlayer(getCookie(FP_AUTH_TOKEN));
 
             updateComponents();

@@ -1,4 +1,4 @@
-import { ActionTypes, GameState, IAction, ICellLoc, IDeployAction, IResult, LocationHelper } from "../../../shared";
+import { ActionTypes, GameState, IAction, ICellLoc, IDeployAction, IResult, LocationHelper } from "../..";
 
 export class ActionResolver {
     public currentTurn: IAction[] = [];
@@ -71,9 +71,6 @@ export class ActionResolver {
         ship.hullLocations = newHullLocations;
         ship.deployed = true;
 
-        console.log(">>>>after resolveDeploy", newState);
         return newState;
     }
-
-    private resolveVisibleCells() {}
 }
