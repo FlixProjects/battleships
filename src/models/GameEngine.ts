@@ -40,14 +40,14 @@ export class GameEngine {
             type: ActionTypes.DEPLOY,
             playerId: gameManager.getPlayer().id,
         };
-        this.moves.push(deployAction);
+
         const player = gameManager.getPlayer();
         const deployedShip = player.ships.find((ship) => ship.id === shipId);
 
         deployedShip.deployed = true;
         deployedShip.hullLocations = committedHullLocations;
 
-        gameManager.updatePlayer({ ships: player.ships, pendingActions: this.moves });
+        gameManager.updatePlayer({ ships: player.ships, pendingActions: [...player.pendingActions, deployAction] });
 
         // TODO: update the counter
     }

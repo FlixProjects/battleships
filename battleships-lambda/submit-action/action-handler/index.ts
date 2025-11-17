@@ -22,6 +22,10 @@ const resolveActions = (thisPlayer: string, gameState: GameState, actions: IActi
 
     const { results, gameState: newGameState } = new ActionResolver(actions, otherPlayerActions, newState).resolve();
 
+    newGameState.players.forEach((p) => {
+        p.ready = false;
+    });
+
     return { results, newGameState };
 };
 
@@ -37,7 +41,7 @@ const saveActions = (thisPlayer: string, gameState: GameState, actions: IAction[
         player.pendingActions = [];
     }
 
-    player!.pendingActions!.push(...actions);
+    player.pendingActions = actions;
     player.ready = true;
     
     return { results: [], newGameState: newState };
