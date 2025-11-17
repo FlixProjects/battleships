@@ -19,7 +19,12 @@ export class JoinGameButton extends HTMLButton {
         return this.ref;
     }
 
+    setDisabled(isDisabled: boolean) {
+        this.ref.disabled = isDisabled;
+    }
+
     async onClick() {
+        this.setDisabled(true); // TODO: should be handled by state
         const isLocal = appConfig.deployEnv === "local";
         const joinCodeInput = getComponents().input.joinCode;
         const playerNameInput = getComponents().input.playerName;
@@ -48,23 +53,21 @@ export class JoinGameButton extends HTMLButton {
 
             updateComponents();
         } catch (error) {
+            this.setDisabled(false);
             updateComponents({ status: AppStatus.Error });
         }
     }
 
     updateState(_state: IAppState) {
-        const element = this.ref;
         const { status } = _state;
 
         switch (status) {
-            case AppStatus.Initialised:
-                element.disabled = true;
-                break;
             case AppStatus.NewGame:
-                element.disabled = false;
+                this.setDisabled(false);
                 break;
+            case AppStatus.Initialised:
             case AppStatus.Initialising:
-                element.disabled = true;
+                this.setDisabled(true);
                 break;
         }
     }
