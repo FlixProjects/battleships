@@ -1,6 +1,9 @@
 import { gameManager } from "..";
 import { ActionTypes, BOARD_COLUMNS, BOARD_ROWS, getHull, IAction, ICellLoc, IDeployAction } from "../../shared";
 
+// TODO: migrate to a more signal based approach
+// GameEngine receives commands/signals from UI and updates the GameManager state
+// updateComponents() then allows rendering of UI based on the updated state
 export class GameEngine {
     public moves: IAction[] = [];
 
