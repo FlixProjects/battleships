@@ -11,7 +11,9 @@ export class SubmitMoveButton extends HTMLButton {
         super();
     }
 
-    updateState(_state?: IAppState): void {}
+    updateState(_state?: IAppState): void {
+        this.setDisabled(!gameManager.getPlayer().ready);
+    }
 
     public build() {
         this.ref = document.createElement("button");
@@ -24,8 +26,13 @@ export class SubmitMoveButton extends HTMLButton {
         return this.ref;
     }
 
+    setDisabled(isDisabled: boolean) {
+        this.ref.disabled = isDisabled;
+    }
+
     async onClick() {
         try {
+            this.setDisabled(true);
             const { results, gameState } = await submitAction(gameManager.getPlayer().pendingActions);
             const newState = { loading: false, gameState };
             if (isLocal) {
@@ -37,6 +44,7 @@ export class SubmitMoveButton extends HTMLButton {
 
             updateComponents();
         } catch (error) {
+            this.setDisabled(false);
             updateComponents({ status: AppStatus.Error });
         }
     }
