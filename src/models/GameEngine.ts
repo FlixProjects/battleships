@@ -1,28 +1,43 @@
-import { gameManager } from "..";
-import { ActionTypes, BOARD_COLUMNS, BOARD_ROWS, getHull, IAction, ICellLoc, IDeployAction } from "../../shared";
+import {
+    ActionTypes,
+    BOARD_COLUMNS,
+    BOARD_ROWS,
+    GameState,
+    ICellLoc,
+    IDeployAction,
+    IDeployResult,
+    IGetValidDeployCellsAction,
+    IResult,
+    LocationHelper,
+    Player,
+    ResultType
+} from "../../shared";
 
 // TODO: migrate to a more signal based approach
 // GameEngine receives commands/signals from UI and updates the GameManager state
 // updateComponents() then allows rendering of UI based on the updated state
+// GameEngine should not have access to frontend methods
 export class GameEngine {
-    public moves: IAction[] = [];
+    constructor(public gameState: GameState) {}
 
     get prime() {
         return {
-            deployShip: (shipId: string) => this.primeDeployShip(shipId),
+            deployShip: (action: IGetValidDeployCellsAction) => this.primeDeployShip(action),
         };
     }
 
     get commit() {
         return {
-            deployShip: (shipId: string, location: ICellLoc[]) => this.commitDeployShip(shipId, location),
+            deployShip: (action: IDeployAction) => this.commitDeployShip(action),
         };
     }
 
-    private primeDeployShip(shipId: string): ICellLoc[] {
+    private primeDeployShip(action: IGetValidDeployCellsAction): ICellLoc[] {
+        const { playerId } = action;
+
         const availableCells: ICellLoc[] = [];
 
-        if (gameManager.isFirstPlayer) {
+        if (this.isFirstPlayer(playerId)) {
             for (let i = 0; i < BOARD_COLUMNS; i++) {
                 availableCells.push([i, 0]);
             }
@@ -32,34 +47,51 @@ export class GameEngine {
             }
         }
 
-        return availableCells;
+        return availableCells; // TODO: return as Results
     }
 
-    private commitDeployShip(shipId: string, locations: ICellLoc[]) {
-        const player = gameManager.getPlayer();
-        const committedHullLocations = locations.map((loc) => getHull(shipId, loc));
+    // commit should be after validation, we modify the local state
+    // and prepare player action to be sent to server
+    private commitDeployShip(action: IDeployAction): IDeployResult {
+        const { shipId, playerId, hullLocations } = action;
+
+        const player = this.getPlayer(playerId);
+
         const deployedShip = player.ships.find((ship) => ship.id === shipId);
 
         const commandPointCost = deployedShip?.commandPointCost ? deployedShip.commandPointCost : 0;
 
         const deployAction: IDeployAction = {
-            shipId,
-            hullLocations: committedHullLocations,
             type: ActionTypes.DEPLOY,
-            playerId: gameManager.getPlayer().id,
+            shipId,
+            hullLocations,
+            playerId,
             commandPointCost,
         };
-       
 
         deployedShip.deployed = true;
-        deployedShip.hullLocations = committedHullLocations;
+        deployedShip.hullLocations = hullLocations;
 
-        gameManager.updatePlayer({
-            ships: player.ships,
-            pendingActions: [...player.pendingActions, deployAction],
-            commandPoints: player.commandPoints - commandPointCost,
-        });
+        player.pendingActions = [...player.pendingActions, deployAction];
+        player.commandPoints -= commandPointCost;
 
-        // TODO: update the counter
+        return {
+            type: ResultType.SUCCESS,
+            playerId,
+            player,
+        };
+    }
+    // ================= Helpers =================
+
+    private getFirstPlayer() {
+        return this.gameState.players[0];
+    }
+
+    private getPlayer(playerId: string): Player {
+        return this.gameState.players.find((p) => p.id === playerId);
+    }
+
+    private isFirstPlayer(playerId: string) {
+        return this.gameState.players[0].id === playerId;
     }
 }

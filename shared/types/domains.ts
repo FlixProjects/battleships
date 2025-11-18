@@ -13,7 +13,7 @@ export interface JoinGameRequest {
 
 export interface SubmitActionRequest {
     gameCode: string;
-    actions: IAction[];
+    actions: IAction[]; // TODO: replace with IPlayerAction[];
     gameState?: GameState; // for local
 }
 
@@ -37,6 +37,6 @@ export interface JoinGameResponse extends GetGameResponse {
     gameCode: string;
 }
 
-export interface SubmitActionResponse extends GenericResponse{
+export interface SubmitActionResponse extends GenericResponse {
     results: IResult[];
 }

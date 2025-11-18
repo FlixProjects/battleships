@@ -1,7 +1,9 @@
-import { gameEngine } from "..";
+import { gameManager } from "..";
+import { getHull, getShipFromPlayer, ResultType } from "../../shared";
 import { getComponents, updateComponents } from "../components/component-helper";
 import { Selectable } from "../components/Selectable";
 import { keyToLocation, locationToKey } from "../utils/game-helper";
+import { GameEngine } from "./GameEngine";
 
 export class InteractionManager {
     public uiState = "Idle";
@@ -17,12 +19,15 @@ export class InteractionManager {
 
     private selectingShipsClickHandler(e: MouseEvent, event: DeployingShipIMEvent) {
         const { shipId, onGlobalDeselect, onSuccessfulSelect } = event;
+        const playerId = gameManager.getPlayer().id;
+        const { commandPointCost } = getShipFromPlayer(gameManager.getPlayer(), shipId);
 
         const target = e.target as HTMLElement;
 
         const clickedShipRow = target.closest(".ship-row"); // find way to replace this implementation
 
-        const validCells = gameEngine.prime.deployShip(shipId);
+        const gameEngine = new GameEngine(gameManager.state.gameState);
+        const validCells = gameEngine.prime.deployShip({ playerId, shipId });
         const gameBoard = getComponents().div.gameBoard;
 
         gameBoard.updateSelectableTiles(validCells);
@@ -47,9 +52,21 @@ export class InteractionManager {
                 this.removeGlobalClickEventListener();
             });
         });
+        // FIXME: only single location for now
+        const committedHullLocations = [keyToLocation(id)].map((loc) => getHull(shipId, loc));
 
         if (validCellIndices.includes(id)) {
-            gameEngine.commit.deployShip(shipId, [keyToLocation(id)]); // FIXME: only single location for now
+            const result = gameEngine.commit.deployShip({
+                shipId,
+                playerId,
+                hullLocations: committedHullLocations,
+                commandPointCost,
+            });
+
+            if (result.type === ResultType.ERROR) return;
+
+            gameManager.updatePlayer(result.player);
+
             const tile = this.selectables[id];
             tile.runOnSelects();
 
@@ -59,14 +76,13 @@ export class InteractionManager {
         this.uiState = IMEventType.IDLE;
     }
 
-    public clearAllOnSelects() {
+    public register(selectable: Selectable) {
+        this.selectables[selectable.id] = selectable;
+    }
+    private clearAllOnSelects() {
         Object.values(this.selectables).forEach((selectable) => {
             selectable.clearOnSelect();
         });
-    }
-
-    public register(selectable: Selectable) {
-        this.selectables[selectable.id] = selectable;
     }
 
     private addGetIdOfClick = (e: MouseEvent) => {

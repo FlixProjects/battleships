@@ -1,4 +1,4 @@
-import { GameState, IAction, IResult } from "../..";
+import { GameState, IPlayerAction, IResult } from "../..";
 import { ActionResolver } from "./ActionResolver";
 
 interface ActionHandlerResult {
@@ -6,7 +6,11 @@ interface ActionHandlerResult {
     newGameState: GameState;
 }
 
-export const handleActions = (playerId: string, gameState: GameState, actions: IAction[]): ActionHandlerResult => {
+export const handleActions = (
+    playerId: string,
+    gameState: GameState,
+    actions: IPlayerAction[],
+): ActionHandlerResult => {
     if (isOtherPlayerReady(playerId, gameState)) {
         return resolveActions(playerId, gameState, actions);
     }
@@ -14,7 +18,7 @@ export const handleActions = (playerId: string, gameState: GameState, actions: I
     return saveActions(playerId, gameState, actions);
 };
 
-const resolveActions = (thisPlayer: string, gameState: GameState, actions: IAction[]) => {
+const resolveActions = (thisPlayer: string, gameState: GameState, actions: IPlayerAction[]) => {
     const newState = { ...gameState };
     // TODO: validate command points
     const otherPlayer = newState.players.find((p) => p.id !== thisPlayer);
@@ -25,7 +29,7 @@ const resolveActions = (thisPlayer: string, gameState: GameState, actions: IActi
     return { results, newGameState: refreshPlayers(newGameState) };
 };
 
-const saveActions = (thisPlayer: string, gameState: GameState, actions: IAction[]): ActionHandlerResult => {
+const saveActions = (thisPlayer: string, gameState: GameState, actions: IPlayerAction[]): ActionHandlerResult => {
     const newState = { ...gameState };
     const player = newState.players.find((p) => p.id === thisPlayer);
     // TODO: validate command points

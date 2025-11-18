@@ -1,9 +1,13 @@
-import { ActionTypes, GameState, IAction, IDeployAction, IResult, LocationHelper, Player } from "../..";
+import { ActionTypes, GameState, IDeployAction, IPlayerAction, IResult, LocationHelper, Player } from "../..";
 
 export class ActionResolver {
-    public currentTurn: IAction[] = [];
+    public currentTurn: IPlayerAction[] = [];
     public results: IResult[] = [];
-    constructor(public player1Actions: IAction[], public player2Actions: IAction[], public gameState: GameState) {}
+    constructor(
+        public player1Actions: IPlayerAction[], // TODO: do we really the actions if we already have the gameState?
+        public player2Actions: IPlayerAction[], // Just need to save second action to pendingActions and we are done
+        public gameState: GameState,
+    ) {}
 
     public resolve() {
         if (this.player1Actions.length === 0 && this.player2Actions.length === 0) {
@@ -38,15 +42,14 @@ export class ActionResolver {
         this.currentTurn = [];
     }
 
-    private resolveIntiative(action1?: IAction, action2?: IAction, initiativePlayerId?: string) {
+    private resolveIntiative(action1?: IPlayerAction, action2?: IPlayerAction, initiativePlayerId?: string) {
         if (action1?.playerId === initiativePlayerId || !initiativePlayerId) {
             return [action1, action2];
         }
         return [action2, action1];
     }
 
-    public resolveAction(action: IAction) {
-        this.results.push(action);
+    public resolveAction(action: IPlayerAction) {
         switch (action.type) {
             case ActionTypes.DEPLOY:
                 return this.resolveDeploy(action as IDeployAction) ?? this.gameState;

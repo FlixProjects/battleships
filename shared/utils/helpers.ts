@@ -54,6 +54,10 @@ export const getShip = (refNo: string, playerId: string): IShip => {
     return base;
 };
 
+export const getShipFromPlayer = (player: Player, shipId: string) => {
+    return player.ships.find((ship) => ship.id === shipId);
+};
+
 export const getHull = (shipId: string, hullLocation: ICellLoc): IHull => {
     return {
         id: uuidv7(),

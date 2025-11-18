@@ -1,11 +1,11 @@
-import { IAction } from "./action-types";
+import { IPlayerAction } from "./action-types";
 
 export interface Player {
     name: string;
     id: string;
     ready: boolean;
     ships: IShip[];
-    pendingActions?: IAction[];
+    pendingActions?: IPlayerAction[];
     maxCommandPoints: number;
     commandPoints: number;
 }

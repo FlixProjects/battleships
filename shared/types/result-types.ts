@@ -1,7 +1,17 @@
-import { IAction, IDeployAction } from ".";
+import { Player } from "..";
 
-// TODO: Find out what we need in results
+export const ResultType = {
+    SUCCESS: "SUCCESS",
+    ERROR: "ERROR",
+} as const;
 
-export interface IResult extends IAction {}
+export type TResultTypes = (typeof ResultType)[keyof typeof ResultType];
 
-export interface IDeployResult extends IDeployAction {}
+export interface IResult {
+    playerId: string;
+    type: TResultTypes;
+}
+
+export interface IDeployResult extends IResult {
+    player: Player;
+}
