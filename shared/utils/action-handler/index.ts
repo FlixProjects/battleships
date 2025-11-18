@@ -16,7 +16,7 @@ export const handleActions = (playerId: string, gameState: GameState, actions: I
 
 const resolveActions = (thisPlayer: string, gameState: GameState, actions: IAction[]) => {
     const newState = { ...gameState };
-
+    // TODO: validate command points
     const otherPlayer = newState.players.find((p) => p.id !== thisPlayer);
     const otherPlayerActions = otherPlayer?.pendingActions ?? [];
 
@@ -28,7 +28,7 @@ const resolveActions = (thisPlayer: string, gameState: GameState, actions: IActi
 const saveActions = (thisPlayer: string, gameState: GameState, actions: IAction[]): ActionHandlerResult => {
     const newState = { ...gameState };
     const player = newState.players.find((p) => p.id === thisPlayer);
-
+    // TODO: validate command points
     if (!player) {
         return { results: [], newGameState: newState };
     }
@@ -39,6 +39,7 @@ const saveActions = (thisPlayer: string, gameState: GameState, actions: IAction[
 
     player.pendingActions = actions;
     player.ready = true;
+    player.commandPoints = 0; // regardless of how much they have left over, set to 0 on submit
 
     return { results: [], newGameState: newState };
 };

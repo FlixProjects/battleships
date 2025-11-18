@@ -1,4 +1,4 @@
-import { ActionTypes, GameState, IAction, ICellLoc, IDeployAction, IResult, LocationHelper } from "../..";
+import { ActionTypes, GameState, IAction, IDeployAction, IResult, LocationHelper, Player } from "../..";
 
 export class ActionResolver {
     public currentTurn: IAction[] = [];
@@ -14,13 +14,6 @@ export class ActionResolver {
         } while (this.player1Actions.length > 0 || this.player2Actions.length > 0);
 
         return { gameState: this.gameState, results: this.results };
-    }
-
-    private resolveIntiative(action1?: IAction, action2?: IAction, initiativePlayerId?: string) {
-        if (action1?.playerId === initiativePlayerId || !initiativePlayerId) {
-            return [action1, action2];
-        }
-        return [action2, action1];
     }
 
     public resolveTurn() {
@@ -43,6 +36,13 @@ export class ActionResolver {
         });
 
         this.currentTurn = [];
+    }
+
+    private resolveIntiative(action1?: IAction, action2?: IAction, initiativePlayerId?: string) {
+        if (action1?.playerId === initiativePlayerId || !initiativePlayerId) {
+            return [action1, action2];
+        }
+        return [action2, action1];
     }
 
     public resolveAction(action: IAction) {
