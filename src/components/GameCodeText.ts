@@ -43,6 +43,10 @@ export class GameCodeText extends HTMLSpan {
         const element = this.ref;
         const { status, gameState } = _state;
 
+        if(!gameState){
+            return;
+        }
+
         switch (status) {
             case AppStatus.Initialising:
                 element.innerText = "";
