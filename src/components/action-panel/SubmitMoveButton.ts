@@ -11,16 +11,14 @@ export class SubmitMoveButton extends HTMLButton {
         super();
     }
 
-    updateState(_state?: IAppState): void {
-        this.setDisabled(!gameManager.getPlayer().ready);
-    }
-
     public build() {
+        const isSubmitted = gameManager.getPlayer().ready
+
         this.ref = document.createElement("button");
-        this.ref.textContent = "Submit Move";
+        this.ref.textContent = isSubmitted ? "Awaiting other player" : "Submit Move";
         this.ref.className = "btn primary";
         this.ref.style.marginTop = "12px";
-
+        this.setDisabled(isSubmitted);
         this.addClickEventListener();
 
         return this.ref;
