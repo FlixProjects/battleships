@@ -1,4 +1,12 @@
-import { ActionTypes, GameState, IDeployAction, IPlayerAction, IResult, LocationHelper, Player } from "../..";
+import {
+    ActionTypes,
+    GameState,
+    IDeployAction,
+    IPlayerAction,
+    IResult,
+    ResultType
+} from "../..";
+import { GameEngine } from "../../../src/models/GameEngine";
 
 export class ActionResolver {
     public currentTurn: IPlayerAction[] = [];
@@ -69,8 +77,10 @@ export class ActionResolver {
         const ship = player.ships.find((s) => s.id === shipId);
         if (!ship || ship.deployed) return;
 
-        const locationHelper = new LocationHelper(newState.players);
-        if (!locationHelper.hasSpaceForShip(newHullLocations.map((h) => h.location))) {
+        const gameEngine = new GameEngine(this.gameState);
+        const result = gameEngine.validateDeployShip(action);
+
+        if (result.type === ResultType.ERROR) {
             throw new Error("Cannot deploy ship here, space is occupied");
         }
 

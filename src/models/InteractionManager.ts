@@ -27,7 +27,7 @@ export class InteractionManager {
         const clickedShipRow = target.closest(".ship-row"); // find way to replace this implementation
 
         const gameEngine = new GameEngine(gameManager.state.gameState);
-        const validCells = gameEngine.prime.deployShip({ playerId, shipId });
+        const { validCells } = gameEngine.prime.deployShip({ playerId, shipId });
         const gameBoard = getComponents().div.gameBoard;
 
         gameBoard.updateSelectableTiles(validCells);

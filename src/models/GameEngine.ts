@@ -6,11 +6,13 @@ import {
     ICellLoc,
     IDeployAction,
     IDeployResult,
+    IErrorResult,
     IGetValidDeployCellsAction,
+    IGetValidDeployCellsResult,
     IResult,
     LocationHelper,
     Player,
-    ResultType
+    ResultType,
 } from "../../shared";
 
 // TODO: migrate to a more signal based approach
@@ -28,26 +30,34 @@ export class GameEngine {
 
     get commit() {
         return {
-            deployShip: (action: IDeployAction) => this.commitDeployShip(action),
+            deployShip: (action: IDeployAction): IDeployResult | IErrorResult<any> => {
+                const results = this.validateDeployShip(action);
+                if (results.type === ResultType.SUCCESS) {
+                    return this.commitDeployShip(action);
+                }
+                return { ...results, type: ResultType.ERROR }; // TODO: better handle typing
+            },
         };
     }
 
-    private primeDeployShip(action: IGetValidDeployCellsAction): ICellLoc[] {
+    private primeDeployShip(action: IGetValidDeployCellsAction): IGetValidDeployCellsResult {
         const { playerId } = action;
 
         const availableCells: ICellLoc[] = [];
 
-        if (this.isFirstPlayer(playerId)) {
-            for (let i = 0; i < BOARD_COLUMNS; i++) {
-                availableCells.push([i, 0]);
-            }
-        } else {
-            for (let i = 0; i < BOARD_COLUMNS; i++) {
-                availableCells.push([i, BOARD_ROWS - 1]);
-            }
+        const isFirstPlayer = this.isFirstPlayer(playerId);
+
+        for (let i = 0; i < BOARD_COLUMNS; i++) {
+            availableCells.push([i, isFirstPlayer ? 0 : BOARD_ROWS - 1]);
         }
 
-        return availableCells; // TODO: return as Results
+        const validCells = new LocationHelper(this.gameState.players).getAvailableCells(availableCells);
+
+        return {
+            type: ResultType.SUCCESS,
+            playerId,
+            validCells,
+        };
     }
 
     // commit should be after validation, we modify the local state
@@ -81,6 +91,26 @@ export class GameEngine {
             player,
         };
     }
+
+    public validateDeployShip(deployAction: IDeployAction): IResult {
+        const { playerId, hullLocations: newHullLocations } = deployAction;
+        const newState = { ...this.gameState };
+
+        const locationHelper = new LocationHelper(newState.players);
+
+        if (!locationHelper.hasSpaceForShip(newHullLocations.map((h) => h.location))) {
+            return {
+                type: ResultType.ERROR,
+                playerId,
+            };
+        }
+
+        return {
+            type: ResultType.SUCCESS,
+            playerId,
+        };
+    }
+
     // ================= Helpers =================
 
     private getFirstPlayer() {
