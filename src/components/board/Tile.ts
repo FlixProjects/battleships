@@ -1,4 +1,7 @@
+import { gameManager, interactionManager } from "../..";
 import { IAppState } from "../../types";
+import { keyToLocation } from "../../utils/game-helper";
+import { getComponents } from "../component-helper";
 import { Selectable } from "../Selectable";
 
 interface Props {
@@ -40,7 +43,7 @@ export class Tile extends Selectable {
         this.ref.style.display = "flex";
         this.ref.style.alignItems = "center";
         this.ref.style.justifyContent = "center";
-        this.ref.style.padding = "4px"
+        this.ref.style.padding = "4px";
     }
 
     setSelectable(selectable: boolean) {
@@ -72,5 +75,31 @@ export class Tile extends Selectable {
 
         this.ref.removeEventListener("mouseenter", this.mouseEnterStyle);
         this.ref.removeEventListener("mouseleave", this.mouseLeaveStyle);
+    }
+
+    public addShipClickHandler() {
+        this.ref.addEventListener("click", () => {
+            const location = keyToLocation(this.id);
+
+            const player = gameManager.getPlayer();
+            const shipAtLocation = player.ships.find(
+                (ship) =>
+                    ship.deployed &&
+                    ship.hullLocations?.some(
+                        (hull) => hull.location[0] === location[0] && hull.location[1] === location[1],
+                    ),
+            );
+
+            if (shipAtLocation && player.commandPoints >= 1) {
+                interactionManager.handleMovingShipEvent({
+                    shipId: shipAtLocation.id,
+                    onGlobalDeselect: () => this.clearSelection(),
+                });
+            }
+        });
+    }
+
+    private clearSelection() {
+        getComponents().div.gameBoard.updateSelectableTiles([]);
     }
 }

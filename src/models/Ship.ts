@@ -9,4 +9,6 @@ export class Ship implements IShip {
     dimensions: [number, number];
     deployed: boolean;
     commandPointCost: number;
+    movementRange: number;
+    remainingMovement: number;
 }

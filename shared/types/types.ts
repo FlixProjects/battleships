@@ -38,12 +38,14 @@ export interface IShipTemplate {
     dimensions: [number, number];
     deployed: boolean;
     commandPointCost: number;
+    movementRange: number;
 }
 
 export interface IShip extends IShipTemplate {
     id: string;
     playerId: string;
     hullLocations?: IHull[];
+    remainingMovement: number;
 }
 
 export interface GameState {

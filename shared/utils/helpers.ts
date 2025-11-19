@@ -50,7 +50,8 @@ export const initialiseNewPlayer = (id: string, name: string): Player => {
 };
 
 export const getShip = (refNo: string, playerId: string): IShip => {
-    const base: IShip = { ...SHIPS_CONFIG[refNo], id: uuidv7(), playerId };
+    const template = { ...SHIPS_CONFIG[refNo] };
+    const base: IShip = { ...template, id: uuidv7(), playerId, remainingMovement: template.movementRange };
     return base;
 };
 

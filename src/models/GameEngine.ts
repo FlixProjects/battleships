@@ -9,6 +9,10 @@ import {
     IErrorResult,
     IGetValidDeployCellsAction,
     IGetValidDeployCellsResult,
+    IGetValidMoveCellsAction,
+    IGetValidMoveCellsResult,
+    IMoveAction,
+    IMoveResult,
     IResult,
     LocationHelper,
     Player,
@@ -25,6 +29,7 @@ export class GameEngine {
     get prime() {
         return {
             deployShip: (action: IGetValidDeployCellsAction) => this.primeDeployShip(action),
+            moveShip: (action: IGetValidMoveCellsAction) => this.primeMoveShip(action),
         };
     }
 
@@ -36,6 +41,13 @@ export class GameEngine {
                     return this.commitDeployShip(action);
                 }
                 return { ...results, type: ResultType.ERROR }; // TODO: better handle typing
+            },
+            moveShip: (action: IMoveAction): IMoveResult | IErrorResult<any> => {
+                const results = this.validateMoveShip(action);
+                if (results.type === ResultType.SUCCESS) {
+                    return this.commitMoveShip(action);
+                }
+                return { ...results, type: ResultType.ERROR };
             },
         };
     }
@@ -109,6 +121,142 @@ export class GameEngine {
             type: ResultType.SUCCESS,
             playerId,
         };
+    }
+
+    private primeMoveShip(action: IGetValidMoveCellsAction): IGetValidMoveCellsResult {
+        const { playerId, shipId } = action;
+        const player = this.getPlayer(playerId);
+        const ship = player.ships.find((s) => s.id === shipId);
+
+        if (!ship?.hullLocations?.[0]) {
+            // TODO: Should not be selectable
+            return { type: ResultType.SUCCESS, playerId, validCells: [] };
+        }
+
+        const currentLoc = ship.hullLocations[0].location;
+        const movementRange = ship.remainingMovement || 0;
+
+        // FIXME: we should only take into account 'visible' ships
+        const otherPlayers = this.gameState.players.map((p) => ({
+            ...p,
+            ships: p.ships.map((s) => (s.id === shipId ? { ...s, hullLocations: [] } : s)),
+        }));
+        const locationHelper = new LocationHelper(otherPlayers);
+
+        const validCells = this.getReachableCells(currentLoc, movementRange, locationHelper);
+
+        return {
+            type: ResultType.SUCCESS,
+            playerId,
+            validCells,
+            origin: currentLoc,
+        };
+    }
+
+    private getReachableCells(start: ICellLoc, range: number, locationHelper: LocationHelper): ICellLoc[] {
+        const reachable: Set<string> = new Set();
+        const queue: { loc: ICellLoc; steps: number }[] = [{ loc: start, steps: 0 }];
+        const visited: Set<string> = new Set();
+
+        while (queue.length > 0) {
+            const { loc, steps } = queue.shift()!;
+            const key = `${loc[0]},${loc[1]}`;
+
+            if (visited.has(key) || steps > range) continue;
+            visited.add(key);
+
+            if (steps > 0) {
+                reachable.add(key);
+            }
+
+            if (steps < range) {
+                const neighbors: ICellLoc[] = [
+                    [loc[0], loc[1] - 1], // up
+                    [loc[0], loc[1] + 1], // down
+                    [loc[0] - 1, loc[1]], // left
+                    [loc[0] + 1, loc[1]], // right
+                ];
+
+                neighbors.forEach((neighbor) => {
+                    const [x, y] = neighbor;
+                    if (
+                        x >= 0 &&
+                        x < BOARD_COLUMNS &&
+                        y >= 0 &&
+                        y < BOARD_ROWS &&
+                        !locationHelper.isLocationOccupied(neighbor)
+                    ) {
+                        queue.push({ loc: neighbor, steps: steps + 1 });
+                    }
+                });
+            }
+        }
+
+        return Array.from(reachable).map((key) => {
+            const [x, y] = key.split(",").map(Number);
+            return [x, y] as ICellLoc;
+        });
+    }
+
+    private commitMoveShip(action: IMoveAction): IMoveResult {
+        const { shipId, playerId, newLocation, commandPointCost } = action;
+        const player = this.getPlayer(playerId);
+        const ship = player.ships.find((s) => s.id === shipId);
+
+        if (ship?.hullLocations?.[0]) {
+            ship.hullLocations[0].location = newLocation.location;
+        }
+
+        const moveAction: IMoveAction = {
+            type: ActionTypes.MOVE,
+            shipId,
+            newLocation,
+            playerId,
+            commandPointCost,
+        };
+
+        player.pendingActions = [...player.pendingActions, moveAction];
+
+        player.commandPoints -= commandPointCost;
+        ship.remainingMovement = 0;
+
+        return {
+            type: ResultType.SUCCESS,
+            playerId,
+            player,
+        };
+    }
+
+    public validateMoveShip(moveAction: IMoveAction): IResult {
+        const { playerId, shipId, newLocation } = moveAction;
+        const player = this.getPlayer(playerId);
+        const ship = player.ships.find((s) => s.id === shipId);
+
+        if (!ship?.deployed || !ship.hullLocations?.[0]) {
+            return { type: ResultType.ERROR, playerId };
+        }
+
+        const currentLoc = ship.hullLocations[0].location;
+        const movementRange = ship.movementRange || 0;
+
+        // Exclude current ship from occupied cells check
+        const otherPlayers = this.gameState.players.map((p) => ({
+            ...p,
+            ships: p.ships.map((s) => (s.id === shipId ? { ...s, hullLocations: [] } : s)),
+        }));
+
+        const locationHelper = new LocationHelper(otherPlayers);
+        const reachableCells = this.getReachableCells(currentLoc, movementRange, locationHelper);
+
+        const isReachable = reachableCells.some(
+            (cell) => cell[0] === newLocation.location[0] && cell[1] === newLocation.location[1],
+        );
+
+        if (!isReachable) {
+            return { type: ResultType.ERROR, playerId };
+        }
+
+        return { type: ResultType.SUCCESS, playerId };
     }
 
     // ================= Helpers =================

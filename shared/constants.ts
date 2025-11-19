@@ -35,6 +35,7 @@ export const SHIPS_CONFIG: Record<string, IShipTemplate> = {
         deployed: false,
         dimensions: [1, 1],
         commandPointCost: 1,
+        movementRange: 2,
     },
     flagship0: {
         refNo: "flagship0",
@@ -42,6 +43,7 @@ export const SHIPS_CONFIG: Record<string, IShipTemplate> = {
         deployed: false,
         dimensions: [1, 1],
         commandPointCost: 0,
+        movementRange: 1,
     },
 };
 

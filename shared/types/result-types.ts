@@ -26,3 +26,13 @@ export interface IDeployResult extends IResult {
 export interface IGetValidDeployCellsResult extends IResult {
     validCells: ICellLoc[];
 }
+
+export interface IMoveResult extends IResult {
+    type: typeof ResultType.SUCCESS;
+    player: Player;
+}
+
+export interface IGetValidMoveCellsResult extends IResult {
+    validCells: ICellLoc[];
+    origin?: ICellLoc;
+}
