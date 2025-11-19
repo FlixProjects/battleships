@@ -33,13 +33,14 @@ export class ShipSelector extends BaseComponent {
     }
 
     private renderShipRows() {
-        this.props.player?.ships?.forEach(({ id, refNo, deployed, commandPointCost }) => {
+        const player = this.props.player;
+        player?.ships?.forEach(({ id, refNo, deployed, commandPointCost }) => {
             if (!deployed) {
                 const shipRow = new ShipRow({
                     shipId: id,
                     selected: this.selectedShip === id,
                     onSelect: (shipId: string) => this.setSelected(shipId),
-                    selectable: gameManager.getPlayer().commandPoints >= commandPointCost,
+                    selectable: player.commandPoints >= commandPointCost && !player.ready,
                     refNo,
                 });
                 this.shipRows.push(shipRow);
