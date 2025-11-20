@@ -22,12 +22,21 @@ export const handler = async (event: any) => {
 
         const body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
 
-        const playerId = parseCookies(event.headers.Cookie)?.[FP_AUTH_TOKEN];
+        const playerId = parseCookies(event.headers.cookie)?.[FP_AUTH_TOKEN];
+
+        if (!playerId) {
+            return {
+                statusCode: 404,
+                body: JSON.stringify({
+                    message: "No Player id found",
+                }),
+            };
+        }
+
         const gameCode = body.gameCode;
         const actions = body.actions as IPlayerAction[];
 
         let gameState: GameState = body.gameState;
-
         console.log("Request Body:", body);
 
         if (!gameCode) {
@@ -52,9 +61,7 @@ export const handler = async (event: any) => {
             );
 
             const bodyStr = await Body?.transformToString("utf-8");
-
             gameState = bodyStr ? JSON.parse(bodyStr) : null;
-
             console.log("Fetched Game State", gameState);
         }
 
@@ -81,7 +88,6 @@ export const handler = async (event: any) => {
                 }),
             );
         }
-
 
         const response: SubmitActionResponse = {
             statusCode: 200,
