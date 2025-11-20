@@ -18,7 +18,6 @@ async function buildLambda() {
         outdir: "dist",
         outbase: ".",
         tsconfig: "../tsconfig.json",
-        nodePaths: ["./node_modules"],
     });
 }
 
