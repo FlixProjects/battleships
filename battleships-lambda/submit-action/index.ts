@@ -1,6 +1,6 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { FP_AUTH_TOKEN, GameState, IAction, parseCookies } from "../../shared";
-import { handleActions, removeActions } from "../../shared/utils/action-handler";
+import { FP_AUTH_TOKEN, GameState, IPlayerAction, parseCookies } from "../../shared";
+import { handleActions } from "../../shared/utils/action-handler";
 
 interface SubmitActionResponse {
     statusCode: number;
@@ -24,7 +24,7 @@ export const handler = async (event: any) => {
 
         const playerId = parseCookies(event.headers.Cookie)?.[FP_AUTH_TOKEN];
         const gameCode = body.gameCode;
-        const actions = body.actions as IAction[];
+        const actions = body.actions as IPlayerAction[];
 
         let gameState: GameState = body.gameState;
 
@@ -96,17 +96,6 @@ export const handler = async (event: any) => {
                 results,
             }),
         };
-
-        if (env === LOCAL_ENV) {
-            // we set cookie for local since prd is set thru LambdaEdge
-            const cookieConfig = "Path=/; SameSite=Lax";
-            response.headers["Access-Control-Allow-Origin"] = "*";
-            response.multiValueHeaders = {
-                "Set-Cookie": [`${FP_AUTH_TOKEN}=${playerId}; ${cookieConfig}`],
-            };
-        } else {
-            response.headers["Access-Control-Allow-Origin"] = process.env.BASE_URL ?? "*";
-        }
 
         return response;
     } catch (err: any) {
