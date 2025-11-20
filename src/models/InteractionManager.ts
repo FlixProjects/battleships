@@ -1,8 +1,15 @@
 import { gameManager } from "..";
-import { ActionTypes, GameEngine, getHull, getShipFromPlayer, ResultType } from "../../shared";
+import {
+    ActionTypes,
+    GameEngine,
+    getHull,
+    getShipFromPlayer,
+    keyToLocation,
+    locationToKey,
+    ResultType,
+} from "../../shared";
 import { getComponents, updateComponents } from "../components/component-helper";
 import { Selectable } from "../components/Selectable";
-import { keyToLocation, locationToKey } from "../utils/game-helper";
 
 export class InteractionManager {
     public uiState = "Idle";
@@ -123,7 +130,7 @@ export class InteractionManager {
                 type: ActionTypes.MOVE,
                 shipId,
                 playerId,
-                newLocation,
+                hullLocations: [newLocation], // FIXME: only single location for now
                 commandPointCost: movementCost,
             });
 
@@ -142,11 +149,6 @@ export class InteractionManager {
 
     public register(selectable: Selectable) {
         this.selectables[selectable.id] = selectable;
-    }
-    private clearAllOnSelects() {
-        Object.values(this.selectables).forEach((selectable) => {
-            selectable.clearOnSelect();
-        });
     }
 
     private addGetIdOfClick = (e: MouseEvent) => {

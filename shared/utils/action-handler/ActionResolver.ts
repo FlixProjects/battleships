@@ -1,4 +1,14 @@
-import { ActionTypes, GameEngine, GameState, IDeployAction, IPlayerAction, IResult, ResultType } from "../..";
+import {
+    ActionTypes,
+    GameEngine,
+    GameState,
+    getShipFromShipId,
+    IDeployAction,
+    IMoveAction,
+    IPlayerAction,
+    IResult,
+    ResultType,
+} from "../..";
 
 export class ActionResolver {
     public currentTurn: IPlayerAction[] = [];
@@ -53,6 +63,8 @@ export class ActionResolver {
         switch (action.type) {
             case ActionTypes.DEPLOY:
                 return this.resolveDeploy(action as IDeployAction) ?? this.gameState;
+            case ActionTypes.MOVE:
+                return this.resolveMove(action as IMoveAction) ?? this.gameState;
             default:
                 return this.gameState;
         }
@@ -78,6 +90,26 @@ export class ActionResolver {
 
         ship.hullLocations = newHullLocations;
         ship.deployed = true;
+
+        return newState;
+    }
+
+    public resolveMove(action: IMoveAction) {
+        // for now, if the player with initiative occupies the location,
+        // the other player's Move is not resolved (they are not refunded the CP)
+        const { shipId, hullLocations: newLocation } = action;
+        const newState = { ...this.gameState };
+
+        // const player = getPlayerFromShipId(newState.players, shipId);
+
+        const gameEngine = new GameEngine(this.gameState);
+
+        const result = gameEngine.validateMoveShip(action);
+
+        if (result.type === ResultType.SUCCESS) {
+            const ship = getShipFromShipId(newState.players, shipId);
+            ship.hullLocations = newLocation;
+        }
 
         return newState;
     }

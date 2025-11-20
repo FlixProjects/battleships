@@ -1,5 +1,5 @@
 import { gameManager } from "..";
-import { COLOR, COLOR_FILTER, FP_CURRENT_PLAYER, FP_GAME_CODE, ICellLoc, TColor } from "../../shared";
+import { COLOR, COLOR_FILTER, FP_CURRENT_PLAYER, FP_GAME_CODE, TColor } from "../../shared";
 import { getGame } from "../apis/get-game";
 import { BaseComponent } from "../components/BaseComponent";
 import { getComponents, updateComponents } from "../components/component-helper";
@@ -27,14 +27,6 @@ export const setCurrentPlayer = (playerId: string) => {
 export const checkIfNameIsFilled = () => {
     const playerNameInput = getComponents().input.playerName;
     return !!playerNameInput.value;
-};
-
-export const locationToKey = (location: ICellLoc) => {
-    return `${location[0]},${location[1]}`;
-};
-
-export const keyToLocation = (key: string): ICellLoc => {
-    return key.split(",").map((x) => parseInt(x)) as ICellLoc;
 };
 
 export const renderShipIcon = (parentComponent: BaseComponent, shipId: string, refNo: string, isFirstPlayer = true) => {

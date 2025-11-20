@@ -1,6 +1,6 @@
 import { gameManager, interactionManager } from "../..";
+import { keyToLocation } from "../../../shared";
 import { IAppState } from "../../types";
-import { keyToLocation } from "../../utils/game-helper";
 import { getComponents } from "../component-helper";
 import { Selectable } from "../Selectable";
 

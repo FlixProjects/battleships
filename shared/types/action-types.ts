@@ -34,7 +34,7 @@ export interface IDeployAction extends IPlayerAction {
 export interface IMoveAction extends IPlayerAction {
     type?: typeof ActionTypes.MOVE;
     shipId: string;
-    newLocation: IHull;
+    hullLocations: IHull[];
 }
 
 // ================= Server Actions =================

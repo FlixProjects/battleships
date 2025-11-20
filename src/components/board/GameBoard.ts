@@ -1,7 +1,7 @@
 import { gameManager } from "../..";
-import { BOARD_COLUMNS, BOARD_ROWS, ICellLoc, IShip, Player } from "../../../shared";
+import { BOARD_COLUMNS, BOARD_ROWS, ICellLoc, IShip, Player, locationToKey } from "../../../shared";
 import { IAppState } from "../../types";
-import { locationToKey, renderShipIcon } from "../../utils/game-helper";
+import { renderShipIcon } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 import { Tile } from "./Tile";
 

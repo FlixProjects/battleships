@@ -1,5 +1,5 @@
 import { v7 as uuidv7 } from "uuid";
-import { Cell } from "../../src/models/Cell";
+import { Cell } from "../models/Cell";
 import { BOARD_COLUMNS, BOARD_ROWS, SHIPS_CONFIG } from "../constants";
 import { Board, ICellLoc, IHull, IShip, Player } from "../types/types";
 
@@ -66,4 +66,20 @@ export const getHull = (shipId: string, hullLocation: ICellLoc): IHull => {
         location: hullLocation,
         hits: 0,
     };
+};
+
+export const getPlayerFromShipId = (players: Player[], shipId: string) => {
+    return getShipFromShipId(players, shipId).playerId;
+};
+
+export const getShipFromShipId = (players: Player[], shipId: string) => {
+    return players.flatMap((p) => p.ships).find((s) => s.id === shipId);
+};
+
+export const locationToKey = (location: ICellLoc) => {
+    return `${location[0]},${location[1]}`;
+};
+
+export const keyToLocation = (key: string): ICellLoc => {
+    return key.split(",").map((x) => parseInt(x)) as ICellLoc;
 };

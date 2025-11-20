@@ -15,6 +15,7 @@ import {
     IMoveResult,
     IResult,
     LocationHelper,
+    locationToKey,
     Player,
     ResultType,
 } from "..";
@@ -199,18 +200,18 @@ export class GameEngine {
     }
 
     private commitMoveShip(action: IMoveAction): IMoveResult {
-        const { shipId, playerId, newLocation, commandPointCost } = action;
+        const { shipId, playerId, hullLocations: newLocation, commandPointCost } = action;
         const player = this.getPlayer(playerId);
         const ship = player.ships.find((s) => s.id === shipId);
 
         if (ship?.hullLocations?.[0]) {
-            ship.hullLocations[0].location = newLocation.location;
+            ship.hullLocations = newLocation;
         }
 
         const moveAction: IMoveAction = {
             type: ActionTypes.MOVE,
             shipId,
-            newLocation,
+            hullLocations: newLocation,
             playerId,
             commandPointCost,
         };
@@ -228,7 +229,7 @@ export class GameEngine {
     }
 
     public validateMoveShip(moveAction: IMoveAction): IResult {
-        const { playerId, shipId, newLocation } = moveAction;
+        const { playerId, shipId, hullLocations: newLocation } = moveAction;
         const player = this.getPlayer(playerId);
         const ship = player.ships.find((s) => s.id === shipId);
 
@@ -248,9 +249,10 @@ export class GameEngine {
         const locationHelper = new LocationHelper(otherPlayers);
         const reachableCells = this.getReachableCells(currentLoc, movementRange, locationHelper);
 
-        const isReachable = reachableCells.some(
-            (cell) => cell[0] === newLocation.location[0] && cell[1] === newLocation.location[1],
-        );
+        const reachableCellsKeys = reachableCells.map((loc) => locationToKey(loc));
+        const newLocationKeys = newLocation.map((hullLoc) => locationToKey(hullLoc.location));
+
+        const isReachable = newLocationKeys.every((newLoc) => reachableCellsKeys.includes(newLoc));
 
         if (!isReachable) {
             return { type: ResultType.ERROR, playerId };

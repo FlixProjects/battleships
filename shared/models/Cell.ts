@@ -1,4 +1,4 @@
-import { ICell } from "../../shared";
+import { ICell } from "..";
 
 export class Cell implements ICell {
     public loc: [number, number];
