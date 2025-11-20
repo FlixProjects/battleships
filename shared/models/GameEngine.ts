@@ -17,7 +17,7 @@ import {
     LocationHelper,
     Player,
     ResultType,
-} from "../../shared";
+} from "..";
 
 // TODO: migrate to a more signal based approach
 // GameEngine receives commands/signals from UI and updates the GameManager state

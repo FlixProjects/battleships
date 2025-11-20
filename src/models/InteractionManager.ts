@@ -1,9 +1,8 @@
 import { gameManager } from "..";
-import { ActionTypes, getHull, getShipFromPlayer, ResultType } from "../../shared";
+import { ActionTypes, GameEngine, getHull, getShipFromPlayer, ResultType } from "../../shared";
 import { getComponents, updateComponents } from "../components/component-helper";
 import { Selectable } from "../components/Selectable";
 import { keyToLocation, locationToKey } from "../utils/game-helper";
-import { GameEngine } from "./GameEngine";
 
 export class InteractionManager {
     public uiState = "Idle";

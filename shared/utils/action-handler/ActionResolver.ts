@@ -1,12 +1,4 @@
-import {
-    ActionTypes,
-    GameState,
-    IDeployAction,
-    IPlayerAction,
-    IResult,
-    ResultType
-} from "../..";
-import { GameEngine } from "../../../src/models/GameEngine";
+import { ActionTypes, GameEngine, GameState, IDeployAction, IPlayerAction, IResult, ResultType } from "../..";
 
 export class ActionResolver {
     public currentTurn: IPlayerAction[] = [];
