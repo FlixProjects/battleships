@@ -4,6 +4,7 @@ import {
     GameEngine,
     getHull,
     getShipFromPlayer,
+    ICellLoc,
     keyToLocation,
     locationToKey,
     ResultType,
@@ -16,6 +17,7 @@ export class InteractionManager {
     public selectables: Record<string, Selectable> = {};
     private globalClickHandler: (e: MouseEvent) => void;
 
+    // TODO: Refactor to set each EventHandler as its own class
     public handleDeployingShipEvent(event: DeployingShipIMEvent) {
         this.removeGlobalClickEventListener();
         this.uiState = IMEventType.DEPLOYING_SHIP;
@@ -26,14 +28,13 @@ export class InteractionManager {
     public handleMovingShipEvent(event: MovingShipIMEvent) {
         this.removeGlobalClickEventListener();
         this.uiState = IMEventType.MOVING_SHIP;
-        this.globalClickHandler = (e: MouseEvent) => this.movingShipsClickHandler(e, event);
+        this.globalClickHandler = (e: MouseEvent) => this.moveShipsClickHandler(e, event);
         this.addGlobalClickEventListener();
     }
 
     private selectingShipsClickHandler(e: MouseEvent, event: DeployingShipIMEvent) {
         const { shipId, onGlobalDeselect, onSuccessfulSelect } = event;
         const playerId = gameManager.getPlayer().id;
-        const { commandPointCost } = getShipFromPlayer(gameManager.getPlayer(), shipId);
 
         const target = e.target as HTMLElement;
 
@@ -41,110 +42,128 @@ export class InteractionManager {
 
         const gameEngine = new GameEngine(gameManager.state.gameState);
         const { validCells } = gameEngine.prime.deployShip({ playerId, shipId });
-        const gameBoard = getComponents().div.gameBoard;
 
-        gameBoard.updateSelectableTiles(validCells);
+        this.updateGameBoard(validCells);
 
         const id = this.addGetIdOfClick(e);
         const validCellIndices = validCells.map((cell) => locationToKey(cell));
 
         if (!clickedShipRow && !validCellIndices.includes(id)) {
-            onGlobalDeselect();
-            this.removeGlobalClickEventListener();
-            return;
+            return this.handleInvalidClick(onGlobalDeselect);
         }
 
-        validCellIndices.forEach((index) => {
-            this.selectables[index].clearOnSelect();
-        });
-
-        validCellIndices.forEach((index) => {
-            this.selectables[index].addOnSelect(() => {
-                updateComponents();
-                onGlobalDeselect();
-                this.removeGlobalClickEventListener();
-            });
-        });
-        // FIXME: only single location for now
-        const committedHullLocations = [keyToLocation(id)].map((loc) => getHull(shipId, loc));
+        this.clearPriorOnSelects(validCellIndices);
+        this.loadOnSelects(validCellIndices, onGlobalDeselect);
 
         if (validCellIndices.includes(id)) {
-            const result = gameEngine.commit.deployShip({
-                shipId,
-                playerId,
-                hullLocations: committedHullLocations,
-                commandPointCost,
-            });
-
-            if (result.type === ResultType.ERROR) return;
-
-            gameManager.updatePlayer(result.player);
-
-            const tile = this.selectables[id];
-            tile.runOnSelects();
-
-            onSuccessfulSelect?.();
+            this.handleDeployShipClick(id, shipId, onSuccessfulSelect);
         }
 
         this.uiState = IMEventType.IDLE;
     }
 
-    private movingShipsClickHandler(e: MouseEvent, event: MovingShipIMEvent) {
+    private moveShipsClickHandler(e: MouseEvent, event: MovingShipIMEvent) {
         const { shipId, onGlobalDeselect, onSuccessfulSelect } = event;
         const playerId = gameManager.getPlayer().id;
-
-        const movementCost = 1; // Default movement cost
 
         const target = e.target as HTMLElement;
 
         const gameEngine = new GameEngine(gameManager.state.gameState);
         const { validCells, origin } = gameEngine.prime.moveShip({ playerId, shipId });
-        const gameBoard = getComponents().div.gameBoard;
-        gameBoard.updateSelectableTiles(validCells);
+
+        this.updateGameBoard(validCells);
 
         const id = target.closest(`.tile`)?.id;
         const validCellIndices = validCells.map((cell) => locationToKey(cell));
 
-        if (!id || (!validCellIndices.includes(id) && !(origin && locationToKey(origin) === id))) {
-            onGlobalDeselect();
-            this.removeGlobalClickEventListener();
-            return;
+        const isInvalidClick = !id || (!validCellIndices.includes(id) && !(origin && locationToKey(origin) === id));
+
+        if (isInvalidClick) {
+            return this.handleInvalidClick(onGlobalDeselect);
         }
 
-        validCellIndices.forEach((index) => {
-            this.selectables[index].clearOnSelect();
-        });
-
-        validCellIndices.forEach((index) => {
-            this.selectables[index].addOnSelect(() => {
-                updateComponents();
-                onGlobalDeselect();
-                this.removeGlobalClickEventListener();
-            });
-        });
+        this.clearPriorOnSelects(validCellIndices);
+        this.loadOnSelects(validCellIndices, onGlobalDeselect);
 
         if (validCellIndices.includes(id)) {
-            const newLocation = getHull(shipId, keyToLocation(id));
-
-            const result = gameEngine.commit.moveShip({
-                type: ActionTypes.MOVE,
-                shipId,
-                playerId,
-                hullLocations: [newLocation], // FIXME: only single location for now
-                commandPointCost: movementCost,
-            });
-
-            if (result.type === ResultType.ERROR) return;
-
-            gameManager.updatePlayer(result.player);
-
-            const tile = this.selectables[id];
-            tile.runOnSelects();
-
-            onSuccessfulSelect?.();
+            this.handleValidMoveShipClick(id, shipId, onSuccessfulSelect);
         }
 
         this.uiState = IMEventType.IDLE;
+    }
+
+    private updateGameBoard(cells: ICellLoc[]) {
+        const gameBoard = getComponents().div.gameBoard;
+        gameBoard.updateSelectableTiles(cells);
+    }
+
+    private handleInvalidClick(callback?: () => void) {
+        callback();
+        this.removeGlobalClickEventListener();
+        return;
+    }
+
+    private clearPriorOnSelects(selectableKeys: string[]) {
+        selectableKeys.forEach((index) => {
+            this.selectables[index].clearOnSelect();
+        });
+    }
+
+    private loadOnSelects(selectableKeys: string[], onDeselect?: () => void) {
+        selectableKeys.forEach((index) => {
+            this.selectables[index].addOnSelect(() => {
+                updateComponents();
+                onDeselect?.();
+                this.removeGlobalClickEventListener();
+            });
+        });
+    }
+
+    private handleDeployShipClick(tileId: string, shipId: string, onSuccessCb?: () => void) {
+        const gameEngine = new GameEngine(gameManager.state.gameState);
+        const playerId = gameManager.getPlayer().id;
+        const { commandPointCost } = getShipFromPlayer(gameManager.getPlayer(), shipId);
+        // FIXME: only single location for now
+        const committedHullLocations = [keyToLocation(tileId)].map((loc) => getHull(shipId, loc));
+        const result = gameEngine.commit.deployShip({
+            shipId,
+            playerId,
+            hullLocations: committedHullLocations,
+            commandPointCost,
+        });
+
+        if (result.type === ResultType.ERROR) return;
+
+        gameManager.updatePlayer(result.player);
+
+        const tile = this.selectables[tileId];
+        tile.runOnSelects();
+
+        onSuccessCb?.();
+    }
+
+    private handleValidMoveShipClick(tileId: string, shipId: string, onSuccessCb?: () => void) {
+        const gameEngine = new GameEngine(gameManager.state.gameState);
+        const movementCost = 1; // Default movement cost
+        const newLocation = getHull(shipId, keyToLocation(tileId));
+        const playerId = gameManager.getPlayer().id;
+
+        const result = gameEngine.commit.moveShip({
+            type: ActionTypes.MOVE,
+            shipId,
+            playerId,
+            hullLocations: [newLocation], // FIXME: only single location for now
+            commandPointCost: movementCost,
+        });
+
+        if (result.type === ResultType.ERROR) return;
+
+        gameManager.updatePlayer(result.player);
+
+        const tile = this.selectables[tileId];
+        tile.runOnSelects();
+
+        onSuccessCb?.();
     }
 
     public register(selectable: Selectable) {
