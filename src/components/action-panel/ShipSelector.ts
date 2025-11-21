@@ -1,5 +1,6 @@
-import { gameManager, interactionManager } from "../..";
+import { interactionManager } from "../..";
 import { Player } from "../../../shared";
+import { IMEventType } from "../../models/InteractionManager";
 import { IAppState } from "../../types";
 import { BaseComponent } from "../BaseComponent";
 import { getComponents } from "../component-helper";
@@ -57,7 +58,8 @@ export class ShipSelector extends BaseComponent {
             row.setSelected(isSelected);
         });
 
-        interactionManager.handleDeployingShipEvent({
+        interactionManager.handleEvent({
+            type: IMEventType.DEPLOYING_SHIP,
             shipId: this.selectedShip,
             onGlobalDeselect: () => this.clearSelection(),
         });

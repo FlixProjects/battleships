@@ -1,5 +1,6 @@
 import { gameManager, interactionManager } from "../..";
 import { keyToLocation } from "../../../shared";
+import { IMEventType } from "../../models/InteractionManager";
 import { IAppState } from "../../types";
 import { getComponents } from "../component-helper";
 import { Selectable } from "../Selectable";
@@ -91,7 +92,8 @@ export class Tile extends Selectable {
             );
 
             if (shipAtLocation && player.commandPoints >= 1) {
-                interactionManager.handleMovingShipEvent({
+                interactionManager.handleEvent({
+                    type: IMEventType.MOVING_SHIP,
                     shipId: shipAtLocation.id,
                     onGlobalDeselect: () => this.clearSelection(),
                 });
