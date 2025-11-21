@@ -1,6 +1,6 @@
 import { v7 as uuidv7 } from "uuid";
 import { Cell } from "../models/Cell";
-import { BOARD_COLUMNS, BOARD_ROWS, SHIPS_CONFIG } from "../constants";
+import { BOARD_COLUMNS, BOARD_ROWS, FP_AUTH_TOKEN, SHIPS_CONFIG } from "../constants";
 import { Board, ICellLoc, IHull, IShip, Player } from "../types/types";
 
 export const parseCookies = (cookieStr: string) => {
@@ -16,6 +16,10 @@ export const parseCookies = (cookieStr: string) => {
         });
     return cookies;
 };
+
+export const getTokenCookie = (cookies: string[]) => {
+    return cookies?.map((cookie) => cookie.split("=")).find(([key, _]) => key === FP_AUTH_TOKEN)?.[1];
+}
 
 export const getNewCell = (cellLoc: ICellLoc): Cell =>
     new Cell({

@@ -1,5 +1,5 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { FP_AUTH_TOKEN, GameState, IPlayerAction, parseCookies } from "../../shared";
+import { FP_AUTH_TOKEN, GameState, getTokenCookie, IPlayerAction } from "../../shared";
 import { handleActions } from "../../shared/utils/action-handler";
 
 interface SubmitActionResponse {
@@ -22,7 +22,7 @@ export const handler = async (event: any) => {
 
         const body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
 
-        const playerId = parseCookies(event.headers.cookie)?.[FP_AUTH_TOKEN];
+        const playerId = getTokenCookie(event.cookies || event.multiValueHeaders.Cookie);
 
         if (!playerId) {
             return {

@@ -1,5 +1,5 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { GameState } from "../../shared";
+import { GameState, getTokenCookie } from "../../shared";
 export const handler = async (event: any) => {
     try {
         const LOCAL_ENV = "local";
@@ -70,11 +70,6 @@ const WrongGameError = {
     body: JSON.stringify({
         message: "You are not authorised to join this game",
     }),
-};
-
-const getTokenCookie = (cookies: string[]) => {
-    const FP_AUTH_TOKEN = "fp-auth-token";
-    return cookies?.map((cookie) => cookie.split("=")).find(([key, value]) => key === FP_AUTH_TOKEN)?.[1];
 };
 
 /**
