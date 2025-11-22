@@ -6,6 +6,10 @@ export class ClickHandler {
     protected removeGlobalClickEventListener: () => void;
     protected selectables: Record<string, Selectable> = {};
 
+    public handleEvent(): { nextClickhandler: (e: MouseEvent) => void } {
+        return { nextClickhandler: (e: MouseEvent) => this.handler(e) };
+    }
+
     protected handler(e: MouseEvent) {
         // child should implement
     }
@@ -13,7 +17,7 @@ export class ClickHandler {
     public load(selectables: Record<string, Selectable>, removeGlobalClickEventListener: () => void) {
         this.selectables = selectables;
         this.removeGlobalClickEventListener = removeGlobalClickEventListener;
-        return (e: MouseEvent) => this.handler(e);
+        return this;
     }
 
     protected updateGameBoard(cells: ICellLoc[]) {
@@ -22,7 +26,7 @@ export class ClickHandler {
     }
 
     protected handleInvalidClick(callback?: () => void) {
-        callback();
+        callback?.();
         this.removeGlobalClickEventListener();
         return;
     }

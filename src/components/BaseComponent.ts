@@ -7,7 +7,10 @@ export abstract class BaseComponent {
     protected children: BaseComponent[] = [];
 
     public addClickEventListener() {
-        this.ref.addEventListener("click", async () => await this.onClick());
+        this.ref.addEventListener("click", async (e: MouseEvent) => {
+            e.stopPropagation();
+            await this.onClick();
+        });
     }
 
     public removeClickEventListener() {
@@ -26,7 +29,7 @@ export abstract class BaseComponent {
     public addChild(child: BaseComponent) {
         this.children.push(child);
     }
-    
+
     protected addStyles() {}
 
     protected remove() {

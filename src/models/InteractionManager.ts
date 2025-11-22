@@ -1,31 +1,43 @@
 import { Selectable } from "../components/Selectable";
+import { ClickHandler } from "./ClickHandler";
 import { DeployShipClickHandler } from "./DeployShipClickHandler";
 import { MoveShipClickHandler } from "./MoveShipClickHandler";
+import { SelectShipClickHandler } from "./SelectShipClickHandler";
 
 export class InteractionManager {
     public uiState = "Idle";
     public selectables: Record<string, Selectable> = {};
     private globalClickHandler: (e: MouseEvent) => void;
 
-    public handleEvent(event: DeployingShipIMEvent | MovingShipIMEvent) {
+    public handleEvent(event: DeployingShipIMEvent | MovingShipIMEvent | ShipActionIMEvent) {
         this.removeGlobalClickEventListener();
-        let handler: (e: MouseEvent) => void;
+        let eventHandler: ClickHandler;
+
         switch (event.type) {
             case IMEventType.DEPLOYING_SHIP:
                 this.uiState = IMEventType.DEPLOYING_SHIP;
-                handler = new DeployShipClickHandler(event).load(this.selectables, () =>
+                eventHandler = new DeployShipClickHandler(event).load(this.selectables, () =>
                     this.removeGlobalClickEventListener(),
                 );
                 break;
             case IMEventType.MOVING_SHIP:
                 this.uiState = IMEventType.MOVING_SHIP;
-                handler = new MoveShipClickHandler(event).load(this.selectables, () =>
+                eventHandler = new MoveShipClickHandler(event).load(this.selectables, () =>
+                    this.removeGlobalClickEventListener(),
+                );
+                break;
+            case IMEventType.SELECT_SHIP:
+                this.uiState = IMEventType.SELECT_SHIP;
+                eventHandler = new SelectShipClickHandler(event).load(this.selectables, () =>
                     this.removeGlobalClickEventListener(),
                 );
                 break;
         }
-        this.globalClickHandler = handler;
+
+        const { nextClickhandler } = eventHandler.handleEvent(); // any operations to resolve before click
+        this.globalClickHandler = nextClickhandler;
         this.addGlobalClickEventListener();
+
         // FIXME: should reset uiState but we have no use for it now
     }
 
@@ -47,6 +59,7 @@ export const IMEventType = {
     START_TURN: "Start_Turn",
     DEPLOYING_SHIP: "Deploying_Ship",
     MOVING_SHIP: "Moving_Ship",
+    SELECT_SHIP: "Select_Ship",
 } as const;
 
 export type TIMEventType = (typeof IMEventType)[keyof typeof IMEventType];
@@ -67,4 +80,10 @@ export interface MovingShipIMEvent extends IMEvent {
     shipId: string;
     onGlobalDeselect?: () => void;
     onSuccessfulSelect?: () => void;
+}
+
+export interface ShipActionIMEvent extends IMEvent {
+    type: typeof IMEventType.SELECT_SHIP;
+    tileId: string;
+    onGlobalDeselect?: () => void;
 }

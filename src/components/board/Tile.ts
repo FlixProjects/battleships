@@ -1,8 +1,6 @@
-import { gameManager, interactionManager } from "../..";
-import { keyToLocation } from "../../../shared";
+import { interactionManager } from "../..";
 import { IMEventType } from "../../models/InteractionManager";
 import { IAppState } from "../../types";
-import { getComponents } from "../component-helper";
 import { Selectable } from "../Selectable";
 
 interface Props {
@@ -45,10 +43,12 @@ export class Tile extends Selectable {
         this.ref.style.alignItems = "center";
         this.ref.style.justifyContent = "center";
         this.ref.style.padding = "4px";
+        this.ref.style.position = "relative";
     }
 
     setSelectable(selectable: boolean) {
         this.isSelectable = selectable;
+        
         this.updateState();
     }
 
@@ -80,28 +80,10 @@ export class Tile extends Selectable {
 
     public addShipClickHandler() {
         this.ref.addEventListener("click", () => {
-            const location = keyToLocation(this.id);
-
-            const player = gameManager.getPlayer();
-            const shipAtLocation = player.ships.find(
-                (ship) =>
-                    ship.deployed &&
-                    ship.hullLocations?.some(
-                        (hull) => hull.location[0] === location[0] && hull.location[1] === location[1],
-                    ),
-            );
-
-            if (shipAtLocation && player.commandPoints >= 1) {
-                interactionManager.handleEvent({
-                    type: IMEventType.MOVING_SHIP,
-                    shipId: shipAtLocation.id,
-                    onGlobalDeselect: () => this.clearSelection(),
-                });
-            }
+            interactionManager.handleEvent({
+                type: IMEventType.SELECT_SHIP,
+                tileId: this.id,
+            });
         });
-    }
-
-    private clearSelection() {
-        getComponents().div.gameBoard.updateSelectableTiles([]);
     }
 }

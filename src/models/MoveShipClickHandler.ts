@@ -1,29 +1,41 @@
 import { gameManager } from "..";
-import { ActionTypes, getHull, keyToLocation, locationToKey, ResultType } from "../../shared";
+import { ActionTypes, getHull, ICellLoc, keyToLocation, locationToKey, ResultType } from "../../shared";
 import { GameEngine } from "../../shared/models/GameEngine";
 import { ClickHandler } from "./ClickHandler";
 import { MovingShipIMEvent } from "./InteractionManager";
 
 export class MoveShipClickHandler extends ClickHandler {
+    private validCells: ICellLoc[] = [];
+    private origin: ICellLoc;
     constructor(protected event: MovingShipIMEvent) {
         super();
     }
 
-    protected handler(e: MouseEvent) {
-        const { shipId, onGlobalDeselect, onSuccessfulSelect } = this.event;
+    public handleEvent() {
+        const { shipId } = this.event;
         const playerId = gameManager.getPlayer().id;
-
-        const target = e.target as HTMLElement;
 
         const gameEngine = new GameEngine(gameManager.state.gameState);
         const { validCells, origin } = gameEngine.prime.moveShip({ playerId, shipId });
 
         this.updateGameBoard(validCells);
+        this.validCells = validCells;
+        this.origin = origin;
+
+        return {
+            nextClickhandler: (e: MouseEvent) => this.handler(e),
+        };
+    }
+
+    protected handler(e: MouseEvent) {
+        const { shipId, onGlobalDeselect, onSuccessfulSelect } = this.event;
+        const target = e.target as HTMLElement;
 
         const id = target.closest(`.tile`)?.id;
-        const validCellIndices = validCells.map((cell) => locationToKey(cell));
+        const validCellIndices = this.validCells.map((cell) => locationToKey(cell));
 
-        const isInvalidClick = !id || (!validCellIndices.includes(id) && !(origin && locationToKey(origin) === id));
+        const isInvalidClick =
+            !id || (!validCellIndices.includes(id) && !(this.origin && locationToKey(this.origin) === id));
 
         if (isInvalidClick) {
             return this.handleInvalidClick(onGlobalDeselect);
