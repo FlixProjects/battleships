@@ -1,4 +1,4 @@
-import { Board, DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_CURRENT_PLAYER, FP_PLAYER_STATES, Player } from "../../shared";
+import { Board, DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_CURRENT_PLAYER, FP_PLAYER_STATES, GameState, Player } from "../../shared";
 import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
 import { IAppState } from "../types";
 
@@ -32,13 +32,17 @@ export class GameManager {
 
     public saveCurrentPlayerStateV2(state: Partial<IAppState>) {
         const playerId = this.getCurrentPlayerId();
-
+        let newGameState: GameState;
         const { gameState } = state;
+        if (this.state?.gameState) {
+            const resolver = new ActionResolver(this.getPlayer().pendingActions, [], gameState);
+            const { gameState: tempGameState } = resolver.resolve();
+            newGameState = { ...this.state.gameState, ...tempGameState };
+        } else {
+            newGameState = gameState;
+        }
 
-        const resolver = new ActionResolver(this.getPlayer().pendingActions, [], gameState);
-        const { gameState: tempGameState } = resolver.resolve();
-
-        return this.savePlayerState(playerId, { ...state, gameState: tempGameState });
+        return this.savePlayerState(playerId, { ...state, gameState: newGameState });
     }
 
     public switchLocalPlayerAuthToken(playerId: string) {
