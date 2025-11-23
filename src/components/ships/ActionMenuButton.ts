@@ -1,4 +1,5 @@
 import { Selectable } from "../Selectable";
+import { Icon } from "./Icon";
 
 interface Props {
     iconSrc?: string;
@@ -13,6 +14,7 @@ export class ActionMenuButton extends Selectable {
     public build(): HTMLElement {
         this.ref = document.createElement("button");
         this.ref.id = this.id;
+        this.addIcon();
         this.addStyles();
         this.addClickEventListener();
         return this.ref;
@@ -23,16 +25,14 @@ export class ActionMenuButton extends Selectable {
         return;
     }
 
+    public addIcon(){
+        const icon = new Icon({ src: this.props.iconSrc || "" });
+        
+        this.addChild(icon)
+        this.ref.appendChild(icon.build());
+    }
+
     protected addStyles(): void {
-        this.ref.classList.add("action-menu-btn");
-
-        const icon = document.createElement("img");
-        icon.src = this.props.iconSrc;
-
-        icon.style.width = "20px";
-        icon.style.height = "20px";
-        icon.style.filter = "brightness(0) invert(1)";
-
-        this.ref.appendChild(icon);
+        this.ref.classList.add("action-menu-btn"); // we use class since we need hover
     }
 }

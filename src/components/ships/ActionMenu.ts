@@ -16,10 +16,9 @@ export class ActionMenu extends BaseComponent {
 
     public build() {
         this.ref = document.createElement("div");
-        this.ref.classList.add("action-menu");
         this.addStyles();
 
-        // TODO: we shud check if the ship can move
+        // TODO: we shud check the ship's movement points to update styles
         this.addMoveButton();
 
         return this.ref;
