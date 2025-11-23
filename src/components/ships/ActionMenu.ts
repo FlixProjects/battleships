@@ -3,6 +3,7 @@ import { IShip } from "../../../shared";
 import { IMEventType } from "../../models/InteractionManager";
 import { BaseComponent } from "../BaseComponent";
 import { getComponents } from "../component-helper";
+import { SelectAttackButton } from "./SelectAttackButton";
 import { SelectMoveButton } from "./SelectMoveButton";
 
 interface Props {
@@ -20,7 +21,7 @@ export class ActionMenu extends BaseComponent {
 
         // TODO: we shud check the ship's movement points to update styles
         this.addMoveButton();
-
+        this.addAttackButton();
         return this.ref;
     }
 
@@ -43,6 +44,16 @@ export class ActionMenu extends BaseComponent {
                 });
                 this.remove();
             },
+        });
+
+        this.addChild(btn);
+        this.ref.appendChild(btn.build());
+        return btn;
+    }
+
+    private addAttackButton() {
+        const btn = new SelectAttackButton("select-action-attack", {
+            iconSrc: "./assets/attack-icon.png",
         });
 
         this.addChild(btn);
