@@ -48,7 +48,6 @@ export class Tile extends Selectable {
 
     setSelectable(selectable: boolean) {
         this.isSelectable = selectable;
-        
         this.updateState();
     }
 

@@ -2,6 +2,7 @@ import { interactionManager } from "../..";
 import { IShip } from "../../../shared";
 import { IMEventType } from "../../models/InteractionManager";
 import { BaseComponent } from "../BaseComponent";
+import { getComponents } from "../component-helper";
 import { SelectMoveButton } from "./SelectMoveButton";
 
 interface Props {
@@ -32,7 +33,9 @@ export class ActionMenu extends BaseComponent {
                 interactionManager.handleEvent({
                     type: IMEventType.MOVING_SHIP,
                     shipId: this.props?.ship?.id,
-                    onGlobalDeselect: () => this.close(),
+                    onGlobalDeselect: () => {
+                        getComponents().div.gameBoard.updateSelectableTiles([]);
+                    },
                 });
                 this.remove();
             },
