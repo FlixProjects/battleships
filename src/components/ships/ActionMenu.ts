@@ -3,7 +3,7 @@ import { IShip } from "../../../shared";
 import { IMEventType } from "../../models/InteractionManager";
 import { BaseComponent } from "../BaseComponent";
 import { getComponents } from "../component-helper";
-import { SelectAttackButton } from "./SelectAttackButton";
+import { SelectShipAttackButton } from "./SelectAttackButton";
 import { SelectMoveButton } from "./SelectMoveButton";
 
 interface Props {
@@ -52,8 +52,24 @@ export class ActionMenu extends BaseComponent {
     }
 
     private addAttackButton() {
-        const btn = new SelectAttackButton("select-action-attack", {
+        const ship = this.props.ship;
+        const player = gameManager.getPlayer();
+        const cannotAttack = true;
+
+        const btn = new SelectShipAttackButton("select-action-attack", {
             iconSrc: "./assets/attack-icon.png",
+            disabled: cannotAttack,
+            onClick: async (e: MouseEvent) => {
+                e?.stopPropagation();
+                interactionManager.handleEvent({
+                    type: IMEventType.SHIP_ATTACK,
+                    shipId: this.props?.ship?.id,
+                    onGlobalDeselect: () => {
+                        getComponents().div.gameBoard.updateSelectableTiles([]);
+                    },
+                });
+                this.remove();
+            },
         });
 
         this.addChild(btn);

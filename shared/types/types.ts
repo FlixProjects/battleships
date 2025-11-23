@@ -44,6 +44,7 @@ export interface IShipTemplate {
     attackCommandPointCost: number;
     attackRange: number;
     attackDamage: number;
+    attackMinRange: number; 
 }
 
 export interface IShip extends IShipTemplate {

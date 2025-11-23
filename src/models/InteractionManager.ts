@@ -3,13 +3,16 @@ import { ClickHandler } from "./ClickHandler";
 import { DeployShipClickHandler } from "./DeployShipClickHandler";
 import { MoveShipClickHandler } from "./MoveShipClickHandler";
 import { SelectShipClickHandler } from "./SelectShipClickHandler";
+import { ShipAttackClickHandler } from "./ShipAttackClickHandler";
 
 export class InteractionManager {
     public uiState = "Idle";
     public selectables: Record<string, Selectable> = {};
     private globalClickHandler: (e: MouseEvent) => void;
 
-    public handleEvent(event: DeployingShipIMEvent | MovingShipIMEvent | SelectShipActionIMEvent) {
+    public handleEvent(
+        event: DeployingShipIMEvent | MovingShipIMEvent | SelectShipActionIMEvent | ShipAttackActionIMEvent,
+    ) {
         this.removeGlobalClickEventListener();
         let eventHandler: ClickHandler;
 
@@ -29,6 +32,12 @@ export class InteractionManager {
             case IMEventType.SELECT_SHIP:
                 this.uiState = IMEventType.SELECT_SHIP;
                 eventHandler = new SelectShipClickHandler(event).load(this.selectables, () =>
+                    this.removeGlobalClickEventListener(),
+                );
+                break;
+            case IMEventType.SHIP_ATTACK:
+                this.uiState = IMEventType.SHIP_ATTACK;
+                eventHandler = new ShipAttackClickHandler(event).load(this.selectables, () =>
                     this.removeGlobalClickEventListener(),
                 );
                 break;
@@ -60,31 +69,34 @@ export const IMEventType = {
     DEPLOYING_SHIP: "Deploying_Ship",
     MOVING_SHIP: "Moving_Ship",
     SELECT_SHIP: "Select_Ship",
+    SHIP_ATTACK: "Ship_Attack",
 } as const;
 
 export type TIMEventType = (typeof IMEventType)[keyof typeof IMEventType];
 
 export interface IMEvent {
     type: TIMEventType;
+    onGlobalDeselect?: () => void;
+    onSuccessfulSelect?: () => void;
 }
 
 export interface DeployingShipIMEvent extends IMEvent {
     type: typeof IMEventType.DEPLOYING_SHIP;
     shipId: string;
-    onGlobalDeselect?: () => void;
-    onSuccessfulSelect?: () => void;
 }
 
 export interface MovingShipIMEvent extends IMEvent {
     type: typeof IMEventType.MOVING_SHIP;
     shipId: string;
-    onGlobalDeselect?: () => void;
-    onSuccessfulSelect?: () => void;
 }
 
 export interface SelectShipActionIMEvent extends IMEvent {
     type: typeof IMEventType.SELECT_SHIP;
     tileId: string;
     selectableId: string;
-    onGlobalDeselect?: () => void;
+}
+
+export interface ShipAttackActionIMEvent extends IMEvent {
+    type: typeof IMEventType.SHIP_ATTACK;
+    shipId: string;
 }

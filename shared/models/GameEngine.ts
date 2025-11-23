@@ -7,6 +7,7 @@ import {
     IDeployAction,
     IDeployResult,
     IErrorResult,
+    IGetValidAttackCellsAction,
     IGetValidDeployCellsAction,
     IGetValidDeployCellsResult,
     IGetValidMoveCellsAction,
@@ -20,6 +21,12 @@ import {
     ResultType,
 } from "..";
 
+interface IReachableCellOptions {
+    start: ICellLoc;
+    range: number;
+    minRange?: number;
+    filterFn?: (cellLoc: ICellLoc) => boolean;
+}
 // TODO: migrate to a more signal based approach
 // GameEngine receives commands/signals from UI and updates the GameManager state
 // updateComponents() then allows rendering of UI based on the updated state
@@ -31,6 +38,7 @@ export class GameEngine {
         return {
             deployShip: (action: IGetValidDeployCellsAction) => this.primeDeployShip(action),
             moveShip: (action: IGetValidMoveCellsAction) => this.primeMoveShip(action),
+            shipAttack: (action: IGetValidAttackCellsAction) => this.primeAttack(action),
         };
     }
 
@@ -134,17 +142,21 @@ export class GameEngine {
             return { type: ResultType.SUCCESS, playerId, validCells: [] };
         }
 
-        const currentLoc = ship.hullLocations[0].location;
+        const currentLoc = ship.hullLocations[0].location; // FIXME: We always take the first hull loc as origin
         const movementRange = ship.remainingMovement || 0;
 
         // FIXME: we should only take into account 'visible' ships
-        const otherPlayers = this.gameState.players.map((p) => ({
+        const players = this.gameState.players.map((p) => ({
             ...p,
             ships: p.ships.map((s) => (s.id === shipId ? { ...s, hullLocations: [] } : s)),
         }));
-        const locationHelper = new LocationHelper(otherPlayers);
+        const locationHelper = new LocationHelper(players);
 
-        const validCells = this.getReachableCells(currentLoc, movementRange, locationHelper);
+        const validCells = this.getReachableCells({
+            start: currentLoc,
+            range: movementRange,
+            filterFn: (loc: ICellLoc) => !locationHelper.isLocationOccupied(loc),
+        });
 
         return {
             type: ResultType.SUCCESS,
@@ -154,9 +166,15 @@ export class GameEngine {
         };
     }
 
-    private getReachableCells(start: ICellLoc, range: number, locationHelper: LocationHelper): ICellLoc[] {
+    private getReachableCells({
+        start,
+        range,
+        minRange = 0,
+        filterFn = () => true,
+    }: IReachableCellOptions): ICellLoc[] {
         const reachable: Set<string> = new Set();
-        const queue: { loc: ICellLoc; steps: number }[] = [{ loc: start, steps: 0 }];
+
+        const queue: { loc: ICellLoc; steps: number }[] = [{ loc: start, steps: minRange }];
         const visited: Set<string> = new Set();
 
         while (queue.length > 0) {
@@ -180,13 +198,7 @@ export class GameEngine {
 
                 neighbors.forEach((neighbor) => {
                     const [x, y] = neighbor;
-                    if (
-                        x >= 0 &&
-                        x < BOARD_COLUMNS &&
-                        y >= 0 &&
-                        y < BOARD_ROWS &&
-                        !locationHelper.isLocationOccupied(neighbor)
-                    ) {
+                    if (x >= 0 && x < BOARD_COLUMNS && y >= 0 && y < BOARD_ROWS && filterFn?.(neighbor)) {
                         queue.push({ loc: neighbor, steps: steps + 1 });
                     }
                 });
@@ -241,13 +253,17 @@ export class GameEngine {
         const movementRange = ship.movementRange || 0;
 
         // Exclude current ship from occupied cells check
-        const otherPlayers = this.gameState.players.map((p) => ({
+        const players = this.gameState.players.map((p) => ({
             ...p,
             ships: p.ships.map((s) => (s.id === shipId ? { ...s, hullLocations: [] } : s)),
         }));
 
-        const locationHelper = new LocationHelper(otherPlayers);
-        const reachableCells = this.getReachableCells(currentLoc, movementRange, locationHelper);
+        const locationHelper = new LocationHelper(players);
+        const reachableCells = this.getReachableCells({
+            start: currentLoc,
+            range: movementRange,
+            filterFn: (loc: ICellLoc) => !locationHelper.isLocationOccupied(loc),
+        });
 
         const reachableCellsKeys = reachableCells.map((loc) => locationToKey(loc));
         const newLocationKeys = newLocation.map((hullLoc) => locationToKey(hullLoc.location));
@@ -259,6 +275,29 @@ export class GameEngine {
         }
 
         return { type: ResultType.SUCCESS, playerId };
+    }
+
+    private primeAttack(action: IGetValidAttackCellsAction) {
+        const { playerId, shipId } = action;
+        const player = this.getPlayer(playerId);
+        const ship = player.ships.find((s) => s.id === shipId);
+
+        const currentLoc = ship.hullLocations[0].location;
+        const attackRange = ship.attackRange || 0;
+        const locationHelper = new LocationHelper(this.gameState.players);
+
+        const reachableCells = this.getReachableCells({
+            start: currentLoc,
+            range: attackRange,
+            filterFn: (loc: ICellLoc) => !locationHelper.isLocationOccupied(loc),
+        });
+
+        return {
+            type: ResultType.SUCCESS,
+            playerId,
+            validCells: reachableCells,
+            origin: currentLoc,
+        };
     }
 
     // ================= Helpers =================

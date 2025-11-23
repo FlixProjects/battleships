@@ -10,6 +10,7 @@ export const ActionTypes = {
     // server actions
     GET_VALID_DEPLOY_CELLS: "get_valid_deploy_cells",
     GET_VALID_MOVE_CELLS: "get_valid_move_cells",
+    GET_VALID_ATTACK_CELLS: "get_valid_attack_cells",
 } as const;
 
 export type TActionTypes = (typeof ActionTypes)[keyof typeof ActionTypes];
@@ -47,6 +48,12 @@ export interface IGetValidDeployCellsAction extends IAction {
 
 export interface IGetValidMoveCellsAction extends IAction {
     type?: typeof ActionTypes.GET_VALID_MOVE_CELLS;
+    playerId: string;
+    shipId: string;
+}
+
+export interface IGetValidAttackCellsAction extends IAction {
+    type?: typeof ActionTypes.GET_VALID_ATTACK_CELLS;
     playerId: string;
     shipId: string;
 }

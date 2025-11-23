@@ -1,3 +1,3 @@
 import { ActionMenuButton } from "./ActionMenuButton";
 
-export class SelectAttackButton extends ActionMenuButton {}
+export class SelectShipAttackButton extends ActionMenuButton {}
