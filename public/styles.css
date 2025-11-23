@@ -406,21 +406,3 @@ input:disabled {
         transform: translateX(-50%) translateY(0);
     }
 }
-
-.action-menu-btn {
-    background: rgba(110, 231, 183, 0.1);
-    border: 1px solid rgba(110, 231, 183, 0.3);
-    border-radius: 6px;
-    padding: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-}
-
-.action-menu-btn:hover {
-    background: rgba(110, 231, 183, 0.2);
-    border-color: rgba(110, 231, 183, 0.5);
-    transform: scale(1.1);
-}

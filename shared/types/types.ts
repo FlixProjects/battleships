@@ -39,6 +39,7 @@ export interface IShipTemplate {
     deployed: boolean;
     commandPointCost: number;
     movementRange: number;
+    movementCommandPointCost: number;
 }
 
 export interface IShip extends IShipTemplate {

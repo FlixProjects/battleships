@@ -1,4 +1,4 @@
-import { interactionManager } from "../..";
+import { gameManager, interactionManager } from "../..";
 import { IShip } from "../../../shared";
 import { IMEventType } from "../../models/InteractionManager";
 import { BaseComponent } from "../BaseComponent";
@@ -25,8 +25,13 @@ export class ActionMenu extends BaseComponent {
     }
 
     private addMoveButton() {
+        const ship = this.props.ship;
+        const player = gameManager.getPlayer();
+        const cannotMove = ship.remainingMovement === 0 || ship.movementCommandPointCost > player.commandPoints;
+
         const btn = new SelectMoveButton("select-action-move", {
             iconSrc: "./assets/move-icon.svg",
+            disabled: cannotMove,
             onClick: async (e: MouseEvent) => {
                 e?.stopPropagation();
                 interactionManager.handleEvent({

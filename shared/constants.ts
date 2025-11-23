@@ -36,6 +36,7 @@ export const SHIPS_CONFIG: Record<string, IShipTemplate> = {
         dimensions: [1, 1],
         commandPointCost: 1,
         movementRange: 2,
+        movementCommandPointCost: 1,
     },
     flagship0: {
         refNo: "flagship0",
@@ -44,6 +45,7 @@ export const SHIPS_CONFIG: Record<string, IShipTemplate> = {
         dimensions: [1, 1],
         commandPointCost: 0,
         movementRange: 1,
+        movementCommandPointCost: 1,
     },
 };
 
@@ -52,7 +54,7 @@ export const COLOR = {
     ORANGE: "orange",
     PINK: "pink",
 } as const;
-export type TColor = typeof COLOR[keyof typeof COLOR];
+export type TColor = (typeof COLOR)[keyof typeof COLOR];
 
 export const COLOR_FILTER = {
     [COLOR.TEAL]:

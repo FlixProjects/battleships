@@ -11,4 +11,9 @@ export class Ship implements IShip {
     commandPointCost: number;
     movementRange: number;
     remainingMovement: number;
+    movementCommandPointCost: number;
+
+    constructor(props: Readonly<Ship>){
+        Object.assign(this, props);
+    }
 }
