@@ -2,22 +2,12 @@ import { gameManager } from "..";
 import { IShip, keyToLocation } from "../../shared";
 import { ActionMenu } from "../components/ships/ActionMenu";
 import { ClickHandler } from "./ClickHandler";
-import { ShipActionIMEvent } from "./InteractionManager";
+import { SelectShipActionIMEvent } from "./InteractionManager";
 
 export class SelectShipClickHandler extends ClickHandler {
-    private shipAtLocation: IShip;
-    constructor(protected event: ShipActionIMEvent) {
+    private actionMenu: ActionMenu;
+    constructor(protected event: SelectShipActionIMEvent) {
         super();
-    }
-
-    protected handler(e: MouseEvent) {
-        const { onGlobalDeselect } = this.event;
-        const target = e.target as HTMLElement;
-        const tileId = target.closest(".tile")?.id;
-
-        if (!(tileId && this.shipAtLocation)) {
-            return this.handleInvalidClick(onGlobalDeselect);
-        }
     }
 
     public handleEvent() {
@@ -31,16 +21,35 @@ export class SelectShipClickHandler extends ClickHandler {
                     (hull) => hull.location[0] === location[0] && hull.location[1] === location[1],
                 ),
         );
-        this.shipAtLocation = shipAtLocation;
+
         this.showActionMenu(tileId, shipAtLocation);
 
         return { nextClickhandler: (e: MouseEvent) => this.handler(e) };
     }
 
+    protected handler(e: MouseEvent) {
+        const { onGlobalDeselect, selectableId, tileId } = this.event;
+        const target = e.target as HTMLElement;
+        const clickedTile = target.closest(".tile") as HTMLElement;
+        const id = this.addGetIdOfClick(e);
+
+        // if not select-ship or not on the tile, we deselect
+        const isInvalidClick = id !== selectableId && clickedTile?.id !== tileId;
+
+        if (isInvalidClick) {
+            this.closeActionMenu();
+            return this.handleInvalidClick(onGlobalDeselect);
+        }
+    }
+
     private showActionMenu(tileId: string, ship: IShip) {
         const tile = this.selectables[tileId];
         const actionMenu = new ActionMenu({ ship });
-
+        this.actionMenu = actionMenu;
         tile.ref.appendChild(actionMenu.build());
+    }
+
+    private closeActionMenu() {
+        this.actionMenu.close();
     }
 }

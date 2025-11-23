@@ -9,7 +9,7 @@ export class InteractionManager {
     public selectables: Record<string, Selectable> = {};
     private globalClickHandler: (e: MouseEvent) => void;
 
-    public handleEvent(event: DeployingShipIMEvent | MovingShipIMEvent | ShipActionIMEvent) {
+    public handleEvent(event: DeployingShipIMEvent | MovingShipIMEvent | SelectShipActionIMEvent) {
         this.removeGlobalClickEventListener();
         let eventHandler: ClickHandler;
 
@@ -82,8 +82,9 @@ export interface MovingShipIMEvent extends IMEvent {
     onSuccessfulSelect?: () => void;
 }
 
-export interface ShipActionIMEvent extends IMEvent {
+export interface SelectShipActionIMEvent extends IMEvent {
     type: typeof IMEventType.SELECT_SHIP;
     tileId: string;
+    selectableId: string;
     onGlobalDeselect?: () => void;
 }

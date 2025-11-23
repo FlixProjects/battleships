@@ -83,6 +83,7 @@ export class Tile extends Selectable {
             interactionManager.handleEvent({
                 type: IMEventType.SELECT_SHIP,
                 tileId: this.id,
+                selectableId: "select-ship", // FIXME: should this be dynamic?
             });
         });
     }

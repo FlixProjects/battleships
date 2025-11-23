@@ -2,7 +2,7 @@ import { interactionManager } from "../..";
 import { IShip } from "../../../shared";
 import { IMEventType } from "../../models/InteractionManager";
 import { BaseComponent } from "../BaseComponent";
-import { getComponents } from "../component-helper";
+import { SelectMoveButton } from "./SelectMoveButton";
 
 interface Props {
     ship: IShip;
@@ -18,50 +18,33 @@ export class ActionMenu extends BaseComponent {
         this.ref.classList.add("action-menu");
         this.addStyles();
 
-        const moveBtn = this.createMoveButton();
-        this.ref.appendChild(moveBtn);
+        // TODO: we shud check if the ship can move
+        this.addMoveButton();
 
         return this.ref;
     }
 
-    private createMoveButton() {
-        const src = "./assets/move-icon.svg";
-        const onClick = (e: MouseEvent) => {
-            e.stopPropagation();
-            interactionManager.handleEvent({
-                type: IMEventType.MOVING_SHIP,
-                shipId: this.props?.ship?.id,
-                onGlobalDeselect: () => this.clearSelection(),
-            });
-            this.remove();
-        };
-        return this.addButton(src, onClick);
-    }
+    private addMoveButton() {
+        const btn = new SelectMoveButton("select-action-move", {
+            iconSrc: "./assets/move-icon.svg",
+            onClick: async (e: MouseEvent) => {
+                e?.stopPropagation();
+                interactionManager.handleEvent({
+                    type: IMEventType.MOVING_SHIP,
+                    shipId: this.props?.ship?.id,
+                    onGlobalDeselect: () => this.close(),
+                });
+                this.remove();
+            },
+        });
 
-    private addButton(src: string, onClick?: (e: MouseEvent) => void, id?: string) {
-        const btn = document.createElement("button");
-        btn.classList.add("action-menu-btn");
-
-        btn.addEventListener("click", onClick);
-
-        const icon = document.createElement("img");
-        icon.src = src;
-
-        icon.style.width = "20px";
-        icon.style.height = "20px";
-        icon.style.filter = "brightness(0) invert(1)";
-
-        btn.appendChild(icon);
-
+        this.addChild(btn);
+        this.ref.appendChild(btn.build());
         return btn;
     }
 
     public close() {
         this.remove();
-    }
-
-    private clearSelection() {
-        getComponents().div.gameBoard.updateSelectableTiles([]);
     }
 
     protected addStyles() {

@@ -22,7 +22,7 @@ export abstract class BaseComponent {
         this.build();
     }
 
-    public async onClick() {
+    public async onClick(e?: MouseEvent) {
         //
     }
 
