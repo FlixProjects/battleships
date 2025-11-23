@@ -37,6 +37,10 @@ export const SHIPS_CONFIG: Record<string, IShipTemplate> = {
         commandPointCost: 1,
         movementRange: 2,
         movementCommandPointCost: 1,
+        attackCountMax: 1,
+        attackCommandPointCost: 1,
+        attackRange: 3,
+        attackDamage: 1,         
     },
     flagship0: {
         refNo: "flagship0",
@@ -46,6 +50,10 @@ export const SHIPS_CONFIG: Record<string, IShipTemplate> = {
         commandPointCost: 0,
         movementRange: 1,
         movementCommandPointCost: 1,
+        attackCountMax: 1,
+        attackCommandPointCost: 1,
+        attackRange: 5,
+        attackDamage: 1,       
     },
 };
 

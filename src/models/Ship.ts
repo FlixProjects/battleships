@@ -12,8 +12,14 @@ export class Ship implements IShip {
     movementRange: number;
     remainingMovement: number;
     movementCommandPointCost: number;
+    attackCountMax: number;
+    attackRange: number;
+    attackCommandPointCost: number;
+    attackDamage: number;
+    remainingAttacks: number;
+    attackMinRange: number;
 
-    constructor(props: Readonly<Ship>){
+    constructor(props: Readonly<Ship>) {
         Object.assign(this, props);
     }
 }

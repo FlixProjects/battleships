@@ -40,6 +40,10 @@ export interface IShipTemplate {
     commandPointCost: number;
     movementRange: number;
     movementCommandPointCost: number;
+    attackCountMax: number;
+    attackCommandPointCost: number;
+    attackRange: number;
+    attackDamage: number;
 }
 
 export interface IShip extends IShipTemplate {
@@ -47,6 +51,7 @@ export interface IShip extends IShipTemplate {
     playerId: string;
     hullLocations?: IHull[];
     remainingMovement: number;
+    remainingAttacks: number;
 }
 
 export interface GameState {

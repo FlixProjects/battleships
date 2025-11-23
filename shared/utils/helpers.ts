@@ -19,7 +19,7 @@ export const parseCookies = (cookieStr: string) => {
 
 export const getTokenCookie = (cookies: string[]) => {
     return cookies?.map((cookie) => cookie.split("=")).find(([key, _]) => key === FP_AUTH_TOKEN)?.[1];
-}
+};
 
 export const getNewCell = (cellLoc: ICellLoc): Cell =>
     new Cell({
@@ -55,7 +55,13 @@ export const initialiseNewPlayer = (id: string, name: string): Player => {
 
 export const getShip = (refNo: string, playerId: string): IShip => {
     const template = { ...SHIPS_CONFIG[refNo] };
-    const base: IShip = { ...template, id: uuidv7(), playerId, remainingMovement: template.movementRange };
+    const base: IShip = {
+        ...template,
+        id: uuidv7(),
+        playerId,
+        remainingMovement: template.movementRange,
+        remainingAttacks: template.attackCountMax,
+    };
     return base;
 };
 
