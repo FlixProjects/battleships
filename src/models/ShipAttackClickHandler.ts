@@ -1,12 +1,5 @@
 import { gameManager } from "..";
-import {
-    ActionTypes,
-    getShipFromPlayer,
-    ICellLoc,
-    keyToLocation,
-    locationToKey,
-    ResultType
-} from "../../shared";
+import { ActionTypes, getShipFromPlayer, ICellLoc, keyToLocation, locationToKey, ResultType } from "../../shared";
 import { GameEngine } from "../../shared/models/GameEngine";
 import { ClickHandler } from "./ClickHandler";
 import { ShipAttackActionIMEvent } from "./InteractionManager";
@@ -21,7 +14,7 @@ export class ShipAttackClickHandler extends ClickHandler {
     public handleEvent() {
         const { shipId } = this.event;
         const playerId = gameManager.getPlayer().id;
-        
+
         const gameEngine = new GameEngine(gameManager.state.gameState);
         const { validCells, origin } = gameEngine.prime.shipAttack({ playerId, shipId });
 
@@ -75,7 +68,7 @@ export class ShipAttackClickHandler extends ClickHandler {
 
         if (result.type === ResultType.ERROR) return;
 
-        gameManager.updatePlayer(result.player);
+        gameManager.updatePlayers(result.players);
 
         const tile = this.selectables[attackTileId];
         tile.runOnSelects();

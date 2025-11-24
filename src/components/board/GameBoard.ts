@@ -74,7 +74,7 @@ export class GameBoard extends BaseComponent {
 
     private renderPlayerShips(player: Player) {
         player.ships
-            .filter((s) => s.deployed)
+            .filter((s) => s.deployed && !s.destroyed) // TEMP: we should differentiate expected destruction vs actual
             .forEach((ship) => {
                 this.renderShip(ship, gameManager.firstPlayerId === player.id);
             });
@@ -88,7 +88,10 @@ export class GameBoard extends BaseComponent {
         tiles.forEach(({ key }) => {
             const tile = this.tiles[key];
             renderShipIcon(tile, ship.id, ship.refNo, isFirstPlayer);
-            tile.addShipClickHandler();
+
+            if (gameManager.getPlayer().id === ship.playerId) {
+                tile.addShipClickHandler();
+            }
         });
     }
 }

@@ -7,6 +7,7 @@ import {
     IMoveAction,
     IPlayerAction,
     IResult,
+    IShipAttackAction,
     ResultType,
 } from "../..";
 
@@ -65,6 +66,8 @@ export class ActionResolver {
                 return this.resolveDeploy(action as IDeployAction) ?? this.gameState;
             case ActionTypes.MOVE:
                 return this.resolveMove(action as IMoveAction) ?? this.gameState;
+            case ActionTypes.ATTACK:
+                return this.resolveAttack(action as IShipAttackAction) ?? this.gameState;
             default:
                 return this.gameState;
         }
@@ -111,6 +114,16 @@ export class ActionResolver {
             ship.hullLocations = newLocation;
         }
 
+        return newState;
+    }
+
+    public resolveAttack(action: IShipAttackAction) {        
+        const newState = { ...this.gameState };
+        const gameEngine = new GameEngine(this.gameState);
+        
+        const { players } = gameEngine.calculateAttackResult(action);
+
+        newState.players = players;
         return newState;
     }
 }

@@ -1,4 +1,12 @@
-import { Board, DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_CURRENT_PLAYER, FP_PLAYER_STATES, GameState, Player } from "../../shared";
+import {
+    Board,
+    DEFAULT_APP_STATE,
+    FP_AUTH_TOKEN,
+    FP_CURRENT_PLAYER,
+    FP_PLAYER_STATES,
+    GameState,
+    Player,
+} from "../../shared";
 import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
 import { IAppState } from "../types";
 
@@ -61,6 +69,10 @@ export class GameManager {
         return this.state.gameState?.players.find((p) => p.id === this.getCurrentPlayerId());
     }
 
+    public getOtherPlayer(): Player {
+        return this.state.gameState?.players.find((p) => p.id !== this.getCurrentPlayerId());
+    }
+
     public updatePlayer(playerState: Partial<Player>) {
         const player = this.getPlayer();
         const newPlayerState = { ...player, ...playerState };
@@ -69,6 +81,32 @@ export class GameManager {
         playerAppState.gameState.players = playerAppState.gameState.players.map((p) => {
             if (p.id === player.id) {
                 return newPlayerState;
+            }
+            return p;
+        });
+
+        this.saveCurrentPlayerState(playerAppState);
+    }
+
+    // TODO: refactor if possible
+    public updatePlayers(players: Array<Partial<Player>>) {
+        const thisPlayer = this.getPlayer();
+        const otherPlayer = this.getOtherPlayer();
+
+        const newThisPlayerIndex = players.findIndex((p) => p.id === thisPlayer.id);
+        const newOtherPlayerIndex = players.findIndex((p) => p.id === otherPlayer.id);
+
+        const newThisPlayerState = { ...thisPlayer, ...players[newThisPlayerIndex] };
+        const newOtherPlayerState = { ...otherPlayer, ...players[newOtherPlayerIndex] };
+
+        const playerAppState = this.getCurrentPlayerState();
+
+        playerAppState.gameState.players = playerAppState.gameState.players.map((p) => {
+            if (p.id === thisPlayer.id) {
+                return newThisPlayerState;
+            }
+            if (p.id === otherPlayer.id) {
+                return newOtherPlayerState;
             }
             return p;
         });

@@ -39,5 +39,5 @@ export interface IGetValidMoveCellsResult extends IResult {
 
 export interface IAttackResult extends IResult {
     type: typeof ResultType.SUCCESS;
-    player: Player;
+    players: Player[];
 }

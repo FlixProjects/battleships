@@ -295,7 +295,7 @@ export class GameEngine {
         const reachableCells = this.getReachableCells({
             start: currentLoc,
             range: attackRange,
-            filterFn: (loc: ICellLoc) => !locationHelper.isLocationOccupied(loc),
+            filterFn: (loc: ICellLoc) => true,
         });
 
         return {
@@ -321,11 +321,35 @@ export class GameEngine {
 
         // update for frontend
         const player = { ...this.getPlayer(playerId) };
-        const otherPlayer = { ...this.getOtherPlayer(playerId) };
-        const ships = otherPlayer.ships;
+        // update for frontend
+        const { players } = this.calculateAttackResult(action);
 
-        ships?.forEach((ship) => {
-            ship.hullLocations?.forEach((hull) => {
+        // load actions for eventual submission
+        player.pendingActions = [...player.pendingActions, attackAction];
+
+        return {
+            type: ResultType.SUCCESS,
+            playerId,
+            players,
+        };
+    }
+
+    public calculateAttackResult(action: IShipAttackAction) {
+        const { attackLocations, playerId, shipId } = action;
+        const attackingShip = this.getShip(playerId, shipId);
+        const { attackCommandPointCost, attackDamage } = attackingShip;
+
+        const player = { ...this.getPlayer(playerId) };
+        const playerIndex = this.getPlayerIndex(playerId);
+        const otherPlayer = { ...this.getOtherPlayer(playerId) };
+        const otherPlayerShips = otherPlayer.ships;
+
+        otherPlayerShips?.forEach((ship) => {
+            if (!ship.hullLocations) {
+                return;
+            }
+
+            ship.hullLocations.forEach((hull) => {
                 if (attackLocations.some((loc) => locationToKey(loc) === locationToKey(hull.location))) {
                     hull.remainingHealth -= attackDamage;
                     if (hull.remainingHealth <= 0) {
@@ -344,12 +368,9 @@ export class GameEngine {
         player.commandPoints -= attackCommandPointCost;
         attackingShip.remainingAttacks -= 1;
 
-        // load actions for eventual submission
-        player.pendingActions = [...player.pendingActions, attackAction];
         return {
             type: ResultType.SUCCESS,
-            playerId,
-            player,
+            players: playerIndex === 0 ? [player, otherPlayer] : [otherPlayer, player],
         };
     }
 
@@ -369,6 +390,10 @@ export class GameEngine {
 
     private getPlayer(playerId: string): Player {
         return this.gameState.players.find((p) => p.id === playerId);
+    }
+
+    private getPlayerIndex(playerId: string): number {
+        return this.gameState.players.findIndex((p) => p.id === playerId);
     }
 
     private isFirstPlayer(playerId: string) {
