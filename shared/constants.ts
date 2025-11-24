@@ -1,5 +1,5 @@
 import { AppStatus, IAppState } from "../src/types";
-import { GameState, IShipTemplate } from "./types";
+import { GameState, IHullTemplate, IShipTemplate } from "./types";
 import { getNewBoard } from "./utils";
 
 export const FP_AUTH_TOKEN = "fp-auth-token";
@@ -28,9 +28,33 @@ export const DEFAULT_APP_STATE: IAppState = {
 export const BOARD_ROWS = 14;
 export const BOARD_COLUMNS = 7;
 
-export const SHIPS_CONFIG: Record<string, IShipTemplate> = {
-    frigate0: {
-        refNo: "frigate0",
+export const SHIP_REF_NO = {
+    frigate0: "frigate0",
+    flagship0: "flagship0",
+} as const;
+
+export type TShipRefNo = (typeof SHIP_REF_NO)[keyof typeof SHIP_REF_NO];
+
+export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
+    [SHIP_REF_NO.frigate0]: [
+        {
+            templateLocation: [0, 0],
+            maxHealth: 1,
+            armor: 0,
+        },
+    ],
+    [SHIP_REF_NO.flagship0]: [
+        {
+            templateLocation: [0, 0],
+            maxHealth: 1,
+            armor: 0,
+        },
+    ],
+};
+
+export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
+    [SHIP_REF_NO.frigate0]: {
+        refNo: SHIP_REF_NO.frigate0,
         name: "Frigate",
         deployed: false,
         dimensions: [1, 1],
@@ -42,9 +66,10 @@ export const SHIPS_CONFIG: Record<string, IShipTemplate> = {
         attackRange: 3,
         attackDamage: 1,
         attackMinRange: 1,
+        hullTemplates: HULLS_CONFIG[SHIP_REF_NO.frigate0],
     },
-    flagship0: {
-        refNo: "flagship0",
+    [SHIP_REF_NO.flagship0]: {
+        refNo: SHIP_REF_NO.flagship0,
         name: "Flagship",
         deployed: false,
         dimensions: [1, 1],
@@ -56,6 +81,7 @@ export const SHIPS_CONFIG: Record<string, IShipTemplate> = {
         attackRange: 5,
         attackDamage: 1,
         attackMinRange: 1,
+        hullTemplates: HULLS_CONFIG[SHIP_REF_NO.flagship0],
     },
 };
 

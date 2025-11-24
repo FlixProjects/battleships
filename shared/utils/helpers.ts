@@ -1,7 +1,7 @@
 import { v7 as uuidv7 } from "uuid";
+import { BOARD_COLUMNS, BOARD_ROWS, FP_AUTH_TOKEN, SHIPS_CONFIG, TShipRefNo } from "../constants";
 import { Cell } from "../models/Cell";
-import { BOARD_COLUMNS, BOARD_ROWS, FP_AUTH_TOKEN, SHIPS_CONFIG } from "../constants";
-import { Board, ICellLoc, IHull, IShip, Player } from "../types/types";
+import { Board, ICellLoc, IHull, IHullTemplate, IShip, Player } from "../types/types";
 
 export const parseCookies = (cookieStr: string) => {
     const cookies = {} as Record<string, string>;
@@ -53,7 +53,7 @@ export const initialiseNewPlayer = (id: string, name: string): Player => {
     };
 };
 
-export const getShip = (refNo: string, playerId: string): IShip => {
+export const getShip = (refNo: TShipRefNo, playerId: string): IShip => {
     const template = { ...SHIPS_CONFIG[refNo] };
     const base: IShip = {
         ...template,
@@ -61,6 +61,7 @@ export const getShip = (refNo: string, playerId: string): IShip => {
         playerId,
         remainingMovement: template.movementRange,
         remainingAttacks: template.attackCountMax,
+        destroyed: false,
     };
     return base;
 };
@@ -69,12 +70,19 @@ export const getShipFromPlayer = (player: Player, shipId: string) => {
     return player.ships.find((ship) => ship.id === shipId);
 };
 
-export const getHull = (shipId: string, hullLocation: ICellLoc): IHull => {
+export const getHullFromLocation = (ship: IShip, loc: ICellLoc): IHull => {
+    return ship.hullLocations?.find((hull) => hull.location[0] === loc[0] && hull.location[1] === loc[1]);
+};
+
+export const getHull = (shipId: string, hullTemplate: IHullTemplate, location: ICellLoc): IHull => {
     return {
+        ...hullTemplate,
         id: uuidv7(),
         shipId: shipId,
-        location: hullLocation,
-        hits: 0,
+        remainingArmor: hullTemplate.armor,
+        remainingHealth: hullTemplate.maxHealth,
+        location,
+        destroyed: false,
     };
 };
 

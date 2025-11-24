@@ -54,7 +54,7 @@ export class ActionMenu extends Selectable {
     private addAttackButton() {
         const ship = this.props.ship;
         const player = gameManager.getPlayer();
-        const cannotAttack = true;
+        const cannotAttack = ship.attackCommandPointCost > player.commandPoints || ship.remainingAttacks <= 0;
 
         const btn = new SelectShipAttackButton("select-action-attack", {
             iconSrc: "./assets/attack-icon.png",

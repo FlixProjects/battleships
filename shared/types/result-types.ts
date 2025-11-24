@@ -36,3 +36,8 @@ export interface IGetValidMoveCellsResult extends IResult {
     validCells: ICellLoc[];
     origin?: ICellLoc;
 }
+
+export interface IAttackResult extends IResult {
+    type: typeof ResultType.SUCCESS;
+    player: Player;
+}

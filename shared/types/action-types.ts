@@ -1,4 +1,4 @@
-import { IHull } from "./types";
+import { ICellLoc, IHull } from "./types";
 
 export const ActionTypes = {
     // player actions
@@ -36,6 +36,12 @@ export interface IMoveAction extends IPlayerAction {
     type?: typeof ActionTypes.MOVE;
     shipId: string;
     hullLocations: IHull[];
+}
+
+export interface IShipAttackAction extends IPlayerAction {
+    type?: typeof ActionTypes.ATTACK;
+    shipId: string;
+    attackLocations: ICellLoc[];
 }
 
 // ================= Server Actions =================

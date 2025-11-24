@@ -17,7 +17,7 @@ export class DeployShipClickHandler extends ClickHandler {
 
         const gameEngine = new GameEngine(gameManager.state.gameState);
         const { validCells } = gameEngine.prime.deployShip({ playerId, shipId });
-        
+
         this.updateGameBoard(validCells);
         this.validCells = validCells;
 
@@ -25,7 +25,7 @@ export class DeployShipClickHandler extends ClickHandler {
             nextClickhandler: (e: MouseEvent) => this.handler(e),
         };
     }
-    
+
     protected handler(e: MouseEvent) {
         const { shipId, onGlobalDeselect, onSuccessfulSelect } = this.event;
         const target = e.target as HTMLElement;
@@ -49,10 +49,15 @@ export class DeployShipClickHandler extends ClickHandler {
 
     private handleDeployShipClick(tileId: string, shipId: string, onSuccessCb?: () => void) {
         const gameEngine = new GameEngine(gameManager.state.gameState);
-        const playerId = gameManager.getPlayer().id;
-        const { commandPointCost } = getShipFromPlayer(gameManager.getPlayer(), shipId);
+        const player = gameManager.getPlayer();
+        const playerId = player.id;
+        const { commandPointCost, hullTemplates } = getShipFromPlayer(player, shipId);
+
         // FIXME: only single location for now
-        const committedHullLocations = [keyToLocation(tileId)].map((loc) => getHull(shipId, loc));
+        const committedHullLocations = hullTemplates.map((template) => {
+            const loc = keyToLocation(tileId);
+            return getHull(shipId, template, loc); // we initialise the location here
+        });
         const result = gameEngine.commit.deployShip({
             shipId,
             playerId,

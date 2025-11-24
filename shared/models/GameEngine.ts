@@ -3,6 +3,7 @@ import {
     BOARD_COLUMNS,
     BOARD_ROWS,
     GameState,
+    IAttackResult,
     ICellLoc,
     IDeployAction,
     IDeployResult,
@@ -15,6 +16,7 @@ import {
     IMoveAction,
     IMoveResult,
     IResult,
+    IShipAttackAction,
     LocationHelper,
     locationToKey,
     Player,
@@ -57,6 +59,10 @@ export class GameEngine {
                     return this.commitMoveShip(action);
                 }
                 return { ...results, type: ResultType.ERROR };
+            },
+            shipAttack: (action: IShipAttackAction): IAttackResult | IErrorResult<any> => {
+                // TODO: validate
+                return this.commitAttack(action);
             },
         };
     }
@@ -213,7 +219,7 @@ export class GameEngine {
 
     private commitMoveShip(action: IMoveAction): IMoveResult {
         const { shipId, playerId, hullLocations: newLocation, commandPointCost } = action;
-        const player = this.getPlayer(playerId);
+        const player = { ...this.getPlayer(playerId) };
         const ship = player.ships.find((s) => s.id === shipId);
 
         if (ship?.hullLocations?.[0]) {
@@ -300,10 +306,65 @@ export class GameEngine {
         };
     }
 
+    private commitAttack(action: IShipAttackAction) {
+        const { attackLocations, playerId, shipId } = action;
+        const attackingShip = this.getShip(playerId, shipId);
+        const { attackCommandPointCost, attackDamage } = attackingShip;
+
+        const attackAction: IShipAttackAction = {
+            type: ActionTypes.ATTACK,
+            shipId,
+            attackLocations,
+            playerId,
+            commandPointCost: attackCommandPointCost,
+        };
+
+        // update for frontend
+        const player = { ...this.getPlayer(playerId) };
+        const otherPlayer = { ...this.getOtherPlayer(playerId) };
+        const ships = otherPlayer.ships;
+
+        ships?.forEach((ship) => {
+            ship.hullLocations?.forEach((hull) => {
+                if (attackLocations.some((loc) => locationToKey(loc) === locationToKey(hull.location))) {
+                    hull.remainingHealth -= attackDamage;
+                    if (hull.remainingHealth <= 0) {
+                        hull.destroyed = true;
+                    }
+                }
+            });
+
+            const destroyedHulls = ship.hullLocations.filter((hull) => hull.destroyed);
+
+            if (destroyedHulls.length === ship.hullLocations.length) {
+                ship.destroyed = true;
+            }
+        });
+
+        player.commandPoints -= attackCommandPointCost;
+        attackingShip.remainingAttacks -= 1;
+
+        // load actions for eventual submission
+        player.pendingActions = [...player.pendingActions, attackAction];
+        return {
+            type: ResultType.SUCCESS,
+            playerId,
+            player,
+        };
+    }
+
     // ================= Helpers =================
 
     private getFirstPlayer() {
         return this.gameState.players[0];
+    }
+
+    private getShip(playerId: string, shipId: string) {
+        return this.getPlayer(playerId).ships.find((s) => s.id === shipId);
+    }
+
+    private getOtherPlayer(currentPlayerId: string) {
+        return this.gameState.players.find((p) => p.id !== currentPlayerId);
     }
 
     private getPlayer(playerId: string): Player {

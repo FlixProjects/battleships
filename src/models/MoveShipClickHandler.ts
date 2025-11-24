@@ -1,5 +1,13 @@
 import { gameManager } from "..";
-import { ActionTypes, getHull, ICellLoc, keyToLocation, locationToKey, ResultType } from "../../shared";
+import {
+    ActionTypes,
+    getShipFromPlayer,
+    ICellLoc,
+    IShip,
+    keyToLocation,
+    locationToKey,
+    ResultType
+} from "../../shared";
 import { GameEngine } from "../../shared/models/GameEngine";
 import { ClickHandler } from "./ClickHandler";
 import { MovingShipIMEvent } from "./InteractionManager";
@@ -45,31 +53,46 @@ export class MoveShipClickHandler extends ClickHandler {
         this.loadOnSelects(validCellIndices, onGlobalDeselect);
 
         if (validCellIndices.includes(id)) {
+            // FIXME: we should receive array of hullIds that are moving, and new locations
             this.handleValidMoveShipClick(id, shipId, onSuccessfulSelect);
         }
     }
 
-    private handleValidMoveShipClick(tileId: string, shipId: string, onSuccessCb?: () => void) {
+    private handleValidMoveShipClick(destinationTileId: string, shipId: string, onSuccessCb?: () => void) {
         const gameEngine = new GameEngine(gameManager.state.gameState);
         const movementCost = 1; // Default movement cost
-        const newLocation = getHull(shipId, keyToLocation(tileId));
-        const playerId = gameManager.getPlayer().id;
 
+        const player = gameManager.getPlayer();
+        const playerId = player.id;
+        const ship = getShipFromPlayer(player, shipId);
+
+        const newLocations = this.getNewHullLocations(keyToLocation(destinationTileId), ship);
+    
         const result = gameEngine.commit.moveShip({
             type: ActionTypes.MOVE,
             shipId,
             playerId,
-            hullLocations: [newLocation], // FIXME: only single location for now
+            hullLocations: newLocations,
             commandPointCost: movementCost,
         });
-
+        
         if (result.type === ResultType.ERROR) return;
-
         gameManager.updatePlayer(result.player);
 
-        const tile = this.selectables[tileId];
+        const tile = this.selectables[destinationTileId];
         tile.runOnSelects();
 
         onSuccessCb?.();
+    }
+
+    // WARNING: we don't mutate the original as much as possible
+    private getNewHullLocations(endCell: ICellLoc, ship: IShip) {
+        let newHullLocations = [...ship.hullLocations];
+        newHullLocations = ship.hullLocations;
+        // FIXME: only single location for now
+        const hullFront = { ...newHullLocations[0] }
+        hullFront.location = endCell;
+
+        return [hullFront];
     }
 }

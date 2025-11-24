@@ -1,5 +1,12 @@
 import { gameManager } from "..";
-import { ActionTypes, getHull, ICellLoc, keyToLocation, locationToKey, ResultType } from "../../shared";
+import {
+    ActionTypes,
+    getShipFromPlayer,
+    ICellLoc,
+    keyToLocation,
+    locationToKey,
+    ResultType
+} from "../../shared";
 import { GameEngine } from "../../shared/models/GameEngine";
 import { ClickHandler } from "./ClickHandler";
 import { ShipAttackActionIMEvent } from "./InteractionManager";
@@ -14,7 +21,7 @@ export class ShipAttackClickHandler extends ClickHandler {
     public handleEvent() {
         const { shipId } = this.event;
         const playerId = gameManager.getPlayer().id;
-
+        
         const gameEngine = new GameEngine(gameManager.state.gameState);
         const { validCells, origin } = gameEngine.prime.shipAttack({ playerId, shipId });
 
@@ -28,7 +35,7 @@ export class ShipAttackClickHandler extends ClickHandler {
     }
 
     protected handler(e: MouseEvent) {
-        const { onGlobalDeselect } = this.event;
+        const { shipId, onGlobalDeselect, onSuccessfulSelect } = this.event;
         const target = e.target as HTMLElement;
 
         const id = target.closest(`.tile`)?.id;
@@ -45,7 +52,34 @@ export class ShipAttackClickHandler extends ClickHandler {
         this.loadOnSelects(validCellIndices, onGlobalDeselect);
 
         if (validCellIndices.includes(id)) {
-            // this.handleShipAttackClick(id, shipId, onSuccessfulSelect);
+            this.handleShipAttackClick(id, shipId, onSuccessfulSelect);
         }
+    }
+
+    // FIXME: should we handle multiple location hits?
+    private handleShipAttackClick(attackTileId: string, shipId: string, onSuccessCb?: () => void) {
+        const gameEngine = new GameEngine(gameManager.state.gameState);
+
+        const attackLocation = keyToLocation(attackTileId);
+        const player = gameManager.getPlayer();
+        const playerId = player.id;
+        const attackingShip = getShipFromPlayer(player, shipId);
+
+        const result = gameEngine.commit.shipAttack({
+            type: ActionTypes.ATTACK,
+            shipId,
+            playerId,
+            attackLocations: [attackLocation], // FIXME: only single location for now
+            commandPointCost: attackingShip.commandPointCost,
+        });
+
+        if (result.type === ResultType.ERROR) return;
+
+        gameManager.updatePlayer(result.player);
+
+        const tile = this.selectables[attackTileId];
+        tile.runOnSelects();
+
+        onSuccessCb?.();
     }
 }

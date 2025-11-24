@@ -25,11 +25,19 @@ export interface ICell {
 }
 export type ICellLoc = [number, number];
 
-export interface IHull {
+export interface IHullTemplate {
+    templateLocation: ICellLoc;
+    maxHealth: number;
+    armor: number;
+}
+
+export interface IHull extends IHullTemplate {
     id: string;
     shipId: string;
-    location: ICellLoc;
-    hits: number;
+    location?: ICellLoc;
+    remainingHealth: number;
+    remainingArmor: number;
+    destroyed: boolean;
 }
 
 export interface IShipTemplate {
@@ -44,12 +52,14 @@ export interface IShipTemplate {
     attackCommandPointCost: number;
     attackRange: number;
     attackDamage: number;
-    attackMinRange: number; 
+    attackMinRange: number;
+    hullTemplates: IHullTemplate[];
 }
 
 export interface IShip extends IShipTemplate {
     id: string;
     playerId: string;
+    destroyed: boolean;
     hullLocations?: IHull[];
     remainingMovement: number;
     remainingAttacks: number;
