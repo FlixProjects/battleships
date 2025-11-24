@@ -1,8 +1,8 @@
 import { gameManager, interactionManager } from "../..";
-import { IShip } from "../../../shared";
+import { IShip, SELECTABLE_ID } from "../../../shared";
 import { IMEventType } from "../../models/InteractionManager";
-import { BaseComponent } from "../BaseComponent";
 import { getComponents } from "../component-helper";
+import { Selectable } from "../Selectable";
 import { SelectShipAttackButton } from "./SelectAttackButton";
 import { SelectMoveButton } from "./SelectMoveButton";
 
@@ -10,9 +10,9 @@ interface Props {
     ship: IShip;
 }
 
-export class ActionMenu extends BaseComponent {
+export class ActionMenu extends Selectable {
     constructor(private props: Props) {
-        super();
+        super(SELECTABLE_ID.ACTION_MENU);
     }
 
     public build() {

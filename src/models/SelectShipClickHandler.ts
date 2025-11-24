@@ -1,5 +1,5 @@
 import { gameManager } from "..";
-import { IShip, keyToLocation } from "../../shared";
+import { IShip, keyToLocation, SELECTABLE_ID } from "../../shared";
 import { ActionMenu } from "../components/ships/ActionMenu";
 import { ClickHandler } from "./ClickHandler";
 import { SelectShipActionIMEvent } from "./InteractionManager";
@@ -12,6 +12,7 @@ export class SelectShipClickHandler extends ClickHandler {
 
     public handleEvent() {
         const { tileId } = this.event;
+        this.removePreviousActionMenu();
         const player = gameManager.getPlayer();
         const location = keyToLocation(tileId);
         const shipAtLocation = player.ships.find(
@@ -51,5 +52,12 @@ export class SelectShipClickHandler extends ClickHandler {
 
     private closeActionMenu() {
         this.actionMenu.close();
+    }
+
+    private removePreviousActionMenu() {
+        const oldActionMenu = this.selectables[SELECTABLE_ID.ACTION_MENU];
+        if (oldActionMenu) {
+            oldActionMenu.ref.remove();
+        }
     }
 }

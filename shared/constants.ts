@@ -86,3 +86,7 @@ export const COLOR_RGBA = {
     [COLOR.ORANGE]: `rgba(${COLOR_RGB_VALUE[COLOR.ORANGE]}, 1)`,
     [COLOR.PINK]: `rgba(${COLOR_RGB_VALUE[COLOR.PINK]}, 1)`,
 };
+
+export const SELECTABLE_ID = {
+    ACTION_MENU: "action-menu",
+};
