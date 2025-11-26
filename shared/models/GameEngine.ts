@@ -309,7 +309,7 @@ export class GameEngine {
     private commitAttack(action: IShipAttackAction) {
         const { attackLocations, playerId, shipId } = action;
         const attackingShip = this.getShip(playerId, shipId);
-        const { attackCommandPointCost, attackDamage } = attackingShip;
+        const { attackCommandPointCost } = attackingShip;
 
         const attackAction: IShipAttackAction = {
             type: ActionTypes.ATTACK,
@@ -320,12 +320,11 @@ export class GameEngine {
         };
 
         // update for frontend
-        const player = { ...this.getPlayer(playerId) };
-        // update for frontend
         const { players } = this.calculateAttackResult(action);
 
         // load actions for eventual submission
-        player.pendingActions = [...player.pendingActions, attackAction];
+        const thisPlayerIndex = players.findIndex((p) => p.id === playerId);
+        players[thisPlayerIndex].pendingActions = [...players[thisPlayerIndex].pendingActions, attackAction];
 
         return {
             type: ResultType.SUCCESS,

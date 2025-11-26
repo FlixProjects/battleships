@@ -37,7 +37,7 @@ export const handler = async (event: any) => {
         const actions = body.actions as IPlayerAction[];
 
         let gameState: GameState = body.gameState;
-        console.log("Request Body:", body);
+        console.log(`Request Body for ${playerId}:`, body);
 
         if (!gameCode) {
             return {

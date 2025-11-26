@@ -21,9 +21,6 @@ export class ActionResolver {
     ) {}
 
     public resolve() {
-        if (this.player1Actions.length === 0 && this.player2Actions.length === 0) {
-            return { gameState: this.gameState, results: this.results };
-        }
         do {
             this.resolveTurn();
         } while (this.player1Actions.length > 0 || this.player2Actions.length > 0);
@@ -100,27 +97,30 @@ export class ActionResolver {
     public resolveMove(action: IMoveAction) {
         // for now, if the player with initiative occupies the location,
         // the other player's Move is not resolved (they are not refunded the CP)
-        const { shipId, hullLocations: newLocation } = action;
         const newState = { ...this.gameState };
-
-        // const player = getPlayerFromShipId(newState.players, shipId);
 
         const gameEngine = new GameEngine(this.gameState);
 
-        const result = gameEngine.validateMoveShip(action);
+        const result = gameEngine.commit.moveShip(action)
 
         if (result.type === ResultType.SUCCESS) {
-            const ship = getShipFromShipId(newState.players, shipId);
-            ship.hullLocations = newLocation;
+            const { player, playerId } = result
+
+            newState.players = newState.players.map((p) => {
+                if (p.id === playerId) {
+                    return player;
+                }
+                return p;
+            });
         }
 
         return newState;
     }
 
-    public resolveAttack(action: IShipAttackAction) {        
+    public resolveAttack(action: IShipAttackAction) {
         const newState = { ...this.gameState };
-        const gameEngine = new GameEngine(this.gameState);
-        
+        const gameEngine = new GameEngine(newState);
+
         const { players } = gameEngine.calculateAttackResult(action);
 
         newState.players = players;

@@ -42,9 +42,23 @@ export class GameManager {
         const playerId = this.getCurrentPlayerId();
         let newGameState: GameState;
         const { gameState } = state;
-        if (this.state?.gameState) {
-            const resolver = new ActionResolver(this.getPlayer().pendingActions, [], gameState);
+
+        const playerIndex = gameState.players.findIndex((p) => p.id === playerId);
+        const newStatePlayer = gameState.players[playerIndex];
+
+        if (this.state?.gameState && newStatePlayer?.pendingActions.length > 0) {
+            // After submitting action first, we resolve the pendingActions locally
+            // The gameState in S3 should remain unresolved
+
+            const resolver = new ActionResolver(newStatePlayer.pendingActions, [], gameState);
             const { gameState: tempGameState } = resolver.resolve();
+            // FIXME: there should not be game logic in the save state function
+            tempGameState.players.forEach((p) => {
+                if (p.id === playerId && p.ready) {
+                    p.commandPoints = 0;
+                }
+            });
+
             newGameState = { ...this.state.gameState, ...tempGameState };
         } else {
             newGameState = gameState;

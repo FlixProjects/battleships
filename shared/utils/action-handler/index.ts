@@ -43,7 +43,6 @@ const saveActions = (thisPlayer: string, gameState: GameState, actions: IPlayerA
 
     player.pendingActions = actions;
     player.ready = true;
-    player.commandPoints = 0; // regardless of how much they have left over, set to 0 on submit
 
     return { results: [], newGameState: newState };
 };
@@ -54,7 +53,12 @@ const refreshPlayers = (gameState: GameState) => {
         p.ready = false;
         p.commandPoints = p.maxCommandPoints;
         p.pendingActions = [];
+        p.ships.forEach((s) => {
+            s.remainingAttacks = s.attackCountMax;
+            s.remainingMovement = s.movementRange;
+        });
     });
+
     return newState;
 };
 
