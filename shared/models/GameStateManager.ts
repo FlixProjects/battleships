@@ -1,15 +1,27 @@
-import { GameState } from "..";
+import { GameState, IGameState } from "..";
 import clone from "lodash.clonedeep";
 
 export class GameStateManager {
-    private gameState: GameState;
-    constructor(_gameState: GameState) {
+    private _gameState: GameState;
+    constructor(_gameState: IGameState) {
         // each time we instantiate we deep clone the gameState
         const plain = clone(_gameState);
-        this.gameState = new GameState(plain);
+        this._gameState = this.transformToDomain(plain);
     }
 
-    transformToDomain(_gameState: GameState) {
+    private transformToDomain(_gameState: IGameState) {
+        if (_gameState instanceof GameState) {
+            this._gameState = _gameState;
+            return _gameState;
+        }
         return new GameState(_gameState);
+    }
+
+    get gameState() {
+        return clone(this._gameState);
+    }
+
+    setGameState(_gameState: IGameState) {
+        this._gameState = this.transformToDomain(_gameState);
     }
 }

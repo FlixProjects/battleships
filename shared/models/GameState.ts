@@ -7,15 +7,29 @@ export class GameState implements IGameState {
     players: Player[];
     board: Board;
     constructor(props: Readonly<IGameState>) {
-        const { code, initiative, players, board} = props
-        this.code = code
-        this.initiative = initiative
-        this.board = board
+        const { code, initiative, players, board } = props;
+        this.code = code;
+        this.initiative = initiative;
+        this.board = board;
 
         this.players = players.map((player: IPlayer) => {
             if (!(player instanceof Player)) {
                 return new Player(player);
             }
         });
+    }
+
+    updatePlayer(player: Partial<IPlayer>) {
+        if (!player.id) return;
+
+        const playerIndex = this.players.findIndex((p) => p.id === player.id);
+
+        if (playerIndex !== -1) return;
+
+        this.players[playerIndex] = new Player({ ...this.players[playerIndex], ...player });
+    }
+
+    getPlayer(playerId: string): Player {
+        return this.players.find((p) => p.id === playerId);
     }
 }

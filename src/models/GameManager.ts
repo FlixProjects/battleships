@@ -4,7 +4,7 @@ import {
     FP_AUTH_TOKEN,
     FP_CURRENT_PLAYER,
     FP_PLAYER_STATES,
-    IGameState,
+    GameStateManager,
     IPlayer,
 } from "../../shared";
 import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
@@ -14,6 +14,11 @@ interface PlayerGameStates {
     [playerId: string]: IAppState;
 }
 
+/**
+ * In charge of managing save/load of state to sessionStorage
+ * we should always fetch base state from here
+ * but use GameStateManager to modify values before saving via GameManager
+ */
 export class GameManager {
     private playerGameStates: PlayerGameStates;
 
@@ -40,31 +45,30 @@ export class GameManager {
 
     public saveCurrentPlayerStateV2(state: Partial<IAppState>) {
         const playerId = this.getCurrentPlayerId();
-        let newGameState: IGameState;
         const { gameState } = state;
 
-        const playerIndex = gameState.players.findIndex((p) => p.id === playerId);
-        const newStatePlayer = gameState.players[playerIndex];
+        if (!this.state.gameState) return;
 
-        if (this.state?.gameState && newStatePlayer?.pendingActions.length > 0) {
+        const gsm = new GameStateManager(gameState);
+        let thisPlayer = gsm.gameState.getPlayer(playerId);
+
+        if (thisPlayer?.pendingActions.length > 0) {
             // After submitting action first, we resolve the pendingActions locally
             // The gameState in S3 should remain unresolved
 
-            const resolver = new ActionResolver(newStatePlayer.pendingActions, [], gameState);
+            const resolver = new ActionResolver(thisPlayer.pendingActions, [], gameState);
             const { gameState: tempGameState } = resolver.resolve();
             // FIXME: there should not be game logic in the save state function
-            tempGameState.players.forEach((p) => {
-                if (p.id === playerId && p.ready) {
-                    p.commandPoints = 0;
-                }
-            });
 
-            newGameState = { ...this.state.gameState, ...tempGameState };
-        } else {
-            newGameState = gameState;
+            gsm.setGameState(tempGameState);
+            thisPlayer = gsm.gameState.getPlayer(playerId);
+
+            if (thisPlayer.ready) {
+                gsm.gameState.updatePlayer({ commandPoints: 0 });
+            }
         }
 
-        return this.savePlayerState(playerId, { ...state, gameState: newGameState });
+        return this.savePlayerState(playerId, { ...state, gameState: gsm.gameState });
     }
 
     public switchLocalPlayerAuthToken(playerId: string) {
