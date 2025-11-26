@@ -1,7 +1,7 @@
 import {
     ActionTypes,
     GameEngine,
-    GameState,
+    IGameState,
     IDeployAction,
     IMoveAction,
     IPlayerAction,
@@ -16,7 +16,7 @@ export class ActionResolver {
     constructor(
         public player1Actions: IPlayerAction[], // TODO: do we really the actions if we already have the gameState?
         public player2Actions: IPlayerAction[], // Just need to save second action to pendingActions and we are done
-        public gameState: GameState,
+        public gameState: IGameState,
     ) {}
 
     public resolve() {

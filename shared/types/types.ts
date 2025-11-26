@@ -65,7 +65,7 @@ export interface IShip extends IShipTemplate {
     remainingAttacks: number;
 }
 
-export interface GameState {
+export interface IGameState {
     code: string;
     initiative?: string;
     players: IPlayer[];

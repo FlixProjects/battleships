@@ -4,7 +4,7 @@ import {
     FP_AUTH_TOKEN,
     FP_CURRENT_PLAYER,
     FP_PLAYER_STATES,
-    GameState,
+    IGameState,
     IPlayer,
 } from "../../shared";
 import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
@@ -40,7 +40,7 @@ export class GameManager {
 
     public saveCurrentPlayerStateV2(state: Partial<IAppState>) {
         const playerId = this.getCurrentPlayerId();
-        let newGameState: GameState;
+        let newGameState: IGameState;
         const { gameState } = state;
 
         const playerIndex = gameState.players.findIndex((p) => p.id === playerId);

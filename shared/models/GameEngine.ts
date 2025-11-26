@@ -2,7 +2,7 @@ import {
     ActionTypes,
     BOARD_COLUMNS,
     BOARD_ROWS,
-    GameState,
+    IGameState,
     IAttackResult,
     ICellLoc,
     IDeployAction,
@@ -34,7 +34,7 @@ interface IReachableCellOptions {
 // updateComponents() then allows rendering of UI based on the updated state
 // GameEngine should not have access to frontend methods
 export class GameEngine {
-    constructor(public gameState: GameState) {}
+    constructor(public gameState: IGameState) {}
 
     get prime() {
         return {

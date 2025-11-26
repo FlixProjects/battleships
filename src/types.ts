@@ -1,4 +1,4 @@
-import { GameState } from "../shared";
+import { IGameState } from "../shared";
 import { SwitchPlayerButton } from "./components/SwitchPlayerButton";
 
 export const AppStatus = {
@@ -14,7 +14,7 @@ type TAppStatus = (typeof AppStatus)[keyof typeof AppStatus];
 export interface IAppState {
     status: TAppStatus;
     loading: boolean;
-    gameState: GameState;
+    gameState: IGameState;
     currentPlayer?: string;
 }
 

@@ -1,6 +1,6 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import { GameState, initialiseNewPlayer } from "../../shared";
+import { IGameState, initialiseNewPlayer } from "../../shared";
 
 interface JoinGameResponse {
     statusCode: number;
@@ -26,7 +26,7 @@ export const handler = async (event: any) => {
 
         const playerName = body.playerName;
         const gameCode = body.gameCode;
-        let gameState: GameState = body.gameState;
+        let gameState: IGameState = body.gameState;
 
         console.log("Request Body:", body);
 

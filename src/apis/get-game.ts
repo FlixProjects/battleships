@@ -1,4 +1,4 @@
-import { FP_GAME_CODE, FP_GAME_STATE, GameState, GetGameResponse } from "../../shared";
+import { FP_GAME_CODE, FP_GAME_STATE, IGameState, GetGameResponse } from "../../shared";
 import { appConfig, isLocal } from "../config/app-config";
 import { deleteAuthCookie } from "../utils/cookie-helper";
 
@@ -23,7 +23,7 @@ export const getGame = async (gameCodeInput: string) => {
 
         if (isLocal) {
             const localState = sessionStorage.getItem(FP_GAME_STATE);
-            data.gameState = localState ? (JSON.parse(localState) as GameState) : null;
+            data.gameState = localState ? (JSON.parse(localState) as IGameState) : null;
         }
 
         return data;

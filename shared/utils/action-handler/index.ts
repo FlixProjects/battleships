@@ -1,14 +1,14 @@
-import { GameState, IPlayerAction, IResult } from "../..";
+import { IGameState, IPlayerAction, IResult } from "../..";
 import { ActionResolver } from "./ActionResolver";
 
 interface ActionHandlerResult {
     results: IResult[];
-    newGameState: GameState;
+    newGameState: IGameState;
 }
 
 export const handleActions = (
     playerId: string,
-    gameState: GameState,
+    gameState: IGameState,
     actions: IPlayerAction[],
 ): ActionHandlerResult => {
     if (isOtherPlayerReady(playerId, gameState)) {
@@ -18,7 +18,7 @@ export const handleActions = (
     return saveActions(playerId, gameState, actions);
 };
 
-const resolveActions = (thisPlayer: string, gameState: GameState, actions: IPlayerAction[]) => {
+const resolveActions = (thisPlayer: string, gameState: IGameState, actions: IPlayerAction[]) => {
     const newState = { ...gameState };
     // TODO: validate command points
     const otherPlayer = newState.players.find((p) => p.id !== thisPlayer);
@@ -29,7 +29,7 @@ const resolveActions = (thisPlayer: string, gameState: GameState, actions: IPlay
     return { results, newGameState: refreshPlayers(newGameState) };
 };
 
-const saveActions = (thisPlayer: string, gameState: GameState, actions: IPlayerAction[]): ActionHandlerResult => {
+const saveActions = (thisPlayer: string, gameState: IGameState, actions: IPlayerAction[]): ActionHandlerResult => {
     const newState = { ...gameState };
     const player = newState.players.find((p) => p.id === thisPlayer);
     // TODO: validate command points
@@ -47,7 +47,7 @@ const saveActions = (thisPlayer: string, gameState: GameState, actions: IPlayerA
     return { results: [], newGameState: newState };
 };
 
-const refreshPlayers = (gameState: GameState) => {
+const refreshPlayers = (gameState: IGameState) => {
     const newState = { ...gameState };
     newState.players.forEach((p) => {
         p.ready = false;
@@ -62,13 +62,13 @@ const refreshPlayers = (gameState: GameState) => {
     return newState;
 };
 
-const isOtherPlayerReady = (thisPlayer: string, gameState: GameState) => {
+const isOtherPlayerReady = (thisPlayer: string, gameState: IGameState) => {
     const otherPlayer = gameState.players.find((p) => p.id !== thisPlayer);
 
     return !!(otherPlayer?.pendingActions && otherPlayer?.pendingActions.length > 0);
 };
 
-export const removeActions = (gameState: GameState) => {
+export const removeActions = (gameState: IGameState) => {
     const newState = { ...gameState };
     newState.players.forEach((p) => {
         p.pendingActions = [];

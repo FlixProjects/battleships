@@ -1,20 +1,20 @@
-import { GameState, IAction, IResult } from "../../shared";
+import { IGameState, IAction, IResult } from "../../shared";
 
 export interface GetGameRequest {
     gameCode: string;
-    gameState?: GameState; // for local
+    gameState?: IGameState; // for local
 }
 
 export interface JoinGameRequest {
     gameCode: string;
     playerName: string;
-    gameState?: GameState; // for local
+    gameState?: IGameState; // for local
 }
 
 export interface SubmitActionRequest {
     gameCode: string;
     actions: IAction[]; // TODO: replace with IPlayerAction[];
-    gameState?: GameState; // for local
+    gameState?: IGameState; // for local
 }
 
 export interface CreateGameRequest {
@@ -22,7 +22,7 @@ export interface CreateGameRequest {
 }
 
 export interface GenericResponse {
-    gameState: GameState;
+    gameState: IGameState;
 }
 
 export interface GetGameResponse extends GenericResponse {}

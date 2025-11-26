@@ -1,5 +1,5 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { GameState, getTokenCookie } from "../../shared";
+import { IGameState, getTokenCookie } from "../../shared";
 export const handler = async (event: any) => {
     try {
         const LOCAL_ENV = "local";
@@ -14,7 +14,7 @@ export const handler = async (event: any) => {
         }
 
         const gameCode = event.queryStringParameters?.code;
-        let gameState: GameState | null = null;
+        let gameState: IGameState | null = null;
 
         const s3 = new S3Client({ region: process.env.AWS_REGION }); // AWS_REGION is a reserved keyword for AWS, for now its okay to leave as is
         const BUCKET_NAME = process.env.GAMES_BUCKET!; // set in lambda, TODO: we should inject this value

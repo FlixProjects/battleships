@@ -1,10 +1,4 @@
-import {
-    FP_GAME_STATE,
-    GameState,
-    IAction,
-    SubmitActionRequest,
-    SubmitActionResponse
-} from "../../shared";
+import { FP_GAME_STATE, IGameState, IAction, SubmitActionRequest, SubmitActionResponse } from "../../shared";
 import { appConfig, isLocal } from "../config/app-config";
 import { CryptoHelper } from "../utils/crypto-helper";
 import { getGameCode } from "../utils/game-helper";
@@ -33,7 +27,7 @@ export const submitAction = async (actions: IAction[]) => {
 
         if (isLocal) {
             const localState = sessionStorage.getItem(FP_GAME_STATE);
-            reqBody.gameState = localState ? (JSON.parse(localState) as GameState) : null;
+            reqBody.gameState = localState ? (JSON.parse(localState) as IGameState) : null;
         }
 
         const res = await fetch(url, {
