@@ -14,6 +14,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^30.0.0",
+    "@types/lodash.clonedeep": "^4.5.9",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
     "dotenv-webpack": "^8.1.1",
