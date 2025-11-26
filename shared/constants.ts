@@ -1,5 +1,5 @@
 import { AppStatus, IAppState } from "../src/types";
-import { GameState, IHullTemplate, IShipTemplate } from "./types";
+import { IGameState, IHullTemplate, IShipTemplate } from "./types";
 import { getNewBoard } from "./utils";
 
 export const FP_AUTH_TOKEN = "fp-auth-token";
@@ -13,7 +13,7 @@ export const FP_PLAYER_STATES = "fp-player-states";
 
 export const LOCAL_TEMP_PLAYER_ID = "temp-id";
 
-export const INITIAL_GAME_STATE: GameState = {
+export const INITIAL_GAME_STATE: IGameState = {
     code: "",
     players: [],
     board: getNewBoard(),
