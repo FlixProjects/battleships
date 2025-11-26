@@ -5,7 +5,7 @@ import {
     FP_CURRENT_PLAYER,
     FP_PLAYER_STATES,
     GameState,
-    Player,
+    IPlayer,
 } from "../../shared";
 import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
 import { IAppState } from "../types";
@@ -79,15 +79,15 @@ export class GameManager {
         return Object.keys(this.playerGameStates);
     }
 
-    public getPlayer(): Player {
+    public getPlayer(): IPlayer {
         return this.state.gameState?.players.find((p) => p.id === this.getCurrentPlayerId());
     }
 
-    public getOtherPlayer(): Player {
+    public getOtherPlayer(): IPlayer {
         return this.state.gameState?.players.find((p) => p.id !== this.getCurrentPlayerId());
     }
 
-    public updatePlayer(playerState: Partial<Player>) {
+    public updatePlayer(playerState: Partial<IPlayer>) {
         const player = this.getPlayer();
         const newPlayerState = { ...player, ...playerState };
         const playerAppState = this.getCurrentPlayerState();
@@ -103,7 +103,7 @@ export class GameManager {
     }
 
     // TODO: refactor if possible
-    public updatePlayers(players: Array<Partial<Player>>) {
+    public updatePlayers(players: Array<Partial<IPlayer>>) {
         const thisPlayer = this.getPlayer();
         const otherPlayer = this.getOtherPlayer();
 

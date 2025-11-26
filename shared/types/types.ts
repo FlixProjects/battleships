@@ -1,6 +1,6 @@
 import { IPlayerAction } from "./action-types";
 
-export interface Player {
+export interface IPlayer {
     name: string;
     id: string;
     ready: boolean;
@@ -68,6 +68,6 @@ export interface IShip extends IShipTemplate {
 export interface GameState {
     code: string;
     initiative?: string;
-    players: Player[];
+    players: IPlayer[];
     board: Board;
 }

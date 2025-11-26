@@ -1,5 +1,5 @@
 import { interactionManager } from "../..";
-import { Player } from "../../../shared";
+import { IPlayer } from "../../../shared";
 import { IMEventType } from "../../models/InteractionManager";
 import { IAppState } from "../../types";
 import { BaseComponent } from "../BaseComponent";
@@ -7,7 +7,7 @@ import { getComponents } from "../component-helper";
 import { ShipRow } from "./ShipRow";
 
 interface Props {
-    player: Player;
+    player: IPlayer;
 }
 
 export class ShipSelector extends BaseComponent {

@@ -1,8 +1,8 @@
-import { ICellLoc, Player } from "../types/types";
+import { ICellLoc, IPlayer } from "../types/types";
 
 export class LocationHelper {
     private occupiedCells: ICellLoc[] = [];
-    constructor(players: Player[]) {
+    constructor(players: IPlayer[]) {
         this.occupiedCells = this.getOccupiedCells(players);
     }
 
@@ -28,7 +28,7 @@ export class LocationHelper {
         return false;
     }
 
-    public getOccupiedCells(players: Player[]) {
+    public getOccupiedCells(players: IPlayer[]) {
         const occuipiedLocations: ICellLoc[] = players.flatMap((p) =>
             p.ships.filter((s) => !s.destroyed).flatMap((s) => s.hullLocations?.map((h) => h.location) ?? []),
         );

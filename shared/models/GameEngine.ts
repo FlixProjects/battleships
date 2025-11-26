@@ -19,7 +19,7 @@ import {
     IShipAttackAction,
     LocationHelper,
     locationToKey,
-    Player,
+    IPlayer,
     ResultType,
 } from "..";
 
@@ -239,7 +239,7 @@ export class GameEngine {
         };
     }
 
-    calculateMoveShip(action: IMoveAction): Player {
+    calculateMoveShip(action: IMoveAction): IPlayer {
         const { shipId, playerId, hullLocations: newLocation, commandPointCost } = action;
         const player = { ...this.getPlayer(playerId) };
         const ship = player.ships.find((s) => s.id === shipId);
@@ -395,7 +395,7 @@ export class GameEngine {
         return this.gameState.players.find((p) => p.id !== currentPlayerId);
     }
 
-    private getPlayer(playerId: string): Player {
+    private getPlayer(playerId: string): IPlayer {
         return this.gameState.players.find((p) => p.id === playerId);
     }
 

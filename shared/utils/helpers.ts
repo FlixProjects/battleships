@@ -1,7 +1,7 @@
 import { v7 as uuidv7 } from "uuid";
 import { BOARD_COLUMNS, BOARD_ROWS, FP_AUTH_TOKEN, SHIPS_CONFIG, TShipRefNo } from "../constants";
 import { Cell } from "../models/Cell";
-import { Board, ICellLoc, IHull, IHullTemplate, IShip, Player } from "../types/types";
+import { Board, ICellLoc, IHull, IHullTemplate, IShip, IPlayer } from "../types/types";
 
 export const parseCookies = (cookieStr: string) => {
     const cookies = {} as Record<string, string>;
@@ -41,7 +41,7 @@ export const getNewBoard = (): Board => {
     return { grid };
 };
 
-export const initialiseNewPlayer = (id: string, name: string): Player => {
+export const initialiseNewPlayer = (id: string, name: string): IPlayer => {
     return {
         name,
         id,
@@ -66,7 +66,7 @@ export const getShip = (refNo: TShipRefNo, playerId: string): IShip => {
     return base;
 };
 
-export const getShipFromPlayer = (player: Player, shipId: string) => {
+export const getShipFromPlayer = (player: IPlayer, shipId: string) => {
     return player.ships.find((ship) => ship.id === shipId);
 };
 
@@ -86,11 +86,11 @@ export const getHull = (shipId: string, hullTemplate: IHullTemplate, location: I
     };
 };
 
-export const getPlayerFromShipId = (players: Player[], shipId: string) => {
+export const getPlayerFromShipId = (players: IPlayer[], shipId: string) => {
     return getShipFromShipId(players, shipId).playerId;
 };
 
-export const getShipFromShipId = (players: Player[], shipId: string) => {
+export const getShipFromShipId = (players: IPlayer[], shipId: string) => {
     return players.flatMap((p) => p.ships).find((s) => s.id === shipId);
 };
 

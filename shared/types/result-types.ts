@@ -1,4 +1,4 @@
-import { ICellLoc, Player } from "..";
+import { ICellLoc, IPlayer } from "..";
 
 export const ResultType = {
     SUCCESS: "SUCCESS",
@@ -20,7 +20,7 @@ export interface IErrorResult<T> extends IResult {
 
 export interface IDeployResult extends IResult {
     type: typeof ResultType.SUCCESS;
-    player: Player;
+    player: IPlayer;
 }
 
 export interface IGetValidDeployCellsResult extends IResult {
@@ -29,7 +29,7 @@ export interface IGetValidDeployCellsResult extends IResult {
 
 export interface IMoveResult extends IResult {
     type: typeof ResultType.SUCCESS;
-    player: Player;
+    player: IPlayer;
 }
 
 export interface IGetValidMoveCellsResult extends IResult {
@@ -39,5 +39,5 @@ export interface IGetValidMoveCellsResult extends IResult {
 
 export interface IAttackResult extends IResult {
     type: typeof ResultType.SUCCESS;
-    players: Player[];
+    players: IPlayer[];
 }

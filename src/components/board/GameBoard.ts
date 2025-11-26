@@ -1,5 +1,5 @@
 import { gameManager } from "../..";
-import { BOARD_COLUMNS, BOARD_ROWS, ICellLoc, IShip, Player, locationToKey } from "../../../shared";
+import { BOARD_COLUMNS, BOARD_ROWS, ICellLoc, IShip, IPlayer, locationToKey } from "../../../shared";
 import { IAppState } from "../../types";
 import { renderShipIcon } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
@@ -72,7 +72,7 @@ export class GameBoard extends BaseComponent {
         });
     }
 
-    private renderPlayerShips(player: Player) {
+    private renderPlayerShips(player: IPlayer) {
         player.ships
             .filter((s) => s.deployed && !s.destroyed) // TEMP: we should differentiate expected destruction vs actual
             .forEach((ship) => {
