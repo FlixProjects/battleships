@@ -21,6 +21,7 @@ import {
     locationToKey,
     IPlayer,
     ResultType,
+    GameStateManager,
 } from "..";
 
 interface IReachableCellOptions {
@@ -34,7 +35,10 @@ interface IReachableCellOptions {
 // updateComponents() then allows rendering of UI based on the updated state
 // GameEngine should not have access to frontend methods
 export class GameEngine {
-    constructor(public gameState: IGameState) {}
+    private gsm: GameStateManager;
+    constructor(public gameState: IGameState) {
+        this.gsm = new GameStateManager(gameState);
+    }
 
     get prime() {
         return {
@@ -140,8 +144,7 @@ export class GameEngine {
 
     private primeMoveShip(action: IGetValidMoveCellsAction): IGetValidMoveCellsResult {
         const { playerId, shipId } = action;
-        const player = this.getPlayer(playerId);
-        const ship = player.ships.find((s) => s.id === shipId);
+        const ship = this.gsm.getPlayer(playerId).getShip(shipId);
 
         if (!ship?.hullLocations?.[0]) {
             // TODO: Should not be selectable
@@ -152,10 +155,7 @@ export class GameEngine {
         const movementRange = ship.remainingMovement || 0;
 
         // FIXME: we should only take into account 'visible' ships
-        const players = this.gameState.players.map((p) => ({
-            ...p,
-            ships: p.ships.map((s) => (s.id === shipId ? { ...s, hullLocations: [] } : s)),
-        }));
+        const players = this.gsm.getPlayers();
         const locationHelper = new LocationHelper(players);
 
         const validCells = this.getReachableCells({

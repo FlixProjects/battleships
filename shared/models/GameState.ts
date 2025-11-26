@@ -13,9 +13,10 @@ export class GameState implements IGameState {
         this.board = board;
 
         this.players = players.map((player: IPlayer) => {
-            if (!(player instanceof Player)) {
-                return new Player(player);
+            if (player instanceof Player) {
+                return player;
             }
+            return new Player(player);
         });
     }
 
@@ -30,6 +31,11 @@ export class GameState implements IGameState {
     }
 
     getPlayer(playerId: string): Player {
-        return this.players.find((p) => p.id === playerId);
+        const player = this.players.find((p) => p.id === playerId);
+        return new Player(player);
+    }
+
+    getPlayers() {
+        return this.players.map((player) => new Player(player));
     }
 }

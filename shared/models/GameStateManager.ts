@@ -18,10 +18,18 @@ export class GameStateManager {
     }
 
     get gameState() {
-        return clone(this._gameState);
+        return new GameState({ ...this._gameState });
     }
 
     setGameState(_gameState: IGameState) {
         this._gameState = this.transformToDomain(_gameState);
+    }
+
+    getPlayer(playerId: string) {
+        return this.gameState.getPlayer(playerId);
+    }
+
+    getPlayers() {
+        return this.gameState.getPlayers();
     }
 }
