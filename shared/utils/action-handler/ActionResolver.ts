@@ -2,7 +2,6 @@ import {
     ActionTypes,
     GameEngine,
     GameState,
-    getShipFromShipId,
     IDeployAction,
     IMoveAction,
     IPlayerAction,
@@ -71,25 +70,23 @@ export class ActionResolver {
     }
 
     public resolveDeploy(action: IDeployAction) {
-        const { playerId, shipId, hullLocations: newHullLocations } = action;
-
         const newState = { ...this.gameState };
 
-        const player = newState.players.find((p) => p.id === playerId);
-        if (!player) return;
-
-        const ship = player.ships.find((s) => s.id === shipId);
-        if (!ship || ship.deployed) return;
-
         const gameEngine = new GameEngine(this.gameState);
-        const result = gameEngine.validateDeployShip(action);
+        const result = gameEngine.commit.deployShip(action);
 
         if (result.type === ResultType.ERROR) {
             throw new Error("Cannot deploy ship here, space is occupied");
         }
 
-        ship.hullLocations = newHullLocations;
-        ship.deployed = true;
+        const { player, playerId } = result;
+
+        newState.players = newState.players.map((p) => {
+            if (p.id === playerId) {
+                return player;
+            }
+            return p;
+        });
 
         return newState;
     }
@@ -101,10 +98,10 @@ export class ActionResolver {
 
         const gameEngine = new GameEngine(this.gameState);
 
-        const result = gameEngine.commit.moveShip(action)
+        const result = gameEngine.commit.moveShip(action);
 
         if (result.type === ResultType.SUCCESS) {
-            const { player, playerId } = result
+            const { player, playerId } = result;
 
             newState.players = newState.players.map((p) => {
                 if (p.id === playerId) {
@@ -121,6 +118,7 @@ export class ActionResolver {
         const newState = { ...this.gameState };
         const gameEngine = new GameEngine(newState);
 
+        // TODO: change to commit with validation
         const { players } = gameEngine.calculateAttackResult(action);
 
         newState.players = players;
