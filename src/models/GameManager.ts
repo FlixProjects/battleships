@@ -61,10 +61,10 @@ export class GameManager {
             // FIXME: there should not be game logic in the save state function
 
             gsm.setGameState(tempGameState);
-            thisPlayer = gsm.gameState.getPlayer(playerId);
+            thisPlayer = gsm.getPlayer(playerId);
 
             if (thisPlayer.ready) {
-                gsm.gameState.updatePlayer({ commandPoints: 0 });
+                gsm.updatePlayer({ ...thisPlayer, commandPoints: 0 });
             }
         }
 
