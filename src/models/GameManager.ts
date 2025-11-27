@@ -91,13 +91,6 @@ export class GameManager {
         return this.state.gameState?.players.find((p) => p.id !== this.getCurrentPlayerId());
     }
 
-    public updatePlayer(playerState: Partial<IPlayer>) {
-        const playerAppState = this.getCurrentPlayerState();
-        const gsm = new GameStateManager(playerAppState.gameState);
-        gsm.updatePlayer(playerState);
-        this.saveCurrentPlayerState({ ...playerAppState, gameState: gsm.gameState });
-    }
-
     // TODO: refactor if possible
     public updatePlayers(players: Array<Partial<IPlayer>>) {
         const thisPlayer = this.getPlayer();

@@ -1,7 +1,7 @@
 import { gameManager } from "..";
-import { ICellLoc, ResultType } from "../../shared";
+import { GameStateManager, ICellLoc, ResultType } from "../../shared";
 import { GameEngine } from "../../shared/models/GameEngine";
-import { getHull, getShipFromPlayer, keyToLocation, locationToKey } from "../../shared/utils/helpers";
+import { getHull, keyToLocation, locationToKey } from "../../shared/utils/helpers";
 import { ClickHandler } from "./ClickHandler";
 import { DeployingShipIMEvent } from "./InteractionManager";
 
@@ -49,9 +49,11 @@ export class DeployShipClickHandler extends ClickHandler {
 
     private handleDeployShipClick(tileId: string, shipId: string, onSuccessCb?: () => void) {
         const gameEngine = new GameEngine(gameManager.state.gameState);
-        const player = gameManager.getPlayer();
-        const playerId = player.id;
-        const { commandPointCost, hullTemplates } = getShipFromPlayer(player, shipId);
+        const gsm = new GameStateManager(gameManager.state.gameState);
+        const playerId = gameManager.getCurrentPlayerId();
+        const player = gsm.getPlayer(playerId);
+
+        const { commandPointCost, hullTemplates } = player.getShip(shipId); // getShipFromPlayer(player, shipId);
 
         // FIXME: only single location for now
         const committedHullLocations = hullTemplates.map((template) => {
@@ -67,7 +69,7 @@ export class DeployShipClickHandler extends ClickHandler {
 
         if (result.type === ResultType.ERROR) return;
 
-        gameManager.updatePlayer(result.player);
+        gameManager.saveCurrentPlayerState({ gameState: gsm.updatePlayer(result.player).gameState });
 
         const tile = this.selectables[tileId];
         tile.runOnSelects();

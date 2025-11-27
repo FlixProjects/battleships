@@ -63,10 +63,10 @@ export class MoveShipClickHandler extends ClickHandler {
         const movementCost = 1; // Default movement cost
         const gsm = new GameStateManager(gameManager.state.gameState);
 
-        const player = gsm.getPlayer(gameManager.getCurrentPlayerId());
+        const playerId = gameManager.getCurrentPlayerId();
+        const player = gsm.getPlayer(playerId);
         const ship = player.getShip(shipId);
 
-        const playerId = player.id;
 
         const newLocations = this.getNewHullLocations(keyToLocation(destinationTileId), ship);
 
