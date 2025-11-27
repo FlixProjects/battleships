@@ -21,13 +21,11 @@ export class GameState implements IGameState {
     }
 
     updatePlayer(player: Partial<IPlayer>) {
-        if (!player.id) return;
-
+        if (!player.id) return this;
         const playerIndex = this.players.findIndex((p) => p.id === player.id);
-
-        if (playerIndex !== -1) return;
-
+        if (playerIndex === -1) return this;
         this.players[playerIndex] = new Player({ ...this.players[playerIndex], ...player });
+        return this;
     }
 
     getPlayer(playerId: string): Player {

@@ -241,15 +241,10 @@ export class GameEngine {
 
     calculateMoveShip(action: IMoveAction): IPlayer {
         const { shipId, playerId, hullLocations: newLocation, commandPointCost } = action;
-        const player = { ...this.getPlayer(playerId) };
-        const ship = player.ships.find((s) => s.id === shipId);
+        const player = this.gsm.getPlayer(playerId);
 
-        if (ship?.hullLocations?.[0]) {
-            ship.hullLocations = newLocation;
-        }
-
-        player.commandPoints -= commandPointCost;
-        ship.remainingMovement = 0;
+        player.updateShip({ id: shipId, hullLocations: newLocation, remainingMovement: 0 });
+        player.update({ commandPoints: player.commandPoints - commandPointCost });
 
         return player;
     }

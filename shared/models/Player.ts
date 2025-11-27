@@ -1,4 +1,4 @@
-import { IPlayer, IPlayerAction } from "../types";
+import { IPlayer, IPlayerAction, IShip } from "../types";
 import { Ship } from ".";
 
 export class Player implements IPlayer {
@@ -28,6 +28,21 @@ export class Player implements IPlayer {
     }
 
     public getShip(shipId: string) {
-        return this.ships.find((ship) => ship.id === shipId);
+        return new Ship(this.ships.find((ship) => ship.id === shipId));
+    }
+
+    public updateShip(ship: Partial<IShip>) {
+        if (!ship.id) return this;
+        const index = this.ships.findIndex((s) => s.id === ship.id);
+        const oldShip = this.getShip(ship.id);
+        const newShip = new Ship({ ...oldShip, ...ship });
+        this.ships[index] = newShip;
+        return this;
+    }
+
+    public update(player: Partial<IPlayer>) {
+        if (player.id && player.id !== this.id) return this;
+        Object.assign(this, player);
+        return this;
     }
 }

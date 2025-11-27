@@ -1,5 +1,5 @@
-import { GameState, IGameState } from "..";
 import clone from "lodash.clonedeep";
+import { GameState, IGameState, IPlayer } from "..";
 
 export class GameStateManager {
     private _gameState: GameState;
@@ -31,5 +31,10 @@ export class GameStateManager {
 
     getPlayers() {
         return this.gameState.getPlayers();
+    }
+
+    updatePlayer(player: Partial<IPlayer>) {
+        this._gameState = this.gameState.updatePlayer(player);
+        return this;
     }
 }

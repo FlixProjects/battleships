@@ -92,18 +92,10 @@ export class GameManager {
     }
 
     public updatePlayer(playerState: Partial<IPlayer>) {
-        const player = this.getPlayer();
-        const newPlayerState = { ...player, ...playerState };
         const playerAppState = this.getCurrentPlayerState();
-
-        playerAppState.gameState.players = playerAppState.gameState.players.map((p) => {
-            if (p.id === player.id) {
-                return newPlayerState;
-            }
-            return p;
-        });
-
-        this.saveCurrentPlayerState(playerAppState);
+        const gsm = new GameStateManager(playerAppState.gameState);
+        gsm.updatePlayer(playerState);
+        this.saveCurrentPlayerState({ ...playerAppState, gameState: gsm.gameState });
     }
 
     // TODO: refactor if possible
@@ -142,7 +134,7 @@ export class GameManager {
         this.saveCurrentPlayerState(playerAppState);
     }
 
-    private getCurrentPlayerId(): string | null {
+    public getCurrentPlayerId(): string | null {
         return sessionStorage.getItem(FP_CURRENT_PLAYER);
     }
 

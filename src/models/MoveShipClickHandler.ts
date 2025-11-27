@@ -1,7 +1,7 @@
 import { gameManager } from "..";
 import {
     ActionTypes,
-    getShipFromPlayer,
+    GameStateManager,
     ICellLoc,
     IShip,
     keyToLocation,
@@ -61,13 +61,15 @@ export class MoveShipClickHandler extends ClickHandler {
     private handleValidMoveShipClick(destinationTileId: string, shipId: string, onSuccessCb?: () => void) {
         const gameEngine = new GameEngine(gameManager.state.gameState);
         const movementCost = 1; // Default movement cost
+        const gsm = new GameStateManager(gameManager.state.gameState);
 
-        const player = gameManager.getPlayer();
+        const player = gsm.getPlayer(gameManager.getCurrentPlayerId());
+        const ship = player.getShip(shipId);
+
         const playerId = player.id;
-        const ship = getShipFromPlayer(player, shipId);
 
         const newLocations = this.getNewHullLocations(keyToLocation(destinationTileId), ship);
-    
+
         const result = gameEngine.commit.moveShip({
             type: ActionTypes.MOVE,
             shipId,
@@ -75,9 +77,10 @@ export class MoveShipClickHandler extends ClickHandler {
             hullLocations: newLocations,
             commandPointCost: movementCost,
         });
-        
+
         if (result.type === ResultType.ERROR) return;
-        gameManager.updatePlayer(result.player);
+
+        gameManager.saveCurrentPlayerState({ gameState: gsm.updatePlayer(result.player).gameState });
 
         const tile = this.selectables[destinationTileId];
         tile.runOnSelects();
@@ -90,7 +93,7 @@ export class MoveShipClickHandler extends ClickHandler {
         let newHullLocations = [...ship.hullLocations];
         newHullLocations = ship.hullLocations;
         // FIXME: only single location for now
-        const hullFront = { ...newHullLocations[0] }
+        const hullFront = { ...newHullLocations[0] };
         hullFront.location = endCell;
 
         return [hullFront];

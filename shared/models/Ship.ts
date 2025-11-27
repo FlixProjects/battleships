@@ -21,7 +21,13 @@ export class Ship implements IShip {
     destroyed: boolean;
     hullTemplates: IHullTemplate[];
 
-    constructor(props: Readonly<Ship>) {
+    constructor(props: Readonly<IShip>) {
         Object.assign(this, props);
+    }
+
+    update(ship: Partial<IShip>) {
+        if (ship.id && ship.id !== this.id) return this;
+        Object.assign(this, ship)
+        return this;
     }
 }
