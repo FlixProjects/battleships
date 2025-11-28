@@ -5,6 +5,7 @@ import {
     FP_CURRENT_PLAYER,
     FP_PLAYER_STATES,
     GameStateManager,
+    IGameState,
     IPlayer,
 } from "../../shared";
 import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
@@ -48,27 +49,33 @@ export class GameManager {
         const { gameState } = state;
 
         if (!this.state.gameState) return;
+        // TODO: should we just return a resolved GS from lambda instead?
+        const newGameState = this.resolveLocalActions(gameState);
 
-        const gsm = new GameStateManager(gameState);
+        return this.savePlayerState(playerId, { ...state, gameState: newGameState });
+    }
+
+    private resolveLocalActions(_gameState: IGameState): IGameState {
+        const playerId = this.getCurrentPlayerId();
+        const gsm = new GameStateManager(_gameState);
         let thisPlayer = gsm.gameState.getPlayer(playerId);
 
         if (thisPlayer?.pendingActions.length > 0) {
             // After submitting action first, we resolve the pendingActions locally
             // The gameState in S3 should remain unresolved
 
-            const resolver = new ActionResolver(thisPlayer.pendingActions, [], gameState);
-            const { gameState: tempGameState } = resolver.resolve();
+            const resolver = new ActionResolver(thisPlayer.pendingActions, [], gsm.gameState);
+            const { gameState: resolvedGameState } = resolver.resolve();
             // FIXME: there should not be game logic in the save state function
 
-            gsm.setGameState(tempGameState);
+            gsm.setGameState(resolvedGameState);
             thisPlayer = gsm.getPlayer(playerId);
 
             if (thisPlayer.ready) {
                 gsm.updatePlayer({ ...thisPlayer, commandPoints: 0 });
             }
         }
-
-        return this.savePlayerState(playerId, { ...state, gameState: gsm.gameState });
+        return gsm.gameState;
     }
 
     public switchLocalPlayerAuthToken(playerId: string) {
