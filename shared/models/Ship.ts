@@ -20,6 +20,7 @@ export class Ship implements IShip {
     attackMinRange: number;
     destroyed: boolean;
     hullTemplates: IHullTemplate[];
+    isFlagship: boolean;
 
     constructor(props: Readonly<IShip>) {
         Object.assign(this, props);
@@ -27,7 +28,7 @@ export class Ship implements IShip {
 
     update(ship: Partial<IShip>) {
         if (ship.id && ship.id !== this.id) return this;
-        Object.assign(this, ship)
+        Object.assign(this, ship);
         return this;
     }
 }

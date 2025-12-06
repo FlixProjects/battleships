@@ -1,7 +1,6 @@
 import { interactionManager } from "../..";
 import { IPlayer } from "../../../shared";
 import { IMEventType } from "../../models/InteractionManager";
-import { IAppState } from "../../types";
 import { BaseComponent } from "../BaseComponent";
 import { getComponents } from "../component-helper";
 import { ShipRow } from "./ShipRow";
@@ -18,30 +17,36 @@ export class ShipSelector extends BaseComponent {
         super();
     }
 
-    updateState(_state?: IAppState): void {
-        this.remove();
-        this.build();
-    }
-
     public build() {
         this.ref = document.createElement("div");
-
         this.addStyles();
-
         this.renderShipRows();
-
         return this.ref;
     }
 
     private renderShipRows() {
         const player = this.props.player;
+        const flagshipNotDeployed = this.getFlagshipNotDeployed();
+        const flagshipId = flagshipNotDeployed?.id;
+        const hasFlagshipNotDeployed = !!flagshipId;
+
         player?.ships?.forEach(({ id, refNo, deployed, commandPointCost }) => {
+            const shipIsFlagship = flagshipId === id;
             if (!deployed) {
+                const selected = hasFlagshipNotDeployed ? shipIsFlagship : this.selectedShip === id;
+                const onSelect =
+                    hasFlagshipNotDeployed && !shipIsFlagship
+                        ? () => {
+                              // TODO: Create toast that lets Player know to deploy flagship first
+                              console.log("Deploy flagship first!");
+                          }
+                        : (shipId: string) => this.setSelected(shipId);
+
                 const shipRow = new ShipRow({
                     shipId: id,
-                    selected: this.selectedShip === id,
-                    onSelect: (shipId: string) => this.setSelected(shipId),
-                    selectable: player.commandPoints >= commandPointCost && !player.ready,
+                    selected,
+                    onSelect,
+                    isSelectable: player.commandPoints >= commandPointCost && !player.ready,
                     refNo,
                 });
                 this.shipRows.push(shipRow);
@@ -49,6 +54,26 @@ export class ShipSelector extends BaseComponent {
                 this.ref.appendChild(shipRow.build());
             }
         });
+
+        if (this.hasFlagshipNotDeployed) {
+            this.selectFlagship();
+        }
+    }
+
+    private selectFlagship() {
+        const flagship = this.props.player.ships.find((s) => s.isFlagship);
+        if (!flagship) return;
+        this.setSelected(flagship.id);
+    }
+
+    private getFlagshipNotDeployed() {
+        return this.props.player.ships.find((s) => s.isFlagship && !s.deployed);
+    }
+
+    private get hasFlagshipNotDeployed() {
+        const player = this.props.player;
+        const flagshipIndex = player.ships.findIndex((s) => s.isFlagship);
+        return flagshipIndex > -1 && !player.ships[flagshipIndex].deployed;
     }
 
     private setSelected(id: string) {
@@ -61,7 +86,7 @@ export class ShipSelector extends BaseComponent {
         interactionManager.handleEvent({
             type: IMEventType.DEPLOYING_SHIP,
             shipId: this.selectedShip,
-            onGlobalDeselect: () => this.clearSelection(),
+            onGlobalDeselect: this.hasFlagshipNotDeployed ? () => this.selectFlagship() : () => this.clearSelection(),
         });
     }
 

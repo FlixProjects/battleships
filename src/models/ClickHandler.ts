@@ -25,9 +25,9 @@ export class ClickHandler {
         gameBoard.updateSelectableTiles(cells, options);
     }
 
-    protected handleInvalidClick(callback?: () => void) {
-        callback?.();
+    protected handleInvalidClick(onInvalidClickCb?: () => void) {
         this.removeGlobalClickEventListener();
+        onInvalidClickCb?.();
         return;
     }
 

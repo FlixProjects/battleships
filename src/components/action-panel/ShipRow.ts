@@ -9,7 +9,7 @@ interface Props {
     refNo: string;
     selected: boolean;
     onSelect?: (id: string) => void;
-    selectable?: boolean;
+    isSelectable?: boolean;
 }
 export class ShipRow extends Selectable {
     constructor(public props: Props) {
@@ -46,7 +46,7 @@ export class ShipRow extends Selectable {
 
         this.addStyles();
 
-        if (this.props.selectable) {
+        if (this.props.isSelectable) {
             this.setAsSelectable();
         } else {
             this.setAsUnselectable();

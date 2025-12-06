@@ -68,6 +68,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
         attackDamage: 1,
         attackMinRange: 1,
         hullTemplates: HULLS_CONFIG[SHIP_REF_NO.frigate0],
+        isFlagship: false,
     },
     [SHIP_REF_NO.flagship0]: {
         refNo: SHIP_REF_NO.flagship0,
@@ -83,6 +84,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
         attackDamage: 1,
         attackMinRange: 1,
         hullTemplates: HULLS_CONFIG[SHIP_REF_NO.flagship0],
+        isFlagship: true,
     },
 };
 

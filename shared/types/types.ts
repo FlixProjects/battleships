@@ -54,6 +54,7 @@ export interface IShipTemplate {
     attackDamage: number;
     attackMinRange: number;
     hullTemplates: IHullTemplate[];
+    isFlagship: boolean;
 }
 
 export interface IShip extends IShipTemplate {
