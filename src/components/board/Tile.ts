@@ -17,9 +17,11 @@ export class Tile extends Selectable {
         if (this.isSelectable) {
             this.setSelectableStyle();
             this.onSelectable?.();
+            this.onSelectable = undefined;
         } else {
             this.setUnselectableStyle();
             this.onUnselectable?.();
+            this.onUnselectable = undefined;
         }
     }
 

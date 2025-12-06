@@ -17,9 +17,9 @@ export class Selectable extends BaseComponent {
 
     public setAsSelectable() {}
 
-    public onSelectable() {}
+    public onSelectable?: () => void;
 
-    public onUnselectable() {}
+    public onUnselectable?: () => void;
 
     public clearOnSelect() {
         this.onSelects = [];
