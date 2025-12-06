@@ -1,7 +1,6 @@
 import { interactionManager } from "../..";
 import { IMEventType } from "../../models/InteractionManager";
-import { IAppState } from "../../types";
-import { Selectable } from "../Selectable";
+import { Selectable, TSetSelectableOptions } from "../Selectable";
 
 interface Props {
     id: string;
@@ -14,11 +13,13 @@ export class Tile extends Selectable {
         super(props.id);
     }
 
-    updateState(_state?: IAppState): void {
+    setState(): void {
         if (this.isSelectable) {
             this.setSelectableStyle();
+            this.onSelectable?.();
         } else {
             this.setUnselectableStyle();
+            this.onUnselectable?.();
         }
     }
 
@@ -46,18 +47,32 @@ export class Tile extends Selectable {
         this.ref.style.position = "relative";
     }
 
-    setSelectable(selectable: boolean) {
-        this.isSelectable = selectable;
-        this.updateState();
+    public setSelectable(isSelectable: boolean, options: TSetSelectableOptions = {}) {
+        this.isSelectable = isSelectable;
+        const { onSelectable, onUnselectable } = options;
+
+        if (onSelectable) {
+            this.onSelectable = () => onSelectable(this);
+        }
+
+        if (onUnselectable) {
+            this.onUnselectable = () => onUnselectable(this);
+        }
+
+        this.setState();
     }
 
     private setSelectableStyle() {
-        this.ref.style.background = "rgba(110, 231, 183, 0.2)";
-        this.ref.style.border = "1px solid rgba(110, 231, 183, 0.5)";
-        this.ref.style.animation = "pulse 1.5s ease-in-out infinite";
+        this.loadDefaultSelectableStyle();
 
         this.ref.addEventListener("mouseenter", this.mouseEnterStyle);
         this.ref.addEventListener("mouseleave", this.mouseLeaveStyle);
+    }
+
+    private loadDefaultSelectableStyle() {
+        this.ref.style.background = "rgba(110, 231, 183, 0.2)";
+        this.ref.style.border = "1px solid rgba(110, 231, 183, 0.5)";
+        this.ref.style.animation = "pulse 1.5s ease-in-out infinite";
     }
 
     mouseEnterStyle = () => {

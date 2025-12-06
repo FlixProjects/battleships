@@ -1,7 +1,7 @@
 import { v7 as uuidv7 } from "uuid";
-import { BOARD_COLUMNS, BOARD_ROWS, FP_AUTH_TOKEN, SHIPS_CONFIG, TShipRefNo } from "../constants";
+import { BOARD_COLUMNS, BOARD_ROWS, CELL_SEPARATOR, FP_AUTH_TOKEN, SHIPS_CONFIG, TShipRefNo } from "../constants";
 import { Cell } from "../models/Cell";
-import { Board, ICellLoc, IHull, IHullTemplate, IShip, IPlayer } from "../types/types";
+import { Board, ICellLoc, IHull, IHullTemplate, IPlayer, IShip } from "../types/types";
 
 export const parseCookies = (cookieStr: string) => {
     const cookies = {} as Record<string, string>;
@@ -95,9 +95,9 @@ export const getShipFromShipId = (players: IPlayer[], shipId: string) => {
 };
 
 export const locationToKey = (location: ICellLoc) => {
-    return `${location[0]},${location[1]}`;
+    return `${location[0]}${CELL_SEPARATOR}${location[1]}`;
 };
 
 export const keyToLocation = (key: string): ICellLoc => {
-    return key.split(",").map((x) => parseInt(x)) as ICellLoc;
+    return key.split(CELL_SEPARATOR).map((x) => parseInt(x)) as ICellLoc;
 };

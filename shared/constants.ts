@@ -27,6 +27,7 @@ export const DEFAULT_APP_STATE: IAppState = {
 
 export const BOARD_ROWS = 14;
 export const BOARD_COLUMNS = 7;
+export const CELL_SEPARATOR = "-";
 
 export const SHIP_REF_NO = {
     frigate0: "frigate0",
@@ -89,6 +90,7 @@ export const COLOR = {
     TEAL: "teal",
     ORANGE: "orange",
     PINK: "pink",
+    RED: "red",
 } as const;
 export type TColor = (typeof COLOR)[keyof typeof COLOR];
 
@@ -99,6 +101,8 @@ export const COLOR_FILTER = {
         "brightness(0) saturate(100%) invert(91%) sepia(13%) saturate(4577%) hue-rotate(332deg) brightness(96%) contrast(100%)",
     [COLOR.PINK]:
         "brightness(0) saturate(100%) invert(55%) sepia(16%) saturate(4155%) hue-rotate(292deg) brightness(94%) contrast(84%)",
+    [COLOR.RED]:
+        "brightness(0) saturate(100%) invert(27%) sepia(98%) saturate(7426%) hue-rotate(358deg) brightness(98%) contrast(118%)",
 };
 
 export const COLOR_RGB_VALUE = {
@@ -115,4 +119,9 @@ export const COLOR_RGBA = {
 
 export const SELECTABLE_ID = {
     ACTION_MENU: "action-menu",
+};
+
+export const ASSET_PATHS = {
+    TARGET_ICON: "./assets/attack-icon.png",
+    MOVE_ICON: "./assets/move-icon.svg",
 };

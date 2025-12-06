@@ -1,8 +1,23 @@
 import { gameManager } from "..";
-import { ActionTypes, getShipFromPlayer, ICellLoc, keyToLocation, locationToKey, ResultType } from "../../shared";
+import {
+    ActionTypes,
+    ASSET_PATHS,
+    COLOR,
+    COLOR_FILTER,
+    getShipFromPlayer,
+    ICellLoc,
+    keyToLocation,
+    locationToKey,
+    ResultType,
+} from "../../shared";
 import { GameEngine } from "../../shared/models/GameEngine";
+import { HTMLImage } from "../components/native/Image";
+import { Selectable } from "../components/Selectable";
+import { Icon } from "../components/ships/Icon";
 import { ClickHandler } from "./ClickHandler";
 import { ShipAttackActionIMEvent } from "./InteractionManager";
+
+const TARGET_ICON_ID_PREFIX = "target-icon";
 
 export class ShipAttackClickHandler extends ClickHandler {
     private validCells: ICellLoc[] = [];
@@ -18,7 +33,17 @@ export class ShipAttackClickHandler extends ClickHandler {
         const gameEngine = new GameEngine(gameManager.state.gameState);
         const { validCells, origin } = gameEngine.prime.shipAttack({ playerId, shipId });
 
-        this.updateGameBoard(validCells);
+        const onSelectable = (selectable: Selectable) => {
+            this.loadRedStyle(selectable);
+            this.loadTargetIcon(selectable);
+        };
+
+        const onUnselectable = (selectable: Selectable) => {
+            this.removeTargetIcon(selectable);
+        };
+
+        this.updateGameBoard(validCells, { onSelectable, onUnselectable });
+
         this.validCells = validCells;
         this.origin = origin;
 
@@ -74,5 +99,43 @@ export class ShipAttackClickHandler extends ClickHandler {
         tile.runOnSelects();
 
         onSuccessCb?.();
+    }
+
+    private loadRedStyle(selectable: Selectable) {
+        selectable.ref.style.background = "rgba(255, 110, 110, 0.2)";
+        selectable.ref.style.border = "1px solid rgba(255, 110, 110, 0.5)";
+    }
+
+    private loadTargetIcon(selectable: Selectable) {
+        const iconId = `${TARGET_ICON_ID_PREFIX}-${selectable.id.replace(/,/g, "-")}`;
+        const existingIcon = selectable.ref.querySelector(`#${iconId}`);
+
+        if (!existingIcon) {
+            const icon = new Icon({
+                id: iconId,
+                src: ASSET_PATHS.TARGET_ICON,
+                addStyles: (icon) => this.addTargetStyles(icon),
+            });
+
+            selectable.addChild(icon);
+            selectable.ref.appendChild(icon.build());
+        }
+    }
+
+    private addTargetStyles(icon: HTMLImage) {
+        const ref = icon.ref;
+        ref.style.position = "absolute";
+        ref.style.opacity = "0.5";
+        ref.style.filter = COLOR_FILTER[COLOR.RED];
+        ref.style.zIndex = "10";
+    }
+
+    private removeTargetIcon(selectable: Selectable) {
+        const iconId = `${TARGET_ICON_ID_PREFIX}-${selectable.id}`;
+        const existingIcon = selectable.ref.children.namedItem(iconId);
+
+        if (existingIcon) {
+            existingIcon.remove();
+        }
     }
 }

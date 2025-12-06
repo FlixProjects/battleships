@@ -17,6 +17,10 @@ export class Selectable extends BaseComponent {
 
     public setAsSelectable() {}
 
+    public onSelectable() {}
+
+    public onUnselectable() {}
+
     public clearOnSelect() {
         this.onSelects = [];
     }
@@ -29,3 +33,10 @@ export class Selectable extends BaseComponent {
         this.onSelects.forEach((callback) => callback());
     }
 }
+
+export interface TSetSelectableOptions {
+    onSelectable?: (selectable: Selectable) => void;
+    onUnselectable?: (selectable: Selectable) => void;
+}
+
+export interface IOnSelectable {}

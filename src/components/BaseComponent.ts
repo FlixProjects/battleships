@@ -33,9 +33,13 @@ export abstract class BaseComponent {
     protected addStyles() {}
 
     protected remove() {
-        this.children.forEach((child) => child.remove());
-        this.children = [];
+        this.removeChildren();
         this.ref.remove();
+    }
+
+    public removeChildren(filterFn?: (child: BaseComponent) => boolean) {
+        this.children.filter(filterFn || (() => true)).forEach((child) => child.remove());
+        this.children = [];
     }
 
     protected hide() {

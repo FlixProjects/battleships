@@ -1,5 +1,5 @@
 import { gameManager, interactionManager } from "../..";
-import { IShip, SELECTABLE_ID } from "../../../shared";
+import { ASSET_PATHS, IShip, SELECTABLE_ID } from "../../../shared";
 import { IMEventType } from "../../models/InteractionManager";
 import { getComponents } from "../component-helper";
 import { Selectable } from "../Selectable";
@@ -31,7 +31,7 @@ export class ActionMenu extends Selectable {
         const cannotMove = ship.remainingMovement === 0 || ship.movementCommandPointCost > player.commandPoints;
 
         const btn = new SelectMoveButton("select-action-move", {
-            iconSrc: "./assets/move-icon.svg",
+            iconSrc: ASSET_PATHS.MOVE_ICON,
             disabled: cannotMove,
             onClick: async (e: MouseEvent) => {
                 e?.stopPropagation();
@@ -57,7 +57,7 @@ export class ActionMenu extends Selectable {
         const cannotAttack = ship.attackCommandPointCost > player.commandPoints || ship.remainingAttacks <= 0;
 
         const btn = new SelectShipAttackButton("select-action-attack", {
-            iconSrc: "./assets/attack-icon.png",
+            iconSrc: ASSET_PATHS.TARGET_ICON,
             disabled: cannotAttack,
             onClick: async (e: MouseEvent) => {
                 e?.stopPropagation();

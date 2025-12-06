@@ -21,7 +21,6 @@ export class ActionMenuButton extends Selectable {
 
         this.setDisabled(this.props.disabled);
 
-        this.addClickEventListener();
         return this.ref;
     }
 
