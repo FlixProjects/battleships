@@ -49,7 +49,7 @@ export class GameManager {
         const { gameState } = state;
 
         if (!this.state.gameState) return;
-        // TODO: should we just return a resolved GS from lambda instead?
+
         const newGameState = this.resolveLocalActions(gameState);
 
         return this.savePlayerState(playerId, { ...state, gameState: newGameState });

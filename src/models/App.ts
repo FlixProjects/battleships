@@ -40,7 +40,7 @@ export class App {
             const response = await getGame(getGameCode());
             console.log("Existing game found:", response);
             const newState = {
-                status: AppStatus.Initialised,
+                status: response?.gameState.isOver ? AppStatus.GameOver : AppStatus.Initialised,
                 loading: false,
                 gameState: response?.gameState,
             };

@@ -18,7 +18,7 @@ export class GameStateManager {
     }
 
     get gameState() {
-        return new GameState({ ...this._gameState });
+        return this._gameState;
     }
 
     setGameState(_gameState: IGameState) {

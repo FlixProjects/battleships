@@ -8,6 +8,7 @@ import {
     IResult,
     IShipAttackAction,
     ResultType,
+    GameStateManager,
 } from "../..";
 
 export class ActionResolver {
@@ -22,6 +23,8 @@ export class ActionResolver {
     public resolve() {
         do {
             this.resolveTurn();
+            this.resolveWinner();
+            if (this.gameState.winners.length > 0) break;
         } while (this.player1Actions.length > 0 || this.player2Actions.length > 0);
 
         return { gameState: this.gameState, results: this.results };
@@ -54,6 +57,16 @@ export class ActionResolver {
             return [action1, action2];
         }
         return [action2, action1];
+    }
+
+    private resolveWinner() {
+        const gameEngine = new GameEngine(this.gameState);
+        const gsm = new GameStateManager(this.gameState);
+
+        const result = gameEngine.calculateWinner();
+
+        gsm.gameState.update({ winners: result.winners ?? [], isOver: result.isOver });
+        this.gameState = gsm.gameState;
     }
 
     public resolveAction(action: IPlayerAction) {

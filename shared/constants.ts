@@ -17,6 +17,8 @@ export const INITIAL_GAME_STATE: IGameState = {
     code: "",
     players: [],
     board: getNewBoard(),
+    winners: [],
+    isOver: false,
 };
 
 export const DEFAULT_APP_STATE: IAppState = {

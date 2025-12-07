@@ -1,17 +1,26 @@
 import { BaseComponent } from "./BaseComponent";
 
-interface ToastOptions {
+export interface ToastOptions {
     message: string;
     duration?: number;
     type?: "info" | "error" | "success" | "warning";
+    permanent?: boolean;
+    animate?: boolean;
 }
 
 export class Toast extends BaseComponent {
-    private static container: HTMLDivElement;
+    protected static container: HTMLDivElement;
     private timeout: NodeJS.Timeout;
-
-    constructor(private options: ToastOptions) {
+    protected options: ToastOptions;
+    constructor(_options: ToastOptions, id?: string) {
         super();
+        this.id = id;
+        this.options = {
+            permanent: false,
+            animate: true,
+            ..._options,
+        };
+
         this.ensureContainer();
     }
 
@@ -40,10 +49,17 @@ export class Toast extends BaseComponent {
 
     public build() {
         this.ref = document.createElement("div");
-        this.ref.className = "toast"; // for animation
+        this.ref.id = this.id ?? "toast";
         this.ref.textContent = this.options.message;
+        if (this.options.animate) {
+            this.ref.className = "toast"; // for animation
+        }
+
         this.addStyles();
+
         Toast.container.appendChild(this.ref);
+
+        if (this.options.permanent) return this.ref;
 
         const duration = this.options.duration ?? 3000;
         this.timeout = setTimeout(() => this.remove(), duration);
@@ -68,8 +84,6 @@ export class Toast extends BaseComponent {
         this.ref.style.padding = "12px 16px";
         this.ref.style.color = "#ffffffff";
         this.ref.style.fontSize = "14px";
-        this.ref.style.minWidth = "200px";
-        this.ref.style.maxWidth = "400px";
         this.ref.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.4)";
         this.ref.style.boxSizing = "content-box";
     }
@@ -79,8 +93,8 @@ export class Toast extends BaseComponent {
         super.remove();
     }
 
-    public static show(options: ToastOptions) {
-        const toast = new Toast(options);
+    public static show(options: ToastOptions, id?: string) {
+        const toast = new Toast(options, id);
         toast.build();
         return toast;
     }

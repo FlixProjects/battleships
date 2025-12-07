@@ -71,4 +71,6 @@ export interface IGameState {
     initiative?: string;
     players: IPlayer[];
     board: Board;
+    winners: string[];
+    isOver: boolean;
 }

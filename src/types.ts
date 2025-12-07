@@ -7,6 +7,7 @@ export const AppStatus = {
     Initialised: "Initialised",
     Error: "Error",
     WaitingForPlayers: "WaitingForPlayers",
+    GameOver: "GameOver",
 } as const;
 
 type TAppStatus = (typeof AppStatus)[keyof typeof AppStatus];

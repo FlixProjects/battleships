@@ -36,6 +36,8 @@ export const handler = async (event: any) => {
             players: [newPlayer],
             board: getNewBoard(),
             initiative: playerId,
+            winners: [],
+            isOver: false,
         };
 
         if (env !== LOCAL_ENV) {

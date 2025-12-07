@@ -4,6 +4,7 @@ import { ActionPanel } from "./action-panel/ActionPanel";
 import { GameBoard } from "./board/GameBoard";
 import { CreateGameButton } from "./CreateGameButton";
 import { GameCodeText } from "./GameCodeText";
+import { GameOverToast } from "./GameOverToast";
 import { JoinGameButton } from "./JoinGameButton";
 import { JoinGameInput } from "./JoinGameInput";
 import { PlayerCards } from "./player-cards/PlayerCards";
@@ -28,6 +29,7 @@ export const loadComponents = () => {
         playerCardsContainer: new PlayerCards(),
         gameBoard: new GameBoard(),
         actionPanel: new ActionPanel(),
+        toast: new GameOverToast(),
     };
 };
 
@@ -73,6 +75,7 @@ const getStaticComponents = () => {
             playerCards: _components.playerCardsContainer,
             gameBoard: _components.gameBoard,
             actionPanel: _components.actionPanel,
+            toast: _components.toast,
         },
     };
 };
