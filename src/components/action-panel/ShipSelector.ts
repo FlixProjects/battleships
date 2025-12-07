@@ -3,6 +3,7 @@ import { IPlayer } from "../../../shared";
 import { IMEventType } from "../../models/InteractionManager";
 import { BaseComponent } from "../BaseComponent";
 import { getComponents } from "../component-helper";
+import { Toast } from "../Toast";
 import { ShipRow } from "./ShipRow";
 
 interface Props {
@@ -37,8 +38,7 @@ export class ShipSelector extends BaseComponent {
                 const onSelect =
                     hasFlagshipNotDeployed && !shipIsFlagship
                         ? () => {
-                              // TODO: Create toast that lets Player know to deploy flagship first
-                              console.log("Deploy flagship first!");
+                              Toast.show({ message: "Deploy flagship first!", type: "warning", duration: 3000 });
                           }
                         : (shipId: string) => this.setSelected(shipId);
 

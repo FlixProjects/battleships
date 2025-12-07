@@ -385,8 +385,13 @@ input:disabled {
     animation: pulseCode 1.4s ease-in-out;
 }
 
+.toast {
+    animation: 0.5s linear slideIn, 0.5s linear 2.5s slideOut;
+}
+
 @keyframes pulse {
-    0%, 100% {
+    0%,
+    100% {
         opacity: 1;
         filter: brightness(1.5);
     }
@@ -404,5 +409,27 @@ input:disabled {
     to {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0%);
+    }
+}
+
+@keyframes slideOut {
+    from {
+        opacity: 1;
+        transform: translateY(0%);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-50%);
     }
 }
