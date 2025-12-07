@@ -2,7 +2,7 @@ import { gameManager } from "../..";
 import { FP_GAME_STATE } from "../../../shared";
 import { submitAction } from "../../apis/submit-action";
 import { isLocal } from "../../config/app-config";
-import { AppStatus, IAppState } from "../../types";
+import { AppStatus } from "../../types";
 import { updateComponents } from "../component-helper";
 import { HTMLButton } from "../native/Button";
 
@@ -12,13 +12,14 @@ export class SubmitMoveButton extends HTMLButton {
     }
 
     public build() {
-        const isSubmitted = gameManager.getPlayer().ready
+        const isSubmitted = gameManager.getPlayer().ready;
 
         this.ref = document.createElement("button");
+
         this.ref.textContent = isSubmitted ? "Awaiting other player" : "Submit Move";
         this.ref.className = "btn primary";
         this.ref.style.marginTop = "12px";
-        this.setDisabled(isSubmitted);
+        this.setDisabled(this.hasFlagshipNotDeployed || isSubmitted);
         this.addClickEventListener();
 
         return this.ref;
@@ -26,6 +27,12 @@ export class SubmitMoveButton extends HTMLButton {
 
     setDisabled(isDisabled: boolean) {
         this.ref.disabled = isDisabled;
+    }
+
+    private get hasFlagshipNotDeployed() {
+        const player = gameManager.getPlayer();
+        const flagshipIndex = player.ships.findIndex((s) => s.isFlagship);
+        return flagshipIndex > -1 && !player.ships[flagshipIndex].deployed;
     }
 
     async onClick() {
