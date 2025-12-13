@@ -11,12 +11,14 @@ interface Props {
 }
 
 export class ActionMenu extends Selectable {
+    private isGameOver: boolean = false;
     constructor(private props: Props) {
         super(SELECTABLE_ID.ACTION_MENU);
     }
 
     public build() {
         this.ref = document.createElement("div");
+        this.isGameOver = !!gameManager.state.gameState.isOver;
         this.addStyles();
 
         // TODO: we shud check the ship's movement points to update styles
@@ -32,7 +34,7 @@ export class ActionMenu extends Selectable {
 
         const btn = new SelectMoveButton("select-action-move", {
             iconSrc: ASSET_PATHS.MOVE_ICON,
-            disabled: cannotMove,
+            disabled: this.isGameOver || cannotMove,
             onClick: async (e: MouseEvent) => {
                 e?.stopPropagation();
                 interactionManager.handleEvent({
@@ -58,7 +60,7 @@ export class ActionMenu extends Selectable {
 
         const btn = new SelectShipAttackButton("select-action-attack", {
             iconSrc: ASSET_PATHS.TARGET_ICON,
-            disabled: cannotAttack,
+            disabled: this.isGameOver || cannotAttack,
             onClick: async (e: MouseEvent) => {
                 e?.stopPropagation();
                 interactionManager.handleEvent({

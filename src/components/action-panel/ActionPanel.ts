@@ -37,7 +37,8 @@ export class ActionPanel extends BaseComponent {
 
     renderShipSelector() {
         const player = gameManager.getPlayer();
-        const shipSelector = new ShipSelector({ player });
+        const isGameOver = !!gameManager.state.gameState.isOver;
+        const shipSelector = new ShipSelector({ player, isGameOver });
         this.addChild(shipSelector);
         this.ref.appendChild(shipSelector.build());
     }

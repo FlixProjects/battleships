@@ -7,19 +7,22 @@ import { updateComponents } from "../component-helper";
 import { HTMLButton } from "../native/Button";
 
 export class SubmitMoveButton extends HTMLButton {
+    private isSubmitted = false;
+    private isOver = false;
     constructor() {
         super();
     }
 
     public build() {
-        const isSubmitted = gameManager.getPlayer().ready;
+        this.isSubmitted = gameManager.getPlayer().ready;
+        this.isOver = gameManager.state.gameState.isOver;
 
         this.ref = document.createElement("button");
 
-        this.ref.textContent = isSubmitted ? "Awaiting other player" : "Submit Move";
+        this.ref.textContent = this.getTextcontent();
         this.ref.className = "btn primary";
         this.ref.style.marginTop = "12px";
-        this.setDisabled(this.hasFlagshipNotDeployed || isSubmitted);
+        this.setDisabled(this.hasFlagshipNotDeployed || this.isSubmitted || this.isOver);
         this.addClickEventListener();
 
         return this.ref;
@@ -33,6 +36,10 @@ export class SubmitMoveButton extends HTMLButton {
         const player = gameManager.getPlayer();
         const flagshipIndex = player.ships.findIndex((s) => s.isFlagship);
         return flagshipIndex > -1 && !player.ships[flagshipIndex].deployed;
+    }
+
+    private getTextcontent() {
+        return this.isOver ? "Game Over" : this.isSubmitted ? "Awaiting other player" : "Submit Move";
     }
 
     async onClick() {

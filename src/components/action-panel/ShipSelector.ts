@@ -7,6 +7,7 @@ import { Toast } from "../Toast";
 import { ShipRow } from "./ShipRow";
 
 interface Props {
+    isGameOver: boolean;
     player: IPlayer;
 }
 
@@ -26,7 +27,7 @@ export class ShipSelector extends BaseComponent {
     }
 
     private renderShipRows() {
-        const player = this.props.player;
+        const { player, isGameOver } = this.props;
         const flagshipNotDeployed = this.getFlagshipNotDeployed();
         const flagshipId = flagshipNotDeployed?.id;
         const hasFlagshipNotDeployed = !!flagshipId;
@@ -46,7 +47,7 @@ export class ShipSelector extends BaseComponent {
                     shipId: id,
                     selected,
                     onSelect,
-                    isSelectable: player.commandPoints >= commandPointCost && !player.ready,
+                    isSelectable: !isGameOver && player.commandPoints >= commandPointCost && !player.ready,
                     refNo,
                 });
                 this.shipRows.push(shipRow);
