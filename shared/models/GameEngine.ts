@@ -22,20 +22,16 @@ import {
     IPlayer,
     ResultType,
     GameStateManager,
+    PathHelper,
 } from "..";
 
-interface IReachableCellOptions {
-    start: ICellLoc;
-    range: number;
-    minRange?: number;
-    filterFn?: (cellLoc: ICellLoc) => boolean;
-}
 // TODO: migrate to a more signal based approach
 // GameEngine receives commands/signals from UI and updates the GameManager state
 // updateComponents() then allows rendering of UI based on the updated state
 // GameEngine should not have access to frontend methods
 export class GameEngine {
     private gsm: GameStateManager;
+    private pathHelper = new PathHelper();
     constructor(public gameState: IGameState) {
         this.gsm = new GameStateManager(gameState);
     }
@@ -158,7 +154,7 @@ export class GameEngine {
         const players = this.gsm.getPlayers();
         const locationHelper = new LocationHelper(players);
 
-        const validCells = this.getReachableCells({
+        const validCells = this.pathHelper.getReachableCells({
             start: currentLoc,
             range: movementRange,
             filterFn: (loc: ICellLoc) => !locationHelper.isLocationOccupied(loc),
@@ -170,51 +166,6 @@ export class GameEngine {
             validCells,
             origin: currentLoc,
         };
-    }
-
-    private getReachableCells({
-        start,
-        range,
-        minRange = 0,
-        filterFn = () => true,
-    }: IReachableCellOptions): ICellLoc[] {
-        const reachable: Set<string> = new Set();
-
-        const queue: { loc: ICellLoc; steps: number }[] = [{ loc: start, steps: minRange }];
-        const visited: Set<string> = new Set();
-
-        while (queue.length > 0) {
-            const { loc, steps } = queue.shift()!;
-            const key = `${loc[0]},${loc[1]}`;
-
-            if (visited.has(key) || steps > range) continue;
-            visited.add(key);
-
-            if (steps > 0) {
-                reachable.add(key);
-            }
-
-            if (steps < range) {
-                const neighbors: ICellLoc[] = [
-                    [loc[0], loc[1] - 1], // up
-                    [loc[0], loc[1] + 1], // down
-                    [loc[0] - 1, loc[1]], // left
-                    [loc[0] + 1, loc[1]], // right
-                ];
-
-                neighbors.forEach((neighbor) => {
-                    const [x, y] = neighbor;
-                    if (x >= 0 && x < BOARD_COLUMNS && y >= 0 && y < BOARD_ROWS && filterFn?.(neighbor)) {
-                        queue.push({ loc: neighbor, steps: steps + 1 });
-                    }
-                });
-            }
-        }
-
-        return Array.from(reachable).map((key) => {
-            const [x, y] = key.split(",").map(Number);
-            return [x, y] as ICellLoc;
-        });
     }
 
     private commitMoveShip(action: IMoveAction): IMoveResult {
@@ -268,7 +219,7 @@ export class GameEngine {
         }));
 
         const locationHelper = new LocationHelper(players);
-        const reachableCells = this.getReachableCells({
+        const reachableCells = this.pathHelper.getReachableCells({
             start: currentLoc,
             range: movementRange,
             filterFn: (loc: ICellLoc) => !locationHelper.isLocationOccupied(loc),
@@ -293,9 +244,8 @@ export class GameEngine {
 
         const currentLoc = ship.hullLocations[0].location;
         const attackRange = ship.attackRange || 0;
-        const locationHelper = new LocationHelper(this.gameState.players);
 
-        const reachableCells = this.getReachableCells({
+        const reachableCells = this.pathHelper.getReachableCells({
             start: currentLoc,
             range: attackRange,
             filterFn: (loc: ICellLoc) => true,

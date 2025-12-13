@@ -8,6 +8,7 @@ interface Props {
 
 export class Tile extends Selectable {
     private isSelectable = false;
+    private isVisible = true;
 
     constructor(props: Props) {
         super(props.id);
@@ -62,6 +63,28 @@ export class Tile extends Selectable {
         }
 
         this.setState();
+    }
+
+    public setVisible(isVisible: boolean) {
+        this.isVisible = isVisible;
+        this.applyVisibility();
+    }
+
+    private applyVisibility() {
+        if (this.isVisible) {
+            this.ref.style.opacity = "1";
+            if (!this.isSelectable) {
+                this.setUnselectableStyle();
+            }
+        } else {
+            this.setInvisibleStyle();
+        }
+    }
+
+    private setInvisibleStyle() {
+        this.ref.style.background = "rgba(0, 0, 0, 0.8)";
+        this.ref.style.border = "1px solid rgba(0, 0, 0, 0.9)";
+        this.ref.style.opacity = "0.3";
     }
 
     private setSelectableStyle() {

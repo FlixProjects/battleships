@@ -2,6 +2,7 @@ import { gameManager } from "../..";
 import { BOARD_COLUMNS, BOARD_ROWS, CELL_SEPARATOR, ICellLoc, IPlayer, IShip, locationToKey } from "../../../shared";
 import { IAppState } from "../../types";
 import { renderShipIcon } from "../../utils/game-helper";
+import { getVisibleTiles } from "../../utils/visibility-helper";
 import { BaseComponent } from "../BaseComponent";
 import { TSetSelectableOptions } from "../Selectable";
 import { Tile } from "./Tile";
@@ -35,6 +36,7 @@ export class GameBoard extends BaseComponent {
         }
 
         this.renderPlayersShips();
+        this.applyVisibility();
         this.container.appendChild(this.ref);
 
         return this.ref;
@@ -53,6 +55,17 @@ export class GameBoard extends BaseComponent {
         Object.keys(this.tiles).forEach((tileIndex: string) => {
             const isValidCell = validCellIndices.includes(tileIndex);
             this.tiles[tileIndex].setSelectable(isValidCell, options);
+        });
+    }
+
+    private applyVisibility() {
+        const player = gameManager.getPlayer();
+        if (!player) return;
+
+        const visibleTiles = getVisibleTiles(player);
+        
+        Object.keys(this.tiles).forEach((tileKey) => {
+            this.tiles[tileKey].setVisible(visibleTiles.has(tileKey));
         });
     }
 

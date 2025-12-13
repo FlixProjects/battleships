@@ -29,7 +29,7 @@ export const DEFAULT_APP_STATE: IAppState = {
 
 export const BOARD_ROWS = 14;
 export const BOARD_COLUMNS = 7;
-export const CELL_SEPARATOR = "-";
+export const CELL_SEPARATOR = "/";
 
 export const SHIP_REF_NO = {
     frigate0: "frigate0",

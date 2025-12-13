@@ -1,4 +1,4 @@
-import { CELL_SEPARATOR } from "../constants";
+import { BOARD_COLUMNS, BOARD_ROWS, CELL_SEPARATOR } from "../constants";
 import { ICellLoc } from "../types";
 
 export interface IGetCellPathsOptions {
@@ -9,6 +9,13 @@ export interface IGetCellPathsOptions {
     xLowerBound?: number;
     yUpperBound?: number;
     yLowerBound?: number;
+}
+
+interface IReachableCellOptions {
+    start: ICellLoc;
+    range: number;
+    minRange?: number;
+    filterFn?: (cellLoc: ICellLoc) => boolean;
 }
 
 const DEFAULT_OPTIONS: Partial<IGetCellPathsOptions> = {
@@ -108,6 +115,46 @@ export class PathHelper {
         }
 
         return true;
+    }
+
+    public getReachableCells({ start, range, minRange = 0, filterFn = () => true }: IReachableCellOptions): ICellLoc[] {
+        const reachable: Set<string> = new Set();
+
+        const queue: { loc: ICellLoc; steps: number }[] = [{ loc: start, steps: minRange }];
+        const visited: Set<string> = new Set();
+
+        while (queue.length > 0) {
+            const { loc, steps } = queue.shift()!;
+            const key = `${loc[0]},${loc[1]}`;
+
+            if (visited.has(key) || steps > range) continue;
+            visited.add(key);
+
+            if (steps > 0) {
+                reachable.add(key);
+            }
+
+            if (steps < range) {
+                const neighbors: ICellLoc[] = [
+                    [loc[0], loc[1] - 1], // up
+                    [loc[0], loc[1] + 1], // down
+                    [loc[0] - 1, loc[1]], // left
+                    [loc[0] + 1, loc[1]], // right
+                ];
+
+                neighbors.forEach((neighbor) => {
+                    const [x, y] = neighbor;
+                    if (x >= 0 && x < BOARD_COLUMNS && y >= 0 && y < BOARD_ROWS && filterFn?.(neighbor)) {
+                        queue.push({ loc: neighbor, steps: steps + 1 });
+                    }
+                });
+            }
+        }
+
+        return Array.from(reachable).map((key) => {
+            const [x, y] = key.split(",").map(Number);
+            return [x, y] as ICellLoc;
+        });
     }
 
     private isLowerThanBound(value: number, bound: number | undefined) {
