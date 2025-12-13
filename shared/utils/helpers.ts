@@ -21,6 +21,16 @@ export const getTokenCookie = (cookies: string[]) => {
     return cookies?.map((cookie) => cookie.split("=")).find(([key, _]) => key === FP_AUTH_TOKEN)?.[1];
 };
 
+export const mergeSets = <T>(sets: Set<T>[]) => {
+    const arr: T[] = [];
+
+    sets.forEach((set) => {
+        arr.push(...Array.from(set));
+    });
+
+    return new Set(arr);
+};
+
 export const getNewCell = (cellLoc: ICellLoc): Cell =>
     new Cell({
         loc: cellLoc,
