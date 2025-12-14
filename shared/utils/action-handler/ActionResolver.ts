@@ -14,11 +14,16 @@ import {
 export class ActionResolver {
     public currentTurn: IPlayerAction[] = [];
     public results: IResult[] = [];
+    public player1Actions: IPlayerAction[];
+    public player2Actions: IPlayerAction[];
+
     constructor(
-        public player1Actions: IPlayerAction[], // TODO: do we really the actions if we already have the gameState?
-        public player2Actions: IPlayerAction[], // Just need to save second action to pendingActions and we are done
+        public playerId: string, // for the perspective the ActionResolver is resolving for
         public gameState: IGameState,
-    ) {}
+    ) {
+        this.player1Actions = gameState.players[0].pendingActions;
+        this.player2Actions = gameState.players[1].pendingActions;
+    }
 
     public resolve() {
         do {

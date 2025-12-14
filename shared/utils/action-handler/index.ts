@@ -12,19 +12,19 @@ export const handleActions = (
     actions: IPlayerAction[],
 ): ActionHandlerResult => {
     if (isOtherPlayerReady(playerId, gameState)) {
-        return resolveActions(playerId, gameState, actions);
+        const { newGameState } = saveActions(playerId, gameState, actions);
+
+        return resolveActions(playerId, newGameState);
     }
 
     return saveActions(playerId, gameState, actions);
 };
 
-const resolveActions = (thisPlayer: string, gameState: IGameState, actions: IPlayerAction[]) => {
+const resolveActions = (thisPlayer: string, gameState: IGameState) => {
     const newState = { ...gameState };
     // TODO: validate command points
-    const otherPlayer = newState.players.find((p) => p.id !== thisPlayer);
-    const otherPlayerActions = otherPlayer?.pendingActions ?? [];
 
-    const { results, gameState: newGameState } = new ActionResolver(actions, otherPlayerActions, newState).resolve();
+    const { results, gameState: newGameState } = new ActionResolver(thisPlayer, newState).resolve();
 
     return { results, newGameState: refreshPlayers(newGameState) };
 };

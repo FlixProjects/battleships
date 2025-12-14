@@ -64,7 +64,7 @@ export class GameManager {
             // After submitting action first, we resolve the pendingActions locally
             // The gameState in S3 should remain unresolved
 
-            const resolver = new ActionResolver(thisPlayer.pendingActions, [], gsm.gameState);
+            const resolver = new ActionResolver(playerId, gsm.gameState);
             const { gameState: resolvedGameState } = resolver.resolve();
             // FIXME: there should not be game logic in the save state function
 
