@@ -2,6 +2,7 @@ import { gameManager } from "..";
 import {
     ActionTypes,
     ASSET_PATHS,
+    CELL_SEPARATOR,
     COLOR,
     COLOR_FILTER,
     getShipFromPlayer,
@@ -107,7 +108,7 @@ export class ShipAttackClickHandler extends ClickHandler {
     }
 
     private loadTargetIcon(selectable: Selectable) {
-        const iconId = `${TARGET_ICON_ID_PREFIX}-${selectable.id.replace(/,/g, "-")}`;
+        const iconId = `${TARGET_ICON_ID_PREFIX}-${selectable.id.replace(CELL_SEPARATOR, "-")}`;
         const existingIcon = selectable.ref.querySelector(`#${iconId}`);
 
         if (!existingIcon) {
@@ -131,7 +132,7 @@ export class ShipAttackClickHandler extends ClickHandler {
     }
 
     private removeTargetIcon(selectable: Selectable) {
-        const iconId = `${TARGET_ICON_ID_PREFIX}-${selectable.id}`;
+        const iconId = `${TARGET_ICON_ID_PREFIX}-${selectable.id.replace(CELL_SEPARATOR, "-")}`;
         const existingIcon = selectable.ref.children.namedItem(iconId);
 
         if (existingIcon) {
