@@ -70,7 +70,7 @@ export interface IGameState {
     code: string;
     initiative?: string;
     players: IPlayer[];
-    board: Board;
+    board?: Board;
     winners: string[];
     isOver: boolean;
 }

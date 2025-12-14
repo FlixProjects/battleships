@@ -124,16 +124,6 @@ export class GameManager {
         this.saveCurrentPlayerState(playerAppState);
     }
 
-    public updateBoard(boardState: Partial<Board>) {
-        const playerAppState = this.getCurrentPlayerState();
-        const board = playerAppState.gameState.board;
-        const newBoardState = { ...board, ...boardState };
-
-        playerAppState.gameState.board = newBoardState;
-
-        this.saveCurrentPlayerState(playerAppState);
-    }
-
     public getCurrentPlayerId(): string | null {
         return sessionStorage.getItem(FP_CURRENT_PLAYER);
     }
