@@ -32,7 +32,9 @@ export class ActionResolver {
             if (this.gameState.winners.length > 0) break;
         } while (this.player1Actions.length > 0 || this.player2Actions.length > 0);
 
-        return { gameState: this.gameState, results: this.results };
+        const { obscuredGameState } = this.resolveVisibility();
+
+        return { gameState: this.gameState, obscuredGameState, results: this.results };
     }
 
     public resolveTurn() {
@@ -88,8 +90,7 @@ export class ActionResolver {
     }
 
     public resolveDeploy(action: IDeployAction) {
-        const newState = { ...this.gameState };
-
+        const newState = new GameStateManager(this.gameState).gameState;
         const gameEngine = new GameEngine(this.gameState);
         const result = gameEngine.commit.deployShip(action);
 
@@ -98,14 +99,7 @@ export class ActionResolver {
         }
 
         const { player, playerId } = result;
-
-        newState.players = newState.players.map((p) => {
-            if (p.id === playerId) {
-                return player;
-            }
-            return p;
-        });
-
+        newState.updatePlayer(player);
         return newState;
     }
 
@@ -141,5 +135,10 @@ export class ActionResolver {
 
         newState.players = players;
         return newState;
+    }
+
+    public resolveVisibility() {
+        const gameEngine = new GameEngine(this.gameState);
+        return gameEngine.calculateVisibility(this.playerId);
     }
 }

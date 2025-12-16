@@ -1,5 +1,6 @@
 import { BOARD_COLUMNS, BOARD_ROWS, CELL_SEPARATOR } from "../constants";
-import { ICellLoc } from "../types";
+import { ICellLoc, IGOWithVisibility, IPlayer } from "../types";
+import { locationToKey } from "./helpers";
 
 export interface IGetCellPathsOptions {
     max?: number;
@@ -156,6 +157,47 @@ export class PathHelper {
             return [x, y] as ICellLoc;
         });
     }
+    
+    public getVisibleTiles = (player: IPlayer): Set<string> => {
+        const visible = new Set<string>();
+
+        player.ships
+            .filter((s) => s.deployed && !s.destroyed)
+            .forEach((ship) => {
+                const visionRange = 2; // TEMP: tiles around each ship
+
+                ship.hullLocations?.forEach((hull) => {
+                    visible.add(locationToKey(hull.location));
+                    const cells = new PathHelper().getReachableCells({
+                        start: hull.location,
+                        range: visionRange,
+                    });
+
+                    cells.forEach((cell) => {
+                        visible.add(locationToKey(cell));
+                    });
+                });
+            });
+
+        return visible;
+    };
+
+    public getVisibleTilesForPlayer = (visibilityObjects: IGOWithVisibility[]): Set<string> => {
+        const visible = new Set<string>();
+
+        visibilityObjects?.forEach((vo) => {
+            const cells = new PathHelper().getReachableCells({
+                start: vo.location,
+                range: vo.visionRange,
+            });
+
+            cells.forEach((cell) => {
+                visible.add(locationToKey(cell));
+            });
+        });
+
+        return visible;
+    };
 
     private isLowerThanBound(value: number, bound: number | undefined) {
         return bound !== undefined && value < bound;

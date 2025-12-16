@@ -23,6 +23,7 @@ export interface CreateGameRequest {
 
 export interface GenericResponse {
     gameState: IGameState;
+    gameStateForLocal?: IGameState;
 }
 
 export interface GetGameResponse extends GenericResponse {}

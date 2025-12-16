@@ -25,7 +25,7 @@ export interface ICell {
 }
 export type ICellLoc = [number, number];
 
-export interface IHullTemplate {
+export interface IHullTemplate extends IGOWithVisibility {
     templateLocation: ICellLoc;
     maxHealth: number;
     armor: number;
@@ -73,4 +73,13 @@ export interface IGameState {
     board?: Board;
     winners: string[];
     isOver: boolean;
+}
+
+export interface IGameObject {
+    // id: string;
+}
+
+export interface IGOWithVisibility extends IGameObject {
+    visionRange: number;
+    location?: ICellLoc;
 }

@@ -13,18 +13,18 @@ export const getGame = async (gameCodeInput: string) => {
         const url = isLocal ? `/api?code=${gameCode}` : `${appConfig.apiBaseUrl}?code=${gameCode}`;
 
         const config: RequestInit = {
-            method: "GET",
+            method: isLocal ? "POST" : "GET",
             credentials: "include",
         };
+
+        if (isLocal) {
+            const localState = sessionStorage.getItem(FP_GAME_STATE);
+            config.body = JSON.stringify({ gameState: JSON.parse(localState) as IGameState });
+        }
 
         const res = await fetch(url, config);
 
         const data: GetGameResponse = await res.json();
-
-        if (isLocal) {
-            const localState = sessionStorage.getItem(FP_GAME_STATE);
-            data.gameState = localState ? (JSON.parse(localState) as IGameState) : null;
-        }
 
         return data;
     } catch (err) {

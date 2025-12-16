@@ -27,7 +27,7 @@ Resources:
                     Type: Api
                     Properties:
                         Path: /api/
-                        Method: get
+                        Method: post # Note: should actually be 'get' but 'post' for local
         Metadata:
             BuildMethod: esbuild
             BuildProperties:

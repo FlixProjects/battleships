@@ -1,5 +1,11 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { FP_AUTH_TOKEN, IGameState, getTokenCookie, IPlayerAction } from "../../shared";
+import {
+    FP_AUTH_TOKEN,
+    getTokenCookie,
+    IGameState,
+    IPlayerAction,
+    SubmitActionResponse as ISubmitActionResponse
+} from "../../shared";
 import { handleActions } from "../../shared/utils/action-handler";
 
 interface SubmitActionResponse {
@@ -74,7 +80,7 @@ export const handler = async (event: any) => {
             };
         }
 
-        const { results, newGameState } = handleActions(playerId!, gameState, actions);
+        const { results, newGameState, obscuredGameState } = handleActions(playerId!, gameState, actions);
 
         gameState = newGameState;
 
@@ -89,6 +95,15 @@ export const handler = async (event: any) => {
             );
         }
 
+        const responseBody: ISubmitActionResponse = {
+            gameState: obscuredGameState ?? gameState,
+            results,
+        };
+
+        if (isLocal) {
+            responseBody.gameStateForLocal = gameState;
+        }
+
         const response: SubmitActionResponse = {
             statusCode: 200,
             headers: {
@@ -97,10 +112,7 @@ export const handler = async (event: any) => {
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Credentials": "true",
             },
-            body: JSON.stringify({
-                gameState,
-                results,
-            }),
+            body: JSON.stringify(responseBody),
         };
 
         return response;

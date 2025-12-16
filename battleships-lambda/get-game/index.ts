@@ -1,5 +1,7 @@
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { IGameState, getTokenCookie } from "../../shared";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetGameResponse, IGameState, getTokenCookie } from "../../shared";
+import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
+
 export const handler = async (event: any) => {
     try {
         const LOCAL_ENV = "local";
@@ -14,12 +16,17 @@ export const handler = async (event: any) => {
         }
 
         const gameCode = event.queryStringParameters?.code;
-        let gameState: IGameState | null = null;
 
-        const s3 = new S3Client({ region: process.env.AWS_REGION }); // AWS_REGION is a reserved keyword for AWS, for now its okay to leave as is
-        const BUCKET_NAME = process.env.GAMES_BUCKET!; // set in lambda, TODO: we should inject this value
+        let gameState: IGameState;
 
-        if (!isLocal) {
+        if (isLocal) {
+            // we will only have body for local
+            const body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
+            gameState = body?.gameState;
+        } else {
+            const s3 = new S3Client({ region: process.env.AWS_REGION }); // AWS_REGION is a reserved keyword for AWS, for now its okay to leave as is
+            const BUCKET_NAME = process.env.GAMES_BUCKET!; // set in lambda, TODO: we should inject this value
+
             const { Body } = await s3.send(
                 new GetObjectCommand({
                     Bucket: BUCKET_NAME,
@@ -30,14 +37,26 @@ export const handler = async (event: any) => {
             const bodyStr = await Body?.transformToString("utf-8");
 
             gameState = bodyStr ? JSON.parse(bodyStr) : null;
+        }
 
-            if (!gameState || gameState.code !== gameCode) {
-                return NotFoundError;
-            }
+        if (!gameState || gameState.code !== gameCode) {
+            return NotFoundError;
+        }
 
-            if (!gameState.players?.find((p: { id: string }) => p.id === userId)) {
-                return WrongGameError;
-            }
+        if (!gameState.players?.find((p: { id: string }) => p.id === userId)) {
+            return WrongGameError;
+        }
+
+        const { obscuredGameState } = new ActionResolver(userId, gameState).resolveVisibility();
+
+        const responseBody: GetGameResponse = {
+            gameState: obscuredGameState,
+        };
+
+        // TODO: might not need this since we don't modify actual game state and don't need to save
+        // the new actual gameState to sessionStorage
+        if (isLocal) {
+            responseBody.gameStateForLocal = gameState;
         }
 
         return {
@@ -46,7 +65,7 @@ export const handler = async (event: any) => {
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Credentials": "true",
             },
-            body: JSON.stringify({ gameState }),
+            body: JSON.stringify(responseBody),
         };
     } catch (err: any) {
         return {

@@ -15,7 +15,7 @@ export class SubmitMoveButton extends HTMLButton {
 
     public build() {
         this.isSubmitted = gameManager.getPlayer().ready;
-        this.isOver = gameManager.state.gameState.isOver;
+        this.isOver = gameManager.state.gameState.isOver && !this.isSubmitted;
 
         this.ref = document.createElement("button");
 
@@ -45,11 +45,11 @@ export class SubmitMoveButton extends HTMLButton {
     async onClick() {
         try {
             this.setDisabled(true);
-            const { gameState } = await submitAction(gameManager.getPlayer().pendingActions);
+            const { gameState, gameStateForLocal } = await submitAction(gameManager.getPlayer().pendingActions);
             const newState = { loading: false, gameState };
-            if (isLocal) {
+            if (isLocal && !!gameState) {
                 // DO NOT DELETE: this item simulates Object in S3
-                sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameState));
+                sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameStateForLocal));
             }
 
             gameManager.saveCurrentPlayerStateV2(newState);

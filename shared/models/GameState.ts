@@ -1,4 +1,6 @@
+import clone from "lodash.clonedeep";
 import { Board, IGameState, IPlayer } from "../types";
+import { mergeSets } from "../utils";
 import { Player } from "./Player";
 
 export class GameState implements IGameState {
@@ -51,5 +53,18 @@ export class GameState implements IGameState {
 
     getPlayers() {
         return this.players.map((player) => new Player(player));
+    }
+
+    removeInvisibleFromPlayer(visibleTiles: Set<string>, playerId: string) {
+        this.players = this.players.map((p) => (p.id !== playerId ? p.updateVisibility(visibleTiles) : p));
+        return clone(this);
+    }
+
+    getVisibleTilesforPlayer(playerId: string) {
+        const visibilityFromShips = mergeSets(this.getPlayer(playerId).ships.map((s) => s.getVisibleTiles()));
+        // TEMP: only Ships give visibility for now
+        const visibleTilesForPlayer = mergeSets([visibilityFromShips]);
+
+        return visibleTilesForPlayer;
     }
 }

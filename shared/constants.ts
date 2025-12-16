@@ -43,6 +43,7 @@ export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
             templateLocation: [0, 0],
             maxHealth: 1,
             armor: 0,
+            visionRange: 2,
         },
     ],
     [SHIP_REF_NO.flagship0]: [
@@ -50,6 +51,7 @@ export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
             templateLocation: [0, 0],
             maxHealth: 1,
             armor: 0,
+            visionRange: 2,
         },
     ],
 };

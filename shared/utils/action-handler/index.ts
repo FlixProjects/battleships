@@ -4,6 +4,7 @@ import { ActionResolver } from "./ActionResolver";
 interface ActionHandlerResult {
     results: IResult[];
     newGameState: IGameState;
+    obscuredGameState?: IGameState;
 }
 
 export const handleActions = (
@@ -17,16 +18,23 @@ export const handleActions = (
         return resolveActions(playerId, newGameState);
     }
 
-    return saveActions(playerId, gameState, actions);
+    const { newGameState } = saveActions(playerId, gameState, actions);
+    const { obscuredGameState } = new ActionResolver(playerId, newGameState).resolveVisibility();
+
+    return { results: [], newGameState, obscuredGameState };
 };
 
-const resolveActions = (thisPlayer: string, gameState: IGameState) => {
+const resolveActions = (thisPlayer: string, gameState: IGameState): ActionHandlerResult => {
     const newState = { ...gameState };
     // TODO: validate command points
 
-    const { results, gameState: newGameState } = new ActionResolver(thisPlayer, newState).resolve();
+    const { results, gameState: newGameState, obscuredGameState } = new ActionResolver(thisPlayer, newState).resolve();
 
-    return { results, newGameState: refreshPlayers(newGameState) };
+    return {
+        results,
+        newGameState: refreshPlayers(newGameState),
+        obscuredGameState: refreshPlayers(obscuredGameState),
+    };
 };
 
 const saveActions = (thisPlayer: string, gameState: IGameState, actions: IPlayerAction[]): ActionHandlerResult => {

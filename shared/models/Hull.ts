@@ -13,7 +13,6 @@ export class Hull implements IHull {
     maxHealth: number;
     armor: number;
     visionRange: number;
-    owner?: string;
     // extra
     isVisible: boolean;
 

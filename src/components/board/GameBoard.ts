@@ -1,8 +1,17 @@
 import { gameManager } from "../..";
-import { BOARD_COLUMNS, BOARD_ROWS, CELL_SEPARATOR, ICellLoc, IPlayer, IShip, locationToKey } from "../../../shared";
+import {
+    BOARD_COLUMNS,
+    BOARD_ROWS,
+    CELL_SEPARATOR,
+    GameStateManager,
+    ICellLoc,
+    IPlayer,
+    IShip,
+    locationToKey,
+    PathHelper,
+} from "../../../shared";
 import { IAppState } from "../../types";
 import { renderShipIcon } from "../../utils/game-helper";
-import { getVisibleTiles } from "../../utils/visibility-helper";
 import { BaseComponent } from "../BaseComponent";
 import { TSetSelectableOptions } from "../Selectable";
 import { Tile } from "./Tile";
@@ -62,8 +71,8 @@ export class GameBoard extends BaseComponent {
         const player = gameManager.getPlayer();
         if (!player) return;
 
-        const visibleTiles = getVisibleTiles(player);
-        
+        const visibleTiles = new PathHelper().getVisibleTiles(player);
+
         Object.keys(this.tiles).forEach((tileKey) => {
             this.tiles[tileKey].setVisible(visibleTiles.has(tileKey));
         });
@@ -77,7 +86,7 @@ export class GameBoard extends BaseComponent {
     }
 
     private renderPlayersShips() {
-        const gameState = gameManager.state.gameState;
+        const gameState = new GameStateManager(gameManager.state.gameState).gameState;
         if (!gameState) return;
         gameState.players?.forEach((p) => {
             this.renderPlayerShips(p);
@@ -97,7 +106,7 @@ export class GameBoard extends BaseComponent {
             return { key: locationToKey(hull.location) };
         });
 
-        tiles.forEach(({ key }) => {
+        tiles?.forEach(({ key }) => {
             const tile = this.tiles[key];
             renderShipIcon(tile, ship.id, ship.refNo, isFirstPlayer);
 

@@ -2,12 +2,13 @@ import {
     ActionTypes,
     BOARD_COLUMNS,
     BOARD_ROWS,
-    IGameState,
+    GameStateManager,
     IAttackResult,
     ICellLoc,
     IDeployAction,
     IDeployResult,
     IErrorResult,
+    IGameState,
     IGetValidAttackCellsAction,
     IGetValidDeployCellsAction,
     IGetValidDeployCellsResult,
@@ -15,14 +16,13 @@ import {
     IGetValidMoveCellsResult,
     IMoveAction,
     IMoveResult,
+    IPlayer,
     IResult,
     IShipAttackAction,
     LocationHelper,
     locationToKey,
-    IPlayer,
-    ResultType,
-    GameStateManager,
     PathHelper,
+    ResultType,
 } from "..";
 
 // TODO: migrate to a more signal based approach
@@ -92,10 +92,8 @@ export class GameEngine {
     private commitDeployShip(action: IDeployAction): IDeployResult {
         const { shipId, playerId, hullLocations } = action;
 
-        const player = this.getPlayer(playerId);
-
+        const player = this.gsm.getPlayer(playerId);
         const deployedShip = player.ships.find((ship) => ship.id === shipId);
-
         const commandPointCost = deployedShip?.commandPointCost ? deployedShip.commandPointCost : 0;
 
         const deployAction: IDeployAction = {
@@ -107,7 +105,7 @@ export class GameEngine {
         };
 
         deployedShip.deployed = true;
-        deployedShip.hullLocations = hullLocations;
+        deployedShip.addHullLocations(hullLocations);
 
         player.pendingActions = [...player.pendingActions, deployAction];
         player.commandPoints -= commandPointCost;
@@ -190,7 +188,16 @@ export class GameEngine {
         };
     }
 
-    calculateMoveShip(action: IMoveAction): IPlayer {
+    public calculateVisibility(playerId: string) {
+        const obscuredState = new GameStateManager(this.gsm.gameState).gameState;
+        const visibleTiles = obscuredState.getVisibleTilesforPlayer(playerId);
+        return {
+            obscuredGameState: obscuredState.removeInvisibleFromPlayer(visibleTiles, playerId),
+            gameState: this.gsm.gameState,
+        };
+    }
+
+    public calculateMoveShip(action: IMoveAction): IPlayer {
         const { shipId, playerId, hullLocations: newLocation, commandPointCost } = action;
         const player = this.gsm.getPlayer(playerId);
 

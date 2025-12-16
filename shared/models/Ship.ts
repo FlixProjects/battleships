@@ -1,3 +1,4 @@
+import { IHull, IHullTemplate, IShip, locationToKey, PathHelper } from "../../shared";
 import { Hull } from "./Hull";
 
 export class Ship implements IShip {
@@ -21,6 +22,7 @@ export class Ship implements IShip {
     destroyed: boolean;
     hullTemplates: IHullTemplate[];
     isFlagship: boolean;
+    isVisible: boolean;
 
     constructor(props: Readonly<IShip>) {
         Object.assign(this, props);
@@ -37,6 +39,53 @@ export class Ship implements IShip {
     update(ship: Partial<IShip>) {
         if (ship.id && ship.id !== this.id) return this;
         Object.assign(this, ship);
+        return this;
+    }
+
+    getVisibleTiles() {
+        const ph = new PathHelper();
+        return ph.getVisibleTilesForPlayer(this.hullLocations);
+    }
+
+    updateVisibility(visibleTiles: Set<string>) {
+        this.isVisible = !!this.hullLocations?.some((h) => {
+            h.updateVisibility(visibleTiles);
+            return visibleTiles.has(locationToKey(h.location));
+        });
+        this.removeInvisibleHullLocations();
+        return this;
+    }
+
+    removeInvisibleHullLocations() {
+        this.hullLocations = this.hullLocations?.filter((h) => h.isVisible);
+        return this;
+    }
+
+    addHullLocations(hulls: IHull[]) {
+        if (!this.hullLocations) {
+            this.hullLocations = [];
+        }
+        hulls.forEach((h) => this.addHullLocation(h));
+        return this;
+    }
+
+    addHullLocation(hull: IHull) {
+        if (!(hull instanceof Hull)) {
+            this.hullLocations.push(new Hull(hull));
+            return this;
+        }
+        this.hullLocations.push(hull);
+        return this;
+    }
+
+    updateHullLocations(newHullLocations: Partial<IHull>[]) {
+        newHullLocations.forEach((newHull) => {
+            if (!newHull.id) return;
+            const index = this.hullLocations.findIndex((h) => h.id === newHull.id);
+            const oldHull = this.hullLocations[index];
+            const updatedHull = new Hull({ ...oldHull, ...newHull });
+            this.hullLocations[index] = updatedHull;
+        });
         return this;
     }
 }
