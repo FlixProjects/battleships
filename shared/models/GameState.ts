@@ -14,7 +14,7 @@ export class GameState implements IGameState {
         this.initiative = initiative;
         this.board = board;
         this.winners = winners;
-        this.isOver = isOver
+        this.isOver = isOver;
 
         this.players = players.map((player: IPlayer) => {
             if (player instanceof Player) {

@@ -33,6 +33,7 @@ const saveActions = (thisPlayer: string, gameState: IGameState, actions: IPlayer
     const newState = { ...gameState };
     const player = newState.players.find((p) => p.id === thisPlayer);
     // TODO: validate command points
+    // TODO: use GSM instead of mutating the object
     if (!player) {
         return { results: [], newGameState: newState };
     }
