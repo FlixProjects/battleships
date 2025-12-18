@@ -186,6 +186,7 @@ export class PathHelper {
         const visible = new Set<string>();
 
         visibilityObjects?.forEach((vo) => {
+            visible.add(locationToKey(vo.location));
             const cells = new PathHelper().getReachableCells({
                 start: vo.location,
                 range: vo.visionRange,

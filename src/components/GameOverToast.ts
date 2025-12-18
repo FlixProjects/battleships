@@ -21,7 +21,7 @@ const LOSE_OPTIONS: ToastOptions = {
 
 const DRAW_OPTIONS: ToastOptions = {
     message: "Game ended in a draw",
-    type: "info",
+    type: "warning",
     ...SHARED_OPTIONS,
 };
 
@@ -37,7 +37,7 @@ export class GameOverToast extends Toast {
         const gameState = _state?.gameState;
         this.removeIfExisting();
 
-        if (gameState.isOver) {
+        if (gameState?.isOver) {
             if (gameState.winners.length > 0 && !gameState.players.some((p) => p.ready)) {
                 const isWinner = gameState.winners.includes(gameManager.getCurrentPlayerId());
 

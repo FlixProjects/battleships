@@ -68,11 +68,13 @@ export class GameBoard extends BaseComponent {
     }
 
     private applyVisibility() {
-        const player = gameManager.getPlayer();
-        if (!player) return;
+        const playerId = gameManager.getCurrentPlayerId();
 
-        const visibleTiles = new PathHelper().getVisibleTiles(player);
+        if (!playerId) return;
 
+        const visibleTiles = new GameStateManager(gameManager.state.gameState).gameState.getVisibleTilesforPlayer(
+            playerId,
+        );
         Object.keys(this.tiles).forEach((tileKey) => {
             this.tiles[tileKey].setVisible(visibleTiles.has(tileKey));
         });
