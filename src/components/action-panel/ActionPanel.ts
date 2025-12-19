@@ -1,6 +1,7 @@
 import { gameManager } from "../..";
 import { IAppState } from "../../types";
 import { BaseComponent } from "../BaseComponent";
+import { InitiativeDisplay } from "./InitiativeDisplay";
 import { ShipSelector } from "./ShipSelector";
 import { SubmitMoveButton } from "./SubmitMoveButton";
 
@@ -22,6 +23,13 @@ export class ActionPanel extends BaseComponent {
     build() {
         this.ref = document.createElement("div");
         this.addStyles();
+
+        const initiativeDisplay = new InitiativeDisplay();
+        const initiativeElement = initiativeDisplay.build();
+        if (initiativeElement) {
+            this.addChild(initiativeDisplay);
+            this.ref.appendChild(initiativeElement);
+        }
 
         this.renderCommandPoints();
         this.renderOptions();

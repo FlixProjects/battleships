@@ -32,6 +32,7 @@ export class ActionResolver {
             if (this.gameState.winners.length > 0) break;
         } while (this.player1Actions.length > 0 || this.player2Actions.length > 0);
 
+        this.resolveRotationOfInitiative();
         const { obscuredGameState } = this.resolveVisibility();
 
         return { gameState: this.gameState, obscuredGameState, results: this.results };
@@ -64,6 +65,16 @@ export class ActionResolver {
             return [action1, action2];
         }
         return [action2, action1];
+    }
+
+    private resolveRotationOfInitiative() {
+        const gsm = new GameStateManager(this.gameState);
+        const players = gsm.gameState.getPlayers();
+        const currPlayerIndex = players.findIndex((p) => p.id === gsm.gameState.initiative);
+        const nextPlayerIndex = (currPlayerIndex + 1) % players.length;
+        const nextPlayerId = players[nextPlayerIndex].id;
+        gsm.gameState.update({ initiative: nextPlayerId });
+        this.gameState = gsm.gameState;
     }
 
     private resolveWinner() {
