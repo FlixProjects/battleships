@@ -26,7 +26,7 @@ export const DEFAULT_APP_STATE: IAppState = {
     gameState: INITIAL_GAME_STATE,
 };
 
-export const BOARD_ROWS = 14;
+export const BOARD_ROWS = 10;
 export const BOARD_COLUMNS = 7;
 export const CELL_SEPARATOR = "/";
 
