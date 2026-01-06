@@ -66,7 +66,7 @@ export class MoveShipClickHandler extends ClickHandler {
 
         // FIXME: we need to handle concurrent animations for multi-hull ships
         queueMoveAnimation(shipId, oldLocations[0].location, newLocations[0].location); // FIXME: only single hull for now
-        await animationManager.play(); // TODO: cancel current animation if clicked
+        await animationManager.play();
 
         const result = gameEngine.commit.moveShip({
             type: ActionTypes.MOVE,
