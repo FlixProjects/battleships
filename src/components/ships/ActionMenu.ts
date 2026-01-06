@@ -30,7 +30,8 @@ export class ActionMenu extends Selectable {
     private addMoveButton() {
         const ship = this.props.ship;
         const player = gameManager.getPlayer();
-        const cannotMove = ship.remainingMovement === 0 || ship.movementCommandPointCost > player.commandPoints;
+        const cannotMove =
+            !!ship && (ship.remainingMovement === 0 || ship.movementCommandPointCost > player.commandPoints);
 
         const btn = new SelectMoveButton("select-action-move", {
             iconSrc: ASSET_PATHS.MOVE_ICON,
@@ -56,7 +57,8 @@ export class ActionMenu extends Selectable {
     private addAttackButton() {
         const ship = this.props.ship;
         const player = gameManager.getPlayer();
-        const cannotAttack = ship.attackCommandPointCost > player.commandPoints || ship.remainingAttacks <= 0;
+        const cannotAttack =
+            !!ship && (ship.attackCommandPointCost > player.commandPoints || ship.remainingAttacks <= 0);
 
         const btn = new SelectShipAttackButton("select-action-attack", {
             iconSrc: ASSET_PATHS.TARGET_ICON,

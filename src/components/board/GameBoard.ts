@@ -7,8 +7,7 @@ import {
     ICellLoc,
     IPlayer,
     IShip,
-    locationToKey,
-    PathHelper,
+    locationToKey
 } from "../../../shared";
 import { IAppState } from "../../types";
 import { renderShipIcon } from "../../utils/game-helper";

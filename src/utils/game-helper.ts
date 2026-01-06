@@ -1,9 +1,11 @@
 import { gameManager } from "..";
-import { COLOR, COLOR_FILTER, FP_CURRENT_PLAYER, FP_GAME_CODE, TColor } from "../../shared";
+import { COLOR, COLOR_FILTER, FP_CURRENT_PLAYER, FP_GAME_CODE, locationToKey, TColor } from "../../shared";
 import { getGame } from "../apis/get-game";
 import { BaseComponent } from "../components/BaseComponent";
 import { getComponents, updateComponents } from "../components/component-helper";
 import { ShipIcon } from "../components/ships/ShipIcon";
+import { animationManager } from "../models/AnimationManager";
+import { MoveAnimation } from "../models/animations";
 import { AppStatus } from "../types";
 
 // client functions
@@ -63,4 +65,11 @@ export const refresh = async () => {
     } catch (error) {
         updateComponents({ status: AppStatus.Error });
     }
+};
+
+export const queueMoveAnimation = (shipId: string, fromLocation: [number, number], toLocation: [number, number]) => {
+    const fromKey = locationToKey(fromLocation);
+    const toKey = locationToKey(toLocation);
+    
+    animationManager.enqueue(new MoveAnimation({ shipId, fromKey, toKey }));
 };

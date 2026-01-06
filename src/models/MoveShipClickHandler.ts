@@ -1,14 +1,8 @@
 import { gameManager } from "..";
-import {
-    ActionTypes,
-    GameStateManager,
-    ICellLoc,
-    IShip,
-    keyToLocation,
-    locationToKey,
-    ResultType
-} from "../../shared";
+import { ActionTypes, GameStateManager, ICellLoc, IShip, keyToLocation, locationToKey, ResultType } from "../../shared";
 import { GameEngine } from "../../shared/models/GameEngine";
+import { queueMoveAnimation } from "../utils/game-helper";
+import { animationManager } from "./AnimationManager";
 import { ClickHandler } from "./ClickHandler";
 import { MovingShipIMEvent } from "./InteractionManager";
 
@@ -54,11 +48,11 @@ export class MoveShipClickHandler extends ClickHandler {
 
         if (validCellIndices.includes(id)) {
             // FIXME: we should receive array of hullIds that are moving, and new locations
-            this.handleValidMoveShipClick(id, shipId, onSuccessfulSelect);
+            await this.handleValidMoveShipClick(id, shipId, onSuccessfulSelect);
         }
     }
 
-    private handleValidMoveShipClick(destinationTileId: string, shipId: string, onSuccessCb?: () => void) {
+    private async handleValidMoveShipClick(destinationTileId: string, shipId: string, onSuccessCb?: () => void) {
         const gameEngine = new GameEngine(gameManager.state.gameState);
         const movementCost = 1; // Default movement cost
         const gsm = new GameStateManager(gameManager.state.gameState);
@@ -67,8 +61,12 @@ export class MoveShipClickHandler extends ClickHandler {
         const player = gsm.getPlayer(playerId);
         const ship = player.getShip(shipId);
 
-
+        const oldLocations = ship.hullLocations;
         const newLocations = this.getNewHullLocations(keyToLocation(destinationTileId), ship);
+
+        // FIXME: we need to handle concurrent animations for multi-hull ships
+        queueMoveAnimation(shipId, oldLocations[0].location, newLocations[0].location); // FIXME: only single hull for now
+        await animationManager.play(); // TODO: cancel current animation if clicked
 
         const result = gameEngine.commit.moveShip({
             type: ActionTypes.MOVE,

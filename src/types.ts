@@ -27,3 +27,14 @@ export interface IDynamicComponents {
     div: {};
     input: {};
 }
+
+export interface IAnimation {
+    execute(): Promise<void>;
+}
+
+export interface IMoveAnimationProps {
+    shipId: string;
+    fromKey: string;
+    toKey: string;
+    duration?: number;
+}
