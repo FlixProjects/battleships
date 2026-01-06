@@ -25,10 +25,10 @@ export class SelectShipClickHandler extends ClickHandler {
 
         this.showActionMenu(tileId, shipAtLocation);
 
-        return { nextClickhandler: (e: MouseEvent) => this.handler(e) };
+        return { nextClickhandler: async (e: MouseEvent) => await this.handler(e) };
     }
 
-    protected handler(e: MouseEvent) {
+    protected async handler(e: MouseEvent) {
         const { onGlobalDeselect, selectableId, tileId } = this.event;
         const target = e.target as HTMLElement;
         const clickedTile = target.closest(".tile") as HTMLElement;

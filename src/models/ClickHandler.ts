@@ -6,11 +6,11 @@ export class ClickHandler {
     protected removeGlobalClickEventListener: () => void;
     protected selectables: Record<string, Selectable> = {};
 
-    public handleEvent(): { nextClickhandler: (e: MouseEvent) => void } {
-        return { nextClickhandler: (e: MouseEvent) => this.handler(e) };
+    public handleEvent(): { nextClickhandler: (e: MouseEvent) => Promise<void> } {
+        return { nextClickhandler: async (e: MouseEvent) => await this.handler(e) };
     }
 
-    protected handler(e: MouseEvent) {
+    protected async handler(e: MouseEvent) {
         // child should implement
     }
 

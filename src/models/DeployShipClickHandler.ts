@@ -22,11 +22,11 @@ export class DeployShipClickHandler extends ClickHandler {
         this.validCells = validCells;
 
         return {
-            nextClickhandler: (e: MouseEvent) => this.handler(e),
+            nextClickhandler: async (e: MouseEvent) => await this.handler(e),
         };
     }
 
-    protected handler(e: MouseEvent) {
+    protected async handler(e: MouseEvent) {
         const { shipId, onGlobalDeselect, onSuccessfulSelect } = this.event;
         const target = e.target as HTMLElement;
 
