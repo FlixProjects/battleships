@@ -1,8 +1,6 @@
 import { IAnimation } from "../types";
-import type { InteractionManager } from "./InteractionManager";
 
-export class AnimationManager {
-    constructor(private interactionManager: InteractionManager = interactionManager){}
+export class AnimationManager {    
     private queue: IAnimation[] = [];
     private playing = false;
 
@@ -11,8 +9,6 @@ export class AnimationManager {
     }
 
     async play(): Promise<void> {
-        if (this.playing) return;
-        
         this.playing = true;
         while (this.queue.length > 0) {
             const animation = this.queue.shift();
