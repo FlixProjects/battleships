@@ -7,7 +7,9 @@ import {
     ICellLoc,
     IPlayer,
     IShip,
-    locationToKey
+    locationToKey,
+    TILE_GAP_PX,
+    TILE_SIZE_PX,
 } from "../../../shared";
 import { IAppState } from "../../types";
 import { renderShipIcon } from "../../utils/game-helper";
@@ -53,8 +55,8 @@ export class GameBoard extends BaseComponent {
     protected addStyles(): void {
         this.ref.innerHTML = "";
         this.ref.style.display = "grid";
-        this.ref.style.gridTemplateColumns = `repeat(${BOARD_COLUMNS}, 48px)`;
-        this.ref.style.gap = "2px";
+        this.ref.style.gridTemplateColumns = `repeat(${BOARD_COLUMNS}, ${TILE_SIZE_PX}px)`;
+        this.ref.style.gap = `${TILE_GAP_PX}px`;
         this.ref.style.padding = "12px";
     }
 

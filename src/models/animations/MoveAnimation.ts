@@ -1,4 +1,4 @@
-import { CELL_SEPARATOR } from "../../../shared";
+import { CELL_SEPARATOR, TILE_GAP_PX, TILE_SIZE_PX } from "../../../shared";
 import { IMoveAnimationProps } from "../../types";
 import { BaseAnimation } from "./Animation";
 
@@ -22,8 +22,8 @@ export class MoveAnimation extends BaseAnimation {
         const [fromCol, fromRow] = this.props.fromKey.split(CELL_SEPARATOR).map(Number);
         const [toCol, toRow] = this.props.toKey.split(CELL_SEPARATOR).map(Number);
 
-        const deltaX = (toCol - fromCol) * 50; // 48px tile + 2px gap
-        const deltaY = (toRow - fromRow) * 50;
+        const deltaX = (toCol - fromCol) * (TILE_SIZE_PX + TILE_GAP_PX);
+        const deltaY = (toRow - fromRow) * (TILE_SIZE_PX + TILE_GAP_PX);
 
         await Promise.all(
             shipElements.map((element) => {
