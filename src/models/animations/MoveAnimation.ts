@@ -1,21 +1,10 @@
 import { CELL_SEPARATOR } from "../../../shared";
-import { appConfig } from "../../config/app-config";
-import { IAnimation, IMoveAnimationProps } from "../../types";
+import { IMoveAnimationProps } from "../../types";
+import { BaseAnimation } from "./Animation";
 
-const DEFAULT_CANCEL_CLICK = () => {
-    if (appConfig.deployEnv === "local") {
-        console.log("no animation to cancel");
-    }
-};
-
-type TResolve = (value: void | PromiseLike<void>) => void;
-
-export class MoveAnimation implements IAnimation {
-    private onCancelClick: () => void = DEFAULT_CANCEL_CLICK;
-    private duration: number;
-
+export class MoveAnimation extends BaseAnimation {
     constructor(private props: IMoveAnimationProps) {
-        this.duration = props.duration || 1000;
+        super(props);
     }
     public async execute(): Promise<void> {
         // TODO: we should pass in the elements to animate instead of querying the DOM
@@ -52,45 +41,5 @@ export class MoveAnimation implements IAnimation {
         element.style.transition = `transform ${this.duration}ms ease-in-out`;
         element.offsetHeight; // Force reflow
         element.style.transform = `translate(${deltaX}px, ${deltaY}px) ${originalTransform}`;
-    }
-
-    private animate(runAnimation: () => void): Promise<void> {
-        return new Promise((resolve) => this.runAnimationFlow(resolve, runAnimation));
-    }
-
-    private runAnimationFlow(resolve: TResolve, runAnimation: () => void) {
-        this.loadCancelClickHandler(resolve);
-        this.addCancelAnimationListener();
-        runAnimation();
-        this.startAnimationTimer();
-    }
-
-    private loadCancelClickHandler(resolve: TResolve) {
-        const onCancelClick = this.getEndAnimation(resolve);
-        this.onCancelClick = onCancelClick;
-        return onCancelClick;
-    }
-
-    private startAnimationTimer() {
-        return setTimeout(() => {
-            this.onCancelClick();
-        }, this.duration);
-    }
-
-    private getEndAnimation(resolve: TResolve) {
-        const onCancelClick = () => {
-            resolve();
-            this.resetCancelClickListener();
-            document.removeEventListener("click", onCancelClick);
-        };
-        return onCancelClick;
-    }
-
-    private resetCancelClickListener() {
-        this.onCancelClick = DEFAULT_CANCEL_CLICK;
-    }
-
-    private addCancelAnimationListener() {
-        document.addEventListener("click", this.onCancelClick);
     }
 }

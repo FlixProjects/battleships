@@ -32,9 +32,12 @@ export interface IAnimation {
     execute(): Promise<void>;
 }
 
-export interface IMoveAnimationProps {
+export interface IAnimationProps {
+    duration?: number;
+}
+
+export interface IMoveAnimationProps extends IAnimationProps {
     shipId: string;
     fromKey: string;
     toKey: string;
-    duration?: number;
 }
