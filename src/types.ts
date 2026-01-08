@@ -1,4 +1,5 @@
 import { IGameState } from "../shared";
+import type { HTMLImage } from "./components/native/Image";
 import { SwitchPlayerButton } from "./components/SwitchPlayerButton";
 
 export const AppStatus = {
@@ -40,4 +41,10 @@ export interface IMoveAnimationProps extends IAnimationProps {
     shipId: string;
     fromKey: string;
     toKey: string;
+}
+
+export interface IconProps {
+    id?: string;
+    src: string;
+    addStyles?: (ref: HTMLImage) => void;
 }

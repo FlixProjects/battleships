@@ -1,13 +1,8 @@
+import { IconProps } from "../../types";
 import { HTMLImage } from "../native/Image";
 
-interface Props {
-    id?: string;
-    src: string;
-    addStyles?: (ref: HTMLImage) => void;
-}
-
 export class Icon extends HTMLImage {
-    constructor(public props: Props) {
+    constructor(public props: IconProps) {
         super();
     }
     public build(): HTMLElement {

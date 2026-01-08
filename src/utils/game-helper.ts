@@ -1,5 +1,14 @@
 import { gameManager } from "..";
-import { COLOR, COLOR_FILTER, FP_CURRENT_PLAYER, FP_GAME_CODE, locationToKey, TColor } from "../../shared";
+import {
+    COLOR,
+    COLOR_FILTER,
+    FP_CURRENT_PLAYER,
+    FP_GAME_CODE,
+    ICellLoc,
+    locationToKey,
+    TColor,
+    TILE_SIZE_PX,
+} from "../../shared";
 import { getGame } from "../apis/get-game";
 import { BaseComponent } from "../components/BaseComponent";
 import { getComponents, updateComponents } from "../components/component-helper";
@@ -70,6 +79,21 @@ export const refresh = async () => {
 export const queueMoveAnimation = (shipId: string, fromLocation: [number, number], toLocation: [number, number]) => {
     const fromKey = locationToKey(fromLocation);
     const toKey = locationToKey(toLocation);
-    
+
     animationManager.enqueue(new MoveAnimation({ shipId, fromKey, toKey }));
+};
+
+export const toDegrees = (radians: number) => {
+    return radians * (180 / Math.PI);
+};
+
+export const getPxFromCellLocation = (cell: ICellLoc): { top: number; left: number } => {
+    const [startX, startY] = cell;
+
+    const startXInPx = startX * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+    const startYInPx = startY * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+    return {
+        top: startYInPx,
+        left: startXInPx,
+    };
 };

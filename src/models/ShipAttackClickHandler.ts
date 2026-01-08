@@ -13,6 +13,7 @@ import {
 } from "../../shared";
 import { GameEngine } from "../../shared/models/GameEngine";
 import { HTMLImage } from "../components/native/Image";
+import { Projectile } from "../components/projectiles/Projectile";
 import { Selectable } from "../components/Selectable";
 import { Icon } from "../components/ships/Icon";
 import { ClickHandler } from "./ClickHandler";
@@ -71,6 +72,12 @@ export class ShipAttackClickHandler extends ClickHandler {
         this.loadOnSelects(validCellIndices, onGlobalDeselect);
 
         if (validCellIndices.includes(id)) {
+            new Projectile({
+                origin: this.origin,
+                target: keyToLocation(id),
+                parent: document.querySelector("#gameBoardContainer") || undefined,
+            }).create();
+
             this.handleShipAttackClick(id, shipId, onSuccessfulSelect);
         }
     }

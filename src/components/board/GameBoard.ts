@@ -19,6 +19,7 @@ import { Tile } from "./Tile";
 
 export class GameBoard extends BaseComponent {
     private container = document.getElementById("gameArea") as HTMLDivElement;
+    private gameBoardContainer = document.getElementById("gameBoardContainer") as HTMLDivElement;
     private tiles: Record<string, Tile> = {};
 
     constructor() {
@@ -35,8 +36,11 @@ export class GameBoard extends BaseComponent {
     }
 
     build() {
+        if (!this.gameBoardContainer) {
+            this.renderBoardOverlay();
+        }
         this.ref = document.createElement("div");
-
+        this.ref.id = "gameBoard";
         this.addStyles();
 
         for (let row = 0; row < BOARD_ROWS; row++) {
@@ -47,12 +51,14 @@ export class GameBoard extends BaseComponent {
 
         this.renderPlayersShips();
         this.applyVisibility();
-        this.container.appendChild(this.ref);
+
+        this.gameBoardContainer.appendChild(this.ref);
 
         return this.ref;
     }
 
     protected addStyles(): void {
+        this.ref.style.position = "relative";
         this.ref.innerHTML = "";
         this.ref.style.display = "grid";
         this.ref.style.gridTemplateColumns = `repeat(${BOARD_COLUMNS}, ${TILE_SIZE_PX}px)`;
@@ -79,6 +85,13 @@ export class GameBoard extends BaseComponent {
         Object.keys(this.tiles).forEach((tileKey) => {
             this.tiles[tileKey].setVisible(visibleTiles.has(tileKey));
         });
+    }
+
+    private renderBoardOverlay() {
+        this.gameBoardContainer = document.createElement("div");
+        this.gameBoardContainer.id = "gameBoardContainer"; // TODO: move to constants
+        this.gameBoardContainer.style.position = "relative";
+        this.container.appendChild(this.gameBoardContainer);
     }
 
     private renderTile(key: string) {
