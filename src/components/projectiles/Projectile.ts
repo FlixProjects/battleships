@@ -1,3 +1,4 @@
+import { v7 as uuidv7 } from "uuid";
 import { ICellLoc } from "../../../shared/types/types";
 import { getPxFromCellLocation, toDegrees } from "../../utils/game-helper";
 import { ProjectileIcon } from "./ProjectileIcon";
@@ -17,7 +18,7 @@ export class Projectile {
         const rotation = this.getRotation();
 
         this.iconRef = new ProjectileIcon({
-            id: "projectile",
+            id: uuidv7(),
             top,
             left,
             rotation,
