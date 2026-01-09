@@ -1,1 +1,1 @@
-export { MoveAnimation } from "./MoveAnimation";
+export { MoveShipAnimation } from "./MoveShipAnimation";

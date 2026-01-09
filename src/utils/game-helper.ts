@@ -14,7 +14,7 @@ import { BaseComponent } from "../components/BaseComponent";
 import { getComponents, updateComponents } from "../components/component-helper";
 import { ShipIcon } from "../components/ships/ShipIcon";
 import { animationManager } from "../models/AnimationManager";
-import { MoveAnimation } from "../models/animations";
+import { MoveShipAnimation } from "../models/animations";
 import { AppStatus } from "../types";
 
 // client functions
@@ -80,7 +80,7 @@ export const queueMoveAnimation = (shipId: string, fromLocation: [number, number
     const fromKey = locationToKey(fromLocation);
     const toKey = locationToKey(toLocation);
 
-    animationManager.enqueue(new MoveAnimation({ shipId, fromKey, toKey }));
+    animationManager.enqueue(new MoveShipAnimation({ shipId, fromKey, toKey }));
 };
 
 export const toDegrees = (radians: number) => {

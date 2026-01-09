@@ -2,7 +2,7 @@ import { CELL_SEPARATOR, TILE_GAP_PX, TILE_SIZE_PX } from "../../../shared";
 import { IMoveAnimationProps } from "../../types";
 import { BaseAnimation } from "./Animation";
 
-export class MoveAnimation extends BaseAnimation {
+export class MoveShipAnimation extends BaseAnimation {
     constructor(private props: IMoveAnimationProps) {
         super(props);
     }
