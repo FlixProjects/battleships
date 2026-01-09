@@ -1,4 +1,4 @@
-import { IGameState } from "../shared";
+import { ICellLoc, IGameState } from "../shared";
 import type { HTMLImage } from "./components/native/Image";
 import { SwitchPlayerButton } from "./components/SwitchPlayerButton";
 
@@ -37,10 +37,17 @@ export interface IAnimationProps {
     duration?: number;
 }
 
-export interface IMoveAnimationProps extends IAnimationProps {
+export interface IMoveShipAnimationProps extends IAnimationProps {
     shipId: string;
     fromKey: string;
     toKey: string;
+}
+
+export interface IMoveAnimationProps extends IAnimationProps {
+    id: string;
+    fromCell: ICellLoc;
+    toCell: ICellLoc;
+    removeAfterComplete?: boolean;
 }
 
 export interface IconProps {

@@ -72,12 +72,12 @@ export class ShipAttackClickHandler extends ClickHandler {
         this.loadOnSelects(validCellIndices, onGlobalDeselect);
 
         if (validCellIndices.includes(id)) {
-            new Projectile({
+            const projectile = new Projectile({
                 origin: this.origin,
                 target: keyToLocation(id),
                 parent: document.querySelector("#gameBoardContainer") || undefined,
-            }).create();
-
+            });
+            await projectile.fire();
             this.handleShipAttackClick(id, shipId, onSuccessfulSelect);
         }
     }

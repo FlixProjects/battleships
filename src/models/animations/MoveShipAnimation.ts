@@ -1,9 +1,9 @@
 import { CELL_SEPARATOR, TILE_GAP_PX, TILE_SIZE_PX } from "../../../shared";
-import { IMoveAnimationProps } from "../../types";
+import { IMoveShipAnimationProps } from "../../types";
 import { BaseAnimation } from "./Animation";
 
 export class MoveShipAnimation extends BaseAnimation {
-    constructor(private props: IMoveAnimationProps) {
+    constructor(private props: IMoveShipAnimationProps) {
         super(props);
     }
     public async execute(): Promise<void> {
