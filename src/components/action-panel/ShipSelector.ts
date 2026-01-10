@@ -87,7 +87,12 @@ export class ShipSelector extends BaseComponent {
         interactionManager.handleEvent({
             type: IMEventType.DEPLOYING_SHIP,
             shipId: this.selectedShip,
-            onGlobalDeselect: this.hasFlagshipNotDeployed ? () => this.selectFlagship() : () => this.clearSelection(),
+            onGlobalDeselect: this.hasFlagshipNotDeployed
+                ? () => {
+                      this.selectFlagship();
+                      this.clearSelection();
+                  }
+                : () => this.clearSelection(),
         });
     }
 
