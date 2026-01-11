@@ -12,13 +12,12 @@ export const handleActions = (
     gameState: IGameState,
     actions: IPlayerAction[],
 ): ActionHandlerResult => {
-    if (isOtherPlayerReady(playerId, gameState)) {
-        const { newGameState } = saveActions(playerId, gameState, actions);
+    const { newGameState } = saveActions(playerId, gameState, actions);
 
+    if (isOtherPlayerReady(playerId, gameState)) {
         return resolveActions(playerId, newGameState);
     }
 
-    const { newGameState } = saveActions(playerId, gameState, actions);
     const { obscuredGameState } = new ActionResolver(playerId, newGameState).resolveVisibility();
 
     return { results: [], newGameState, obscuredGameState };
@@ -74,7 +73,7 @@ const refreshPlayers = (gameState: IGameState) => {
 const isOtherPlayerReady = (thisPlayer: string, gameState: IGameState) => {
     const otherPlayer = gameState.players.find((p) => p.id !== thisPlayer);
 
-    return !!(otherPlayer?.pendingActions && otherPlayer?.pendingActions.length > 0);
+    return !!otherPlayer?.ready;
 };
 
 export const removeActions = (gameState: IGameState) => {

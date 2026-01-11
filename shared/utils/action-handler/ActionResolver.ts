@@ -33,6 +33,7 @@ export class ActionResolver {
         } while (this.player1Actions.length > 0 || this.player2Actions.length > 0);
 
         this.resolveRotationOfInitiative();
+        this.resolvePostSubmissionCommandPointRemoval();
         const { obscuredGameState } = this.resolveVisibility();
 
         return { gameState: this.gameState, obscuredGameState, results: this.results };
@@ -151,5 +152,11 @@ export class ActionResolver {
     public resolveVisibility() {
         const gameEngine = new GameEngine(this.gameState);
         return gameEngine.calculateVisibility(this.playerId);
+    }
+
+    public resolvePostSubmissionCommandPointRemoval() {
+        const gsm = new GameStateManager(this.gameState);
+        gsm.updatePlayer({ id: this.playerId, commandPoints: 0 });
+        this.gameState = gsm.gameState;
     }
 }

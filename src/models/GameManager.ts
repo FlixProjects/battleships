@@ -60,7 +60,7 @@ export class GameManager {
         const gsm = new GameStateManager(_gameState);
         let thisPlayer = gsm.gameState.getPlayer(playerId);
 
-        if (thisPlayer?.pendingActions.length > 0) {
+        if (thisPlayer.ready) {
             // After submitting action first, we resolve the pendingActions locally
             // The gameState in S3 should remain unresolved
 
@@ -70,10 +70,6 @@ export class GameManager {
 
             gsm.setGameState(resolvedGameState);
             thisPlayer = gsm.getPlayer(playerId);
-
-            if (thisPlayer.ready) {
-                gsm.updatePlayer({ ...thisPlayer, commandPoints: 0 });
-            }
         }
         return gsm.gameState;
     }
