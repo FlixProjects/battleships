@@ -25,7 +25,7 @@ export class MoveAnimation extends BaseAnimation {
         }
     }
 
-    private moveElement(element: HTMLElement, deltaX: number, deltaY: number) {
+    protected moveElement(element: HTMLElement, deltaX: number, deltaY: number) {
         const computedTransform = getComputedStyle(element).transform;
         const originalTransform = computedTransform !== "none" ? computedTransform : "";
         element.style.transition = `transform ${this.duration}ms ease-in-out`;

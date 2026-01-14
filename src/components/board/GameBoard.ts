@@ -1,5 +1,6 @@
 import { gameManager } from "../..";
 import {
+    ANIMATION_LAYER_ID,
     BOARD_COLUMNS,
     BOARD_ROWS,
     CELL_SEPARATOR,
@@ -89,7 +90,7 @@ export class GameBoard extends BaseComponent {
 
     private renderBoardOverlay() {
         this.gameBoardContainer = document.createElement("div");
-        this.gameBoardContainer.id = "gameBoardContainer"; // TODO: move to constants
+        this.gameBoardContainer.id = ANIMATION_LAYER_ID;
         this.gameBoardContainer.style.position = "relative";
         this.container.appendChild(this.gameBoardContainer);
     }
@@ -122,9 +123,9 @@ export class GameBoard extends BaseComponent {
             return { key: locationToKey(hull.location) };
         });
 
-        tiles?.forEach(({ key }) => {
+        tiles?.forEach(({ key }, i) => {
             const tile = this.tiles[key];
-            renderShipIcon(tile, ship.id, ship.refNo, isFirstPlayer);
+            renderShipIcon(tile, `${ship.id}-${i}`, ship.refNo, isFirstPlayer);
 
             if (gameManager.getPlayer().id === ship.playerId) {
                 tile.addShipClickHandler();

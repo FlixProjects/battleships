@@ -76,11 +76,12 @@ export const refresh = async () => {
     }
 };
 
-export const queueMoveAnimation = (shipId: string, fromLocation: [number, number], toLocation: [number, number]) => {
-    const fromKey = locationToKey(fromLocation);
-    const toKey = locationToKey(toLocation);
-
-    animationManager.enqueue(new MoveShipAnimation({ shipId, fromKey, toKey }));
+export const queueMoveShipAnimation = (
+    shipId: string,
+    fromLocation: [number, number],
+    toLocation: [number, number],
+) => {
+    animationManager.enqueue(new MoveShipAnimation({ id: shipId, fromCell: fromLocation, toCell: toLocation }));
 };
 
 export const toDegrees = (radians: number) => {

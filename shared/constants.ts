@@ -132,3 +132,5 @@ export const ASSET_PATHS = {
     TARGET_ICON: "./assets/attack-icon.png",
     MOVE_ICON: "./assets/move-icon.svg",
 };
+
+export const ANIMATION_LAYER_ID = "gameBoardContainer";

@@ -37,12 +37,6 @@ export interface IAnimationProps {
     duration?: number;
 }
 
-export interface IMoveShipAnimationProps extends IAnimationProps {
-    shipId: string;
-    fromKey: string;
-    toKey: string;
-}
-
 export interface IMoveAnimationProps extends IAnimationProps {
     id: string;
     fromCell: ICellLoc;
