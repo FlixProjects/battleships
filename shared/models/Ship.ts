@@ -43,6 +43,9 @@ export class Ship implements IShip {
     }
 
     getVisibleTiles() {
+        if (this.destroyed || !this.deployed || !this.hullLocations) {
+            return new Set<string>();
+        }
         const ph = new PathHelper();
         return ph.getVisibleTilesForPlayer(this.hullLocations);
     }
