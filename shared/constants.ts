@@ -134,3 +134,4 @@ export const ASSET_PATHS = {
 };
 
 export const ANIMATION_LAYER_ID = "gameBoardContainer";
+export const GAME_BOARD_ID = "gameBoard";

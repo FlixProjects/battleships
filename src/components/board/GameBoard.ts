@@ -4,6 +4,7 @@ import {
     BOARD_COLUMNS,
     BOARD_ROWS,
     CELL_SEPARATOR,
+    GAME_BOARD_ID,
     GameStateManager,
     ICellLoc,
     IPlayer,
@@ -41,7 +42,7 @@ export class GameBoard extends BaseComponent {
             this.renderBoardOverlay();
         }
         this.ref = document.createElement("div");
-        this.ref.id = "gameBoard";
+        this.ref.id = GAME_BOARD_ID;
         this.addStyles();
 
         for (let row = 0; row < BOARD_ROWS; row++) {
@@ -64,7 +65,6 @@ export class GameBoard extends BaseComponent {
         this.ref.style.display = "grid";
         this.ref.style.gridTemplateColumns = `repeat(${BOARD_COLUMNS}, ${TILE_SIZE_PX}px)`;
         this.ref.style.gap = `${TILE_GAP_PX}px`;
-        this.ref.style.padding = "12px";
     }
 
     public updateSelectableTiles(validCells: [number, number][], options?: TSetSelectableOptions) {

@@ -1,8 +1,8 @@
 import { gameManager } from "..";
 import { ActionTypes, GameStateManager, ICellLoc, IShip, keyToLocation, locationToKey, ResultType } from "../../shared";
 import { GameEngine } from "../../shared/models/GameEngine";
-import { queueMoveShipAnimation } from "../utils/game-helper";
 import { animationManager } from "./AnimationManager";
+import { MoveShipAnimation } from "./animations/MoveShipAnimation";
 import { ClickHandler } from "./ClickHandler";
 import { MovingShipIMEvent } from "./InteractionManager";
 
@@ -65,8 +65,10 @@ export class MoveShipClickHandler extends ClickHandler {
         const newLocations = this.getNewHullLocations(keyToLocation(destinationTileId), ship);
 
         // FIXME: we need to handle concurrent animations for multi-hull ships
-        queueMoveShipAnimation(shipId, oldLocations[0].location, newLocations[0].location); // FIXME: only single hull for now
-        await animationManager.play();
+        animationManager.enqueue(
+            new MoveShipAnimation({ id: shipId, fromCell: oldLocations[0].location, toCell: newLocations[0].location }),
+        );
+        animationManager.play();
 
         const result = gameEngine.commit.moveShip({
             type: ActionTypes.MOVE,

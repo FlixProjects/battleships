@@ -1,6 +1,7 @@
 import { ICellLoc, IGameState } from "../shared";
 import type { HTMLImage } from "./components/native/Image";
 import { SwitchPlayerButton } from "./components/SwitchPlayerButton";
+import { AnimationLayer } from "./models/AnimationLayer";
 
 export const AppStatus = {
     NewGame: "NewGame",
@@ -30,7 +31,9 @@ export interface IDynamicComponents {
 }
 
 export interface IAnimation {
+    id: string;
     execute(): Promise<void>;
+    loadLayer(layer: AnimationLayer): void;
 }
 
 export interface IAnimationProps {

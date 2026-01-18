@@ -1,4 +1,4 @@
-import { ANIMATION_LAYER_ID, TILE_GAP_PX, TILE_SIZE_PX } from "../../../shared";
+import { GAME_BOARD_ID, TILE_GAP_PX, TILE_SIZE_PX } from "../../../shared";
 import { IMoveAnimationProps } from "../../types";
 import { MoveAnimation } from "./MoveAnimation";
 
@@ -7,17 +7,11 @@ export class MoveShipAnimation extends MoveAnimation {
         super(props);
     }
     public async execute(): Promise<void> {
-        // TODO: we should pass in the elements to animate instead of querying the DOM
-
-        const animationLayer = document.getElementById(ANIMATION_LAYER_ID);
-        if (!animationLayer) return;
-
         const shipId = this.props.id;
-
-        const shipElements = Array.from(animationLayer.querySelectorAll("img")).filter((img) =>
+        const _shipElements = Array.from(document.getElementById(GAME_BOARD_ID).querySelectorAll("img")).filter((img) =>
             img.alt.includes(shipId),
         );
-
+        const shipElements = _shipElements.map((el) => this.animationLayer.copyToLayer(el as HTMLElement));
         if (shipElements.length === 0) return;
 
         const [fromCol, fromRow] = this.props.fromCell;

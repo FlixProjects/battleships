@@ -1,5 +1,7 @@
+import { v7 as uuidv7 } from "uuid";
 import { appConfig } from "../../config/app-config";
 import { IAnimation, IAnimationProps } from "../../types";
+import { AnimationLayer } from "../AnimationLayer";
 
 const DEFAULT_CANCEL_CLICK = () => {
     if (appConfig.deployEnv === "local") {
@@ -10,6 +12,8 @@ const DEFAULT_CANCEL_CLICK = () => {
 type TResolve = (value: void | PromiseLike<void>) => void;
 
 export class BaseAnimation implements IAnimation {
+    public id: string = uuidv7();
+    public animationLayer: AnimationLayer;
     protected onCancelClick: () => void = DEFAULT_CANCEL_CLICK;
     protected duration: number;
 
@@ -18,6 +22,11 @@ export class BaseAnimation implements IAnimation {
     }
     public async execute(): Promise<void> {
         // To be implemented by subclasses
+    }
+
+    public loadLayer(layer: AnimationLayer) {
+        layer.reloadLayer();
+        this.animationLayer = layer;
     }
 
     protected animate(runAnimation: () => void): Promise<void> {
