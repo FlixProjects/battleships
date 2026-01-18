@@ -11,7 +11,7 @@ export class MoveShipAnimation extends MoveAnimation {
         const _shipElements = Array.from(document.getElementById(GAME_BOARD_ID).querySelectorAll("img")).filter((img) =>
             img.alt.includes(shipId),
         );
-        const shipElements = _shipElements.map((el) => this.animationLayer.copyToLayer(el as HTMLElement));
+        const shipElements = _shipElements.map((el) => this.animationLayer.copyToLayer(this.id, el as HTMLElement));
         if (shipElements.length === 0) return;
 
         const [fromCol, fromRow] = this.props.fromCell;

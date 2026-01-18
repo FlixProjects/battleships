@@ -25,6 +25,7 @@ export class AnimationManager {
             if (animation) {
                 await animation.execute();
                 this.executeCallback(animation.id);
+                this.animationLayer.destroyCopiedElements(animation.id);
             }
         }
         this.playing = false;

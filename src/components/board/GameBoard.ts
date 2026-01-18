@@ -23,6 +23,7 @@ export class GameBoard extends BaseComponent {
     private container = document.getElementById("gameArea") as HTMLDivElement;
     private gameBoardContainer = document.getElementById("gameBoardContainer") as HTMLDivElement;
     private tiles: Record<string, Tile> = {};
+    private elementsCurrentlyAnimatingMap = new Map<string, string>(); // elementId to animationId (e.g. shipId)
 
     constructor() {
         super();
@@ -88,6 +89,14 @@ export class GameBoard extends BaseComponent {
         });
     }
 
+    public addToAnimatingMap(elementId: string, animationId: string) {
+        this.elementsCurrentlyAnimatingMap.set(elementId, animationId);
+    }
+
+    public removeFromAnimatingMap(elementId: string) {
+        this.elementsCurrentlyAnimatingMap.delete(elementId);
+    }
+
     private renderBoardOverlay() {
         this.gameBoardContainer = document.createElement("div");
         this.gameBoardContainer.id = ANIMATION_LAYER_ID;
@@ -118,7 +127,10 @@ export class GameBoard extends BaseComponent {
             });
     }
 
-    private renderShip(ship: IShip, isFirstPlayer = true) {
+    public renderShip(ship: IShip, isFirstPlayer = true) {
+        if (this.elementsCurrentlyAnimatingMap.has(ship.id)) {
+            return;
+        }
         const tiles = ship.hullLocations?.map((hull) => {
             return { key: locationToKey(hull.location) };
         });
