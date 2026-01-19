@@ -5,9 +5,9 @@ import {
     FP_CURRENT_PLAYER,
     FP_GAME_CODE,
     ICellLoc,
-    locationToKey,
     TColor,
-    TILE_SIZE_PX,
+    TILE_GAP_PX,
+    TILE_SIZE_PX
 } from "../../shared";
 import { getGame } from "../apis/get-game";
 import { BaseComponent } from "../components/BaseComponent";
@@ -88,11 +88,11 @@ export const toDegrees = (radians: number) => {
     return radians * (180 / Math.PI);
 };
 
+// returns the middle top-left px of the cell
 export const getPxFromCellLocation = (cell: ICellLoc): { top: number; left: number } => {
     const [startX, startY] = cell;
-
-    const startXInPx = startX * TILE_SIZE_PX + TILE_SIZE_PX / 2;
-    const startYInPx = startY * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+    const startXInPx = startX * (TILE_SIZE_PX + TILE_GAP_PX) + TILE_SIZE_PX / 2;
+    const startYInPx = startY * (TILE_SIZE_PX + TILE_GAP_PX) + TILE_SIZE_PX / 2;
     return {
         top: startYInPx,
         left: startXInPx,

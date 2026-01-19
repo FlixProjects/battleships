@@ -26,8 +26,8 @@ export class ProjectileIcon extends Icon {
         this.ref.style.width = "32px";
         this.ref.style.height = "32px";
         this.ref.style.filter = "";
-        this.ref.style.top = `${this.top}px`;
-        this.ref.style.left = `${this.left}px`;
+        this.ref.style.top = `${this.top - 16}px`;
+        this.ref.style.left = `${this.left - 16}px`;
         this.ref.style.transform = `rotate(${this.rotation}deg)`;
         this.ref.style.zIndex = "100";
     }

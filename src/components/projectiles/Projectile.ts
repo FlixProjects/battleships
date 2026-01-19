@@ -1,4 +1,5 @@
 import { v7 as uuidv7 } from "uuid";
+import { ANIMATION_LAYER_ID } from "../../../shared";
 import { ICellLoc } from "../../../shared/types/types";
 import { animationManager } from "../../models/AnimationManager";
 import { ProjectileAnimation } from "../../models/animations/ProjectileAnimation";
@@ -39,13 +40,13 @@ export class Projectile {
         });
 
         animationManager.enqueue(moveAnimation);
-        await animationManager.play();
+        animationManager.play();
     }
 
     create() {
         const { parent } = this.props;
         this.createProjectileIcon();
-        (parent ?? document.querySelector("#gameBoardContainer")).appendChild(this.iconRef);
+        (parent ?? document.getElementById(ANIMATION_LAYER_ID)).appendChild(this.iconRef);
     }
 
     async fire() {
