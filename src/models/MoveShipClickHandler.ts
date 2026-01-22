@@ -114,7 +114,7 @@ export class MoveShipClickHandler extends ClickHandler {
         const playerId = ship.playerId;
 
         const moveShipAnimation = new MoveShipAnimation({
-            id: shipId,
+            elementId: shipId,
             fromCell: oldLocations[0].location,
             toCell: ship.hullLocations[0].location,
         });

@@ -1,8 +1,9 @@
-import { IMoveAnimationProps } from "../../types";
+import { IProjectileAnimationProps } from "../../types";
 import { MoveAnimation } from "./MoveAnimation";
 
 export class ProjectileAnimation extends MoveAnimation {
-    constructor(protected props: IMoveAnimationProps) {
+    constructor(props: IProjectileAnimationProps) {
         super(props);
+        this.elements = [props.element];
     }
 }

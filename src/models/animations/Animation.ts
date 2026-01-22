@@ -13,12 +13,16 @@ type TResolve = (value: void | PromiseLike<void>) => void;
 
 export class BaseAnimation implements IAnimation {
     public id: string = uuidv7();
+    public elements: HTMLElement[];
     public animationLayer: AnimationLayer;
     protected onCancelClick: () => void = DEFAULT_CANCEL_CLICK;
     protected duration: number;
 
     constructor(props: IAnimationProps) {
         this.duration = props.duration || 750;
+        if (!this.animationLayer) {
+            this.animationLayer = new AnimationLayer();
+        }
     }
     public async execute(): Promise<void> {
         // To be implemented by subclasses

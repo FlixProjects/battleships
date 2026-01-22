@@ -7,7 +7,7 @@ export class MoveShipAnimation extends MoveAnimation {
         super(props);
     }
     public async execute(): Promise<void> {
-        const shipId = this.props.id;
+        const shipId = this.props.elementId;
         const _shipElements = Array.from(document.getElementById(GAME_BOARD_ID).querySelectorAll("img")).filter((img) =>
             img.alt.includes(shipId),
         );

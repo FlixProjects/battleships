@@ -1,6 +1,7 @@
 import { gameManager } from "..";
 import {
     ActionTypes,
+    ANIMATION_LAYER_ID,
     ASSET_PATHS,
     CELL_SEPARATOR,
     COLOR,
@@ -16,6 +17,8 @@ import { HTMLImage } from "../components/native/Image";
 import { Projectile } from "../components/projectiles/Projectile";
 import { Selectable } from "../components/Selectable";
 import { Icon } from "../components/ships/Icon";
+import { animationManager } from "./AnimationManager";
+import { DestroyedAnimation } from "./animations";
 import { ClickHandler } from "./ClickHandler";
 import { ShipAttackActionIMEvent } from "./InteractionManager";
 
@@ -72,12 +75,6 @@ export class ShipAttackClickHandler extends ClickHandler {
         this.loadOnSelects(validCellIndices, onGlobalDeselect);
 
         if (validCellIndices.includes(id)) {
-            const projectile = new Projectile({
-                origin: this.origin,
-                target: keyToLocation(id),
-                parent: document.querySelector("#gameBoardContainer") || undefined,
-            });
-            await projectile.fire();
             this.handleShipAttackClick(id, shipId, onSuccessfulSelect);
         }
     }
@@ -100,6 +97,21 @@ export class ShipAttackClickHandler extends ClickHandler {
         });
 
         if (result.type === ResultType.ERROR) return;
+
+        const projectile = new Projectile({
+            origin: this.origin,
+            target: keyToLocation(attackTileId),
+            parent: document.querySelector(ANIMATION_LAYER_ID) || undefined,
+        });
+        projectile.queueAnimation();
+
+        const destroyedShips = result.players.flatMap((p) => p.ships).filter((s) => s.destroyed);
+        for (const ship of destroyedShips) {
+            animationManager.enqueue(new DestroyedAnimation({ id: ship.id }));
+        }
+        if (destroyedShips.length > 0) {
+            animationManager.play();
+        }
 
         gameManager.updatePlayers(result.players);
 

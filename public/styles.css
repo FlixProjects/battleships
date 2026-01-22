@@ -433,3 +433,27 @@ input:disabled {
         transform: translateY(-50%);
     }
 }
+
+@keyframes shiver {
+    0%, 100% { transform: var(--base-transform) translate(0, 0) rotate(0deg); }
+    10% { transform: var(--base-transform) translate(-2px, -1px) rotate(-2deg); }
+    20% { transform: var(--base-transform) translate(2px, 1px) rotate(2deg); }
+    30% { transform: var(--base-transform) translate(-2px, 1px) rotate(-1deg); }
+    40% { transform: var(--base-transform) translate(2px, -1px) rotate(1deg); }
+    50% { transform: var(--base-transform) translate(-1px, 2px) rotate(-2deg); }
+    60% { transform: var(--base-transform) translate(1px, -2px) rotate(2deg); }
+    70% { transform: var(--base-transform) translate(-2px, -1px) rotate(-1deg); }
+    80% { transform: var(--base-transform) translate(2px, 1px) rotate(1deg); }
+    90% { transform: var(--base-transform) translate(-1px, -1px) rotate(-2deg); }
+}
+
+@keyframes sink {
+    0% { 
+        opacity: 1;
+        transform: var(--base-transform) translateY(0) scale(1);
+    }
+    100% { 
+        opacity: 0;
+        transform: var(--base-transform) translateY(3px) scale(0.6);
+    }
+}

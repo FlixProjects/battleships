@@ -7,7 +7,7 @@ import {
     ICellLoc,
     TColor,
     TILE_GAP_PX,
-    TILE_SIZE_PX
+    TILE_SIZE_PX,
 } from "../../shared";
 import { getGame } from "../apis/get-game";
 import { BaseComponent } from "../components/BaseComponent";
@@ -81,7 +81,7 @@ export const queueMoveShipAnimation = (
     fromLocation: [number, number],
     toLocation: [number, number],
 ) => {
-    animationManager.enqueue(new MoveShipAnimation({ id: shipId, fromCell: fromLocation, toCell: toLocation }));
+    animationManager.enqueue(new MoveShipAnimation({ elementId: shipId, fromCell: fromLocation, toCell: toLocation }));
 };
 
 export const toDegrees = (radians: number) => {

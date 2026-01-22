@@ -32,19 +32,25 @@ export interface IDynamicComponents {
 
 export interface IAnimation {
     id: string;
+    elements: HTMLElement[];
     execute(): Promise<void>;
     loadLayer(layer: AnimationLayer): void;
 }
 
+// TODO: Consider if props separated from actual class properties is necessary
 export interface IAnimationProps {
     duration?: number;
 }
 
 export interface IMoveAnimationProps extends IAnimationProps {
-    id: string;
+    elementId: string;
     fromCell: ICellLoc;
     toCell: ICellLoc;
     removeAfterComplete?: boolean;
+}
+
+export interface IProjectileAnimationProps extends IMoveAnimationProps {
+    element: HTMLElement;
 }
 
 export interface IconProps {

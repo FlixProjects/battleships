@@ -16,7 +16,46 @@ export class Projectile {
     iconRef: HTMLElement;
     constructor(public props: Props) {}
 
-    createProjectileIcon() {
+    public createAnimation() {
+        const { origin, target } = this.props;
+
+        if (!this.iconRef) {
+            this.create();
+        }
+
+        return new ProjectileAnimation({
+            elementId: this.iconRef.id,
+            fromCell: origin,
+            toCell: target,
+            duration: 500,
+            removeAfterComplete: true,
+            element: this.iconRef,
+        });
+    }
+
+    public queueAnimation() {
+        const moveAnimation = this.createAnimation();
+        animationManager.enqueue(moveAnimation);
+    }
+
+    public async runAnimation() {
+        this.queueAnimation();
+        await animationManager.play();
+    }
+
+    public async fire() {
+        this.create();
+        await this.runAnimation();
+    }
+
+    public create() {
+        const { parent } = this.props;
+        this.createProjectileIcon();
+        (parent ?? document.getElementById(ANIMATION_LAYER_ID)).appendChild(this.iconRef);
+        return this;
+    }
+
+    private createProjectileIcon() {
         const { top, left } = this.getLocation();
         const rotation = this.getRotation();
 
@@ -28,38 +67,12 @@ export class Projectile {
         }).build();
     }
 
-    async runAnimation() {
-        const { origin, target } = this.props;
-
-        const moveAnimation = new ProjectileAnimation({
-            id: this.iconRef.id,
-            fromCell: origin,
-            toCell: target,
-            duration: 500,
-            removeAfterComplete: true,
-        });
-
-        animationManager.enqueue(moveAnimation);
-        animationManager.play();
-    }
-
-    create() {
-        const { parent } = this.props;
-        this.createProjectileIcon();
-        (parent ?? document.getElementById(ANIMATION_LAYER_ID)).appendChild(this.iconRef);
-    }
-
-    async fire() {
-        this.create();
-        await this.runAnimation();
-    }
-
-    getLocation() {
+    private getLocation() {
         const { origin } = this.props;
         return getPxFromCellLocation(origin || [0, 0]);
     }
 
-    getRotation() {
+    private getRotation() {
         const { origin, target } = this.props;
         const [startX, startY] = origin || [0, 0];
         const [endX, endY] = target ?? [0, 0];
