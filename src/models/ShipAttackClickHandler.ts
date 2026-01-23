@@ -19,6 +19,7 @@ import { Selectable } from "../components/Selectable";
 import { Icon } from "../components/ships/Icon";
 import { animationManager } from "./AnimationManager";
 import { DestroyedAnimation } from "./animations";
+import { HitAnimation } from "./animations/HitAnimation";
 import { ClickHandler } from "./ClickHandler";
 import { ShipAttackActionIMEvent } from "./InteractionManager";
 
@@ -105,13 +106,17 @@ export class ShipAttackClickHandler extends ClickHandler {
         });
         projectile.queueAnimation();
 
+        Object.entries(result.shipsHit).forEach(([hitShipId]) => {
+            // FIXME: we ignore hitLocations for now
+            animationManager.enqueue(new HitAnimation({ id: hitShipId }));
+        });
+
         const destroyedShips = result.players.flatMap((p) => p.ships).filter((s) => s.destroyed);
         for (const ship of destroyedShips) {
             animationManager.enqueue(new DestroyedAnimation({ id: ship.id }));
         }
-        if (destroyedShips.length > 0) {
-            animationManager.play();
-        }
+
+        animationManager.play();
 
         gameManager.updatePlayers(result.players);
 

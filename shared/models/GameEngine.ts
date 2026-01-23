@@ -280,7 +280,7 @@ export class GameEngine {
         };
 
         // update for frontend
-        const { players } = this.calculateAttackResult(action);
+        const { players, shipsHit } = this.calculateAttackResult(action);
 
         // load actions for eventual submission
         const thisPlayerIndex = players.findIndex((p) => p.id === playerId);
@@ -290,6 +290,7 @@ export class GameEngine {
             type: ResultType.SUCCESS,
             playerId,
             players,
+            shipsHit,
         };
     }
 
@@ -302,6 +303,7 @@ export class GameEngine {
         const playerIndex = this.getPlayerIndex(playerId);
         const otherPlayer = { ...this.getOtherPlayer(playerId) };
         const otherPlayerShips = otherPlayer.ships;
+        const shipsHit: Record<string, ICellLoc[]> = {};
 
         otherPlayerShips?.forEach((ship) => {
             if (!ship.hullLocations) {
@@ -310,6 +312,8 @@ export class GameEngine {
 
             ship.hullLocations.forEach((hull) => {
                 if (attackLocations.some((loc) => locationToKey(loc) === locationToKey(hull.location))) {
+                    shipsHit[ship.id] = shipsHit[ship.id] || [];
+                    shipsHit[ship.id].push(hull.location);
                     hull.remainingHealth -= attackDamage;
                     if (hull.remainingHealth <= 0) {
                         hull.destroyed = true;
@@ -330,6 +334,7 @@ export class GameEngine {
         return {
             type: ResultType.SUCCESS,
             players: playerIndex === 0 ? [player, otherPlayer] : [otherPlayer, player],
+            shipsHit,
         };
     }
 

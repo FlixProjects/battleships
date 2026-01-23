@@ -1,9 +1,9 @@
 import { GAME_BOARD_ID } from "../../../shared/constants";
-import { IDestroyedAnimationProps } from "../../types";
+import { IHitAnimationProps } from "../../types";
 import { BaseAnimation } from "./Animation";
 
-export class DestroyedAnimation extends BaseAnimation {
-    constructor(private props: IDestroyedAnimationProps) {
+export class HitAnimation extends BaseAnimation {
+    constructor(private props: IHitAnimationProps) {
         super({ duration: props.duration || 1200 });
         // FIXME: I don't like this implementation
         if (!this.elements) {
@@ -22,7 +22,7 @@ export class DestroyedAnimation extends BaseAnimation {
                     const computedTransform = getComputedStyle(element).transform;
                     const baseTransform = computedTransform !== "none" ? computedTransform : "";
                     element.style.setProperty("--base-transform", baseTransform);
-                    element.style.animation = `sink 0.8s ease-in 0.4s forwards`;
+                    element.style.animation = `shiver 0.4s ease-in-out`;
                 };
                 return this.animate(animationFn);
             }),
