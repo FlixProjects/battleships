@@ -3,6 +3,7 @@ import { getColorFilter } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 
 interface Props {
+    hullId?: string;
     shipId: string;
     imgSrc?: string;
     invert?: boolean;
@@ -16,7 +17,12 @@ export class ShipIcon extends BaseComponent {
 
     public build() {
         this.ref = document.createElement("img");
-        (this.ref as HTMLImageElement).src = this.props.imgSrc || this.props.refNo ? `./assets/ships/${this.props.refNo}.png` : `./assets/ships/frigate0.png`;
+        this.id = this.props.hullId;
+        (this.ref as HTMLImageElement).id = this.props.hullId;
+        (this.ref as HTMLImageElement).src =
+            this.props.imgSrc || this.props.refNo
+                ? `./assets/ships/${this.props.refNo}.png`
+                : `./assets/ships/frigate0.png`;
         (this.ref as HTMLImageElement).alt = this.props.shipId;
         (this.ref as HTMLImageElement).style.objectFit = "contain";
         this.addStyles();

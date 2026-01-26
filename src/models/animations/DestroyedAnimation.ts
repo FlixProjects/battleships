@@ -1,18 +1,8 @@
-import { GAME_BOARD_ID } from "../../../shared/constants";
-import { IDestroyedAnimationProps } from "../../types";
-import { BaseAnimation } from "./Animation";
+import { HullBaseAnimation } from "./HullBaseAnimation";
 
-export class DestroyedAnimation extends BaseAnimation {
-    constructor(private props: IDestroyedAnimationProps) {
-        super({ duration: props.duration || 1200 });
-        // FIXME: I don't like this implementation
-        if (!this.elements) {
-            this.elements = this.getOwnElements();
-        }
-    }
-
+export class DestroyedAnimation extends HullBaseAnimation {
     public async execute(): Promise<void> {
-        const shipElements = this.elements;
+        const shipElements = this.copyElementsToLayer();
 
         if (shipElements.length === 0) return;
 
@@ -27,13 +17,5 @@ export class DestroyedAnimation extends BaseAnimation {
                 return this.animate(animationFn);
             }),
         );
-    }
-
-    private getOwnElements(): HTMLElement[] {
-        const shipId = this.props.id;
-        const _shipElements = Array.from(document.getElementById(GAME_BOARD_ID).querySelectorAll("img")).filter((img) =>
-            img.alt.includes(shipId),
-        );
-        return _shipElements.map((el) => this.animationLayer.copyToLayer(this.id, el as HTMLElement));
     }
 }

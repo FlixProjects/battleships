@@ -137,7 +137,8 @@ export class GameBoard extends BaseComponent {
 
         tiles?.forEach(({ key }, i) => {
             const tile = this.tiles[key];
-            renderShipIcon(tile, `${ship.id}-${i}`, ship.refNo, isFirstPlayer);
+            // TODO: we might need to handle Ships with multiple hull locations
+            renderShipIcon(tile, ship.hullLocations[0].id, ship.id, ship.refNo, isFirstPlayer);
 
             if (gameManager.getPlayer().id === ship.playerId) {
                 tile.addShipClickHandler();

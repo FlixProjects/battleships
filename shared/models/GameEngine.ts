@@ -303,7 +303,7 @@ export class GameEngine {
         const playerIndex = this.getPlayerIndex(playerId);
         const otherPlayer = { ...this.getOtherPlayer(playerId) };
         const otherPlayerShips = otherPlayer.ships;
-        const shipsHit: Record<string, ICellLoc[]> = {};
+        const shipsHit: Record<string, string[]> = {};
 
         otherPlayerShips?.forEach((ship) => {
             if (!ship.hullLocations) {
@@ -313,7 +313,7 @@ export class GameEngine {
             ship.hullLocations.forEach((hull) => {
                 if (attackLocations.some((loc) => locationToKey(loc) === locationToKey(hull.location))) {
                     shipsHit[ship.id] = shipsHit[ship.id] || [];
-                    shipsHit[ship.id].push(hull.location);
+                    shipsHit[ship.id].push(hull.id);
                     hull.remainingHealth -= attackDamage;
                     if (hull.remainingHealth <= 0) {
                         hull.destroyed = true;

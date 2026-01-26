@@ -53,14 +53,13 @@ export interface IProjectileAnimationProps extends IMoveAnimationProps {
     element: HTMLElement;
 }
 
-export interface IHitAnimationProps extends IAnimationProps {
-    id: string;
-    elements?: HTMLElement[];
-}
+export interface IHitAnimationProps extends IHullBaseAnimationProps {}
 
-export interface IDestroyedAnimationProps extends IAnimationProps {
+export interface IDestroyedAnimationProps extends IHullBaseAnimationProps {}
+
+export interface IHullBaseAnimationProps extends IAnimationProps {
     id: string;
-    elements?: HTMLElement[];
+    elements?: { el: HTMLElement; rect: DOMRect }[];
 }
 
 export interface IconProps {

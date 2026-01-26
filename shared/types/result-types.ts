@@ -40,5 +40,5 @@ export interface IGetValidMoveCellsResult extends IResult {
 export interface IAttackResult extends IResult {
     type: typeof ResultType.SUCCESS;
     players: IPlayer[];
-    shipsHit: Record<string, ICellLoc[]>;
+    shipsHit: Record<string, string[]>;
 }

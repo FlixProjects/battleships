@@ -12,11 +12,11 @@ export class AnimationLayer {
         this.initialiseLayer();
     }
 
-    public copyToLayer(animationId: string, elementToAnimate: HTMLElement) {
+    public copyToLayer(animationId: string, elementToAnimate: HTMLElement, customRect?: DOMRect): HTMLElement {
         this.initialiseLayer();
 
         const { top, left } = this.calculateRelativePosition(
-            elementToAnimate.getBoundingClientRect(),
+            customRect ?? elementToAnimate.getBoundingClientRect(),
             this.layer.getBoundingClientRect(),
         );
 

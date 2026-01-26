@@ -40,11 +40,17 @@ export const checkIfNameIsFilled = () => {
     return !!playerNameInput.value;
 };
 
-export const renderShipIcon = (parentComponent: BaseComponent, shipId: string, refNo: string, isFirstPlayer = true) => {
+export const renderShipIcon = (
+    parentComponent: BaseComponent,
+    hullId: string,
+    shipId: string,
+    refNo: string,
+    isFirstPlayer = true,
+) => {
     const invert = isFirstPlayer;
     const color = isFirstPlayer ? COLOR.TEAL : COLOR.ORANGE;
 
-    const shipIcon = new ShipIcon({ shipId, invert, color, refNo });
+    const shipIcon = new ShipIcon({ hullId, shipId, invert, color, refNo });
     parentComponent.addChild(shipIcon);
     parentComponent.ref.appendChild(shipIcon.build());
 };
@@ -97,4 +103,17 @@ export const getPxFromCellLocation = (cell: ICellLoc): { top: number; left: numb
         top: startYInPx,
         left: startXInPx,
     };
+};
+
+export const getElementsFromIds = (ids: string[]) => {
+    const gameBoard = getComponents().div.gameBoard;
+    const elements = ids
+        .map((id) => {
+            console.log(gameBoard.ref.querySelector(`[id="${id}"]`).getBoundingClientRect());
+            return gameBoard.ref.querySelector(`[id="${id}"]`);
+        })
+        .filter((el): el is HTMLElement => el !== null)
+        .map((el) => ({ el, rect: el.getBoundingClientRect() }));
+
+    return elements;
 };
