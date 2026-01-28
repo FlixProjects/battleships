@@ -21,6 +21,7 @@ import { getElementsFromIds } from "../utils/game-helper";
 import { animationManager } from "./AnimationManager";
 import { DestroyedAnimation } from "./animations";
 import { HitAnimation } from "./animations/HitAnimation";
+import { StillAnimation } from "./animations/StillAnimation";
 import { ClickHandler } from "./ClickHandler";
 import { ShipAttackActionIMEvent } from "./InteractionManager";
 
@@ -100,19 +101,26 @@ export class ShipAttackClickHandler extends ClickHandler {
 
         if (result.type === ResultType.ERROR) return;
 
+        // FIXME: we need a better way to animate ships
+        // Ship class should be responsible for their own animations
+        const destroyedShips = result.players.flatMap((p) => p.ships).filter((s) => s.destroyed);
+        const destoyedShipHullIds = destroyedShips.flatMap((s) => s.hullLocations).map((h) => h.id);
         const projectile = new Projectile({
             origin: this.origin,
             target: keyToLocation(attackTileId),
             parent: document.querySelector(ANIMATION_LAYER_ID) || undefined,
         });
-        projectile.queueAnimation();
+
+        animationManager.enqueueMany([
+            { animation: new StillAnimation({ elements: getElementsFromIds(destoyedShipHullIds), duration: 500 }) },
+            { animation: projectile.createAnimation() },
+        ]);
 
         Object.entries(result.shipsHit).forEach(([hitShipId, hullIds]) => {
             // FIXME: we ignore hitLocations for now
             animationManager.enqueue(new HitAnimation({ id: hitShipId, elements: getElementsFromIds(hullIds) }));
         });
 
-        const destroyedShips = result.players.flatMap((p) => p.ships).filter((s) => s.destroyed);
         for (const ship of destroyedShips) {
             const hullIds = ship.hullLocations.map((h) => h.id);
             animationManager.enqueue(new DestroyedAnimation({ id: ship.id, elements: getElementsFromIds(hullIds) }));

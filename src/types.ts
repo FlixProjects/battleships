@@ -32,6 +32,7 @@ export interface IDynamicComponents {
 
 export interface IAnimation {
     id: string;
+    duration: number; // in milliseconds
     elements: HTMLElement[];
     execute(): Promise<void>;
     loadLayer(layer: AnimationLayer): void;
@@ -58,7 +59,7 @@ export interface IHitAnimationProps extends IHullBaseAnimationProps {}
 export interface IDestroyedAnimationProps extends IHullBaseAnimationProps {}
 
 export interface IHullBaseAnimationProps extends IAnimationProps {
-    id: string;
+    id?: string;
     elements?: { el: HTMLElement; rect: DOMRect }[];
 }
 

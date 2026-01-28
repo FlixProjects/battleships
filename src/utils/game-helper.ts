@@ -109,7 +109,6 @@ export const getElementsFromIds = (ids: string[]) => {
     const gameBoard = getComponents().div.gameBoard;
     const elements = ids
         .map((id) => {
-            console.log(gameBoard.ref.querySelector(`[id="${id}"]`).getBoundingClientRect());
             return gameBoard.ref.querySelector(`[id="${id}"]`);
         })
         .filter((el): el is HTMLElement => el !== null)

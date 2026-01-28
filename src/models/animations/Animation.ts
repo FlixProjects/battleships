@@ -16,7 +16,7 @@ export class BaseAnimation implements IAnimation {
     public elements: HTMLElement[];
     public animationLayer: AnimationLayer;
     protected onCancelClick: () => void = DEFAULT_CANCEL_CLICK;
-    protected duration: number;
+    public duration: number;
 
     constructor(props: IAnimationProps) {
         this.duration = props.duration || 750;
@@ -35,6 +35,10 @@ export class BaseAnimation implements IAnimation {
 
     protected animate(runAnimation: () => void): Promise<void> {
         return new Promise((resolve) => this.runAnimationFlow(resolve, runAnimation));
+    }
+
+    protected durationToSeconds(): string {
+        return (this.duration / 1000).toFixed(2);
     }
 
     private runAnimationFlow(resolve: TResolve, runAnimation: () => void) {
