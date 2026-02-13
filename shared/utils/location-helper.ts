@@ -30,7 +30,7 @@ export class LocationHelper {
 
     public getOccupiedCells(players: IPlayer[]) {
         const occuipiedLocations: ICellLoc[] = players.flatMap((p) =>
-            p.ships.filter((s) => !s.destroyed).flatMap((s) => s.hullLocations?.map((h) => h.location) ?? []),
+            p.ships.filter((s) => !s.destroyed).flatMap((s) => s.hulls?.map((h) => h.location) ?? []),
         );
 
         return occuipiedLocations;

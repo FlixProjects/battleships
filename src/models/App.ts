@@ -1,8 +1,8 @@
 import { gameManager } from "..";
-import { DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_GAME_CODE } from "../../shared";
+import { AppStatus, DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_GAME_CODE, IAppState } from "../../shared";
+import { transformPlainAppStateToDomain } from "../../shared/transformers";
 import { getGame } from "../apis/get-game";
 import { updateComponents } from "../components/component-helper";
-import { AppStatus, IAppState } from "../types";
 import { deleteAuthCookie, getCookie } from "../utils/cookie-helper";
 import { getGameCode, removeGameCode } from "../utils/game-helper";
 
@@ -39,11 +39,11 @@ export class App {
         try {
             const response = await getGame(getGameCode());
             console.log("Existing game found:", response);
-            const newState = {
+            const newState = transformPlainAppStateToDomain({
                 status: response?.gameState.isOver ? AppStatus.GameOver : AppStatus.Initialised,
                 loading: false,
                 gameState: response?.gameState,
-            };
+            });
 
             gameManager.saveCurrentPlayerStateV2(newState);
             gameManager.setCurrentPlayer(getCookie(FP_AUTH_TOKEN));

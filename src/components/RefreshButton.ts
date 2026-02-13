@@ -1,4 +1,4 @@
-import { AppStatus, IAppState } from "../types";
+import { AppStatus, IAppState } from "../../shared/types";
 import { refresh } from "../utils/game-helper";
 import { HTMLButton } from "./native/Button";
 

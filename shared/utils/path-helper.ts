@@ -157,7 +157,7 @@ export class PathHelper {
             return [x, y] as ICellLoc;
         });
     }
-    
+
     public getVisibleTiles = (player: IPlayer): Set<string> => {
         const visible = new Set<string>();
 
@@ -166,7 +166,7 @@ export class PathHelper {
             .forEach((ship) => {
                 const visionRange = 2; // TEMP: tiles around each ship
 
-                ship.hullLocations?.forEach((hull) => {
+                ship.hulls?.forEach((hull) => {
                     visible.add(locationToKey(hull.location));
                     const cells = new PathHelper().getReachableCells({
                         start: hull.location,

@@ -4,7 +4,8 @@ import {
     getTokenCookie,
     IGameState,
     IPlayerAction,
-    SubmitActionResponse as ISubmitActionResponse
+    SubmitActionResponse as ISubmitActionResponse,
+    transformGameStateToPlain
 } from "../../shared";
 import { handleActions } from "../../shared/utils/action-handler";
 
@@ -96,7 +97,7 @@ export const handler = async (event: any) => {
         }
 
         const responseBody: ISubmitActionResponse = {
-            gameState: obscuredGameState ?? gameState,
+            gameState: transformGameStateToPlain(obscuredGameState ?? gameState),
             results,
         };
 

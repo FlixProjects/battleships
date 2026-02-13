@@ -49,6 +49,7 @@ const saveActions = (thisPlayer: string, gameState: IGameState, actions: IPlayer
         player.pendingActions = [];
     }
 
+    newState.actions.push(...actions);
     player.pendingActions = actions;
     player.ready = true;
 
@@ -66,6 +67,8 @@ const refreshPlayers = (gameState: IGameState) => {
             s.remainingMovement = s.movementRange;
         });
     });
+
+    newState.currentRound++;
 
     return newState;
 };

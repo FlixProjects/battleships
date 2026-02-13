@@ -1,5 +1,5 @@
 import clone from "lodash.clonedeep";
-import { GameState, IGameState, IPlayer } from "..";
+import { GameState, IGameState, IHull, IPlainAction, IPlayer, IShip } from "..";
 
 export class GameStateManager {
     private _gameState: GameState;
@@ -11,7 +11,6 @@ export class GameStateManager {
 
     private transformToDomain(_gameState: IGameState) {
         if (_gameState instanceof GameState) {
-            this._gameState = _gameState;
             return _gameState;
         }
         return new GameState(_gameState);
@@ -25,6 +24,10 @@ export class GameStateManager {
         this._gameState = this.transformToDomain(_gameState);
     }
 
+    getCurrentRound() {
+        return this.gameState.currentRound;
+    }
+
     getPlayer(playerId: string) {
         return this.gameState.getPlayer(playerId);
     }
@@ -33,8 +36,46 @@ export class GameStateManager {
         return this.gameState.getPlayers();
     }
 
+    getPlayerShips(playerId: string) {
+        return this.gameState.ships.filter((s) => s.playerId === playerId);
+    }
+
+    getShip(shipId: string) {
+        return this.gameState.getShip(shipId);
+    }
+
     updatePlayer(player: Partial<IPlayer>) {
         this._gameState = this.gameState.updatePlayer(player);
+        return this;
+    }
+
+    updateShip(ship: Partial<IShip>) {
+        this._gameState = this.gameState.updateShip(ship);
+        return this;
+    }
+
+    updateHull(hull: Partial<IHull>) {
+        this._gameState = this.gameState.updateHull(hull);
+        return this;
+    }
+
+    updateHulls(hulls: Partial<IHull>[]) {
+        hulls.forEach((hull) => this.updateHull(hull));
+        return this;
+    }
+
+    updateAction(action: Partial<IPlainAction>) {
+        this._gameState = this.gameState.updateAction(action);
+        return this;
+    }
+
+    addAction(action: IPlainAction) {
+        this._gameState = this.gameState.addAction(action);
+        return this;
+    }
+
+    updateActions(actions: Partial<IPlainAction>[]) {
+        actions.forEach((action) => this.updateAction(action));
         return this;
     }
 }

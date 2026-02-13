@@ -1,6 +1,6 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import { IGameState, initialiseNewPlayer } from "../../shared";
+import { getNewShipsForPlayer, initialiseNewPlayer, IPlainGameState } from "../../shared";
 
 interface JoinGameResponse {
     statusCode: number;
@@ -26,7 +26,7 @@ export const handler = async (event: any) => {
 
         const playerName = body.playerName;
         const gameCode = body.gameCode;
-        let gameState: IGameState = body.gameState;
+        let gameState: IPlainGameState = body.gameState;
 
         console.log("Request Body:", body);
 
@@ -45,6 +45,8 @@ export const handler = async (event: any) => {
 
         const playerId = randomUUID();
         const newPlayer = initialiseNewPlayer(playerId, playerName);
+        const { shipIds, ships } = getNewShipsForPlayer(playerId);
+        newPlayer.ships = shipIds;
 
         if (!isLocal) {
             const { Body } = await s3.send(
@@ -70,7 +72,9 @@ export const handler = async (event: any) => {
             };
         }
 
+        gameState.ships.push(...ships);
         gameState.players.push(newPlayer);
+        gameState.currentRound++;
 
         if (!isLocal) {
             await s3.send(

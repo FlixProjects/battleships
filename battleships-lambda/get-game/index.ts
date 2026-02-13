@@ -1,5 +1,5 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { GetGameResponse, IGameState, getTokenCookie } from "../../shared";
+import { GetGameResponse, IGameState, getTokenCookie, transformGameStateToPlain } from "../../shared";
 import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
 
 export const handler = async (event: any) => {
@@ -50,7 +50,7 @@ export const handler = async (event: any) => {
         const { obscuredGameState } = new ActionResolver(userId, gameState).resolveVisibility();
 
         const responseBody: GetGameResponse = {
-            gameState: obscuredGameState,
+            gameState: transformGameStateToPlain(obscuredGameState),
         };
 
         // TODO: might not need this since we don't modify actual game state and don't need to save

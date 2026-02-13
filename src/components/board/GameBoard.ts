@@ -6,6 +6,7 @@ import {
     CELL_SEPARATOR,
     GAME_BOARD_ID,
     GameStateManager,
+    IAppState,
     ICellLoc,
     IPlayer,
     IShip,
@@ -13,7 +14,6 @@ import {
     TILE_GAP_PX,
     TILE_SIZE_PX,
 } from "../../../shared";
-import { IAppState } from "../../types";
 import { renderShipIcon } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 import { TSetSelectableOptions } from "../Selectable";
@@ -131,14 +131,14 @@ export class GameBoard extends BaseComponent {
         if (this.elementsCurrentlyAnimatingMap.has(ship.id)) {
             return;
         }
-        const tiles = ship.hullLocations?.map((hull) => {
+        const tiles = ship.hulls?.map((hull) => {
             return { key: locationToKey(hull.location) };
         });
 
         tiles?.forEach(({ key }, i) => {
             const tile = this.tiles[key];
             // TODO: we might need to handle Ships with multiple hull locations
-            renderShipIcon(tile, ship.hullLocations[0].id, ship.id, ship.refNo, isFirstPlayer);
+            renderShipIcon(tile, ship.hulls[0].id, ship.id, ship.refNo, isFirstPlayer);
 
             if (gameManager.getPlayer().id === ship.playerId) {
                 tile.addShipClickHandler();

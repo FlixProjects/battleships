@@ -1,4 +1,4 @@
-import { FP_GAME_STATE, IGameState, JoinGameRequest, JoinGameResponse } from "../../shared";
+import { FP_GAME_STATE, IPlainGameState, JoinGameRequest, JoinGameResponse } from "../../shared";
 import { appConfig, isLocal } from "../config/app-config";
 import { CryptoHelper } from "../utils/crypto-helper";
 
@@ -25,7 +25,7 @@ export const joinGame = async (joinCodeInput: string, playerName: string) => {
 
         if (isLocal) {
             const localState = sessionStorage.getItem(FP_GAME_STATE);
-            reqBody.gameState = localState ? (JSON.parse(localState) as IGameState) : null;
+            reqBody.gameState = localState ? (JSON.parse(localState) as IPlainGameState) : null;
         }
 
         const res = await fetch(url, {

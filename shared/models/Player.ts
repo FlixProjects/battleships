@@ -5,7 +5,8 @@ export class Player implements IPlayer {
     id: string;
     name: string;
     ready: boolean;
-    ships: Ship[];
+    shipIds: string[];
+    ships?: Ship[];
     pendingActions?: IPlayerAction[];
     maxCommandPoints: number;
     commandPoints: number;

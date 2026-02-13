@@ -21,8 +21,8 @@ export class ActionResolver {
         public playerId: string, // for the perspective the ActionResolver is resolving for
         public gameState: IGameState,
     ) {
-        this.player1Actions = gameState.players[0].pendingActions;
-        this.player2Actions = gameState.players[1].pendingActions;
+        this.player1Actions = [...gameState.players[0].pendingActions];
+        this.player2Actions = [...gameState.players[1].pendingActions];
     }
 
     public resolve() {
@@ -102,7 +102,7 @@ export class ActionResolver {
     }
 
     public resolveDeploy(action: IDeployAction) {
-        const newState = new GameStateManager(this.gameState).gameState;
+        const gsm = new GameStateManager(this.gameState);
         const gameEngine = new GameEngine(this.gameState);
         const result = gameEngine.commit.deployShip(action);
 
@@ -110,30 +110,25 @@ export class ActionResolver {
             throw new Error("Cannot deploy ship here, space is occupied");
         }
 
-        const { player, playerId } = result;
-        newState.updatePlayer(player);
+        const { player, ship, hulls } = result;
+        const newState = gsm.updatePlayer(player).updateShip(ship).updateHulls(hulls).gameState;
         return newState;
     }
 
     public resolveMove(action: IMoveAction) {
         // for now, if the player with initiative occupies the location,
         // the other player's Move is not resolved (they are not refunded the CP)
-        const newState = { ...this.gameState };
+        const gsm = new GameStateManager(this.gameState);
 
         const gameEngine = new GameEngine(this.gameState);
 
         const result = gameEngine.commit.moveShip(action);
-
-        if (result.type === ResultType.SUCCESS) {
-            const { player, playerId } = result;
-
-            newState.players = newState.players.map((p) => {
-                if (p.id === playerId) {
-                    return player;
-                }
-                return p;
-            });
+        if (result.type === ResultType.ERROR) {
+            throw new Error("Cannot move ship here.");
         }
+
+        const { player, ship, hulls } = result;
+        const newState = gsm.updatePlayer(player).updateShip(ship).updateHulls(hulls).gameState;
 
         return newState;
     }

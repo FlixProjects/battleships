@@ -1,3 +1,4 @@
+import { v7 as uuidv7 } from "uuid";
 import {
     ActionTypes,
     BOARD_COLUMNS,
@@ -22,8 +23,15 @@ import {
     LocationHelper,
     locationToKey,
     PathHelper,
-    ResultType,
+    ResultType
 } from "..";
+
+type TCommitDeployShipParams = Pick<IDeployAction, "shipId" | "playerId" | "hullLocations" | "commandPointCost">;
+type TCommitMoveShipParams = Pick<IMoveAction, "type" | "shipId" | "playerId" | "hullLocations" | "commandPointCost">;
+type TCommitAttackShipParams = Pick<
+    IShipAttackAction,
+    "type" | "shipId" | "playerId" | "commandPointCost" | "attackLocations"
+>;
 
 // TODO: migrate to a more signal based approach
 // GameEngine receives commands/signals from UI and updates the GameManager state
@@ -53,14 +61,14 @@ export class GameEngine {
                 }
                 return { ...results, type: ResultType.ERROR }; // TODO: better handle typing
             },
-            moveShip: (action: IMoveAction): IMoveResult | IErrorResult<any> => {
+            moveShip: (action: TCommitMoveShipParams): IMoveResult | IErrorResult<any> => {
                 const results = this.validateMoveShip(action);
                 if (results.type === ResultType.SUCCESS) {
                     return this.commitMoveShip(action);
                 }
                 return { ...results, type: ResultType.ERROR };
             },
-            shipAttack: (action: IShipAttackAction): IAttackResult | IErrorResult<any> => {
+            shipAttack: (action: TCommitAttackShipParams): IAttackResult | IErrorResult<any> => {
                 // TODO: validate
                 return this.commitAttack(action);
             },
@@ -92,32 +100,33 @@ export class GameEngine {
     private commitDeployShip(action: IDeployAction): IDeployResult {
         const { shipId, playerId, hullLocations } = action;
 
+        const playerShips = this.gsm.getPlayerShips(playerId);
         const player = this.gsm.getPlayer(playerId);
-        const deployedShip = player.ships.find((ship) => ship.id === shipId);
-        const commandPointCost = deployedShip?.commandPointCost ? deployedShip.commandPointCost : 0;
+        const shipToDeploy = playerShips.find((ship) => ship.id === shipId);
+        const commandPointCost = shipToDeploy?.commandPointCost ? shipToDeploy.commandPointCost : 0;
 
-        const deployAction: IDeployAction = {
-            type: ActionTypes.DEPLOY,
-            shipId,
-            hullLocations,
-            playerId,
-            commandPointCost,
-        };
-
-        deployedShip.deployed = true;
-        deployedShip.addHullLocations(hullLocations);
-
-        player.pendingActions = [...player.pendingActions, deployAction];
+        shipToDeploy.deployed = true;
+        shipToDeploy.addHullLocations(hullLocations);
+        
+        // FIXME: when trying to return only Partial player with necessary fields
+        // ship does not deploy properly
+        if(!player.pendingActions.map((a)=> a.id).includes(action.id)){
+            // PATCH: do not append again when resolving locally
+            // FIXME: there should be a better way handle local resolution
+            player.pendingActions = [...player.pendingActions, action];
+        }
         player.commandPoints -= commandPointCost;
 
         return {
             type: ResultType.SUCCESS,
             playerId,
             player,
+            ship: shipToDeploy,
+            hulls: hullLocations,
         };
     }
 
-    public validateDeployShip(deployAction: IDeployAction): IResult {
+    public validateDeployShip(deployAction: TCommitDeployShipParams): IResult {
         const { playerId, hullLocations: newHullLocations } = deployAction;
         const newState = { ...this.gameState };
 
@@ -140,12 +149,12 @@ export class GameEngine {
         const { playerId, shipId } = action;
         const ship = this.gsm.getPlayer(playerId).getShip(shipId);
 
-        if (!ship?.hullLocations?.[0]) {
+        if (!ship?.hulls?.[0]) {
             // TODO: Should not be selectable
             return { type: ResultType.SUCCESS, playerId, validCells: [] };
         }
 
-        const currentLoc = ship.hullLocations[0].location; // FIXME: We always take the first hull loc as origin
+        const currentLoc = ship.hulls[0].location; // FIXME: We always take the first hull loc as origin
         const movementRange = ship.remainingMovement || 0;
 
         // FIXME: we should only take into account 'visible' ships
@@ -166,12 +175,15 @@ export class GameEngine {
         };
     }
 
-    private commitMoveShip(action: IMoveAction): IMoveResult {
+    private commitMoveShip(action: TCommitMoveShipParams): IMoveResult {
         const { shipId, playerId, hullLocations: newLocation, commandPointCost } = action;
 
-        const player = this.calculateMoveShip(action);
+        const { player, ship } = this.calculateMoveShip(action);
 
         const moveAction: IMoveAction = {
+            id: uuidv7(),
+            round: this.gsm.getCurrentRound(),
+            order: player.pendingActions.length,
             type: ActionTypes.MOVE,
             shipId,
             hullLocations: newLocation,
@@ -185,6 +197,8 @@ export class GameEngine {
             type: ResultType.SUCCESS,
             playerId: player.id,
             player,
+            ship,
+            hulls: newLocation,
         };
     }
 
@@ -197,32 +211,32 @@ export class GameEngine {
         };
     }
 
-    public calculateMoveShip(action: IMoveAction): IPlayer {
+    public calculateMoveShip(action: TCommitMoveShipParams) {
         const { shipId, playerId, hullLocations: newLocation, commandPointCost } = action;
         const player = this.gsm.getPlayer(playerId);
 
-        player.updateShip({ id: shipId, hullLocations: newLocation, remainingMovement: 0 });
+        player.updateShip({ id: shipId, hulls: newLocation, remainingMovement: 0 });
         player.update({ commandPoints: player.commandPoints - commandPointCost });
 
-        return player;
+        return { player, ship: player.ships.find((s) => s.id === shipId) };
     }
 
-    public validateMoveShip(moveAction: IMoveAction): IResult {
+    public validateMoveShip(moveAction: TCommitMoveShipParams): IResult {
         const { playerId, shipId, hullLocations: newLocation } = moveAction;
         const player = this.getPlayer(playerId);
         const ship = player.ships.find((s) => s.id === shipId);
 
-        if (!ship?.deployed || !ship.hullLocations?.[0]) {
+        if (!ship?.deployed || !ship.hulls?.[0]) {
             return { type: ResultType.ERROR, playerId };
         }
 
-        const currentLoc = ship.hullLocations[0].location;
+        const currentLoc = ship.hulls[0].location;
         const movementRange = ship.movementRange || 0;
 
         // Exclude current ship from occupied cells check
         const players = this.gameState.players.map((p) => ({
             ...p,
-            ships: p.ships.map((s) => (s.id === shipId ? { ...s, hullLocations: [] } : s)),
+            ships: p.ships.map((s) => (s.id === shipId ? { ...s, hulls: [] } : s)),
         }));
 
         const locationHelper = new LocationHelper(players);
@@ -249,7 +263,7 @@ export class GameEngine {
         const player = this.getPlayer(playerId);
         const ship = player.ships.find((s) => s.id === shipId);
 
-        const currentLoc = ship.hullLocations[0].location;
+        const currentLoc = ship.hulls[0].location;
         const attackRange = ship.attackRange || 0;
 
         const reachableCells = this.pathHelper.getReachableCells({
@@ -266,12 +280,15 @@ export class GameEngine {
         };
     }
 
-    private commitAttack(action: IShipAttackAction) {
+    private commitAttack(action: TCommitAttackShipParams) {
         const { attackLocations, playerId, shipId } = action;
         const attackingShip = this.getShip(playerId, shipId);
         const { attackCommandPointCost } = attackingShip;
-
+        const player = this.gsm.getPlayer(playerId);
         const attackAction: IShipAttackAction = {
+            id: uuidv7(),
+            round: this.gsm.getCurrentRound(),
+            order: player.pendingActions.length,
             type: ActionTypes.ATTACK,
             shipId,
             attackLocations,
@@ -294,7 +311,7 @@ export class GameEngine {
         };
     }
 
-    public calculateAttackResult(action: IShipAttackAction) {
+    public calculateAttackResult(action: TCommitAttackShipParams) {
         const { attackLocations, playerId, shipId } = action;
         const attackingShip = this.getShip(playerId, shipId);
         const { attackCommandPointCost, attackDamage } = attackingShip;
@@ -306,11 +323,11 @@ export class GameEngine {
         const shipsHit: Record<string, string[]> = {};
 
         otherPlayerShips?.forEach((ship) => {
-            if (!ship.hullLocations) {
+            if (!ship.hulls) {
                 return;
             }
 
-            ship.hullLocations.forEach((hull) => {
+            ship.hulls.forEach((hull) => {
                 if (attackLocations.some((loc) => locationToKey(loc) === locationToKey(hull.location))) {
                     shipsHit[ship.id] = shipsHit[ship.id] || [];
                     shipsHit[ship.id].push(hull.id);
@@ -321,9 +338,9 @@ export class GameEngine {
                 }
             });
 
-            const destroyedHulls = ship.hullLocations.filter((hull) => hull.destroyed);
+            const destroyedHulls = ship.hulls.filter((hull) => hull.destroyed);
 
-            if (destroyedHulls.length === ship.hullLocations.length) {
+            if (destroyedHulls.length === ship.hulls.length) {
                 ship.destroyed = true;
             }
         });

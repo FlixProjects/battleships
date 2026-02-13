@@ -1,5 +1,6 @@
 import { gameManager } from "..";
 import {
+    AppStatus,
     COLOR,
     COLOR_FILTER,
     FP_CURRENT_PLAYER,
@@ -7,7 +8,7 @@ import {
     ICellLoc,
     TColor,
     TILE_GAP_PX,
-    TILE_SIZE_PX,
+    TILE_SIZE_PX
 } from "../../shared";
 import { getGame } from "../apis/get-game";
 import { BaseComponent } from "../components/BaseComponent";
@@ -15,7 +16,6 @@ import { getComponents, updateComponents } from "../components/component-helper"
 import { ShipIcon } from "../components/ships/ShipIcon";
 import { animationManager } from "../models/AnimationManager";
 import { MoveShipAnimation } from "../models/animations";
-import { AppStatus } from "../types";
 
 // client functions
 
@@ -71,11 +71,17 @@ export const getColorFilter = (color: TColor) => {
 export const refresh = async () => {
     try {
         const response = await getGame(getGameCode());
+
+        const { status, currentPlayer } = gameManager.state;
+
         const newState = {
             loading: false,
             gameState: response?.gameState,
+            status,
+            currentPlayer,
         };
-        gameManager.saveCurrentPlayerStateV2(newState);
+
+        gameManager.savePlainAppState(newState);
         updateComponents();
     } catch (error) {
         updateComponents({ status: AppStatus.Error });

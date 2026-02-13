@@ -1,8 +1,7 @@
 import { gameManager } from "../";
-import { FP_GAME_STATE } from "../../shared";
+import { FP_GAME_STATE, AppStatus, IAppState } from "../../shared";
 import { createGame } from "../apis/create-game";
 import { isLocal } from "../config/app-config";
-import { AppStatus, IAppState } from "../types";
 import { checkIfNameIsFilled, setCurrentPlayer, setGameCode } from "../utils/game-helper";
 import { getComponents, updateComponents } from "./component-helper";
 import { HTMLButton } from "./native/Button";
@@ -55,7 +54,7 @@ export class CreateGameButton extends HTMLButton {
 
             if (playerId) {
                 // DO NOT DELETE: this item simulates Object in S3
-                gameManager.saveCurrentPlayerState(newState);
+                gameManager.savePlainAppState(newState);
             }
 
             updateComponents();

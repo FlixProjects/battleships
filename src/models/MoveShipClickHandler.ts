@@ -10,6 +10,7 @@ import {
     ResultType,
 } from "../../shared";
 import { GameEngine } from "../../shared/models/GameEngine";
+import { transformGameStateToPlain } from "../../shared/transformers";
 import { getComponents } from "../components/component-helper";
 import { animationManager } from "./AnimationManager";
 import { MoveShipAnimation } from "./animations/MoveShipAnimation";
@@ -71,7 +72,7 @@ export class MoveShipClickHandler extends ClickHandler {
         const player = gsm.getPlayer(playerId);
         const ship = player.getShip(shipId);
 
-        const oldLocations = ship.hullLocations;
+        const oldLocations = ship.hulls;
         const newLocations = this.getNewHullLocations(keyToLocation(destinationTileId), ship);
 
         // FIXME: we need to handle concurrent animations for multi-hull ships
@@ -86,11 +87,13 @@ export class MoveShipClickHandler extends ClickHandler {
 
         if (result.type === ResultType.ERROR) return;
 
+        gsm.updateHulls(result.hulls);
         gsm.updatePlayer(result.player);
+        gsm.updateShip(result.ship);
 
-        this.executeMoveShipAnimation(gsm.getPlayer(playerId).getShip(shipId), oldLocations);
+        this.executeMoveShipAnimation(result.ship, oldLocations);
 
-        gameManager.saveCurrentPlayerState({ gameState: gsm.gameState });
+        gameManager.savePlainAppState({ gameState: transformGameStateToPlain(gsm.gameState) });
 
         const tile = this.selectables[destinationTileId];
         tile.runOnSelects();
@@ -100,8 +103,8 @@ export class MoveShipClickHandler extends ClickHandler {
 
     // WARNING: we don't mutate the original as much as possible
     private getNewHullLocations(endCell: ICellLoc, ship: IShip) {
-        let newHullLocations = [...ship.hullLocations];
-        newHullLocations = ship.hullLocations;
+        let newHullLocations = [...ship.hulls];
+        newHullLocations = ship.hulls;
         // FIXME: only single location for now
         const hullFront = { ...newHullLocations[0] };
         hullFront.location = endCell;
@@ -116,11 +119,11 @@ export class MoveShipClickHandler extends ClickHandler {
         const moveShipAnimation = new MoveShipAnimation({
             elementId: shipId,
             fromCell: oldLocations[0].location,
-            toCell: ship.hullLocations[0].location,
+            toCell: ship.hulls[0].location,
         });
         const gameBoard = getComponents().div.gameBoard;
         gameBoard.addToAnimatingMap(shipId, moveShipAnimation.id);
-        
+
         animationManager.enqueue(moveShipAnimation, () => {
             gameBoard.removeFromAnimatingMap(shipId);
             gameBoard.renderShip(ship, playerId === gameManager.firstPlayerId);

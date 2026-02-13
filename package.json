@@ -4,7 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "jest",
         "build": "webpack --config webpack.config.js --mode=development",
         "serve": "webpack serve --mode=development",
         "dev": "npm run serve"
@@ -32,6 +32,7 @@
     },
     "dependencies": {
         "lodash.clonedeep": "^4.5.0",
+        "mergician": "^2.0.2",
         "uuid": "^13.0.0"
     }
 }

@@ -6,7 +6,8 @@ export class Ship implements IShip {
     playerId: string;
     refNo: string;
     name: string;
-    hullLocations?: Hull[];
+    hullIds?: string[];
+    hulls?: Hull[];
     dimensions: [number, number];
     deployed: boolean;
     commandPointCost: number;
@@ -26,8 +27,8 @@ export class Ship implements IShip {
 
     constructor(props: Readonly<IShip>) {
         Object.assign(this, props);
-        if (this.hullLocations) {
-            this.hullLocations = this.hullLocations.map((hull) => {
+        if (this.hulls) {
+            this.hulls = props.hulls.map((hull) => {
                 if (hull instanceof Hull) {
                     return hull;
                 }
@@ -43,15 +44,15 @@ export class Ship implements IShip {
     }
 
     getVisibleTiles() {
-        if (this.destroyed || !this.deployed || !this.hullLocations) {
+        if (this.destroyed || !this.deployed || !this.hulls) {
             return new Set<string>();
         }
         const ph = new PathHelper();
-        return ph.getVisibleTilesForPlayer(this.hullLocations);
+        return ph.getVisibleTilesForPlayer(this.hulls);
     }
 
     updateVisibility(visibleTiles: Set<string>) {
-        this.isVisible = !!this.hullLocations?.some((h) => {
+        this.isVisible = !!this.hulls?.some((h) => {
             h.updateVisibility(visibleTiles);
             return visibleTiles.has(locationToKey(h.location));
         });
@@ -60,13 +61,13 @@ export class Ship implements IShip {
     }
 
     removeInvisibleHullLocations() {
-        this.hullLocations = this.hullLocations?.filter((h) => h.isVisible);
+        this.hulls = this.hulls?.filter((h) => h.isVisible);
         return this;
     }
 
     addHullLocations(hulls: IHull[]) {
-        if (!this.hullLocations) {
-            this.hullLocations = [];
+        if (!this.hulls) {
+            this.hulls = [];
         }
         hulls.forEach((h) => this.addHullLocation(h));
         return this;
@@ -74,20 +75,20 @@ export class Ship implements IShip {
 
     addHullLocation(hull: IHull) {
         if (!(hull instanceof Hull)) {
-            this.hullLocations.push(new Hull(hull));
+            this.hulls.push(new Hull(hull));
             return this;
         }
-        this.hullLocations.push(hull);
+        this.hulls.push(hull);
         return this;
     }
 
     updateHullLocations(newHullLocations: Partial<IHull>[]) {
         newHullLocations.forEach((newHull) => {
             if (!newHull.id) return;
-            const index = this.hullLocations.findIndex((h) => h.id === newHull.id);
-            const oldHull = this.hullLocations[index];
+            const index = this.hulls.findIndex((h) => h.id === newHull.id);
+            const oldHull = this.hulls[index];
             const updatedHull = new Hull({ ...oldHull, ...newHull });
-            this.hullLocations[index] = updatedHull;
+            this.hulls[index] = updatedHull;
         });
         return this;
     }

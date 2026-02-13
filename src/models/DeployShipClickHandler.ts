@@ -1,5 +1,6 @@
 import { gameManager } from "..";
 import { GameStateManager, ICellLoc, ResultType } from "../../shared";
+import { DeployShipActionCreator } from "../../shared/models/ActionCreator";
 import { GameEngine } from "../../shared/models/GameEngine";
 import { getHull, keyToLocation, locationToKey } from "../../shared/utils/helpers";
 import { ClickHandler } from "./ClickHandler";
@@ -60,16 +61,24 @@ export class DeployShipClickHandler extends ClickHandler {
             const loc = keyToLocation(tileId);
             return getHull(shipId, template, loc); // we initialise the location here
         });
-        const result = gameEngine.commit.deployShip({
+
+        const deployAction = new DeployShipActionCreator(player, gsm.getCurrentRound()).create({
             shipId,
-            playerId,
-            hullLocations: committedHullLocations,
             commandPointCost,
+            hullLocations: committedHullLocations,
         });
+
+        const result = gameEngine.commit.deployShip(deployAction);
 
         if (result.type === ResultType.ERROR) return;
 
-        gameManager.saveCurrentPlayerState({ gameState: gsm.updatePlayer(result.player).gameState });
+        const newGameState = gsm
+            .updatePlayer(result.player)
+            .updateShip(result.ship)
+            .updateHulls(result.hulls)
+            .addAction(deployAction).gameState;
+
+        gameManager.saveCurrentPlayerStateV2({ gameState: newGameState }, { skipResolve: true });
 
         const tile = this.selectables[tileId];
         tile.runOnSelects();

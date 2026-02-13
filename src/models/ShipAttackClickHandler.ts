@@ -6,6 +6,7 @@ import {
     CELL_SEPARATOR,
     COLOR,
     COLOR_FILTER,
+    GameStateManager,
     getShipFromPlayer,
     ICellLoc,
     keyToLocation,
@@ -104,7 +105,7 @@ export class ShipAttackClickHandler extends ClickHandler {
         // FIXME: we need a better way to animate ships
         // Ship class should be responsible for their own animations
         const destroyedShips = result.players.flatMap((p) => p.ships).filter((s) => s.destroyed);
-        const destoyedShipHullIds = destroyedShips.flatMap((s) => s.hullLocations).map((h) => h.id);
+        const destoyedShipHullIds = destroyedShips.flatMap((s) => s.hulls).map((h) => h.id);
         const projectile = new Projectile({
             origin: this.origin,
             target: keyToLocation(attackTileId),
@@ -122,14 +123,17 @@ export class ShipAttackClickHandler extends ClickHandler {
         });
 
         for (const ship of destroyedShips) {
-            const hullIds = ship.hullLocations.map((h) => h.id);
+            const hullIds = ship.hulls.map((h) => h.id);
             animationManager.enqueue(new DestroyedAnimation({ id: ship.id, elements: getElementsFromIds(hullIds) }));
         }
 
         animationManager.play();
-
-        gameManager.updatePlayers(result.players);
-
+        const gsm = new GameStateManager(gameManager.state.gameState)
+        
+        result.players.forEach(p => gsm.updatePlayer(p));
+        
+        gameManager.saveCurrentPlayerStateV2({ gameState: gsm.gameState }, { skipResolve: true })
+        
         const tile = this.selectables[attackTileId];
         tile.runOnSelects();
 
