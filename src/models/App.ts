@@ -45,7 +45,7 @@ export class App {
                 gameState: response?.gameState,
             });
 
-            gameManager.saveCurrentPlayerStateV2(newState);
+            gameManager.saveCurrentPlayerStateV2(newState, { saveWithMerge: false });
             gameManager.setCurrentPlayer(getCookie(FP_AUTH_TOKEN));
 
             updateComponents();

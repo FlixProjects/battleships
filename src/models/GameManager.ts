@@ -8,7 +8,7 @@ import {
     IAppState,
     IGameState,
     IPlainAppState,
-    IPlayer
+    IPlayer,
 } from "../../shared";
 import { transformAppStateToPlain, transformPlainAppStateToDomain } from "../../shared/transformers";
 import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
@@ -40,16 +40,26 @@ export class GameManager {
         return this.getCurrentPlayerState()?.gameState?.players?.[0].id;
     }
 
-    public savePlainAppState(state: Partial<IPlainAppState>) {
+    public savePlainAppState(state: Partial<IPlainAppState>, _options: { saveWithMerge?: boolean } = {}) {
+        const DEFAULT_OPTIONS = { saveWithMerge: true };
+        const options = { ...DEFAULT_OPTIONS, ..._options };
         const playerId = this.getCurrentPlayerId();
         const currentPlayerAppState = this.playerGameStates[playerId] ?? {};
 
-        const newAppState = mergician(currentPlayerAppState, state) as IPlainAppState;
+        const newAppState = options.saveWithMerge
+            ? (mergician(currentPlayerAppState, state) as IPlainAppState)
+            : (state as IPlainAppState);
         this.playerGameStates[playerId] = newAppState;
         this.savePlayerStates();
     }
 
-    public saveCurrentPlayerStateV2(state: Partial<IAppState>, options?: { skipResolve?: boolean }) {
+    public saveCurrentPlayerStateV2(
+        state: Partial<IAppState>,
+        _options: { skipResolve?: boolean; saveWithMerge?: boolean } = {},
+    ) {
+        const DEFAULT_OPTIONS = { skipResolve: false, saveWithMerge: true };
+        const options = { ...DEFAULT_OPTIONS, ..._options };
+
         const playerId = this.getCurrentPlayerId();
         const { gameState } = state;
 
@@ -120,10 +130,17 @@ export class GameManager {
         return stored ? JSON.parse(stored) : {};
     }
 
-    private savePlayerState(playerId: string, state: Partial<IAppState>) {
+    private savePlayerState(playerId: string, state: Partial<IAppState>, _options: { saveWithMerge?: boolean } = {}) {
+        const DEFAULT_OPTIONS = { saveWithMerge: true };
+        const options = { ...DEFAULT_OPTIONS, ..._options };
+
         const linkedAppState = transformPlainAppStateToDomain(this.playerGameStates[playerId]);
-        const mergedAppState = mergician(linkedAppState, state) as IAppState;
+        const mergedAppState = options.saveWithMerge
+            ? (mergician(linkedAppState, state) as IAppState)
+            : (state as IAppState);
+
         const delinkedAppState = transformAppStateToPlain(mergedAppState);
+
         this.playerGameStates[playerId] = delinkedAppState;
         this.savePlayerStates();
     }
