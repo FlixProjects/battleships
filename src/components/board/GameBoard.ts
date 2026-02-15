@@ -8,7 +8,6 @@ import {
     GameStateManager,
     IAppState,
     ICellLoc,
-    IPlayer,
     IShip,
     locationToKey,
     TILE_GAP_PX,
@@ -114,16 +113,10 @@ export class GameBoard extends BaseComponent {
     private renderPlayersShips() {
         const gameState = new GameStateManager(gameManager.state.gameState).gameState;
         if (!gameState) return;
-        gameState.players?.forEach((p) => {
-            this.renderPlayerShips(p);
-        });
-    }
-
-    private renderPlayerShips(player: IPlayer) {
-        player.ships
-            .filter((s) => s.deployed && !s.destroyed) // TEMP: we should differentiate expected destruction vs actual
-            .forEach((ship) => {
-                this.renderShip(ship, gameManager.firstPlayerId === player.id);
+        gameState.ships
+            ?.filter((s) => s.deployed && !s.destroyed)
+            .forEach((s) => {
+                this.renderShip(s, gameManager.firstPlayerId === s.playerId);
             });
     }
 

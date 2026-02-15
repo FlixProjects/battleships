@@ -103,6 +103,18 @@ export class GameState implements IGameState {
         return this;
     }
 
+    addHull(hull: IHull) {
+        if (!hull.id) return this;
+
+        const hullIndex = this.hulls.findIndex((h) => h.id === hull.id);
+        if (hullIndex !== -1) {
+            return this.updateHull(hull);
+        }
+
+        this.hulls.push(new Hull(hull));
+        return this;
+    }
+
     updateHull(hull: Partial<IHull>) {
         if (!hull.id) return this;
 
@@ -139,7 +151,9 @@ export class GameState implements IGameState {
     }
 
     getVisibleTilesforPlayer(playerId: string) {
-        const visibilityFromShips = mergeSets(this.getPlayer(playerId).ships.map((s) => s.getVisibleTiles()));
+        const visibilityFromShips = mergeSets(
+            this.ships.filter((s) => s.playerId === playerId).map((s) => s.getVisibleTiles()),
+        );
         // TEMP: only Ships give visibility for now
         const visibleTilesForPlayer = mergeSets([visibilityFromShips]);
 

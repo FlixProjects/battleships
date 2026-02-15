@@ -43,6 +43,24 @@ export class Ship implements IShip {
         return this;
     }
 
+    updateHull(hull: Partial<IHull>) {
+        if (!hull.id) return this;
+        const index = this.hulls.findIndex((h) => h.id === hull.id);
+
+        if (index === -1) return this;
+        const oldHull = this.hulls[index];
+        const updatedHull = new Hull({ ...oldHull, ...hull });
+        this.hulls[index] = updatedHull;
+        return this;
+    }
+
+    updateHulls(hulls: Partial<IHull>[]) {
+        hulls.forEach((hull) => {
+            this.updateHull(hull);
+        });
+        return this;
+    }
+
     getVisibleTiles() {
         if (this.destroyed || !this.deployed || !this.hulls) {
             return new Set<string>();

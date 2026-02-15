@@ -111,7 +111,7 @@ export class ActionResolver {
         }
 
         const { player, ship, hulls } = result;
-        const newState = gsm.updatePlayer(player).updateShip(ship).updateHulls(hulls).gameState;
+        const newState = gsm.addHulls(hulls).updateShip(ship).updatePlayer(player).addAction(action).gameState;
         return newState;
     }
 

@@ -43,7 +43,7 @@ export const transformPlayersToPlain = (players: IPlayer[]): IPlainPlayer[] => {
 };
 
 export const transformGameStateToPlain = (gameState: IGameState): IPlainGameState => {
-    const { players } = gameState;
+    const { players, ships, hulls } = gameState;
 
     // FIXME: we should not be mutating ships through player.
     const playerShips = players.flatMap((player) => player.ships);
@@ -55,8 +55,8 @@ export const transformGameStateToPlain = (gameState: IGameState): IPlainGameStat
     return {
         ...gameState,
         players: players ? playersPlain : [],
-        ships: transformShipsToPlain(playerShips),
-        hulls: shipHulls,
+        ships: transformShipsToPlain(ships),
+        hulls: hulls,
     };
 };
 

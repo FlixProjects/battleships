@@ -73,9 +73,9 @@ export class DeployShipClickHandler extends ClickHandler {
         if (result.type === ResultType.ERROR) return;
 
         const newGameState = gsm
-            .updatePlayer(result.player)
+            .addHulls(result.hulls)
             .updateShip(result.ship)
-            .updateHulls(result.hulls)
+            .updatePlayer(result.player)
             .addAction(deployAction).gameState;
 
         gameManager.saveCurrentPlayerStateV2({ gameState: newGameState }, { skipResolve: true });

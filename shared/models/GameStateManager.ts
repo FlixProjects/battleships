@@ -59,6 +59,16 @@ export class GameStateManager {
         return this;
     }
 
+    addHull(hull: IHull) {
+        this._gameState = this.gameState.addHull(hull);
+        return this;
+    }
+
+    addHulls(hulls: IHull[]) {
+        hulls.forEach((hull) => this.addHull(hull));
+        return this;
+    }
+
     updateHulls(hulls: Partial<IHull>[]) {
         hulls.forEach((hull) => this.updateHull(hull));
         return this;
