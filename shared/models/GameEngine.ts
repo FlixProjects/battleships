@@ -23,7 +23,7 @@ import {
     LocationHelper,
     locationToKey,
     PathHelper,
-    ResultType
+    ResultType,
 } from "..";
 
 type TCommitDeployShipParams = Pick<IDeployAction, "shipId" | "playerId" | "hullLocations" | "commandPointCost">;
@@ -61,7 +61,7 @@ export class GameEngine {
                 }
                 return { ...results, type: ResultType.ERROR }; // TODO: better handle typing
             },
-            moveShip: (action: TCommitMoveShipParams): IMoveResult | IErrorResult<any> => {
+            moveShip: (action: IMoveAction): IMoveResult | IErrorResult<any> => {
                 const results = this.validateMoveShip(action);
                 if (results.type === ResultType.SUCCESS) {
                     return this.commitMoveShip(action);
@@ -107,10 +107,10 @@ export class GameEngine {
 
         shipToDeploy.deployed = true;
         shipToDeploy.addHullLocations(hullLocations);
-        
+
         // FIXME: when trying to return only Partial player with necessary fields
         // ship does not deploy properly
-        if(!player.pendingActions.map((a)=> a.id).includes(action.id)){
+        if (!player.pendingActions.map((a) => a.id).includes(action.id)) {
             // PATCH: do not append again when resolving locally
             // FIXME: there should be a better way handle local resolution
             player.pendingActions = [...player.pendingActions, action];
@@ -175,23 +175,12 @@ export class GameEngine {
         };
     }
 
-    private commitMoveShip(action: TCommitMoveShipParams): IMoveResult {
-        const { shipId, playerId, hullLocations: newLocation, commandPointCost } = action;
+    private commitMoveShip(action: IMoveAction): IMoveResult {
+        const { hullLocations: newLocation } = action;
 
         const { player, ship } = this.calculateMoveShip(action);
 
-        const moveAction: IMoveAction = {
-            id: uuidv7(),
-            round: this.gsm.getCurrentRound(),
-            order: player.pendingActions.length,
-            type: ActionTypes.MOVE,
-            shipId,
-            hullLocations: newLocation,
-            playerId,
-            commandPointCost,
-        };
-
-        player.pendingActions = [...player.pendingActions, moveAction];
+        player.pendingActions = [...player.pendingActions, action];
 
         return {
             type: ResultType.SUCCESS,
@@ -215,10 +204,13 @@ export class GameEngine {
         const { shipId, playerId, hullLocations: newLocation, commandPointCost } = action;
         const player = this.gsm.getPlayer(playerId);
 
-        player.updateShip({ id: shipId, hulls: newLocation, remainingMovement: 0 });
+        const ship = this.gsm.getShip(shipId);
+        ship.update({ id: shipId, remainingMovement: 0 }).updateHullLocations(newLocation);
+
+        player.updateShip(ship);
         player.update({ commandPoints: player.commandPoints - commandPointCost });
 
-        return { player, ship: player.ships.find((s) => s.id === shipId) };
+        return { player, ship };
     }
 
     public validateMoveShip(moveAction: TCommitMoveShipParams): IResult {

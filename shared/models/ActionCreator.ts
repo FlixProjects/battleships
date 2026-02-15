@@ -1,8 +1,9 @@
 import { IPlayer } from "../types";
-import { ActionTypes, IDeployAction, IPlayerAction } from "../types/action-types";
+import { ActionTypes, IDeployAction, IMoveAction, IPlayerAction } from "../types/action-types";
 import { v7 as uuidv7 } from "uuid";
 
 type TCommitDeployShipParams = Pick<IDeployAction, "shipId" | "hullLocations" | "commandPointCost">;
+type TCommitMoveShipParams = Pick<IMoveAction, "shipId" | "playerId" | "hullLocations" | "commandPointCost">;
 
 class ActionCreator {
     public action: IPlayerAction;
@@ -28,6 +29,19 @@ export class DeployShipActionCreator extends ActionCreator {
         return {
             ...super._create(),
             type: ActionTypes.DEPLOY,
+            shipId,
+            hullLocations,
+            commandPointCost,
+        };
+    }
+}
+
+export class MoveShipActionCreator extends ActionCreator {
+    public create(props: TCommitMoveShipParams): IMoveAction {
+        const { shipId, commandPointCost, hullLocations } = props;
+        return {
+            ...super._create(),
+            type: ActionTypes.MOVE,
             shipId,
             hullLocations,
             commandPointCost,

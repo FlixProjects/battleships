@@ -9,6 +9,7 @@ import {
     locationToKey,
     ResultType,
 } from "../../shared";
+import { MoveShipActionCreator } from "../../shared/models/ActionCreator";
 import { GameEngine } from "../../shared/models/GameEngine";
 import { transformGameStateToPlain } from "../../shared/transformers";
 import { getComponents } from "../components/component-helper";
@@ -76,20 +77,18 @@ export class MoveShipClickHandler extends ClickHandler {
         const newLocations = this.getNewHullLocations(keyToLocation(destinationTileId), ship);
 
         // FIXME: we need to handle concurrent animations for multi-hull ships
-
-        const result = gameEngine.commit.moveShip({
-            type: ActionTypes.MOVE,
+        const moveAction = new MoveShipActionCreator(player, gsm.getCurrentRound()).create({
             shipId,
-            playerId,
             hullLocations: newLocations,
+            playerId,
             commandPointCost: movementCost,
         });
 
+        const result = gameEngine.commit.moveShip(moveAction);
+
         if (result.type === ResultType.ERROR) return;
 
-        gsm.updateHulls(result.hulls);
-        gsm.updatePlayer(result.player);
-        gsm.updateShip(result.ship);
+        gsm.updateHulls(result.hulls).updateShip(result.ship).updatePlayer(result.player).addAction(moveAction);
 
         this.executeMoveShipAnimation(result.ship, oldLocations);
 

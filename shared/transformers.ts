@@ -70,8 +70,8 @@ export const transformAppStateToPlain = (appState: IAppState): IPlainAppState =>
 export const transformPlainAppStateToDomain = (appState: Partial<IPlainAppState>): IAppState => {
     const { gameState } = appState;
     return {
-        status: appState.status ?? "Initialising",
-        loading: appState.loading ?? false,
+        status: appState.status,
+        loading: appState.loading,
         currentPlayer: appState.currentPlayer,
         ...(gameState ? { gameState: transformPlainGameStateToDomain(gameState) } : ({} as any)),
     };

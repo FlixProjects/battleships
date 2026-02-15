@@ -46,7 +46,12 @@ export class SubmitMoveButton extends HTMLButton {
         try {
             this.setDisabled(true);
             const { gameState, gameStateForLocal } = await submitAction(gameManager.getPlayer().pendingActions);
-            const newState = transformPlainAppStateToDomain({ loading: false, gameState });
+            const newState = transformPlainAppStateToDomain({
+                status: AppStatus.Initialised, // TODO: eventually use a proper status
+                loading: false,
+                gameState,
+            });
+
             if (isLocal && !!gameState) {
                 // DO NOT DELETE: this item simulates Object in S3
                 sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameStateForLocal));
