@@ -8,7 +8,7 @@ import {
     ICellLoc,
     TColor,
     TILE_GAP_PX,
-    TILE_SIZE_PX
+    TILE_SIZE_PX,
 } from "../../shared";
 import { getGame } from "../apis/get-game";
 import { BaseComponent } from "../components/BaseComponent";
@@ -121,4 +121,10 @@ export const getElementsFromIds = (ids: string[]) => {
         .map((el) => ({ el, rect: el.getBoundingClientRect() }));
 
     return elements;
+};
+
+export const isWaitingForOtherPlayer = (gameState: { players: { id: string; ready: boolean }[] }) => {
+    const playerId = gameManager.getCurrentPlayerId();
+    const isWaitingForOtherPlayer = gameState.players.find((p) => p.id === playerId).ready;
+    return isWaitingForOtherPlayer;
 };

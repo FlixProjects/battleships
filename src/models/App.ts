@@ -4,7 +4,7 @@ import { transformPlainAppStateToDomain } from "../../shared/transformers";
 import { getGame } from "../apis/get-game";
 import { updateComponents } from "../components/component-helper";
 import { deleteAuthCookie, getCookie } from "../utils/cookie-helper";
-import { getGameCode, removeGameCode } from "../utils/game-helper";
+import { getGameCode, isWaitingForOtherPlayer, removeGameCode } from "../utils/game-helper";
 
 export class App {
     private _state: IAppState = DEFAULT_APP_STATE;
@@ -40,7 +40,11 @@ export class App {
             const response = await getGame(getGameCode());
             console.log("Existing game found:", response);
             const newState = transformPlainAppStateToDomain({
-                status: response?.gameState.isOver ? AppStatus.GameOver : AppStatus.Initialised,
+                status: response?.gameState.isOver
+                    ? AppStatus.GameOver
+                    : isWaitingForOtherPlayer(gameManager.state.gameState)
+                      ? AppStatus.WaitingForOtherPlayer
+                      : AppStatus.ReadyToSubmit,
                 loading: false,
                 gameState: response?.gameState,
             });

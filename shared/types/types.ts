@@ -47,6 +47,8 @@ export const AppStatus = {
     Initialised: "Initialised",
     Error: "Error",
     WaitingForPlayers: "WaitingForPlayers",
+    WaitingForOtherPlayer: "WaitingForOtherPlayer",
+    ReadyToSubmit: "ReadyToSubmit",
     GameOver: "GameOver",
 } as const;
 

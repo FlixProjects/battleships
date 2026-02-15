@@ -3,6 +3,7 @@ import { AppStatus, FP_GAME_STATE } from "../../../shared";
 import { transformPlainAppStateToDomain } from "../../../shared/transformers";
 import { submitAction } from "../../apis/submit-action";
 import { isLocal } from "../../config/app-config";
+import { isWaitingForOtherPlayer } from "../../utils/game-helper";
 import { updateComponents } from "../component-helper";
 import { HTMLButton } from "../native/Button";
 
@@ -46,8 +47,9 @@ export class SubmitMoveButton extends HTMLButton {
         try {
             this.setDisabled(true);
             const { gameState, gameStateForLocal } = await submitAction(gameManager.getPlayer().pendingActions);
+
             const newState = transformPlainAppStateToDomain({
-                status: AppStatus.Initialised, // TODO: eventually use a proper status
+                status: isWaitingForOtherPlayer(gameState) ? AppStatus.WaitingForOtherPlayer : AppStatus.ReadyToSubmit,
                 loading: false,
                 gameState,
             });

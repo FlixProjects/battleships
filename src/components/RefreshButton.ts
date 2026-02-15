@@ -35,6 +35,8 @@ export class RefreshButton extends HTMLButton {
         switch (status) {
             case AppStatus.Initialised:
             case AppStatus.WaitingForPlayers:
+            case AppStatus.WaitingForOtherPlayer:
+            case AppStatus.ReadyToSubmit:
                 this.ref.disabled = false;
                 break;
             default:
