@@ -1,6 +1,4 @@
-import { v7 as uuidv7 } from "uuid";
 import {
-    ActionTypes,
     BOARD_COLUMNS,
     BOARD_ROWS,
     GameStateManager,
@@ -25,13 +23,6 @@ import {
     PathHelper,
     ResultType,
 } from "..";
-
-type TCommitDeployShipParams = Pick<IDeployAction, "shipId" | "playerId" | "hullLocations" | "commandPointCost">;
-type TCommitMoveShipParams = Pick<IMoveAction, "type" | "shipId" | "playerId" | "hullLocations" | "commandPointCost">;
-type TCommitAttackShipParams = Pick<
-    IShipAttackAction,
-    "type" | "shipId" | "playerId" | "commandPointCost" | "attackLocations"
->;
 
 // TODO: migrate to a more signal based approach
 // GameEngine receives commands/signals from UI and updates the GameManager state
@@ -68,7 +59,7 @@ export class GameEngine {
                 }
                 return { ...results, type: ResultType.ERROR };
             },
-            shipAttack: (action: TCommitAttackShipParams): IAttackResult | IErrorResult<any> => {
+            shipAttack: (action: IShipAttackAction): IAttackResult | IErrorResult<any> => {
                 // TODO: validate
                 return this.commitAttack(action);
             },
@@ -126,7 +117,7 @@ export class GameEngine {
         };
     }
 
-    public validateDeployShip(deployAction: TCommitDeployShipParams): IResult {
+    public validateDeployShip(deployAction: IDeployAction): IResult {
         const { playerId, hullLocations: newHullLocations } = deployAction;
         const newState = { ...this.gameState };
 
@@ -200,7 +191,7 @@ export class GameEngine {
         };
     }
 
-    public calculateMoveShip(action: TCommitMoveShipParams) {
+    public calculateMoveShip(action: IMoveAction) {
         const { shipId, playerId, hullLocations: newLocation, commandPointCost } = action;
         const player = this.gsm.getPlayer(playerId);
 
@@ -213,12 +204,13 @@ export class GameEngine {
         return { player, ship };
     }
 
-    public validateMoveShip(moveAction: TCommitMoveShipParams): IResult {
+    public validateMoveShip(moveAction: IMoveAction): IResult {
         const { playerId, shipId, hullLocations: newLocation } = moveAction;
-        const player = this.getPlayer(playerId);
-        const ship = player.ships.find((s) => s.id === shipId);
 
-        if (!ship?.deployed || !ship.hulls?.[0]) {
+        const ship = this.gsm.gameState.ships.find((s) => s.id === shipId);
+        const shipHulls = this.gsm.gameState.hulls.filter((h) => h.shipId === shipId);
+
+        if (!ship?.deployed || !shipHulls?.[0]) {
             return { type: ResultType.ERROR, playerId };
         }
 
@@ -272,63 +264,61 @@ export class GameEngine {
         };
     }
 
-    private commitAttack(action: TCommitAttackShipParams) {
-        const { attackLocations, playerId, shipId } = action;
-        const attackingShip = this.getShip(playerId, shipId);
-        const { attackCommandPointCost } = attackingShip;
-        const player = this.gsm.getPlayer(playerId);
-        const attackAction: IShipAttackAction = {
-            id: uuidv7(),
-            round: this.gsm.getCurrentRound(),
-            order: player.pendingActions.length,
-            type: ActionTypes.ATTACK,
-            shipId,
-            attackLocations,
-            playerId,
-            commandPointCost: attackCommandPointCost,
-        };
+    private commitAttack(action: IShipAttackAction) {
+        const { playerId } = action;
 
         // update for frontend
-        const { players, shipsHit } = this.calculateAttackResult(action);
+        const { players, ships, hulls, shipsHit } = this.calculateAttackResult(action);
 
         // load actions for eventual submission
         const thisPlayerIndex = players.findIndex((p) => p.id === playerId);
-        players[thisPlayerIndex].pendingActions = [...players[thisPlayerIndex].pendingActions, attackAction];
+        players[thisPlayerIndex].pendingActions = [...players[thisPlayerIndex].pendingActions, action];
 
         return {
             type: ResultType.SUCCESS,
             playerId,
             players,
             shipsHit,
+            ships,
+            hulls,
         };
     }
 
-    public calculateAttackResult(action: TCommitAttackShipParams) {
+    public calculateAttackResult(action: IShipAttackAction) {
+        const ships = this.gsm.gameState.ships;
+        const hulls = this.gsm.gameState.hulls;
         const { attackLocations, playerId, shipId } = action;
-        const attackingShip = this.getShip(playerId, shipId);
-        const { attackCommandPointCost, attackDamage } = attackingShip;
 
         const player = { ...this.getPlayer(playerId) };
         const playerIndex = this.getPlayerIndex(playerId);
-        const otherPlayer = { ...this.getOtherPlayer(playerId) };
-        const otherPlayerShips = otherPlayer.ships;
+
+        const attackingShip = ships.find((s) => s.id === shipId);
+
+        const { attackCommandPointCost, attackDamage } = attackingShip;
+
+        const otherPlayer = this.getOtherPlayer(playerId);
+        const otherPlayerShips = ships.filter((s) => s.playerId === otherPlayer.id);
+
+        // shipId to hullIds
         const shipsHit: Record<string, string[]> = {};
+
+        hulls.forEach((hull) => {
+            if (attackLocations.some((loc) => locationToKey(loc) === locationToKey(hull.location))) {
+                shipsHit[hull.shipId] = shipsHit[hull.shipId] || [];
+                shipsHit[hull.shipId].push(hull.id);
+                hull.remainingHealth -= attackDamage;
+                if (hull.remainingHealth <= 0) {
+                    hull.destroyed = true;
+                }
+            }
+        });
 
         otherPlayerShips?.forEach((ship) => {
             if (!ship.hulls) {
                 return;
             }
 
-            ship.hulls.forEach((hull) => {
-                if (attackLocations.some((loc) => locationToKey(loc) === locationToKey(hull.location))) {
-                    shipsHit[ship.id] = shipsHit[ship.id] || [];
-                    shipsHit[ship.id].push(hull.id);
-                    hull.remainingHealth -= attackDamage;
-                    if (hull.remainingHealth <= 0) {
-                        hull.destroyed = true;
-                    }
-                }
-            });
+            ship.hulls = hulls.filter((h) => h.shipId === ship.id);
 
             const destroyedHulls = ship.hulls.filter((hull) => hull.destroyed);
 
@@ -337,11 +327,14 @@ export class GameEngine {
             }
         });
 
-        player.commandPoints -= attackCommandPointCost;
         attackingShip.remainingAttacks -= 1;
+
+        player.commandPoints -= attackCommandPointCost;
 
         return {
             type: ResultType.SUCCESS,
+            hulls,
+            ships,
             players: playerIndex === 0 ? [player, otherPlayer] : [otherPlayer, player],
             shipsHit,
         };

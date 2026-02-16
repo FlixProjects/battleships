@@ -66,3 +66,7 @@ export interface IGetValidAttackCellsAction {
     playerId: string;
     shipId: string;
 }
+
+export type TCommitDeployShipParams = Pick<IDeployAction, "shipId" | "hullLocations" | "commandPointCost">;
+export type TCommitMoveShipParams = Pick<IMoveAction, "shipId" | "hullLocations" | "commandPointCost">;
+export type TCommitAttackShipParams = Pick<IShipAttackAction, "shipId" | "commandPointCost" | "attackLocations">;

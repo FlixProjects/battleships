@@ -134,13 +134,13 @@ export class ActionResolver {
     }
 
     public resolveAttack(action: IShipAttackAction) {
-        const newState = { ...this.gameState };
-        const gameEngine = new GameEngine(newState);
+        const gsm = new GameStateManager(this.gameState);
+        const gameEngine = new GameEngine(this.gameState);
 
         // TODO: change to commit with validation
-        const { players } = gameEngine.calculateAttackResult(action);
+        const { players, ships, hulls } = gameEngine.calculateAttackResult(action);
+        const newState = gsm.updateHulls(hulls).updateShips(ships).updatePlayers(players).addAction(action).gameState;
 
-        newState.players = players;
         return newState;
     }
 

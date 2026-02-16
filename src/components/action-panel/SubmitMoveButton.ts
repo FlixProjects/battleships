@@ -63,6 +63,7 @@ export class SubmitMoveButton extends HTMLButton {
 
             updateComponents();
         } catch (error) {
+            console.log("[Error] Submission failed", error);
             this.setDisabled(false);
             updateComponents({ status: AppStatus.Error });
         }

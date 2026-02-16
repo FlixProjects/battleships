@@ -45,4 +45,6 @@ export interface IAttackResult extends IResult {
     type: typeof ResultType.SUCCESS;
     players: IPlayer[];
     shipsHit: Record<string, string[]>;
+    ships: IShip[];
+    hulls: IHull[];
 }

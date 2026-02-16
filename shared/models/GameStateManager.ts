@@ -49,8 +49,18 @@ export class GameStateManager {
         return this;
     }
 
+    updatePlayers(players: Partial<IPlayer>[]) {
+        players.forEach((p) => this.updatePlayer(p));
+        return this;
+    }
+
     updateShip(ship: Partial<IShip>) {
         this._gameState = this.gameState.updateShip(ship);
+        return this;
+    }
+
+    updateShips(ships: Partial<IShip>[]) {
+        ships.forEach((ship) => this.updateShip(ship));
         return this;
     }
 

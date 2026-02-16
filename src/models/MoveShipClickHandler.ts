@@ -80,7 +80,6 @@ export class MoveShipClickHandler extends ClickHandler {
         const moveAction = new MoveShipActionCreator(player, gsm.getCurrentRound()).create({
             shipId,
             hullLocations: newLocations,
-            playerId,
             commandPointCost: movementCost,
         });
 
