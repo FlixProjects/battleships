@@ -2,6 +2,7 @@ import { gameManager } from "..";
 import { GameStateManager, ICellLoc, ResultType } from "../../shared";
 import { DeployShipActionCreator } from "../../shared/models/ActionCreator";
 import { GameEngine } from "../../shared/models/GameEngine";
+import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
 import { getHull, keyToLocation, locationToKey } from "../../shared/utils/helpers";
 import { ClickHandler } from "./ClickHandler";
 import { DeployingShipIMEvent } from "./InteractionManager";
@@ -49,12 +50,12 @@ export class DeployShipClickHandler extends ClickHandler {
     }
 
     private handleDeployShipClick(tileId: string, shipId: string, onSuccessCb?: () => void) {
-        const gameEngine = new GameEngine(gameManager.state.gameState);
-        const gsm = new GameStateManager(gameManager.state.gameState);
+        const gameState = gameManager.state.gameState;
+        const gsm = new GameStateManager(gameState);
         const playerId = gameManager.getCurrentPlayerId();
         const player = gsm.getPlayer(playerId);
 
-        const { commandPointCost, hullTemplates } = player.getShip(shipId); // getShipFromPlayer(player, shipId);
+        const { commandPointCost, hullTemplates } = gsm.getShip(shipId);
 
         // FIXME: only single location for now
         const committedHullLocations = hullTemplates.map((template) => {
@@ -68,15 +69,7 @@ export class DeployShipClickHandler extends ClickHandler {
             hullLocations: committedHullLocations,
         });
 
-        const result = gameEngine.commit.deployShip(deployAction);
-
-        if (result.type === ResultType.ERROR) return;
-
-        const newGameState = gsm
-            .addHulls(result.hulls)
-            .updateShip(result.ship)
-            .updatePlayer(result.player)
-            .addAction(deployAction).gameState;
+        const newGameState = new ActionResolver(playerId, gameState).resolveDeploy(deployAction);
 
         gameManager.saveCurrentPlayerStateV2({ gameState: newGameState }, { skipResolve: true });
 

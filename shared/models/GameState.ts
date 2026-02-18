@@ -17,6 +17,7 @@ export class GameState implements IGameState {
     isOver: boolean;
     actions?: IPlayerAction[];
 
+    // FIXME: there is issue when GameState is being passes in as a class already
     constructor(props: Readonly<IGameState>) {
         const { code, initiative, players, board, winners, isOver, ships, hulls, currentRound, actions } = props;
         this.code = code;
