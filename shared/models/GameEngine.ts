@@ -345,7 +345,7 @@ export class GameEngine {
         const losers = new Set();
 
         try {
-            const flagships = gameState.players.flatMap((p) => p.ships).filter((s) => s.isFlagship);
+            const flagships = gameState.ships.filter((s) => s.isFlagship);
 
             flagships.forEach((fs) => {
                 if (fs.destroyed) {
