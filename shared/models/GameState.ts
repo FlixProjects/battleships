@@ -146,11 +146,16 @@ export class GameState implements IGameState {
     }
 
     removeInvisibleFromPlayer(visibleTiles: Set<string>, playerId: string) {
+        // TODO: we should be able to achieve this without linking.
+        this.linkShipHulls().linkPlayerShips();
         this.players = this.players.map((p) => (p.id !== playerId ? p.updateVisibility(visibleTiles) : p));
+
+        this.linkPlayerShips({ reverse: true }).linkShipHulls({ reverse: true });
         return clone(this);
     }
 
     getVisibleTilesforPlayer(playerId: string) {
+        this.linkShipHulls();
         const visibilityFromShips = mergeSets(
             this.ships.filter((s) => s.playerId === playerId).map((s) => s.getVisibleTiles()),
         );
@@ -158,5 +163,29 @@ export class GameState implements IGameState {
         const visibleTilesForPlayer = mergeSets([visibilityFromShips]);
 
         return visibleTilesForPlayer;
+    }
+
+    linkPlayerShips(options: { reverse?: boolean } = {}) {
+        if (options.reverse) {
+            this.ships = this.players.flatMap((p) => p.ships);
+            return this;
+        }
+
+        this.players.forEach((p) => {
+            p.ships = this.ships.filter((s) => s.playerId === p.id);
+        });
+        return this;
+    }
+
+    linkShipHulls(options: { reverse?: boolean } = {}) {
+        if (options.reverse) {
+            this.hulls = this.ships.flatMap((s) => s.hulls);
+            return this;
+        }
+
+        this.ships.forEach((s) => {
+            s.hulls = this.hulls.filter((h) => h.shipId === s.id);
+        });
+        return this;
     }
 }
