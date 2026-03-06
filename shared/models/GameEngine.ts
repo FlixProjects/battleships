@@ -306,10 +306,8 @@ export class GameEngine {
             if (attackLocations.some((loc) => locationToKey(loc) === locationToKey(hull.location))) {
                 shipsHit[hull.shipId] = shipsHit[hull.shipId] || [];
                 shipsHit[hull.shipId].push(hull.id);
-                hull.remainingHealth -= attackDamage;
-                if (hull.remainingHealth <= 0) {
-                    hull.destroyed = true;
-                }
+
+                hull.getDamaged(attackDamage);
             }
         });
 

@@ -30,4 +30,12 @@ export class Hull implements IHull {
         this.isVisible = visibleTiles.has(locationToKey(this.location));
         return this.isVisible;
     }
+
+    getDamaged(incomingDamage: number) {
+        this.remainingHealth -= incomingDamage;
+        if (this.remainingHealth <= 0) {
+            this.destroyed = true;
+            this.remainingHealth = 0;
+        }
+    }
 }
