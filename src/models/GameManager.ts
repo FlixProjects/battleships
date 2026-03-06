@@ -148,4 +148,10 @@ export class GameManager {
     private savePlayerStates() {
         sessionStorage.setItem(FP_PLAYER_STATES, JSON.stringify(this.playerGameStates));
     }
+
+    // only for local
+    public clearPlayerStates() {
+        sessionStorage.removeItem(FP_PLAYER_STATES);
+        this.playerGameStates = {};
+    }
 }
