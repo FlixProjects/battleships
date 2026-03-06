@@ -110,4 +110,19 @@ export class Ship implements IShip {
         });
         return this;
     }
+
+    resolveDestroyed() {
+        if (!this.hulls || this.hulls.length === 0 || !this.deployed || this.destroyed) return this;
+
+        // non-zero no. of hulls
+        if (this.hulls.every((h) => h.destroyed)) {
+            this.destroyed = true;
+        }
+        return this;
+    }
+
+    resolveAttack() {
+        this.remainingAttacks -= 1;
+        return this;
+    }
 }

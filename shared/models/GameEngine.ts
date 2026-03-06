@@ -297,7 +297,6 @@ export class GameEngine {
         const { attackCommandPointCost, attackDamage } = attackingShip;
 
         const otherPlayer = this.getOtherPlayer(playerId);
-        const otherPlayerShips = ships.filter((s) => s.playerId === otherPlayer.id);
 
         // shipId to hullIds
         const shipsHit: Record<string, string[]> = {};
@@ -311,21 +310,11 @@ export class GameEngine {
             }
         });
 
-        otherPlayerShips?.forEach((ship) => {
-            if (!ship.hulls) {
-                return;
-            }
-
-            ship.hulls = hulls.filter((h) => h.shipId === ship.id);
-
-            const destroyedHulls = ship.hulls.filter((hull) => hull.destroyed);
-
-            if (destroyedHulls.length === ship.hulls.length) {
-                ship.destroyed = true;
-            }
+        ships.forEach((ship) => {
+            ship.resolveDestroyed();
         });
 
-        attackingShip.remainingAttacks -= 1;
+        attackingShip.resolveAttack();
 
         player.commandPoints -= attackCommandPointCost;
 
