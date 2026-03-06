@@ -1,9 +1,6 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import {
-    IPlainGameState,
-    createNewGameState
-} from "../../shared";
+import { IPlainGameState, createNewGameState, generateGameCode } from "../../shared";
 
 interface CreateGameResponse {
     statusCode: number;
@@ -91,11 +88,4 @@ export const handler = async (event: any) => {
             }),
         };
     }
-};
-
-const generateGameCode = () => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    return Array.from({ length: 4 })
-        .map(() => chars[Math.floor(Math.random() * chars.length)])
-        .join("");
 };

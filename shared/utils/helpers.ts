@@ -41,6 +41,14 @@ export const mergeSets = <T>(sets: Set<T>[]) => {
     return new Set(arr);
 };
 
+export const generateGameCode = () => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    return Array.from({ length: 4 })
+        .map(() => chars[Math.floor(Math.random() * chars.length)])
+        .join("");
+};
+
+
 export const getNewCell = (cellLoc: ICellLoc): Cell =>
     new Cell({
         loc: cellLoc,
