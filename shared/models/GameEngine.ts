@@ -20,6 +20,7 @@ import {
     IShipAttackAction,
     LocationHelper,
     locationToKey,
+    MoveShipValidator,
     PathHelper,
     ResultType,
 } from "..";
@@ -45,21 +46,21 @@ export class GameEngine {
 
     get commit() {
         return {
-            deployShip: (action: IDeployAction): IDeployResult | IErrorResult<any> => {
+            deployShip: (action: IDeployAction): IDeployResult | IErrorResult => {
                 const results = this.validateDeployShip(action);
                 if (results.type === ResultType.SUCCESS) {
                     return this.commitDeployShip(action);
                 }
                 return { ...results, type: ResultType.ERROR }; // TODO: better handle typing
             },
-            moveShip: (action: IMoveAction): IMoveResult | IErrorResult<any> => {
+            moveShip: (action: IMoveAction): IMoveResult | IErrorResult => {
                 const results = this.validateMoveShip(action);
                 if (results.type === ResultType.SUCCESS) {
                     return this.commitMoveShip(action);
                 }
                 return { ...results, type: ResultType.ERROR };
             },
-            shipAttack: (action: IShipAttackAction): IAttackResult | IErrorResult<any> => {
+            shipAttack: (action: IShipAttackAction): IAttackResult | IErrorResult => {
                 // TODO: validate
                 return this.commitAttack(action);
             },
@@ -205,41 +206,7 @@ export class GameEngine {
     }
 
     public validateMoveShip(moveAction: IMoveAction): IResult {
-        const { playerId, shipId, hullLocations: newLocation } = moveAction;
-
-        const ship = this.gsm.gameState.ships.find((s) => s.id === shipId);
-        const shipHulls = this.gsm.gameState.hulls.filter((h) => h.shipId === shipId);
-
-        if (!ship?.deployed || !shipHulls?.[0]) {
-            return { type: ResultType.ERROR, playerId };
-        }
-
-        const currentLoc = ship.hulls[0].location;
-        const movementRange = ship.movementRange || 0;
-
-        // Exclude current ship from occupied cells check
-        const players = this.gameState.players.map((p) => ({
-            ...p,
-            ships: p.ships.map((s) => (s.id === shipId ? { ...s, hulls: [] } : s)),
-        }));
-
-        const locationHelper = new LocationHelper(players);
-        const reachableCells = this.pathHelper.getReachableCells({
-            start: currentLoc,
-            range: movementRange,
-            filterFn: (loc: ICellLoc) => !locationHelper.isLocationOccupied(loc),
-        });
-
-        const reachableCellsKeys = reachableCells.map((loc) => locationToKey(loc));
-        const newLocationKeys = newLocation.map((hullLoc) => locationToKey(hullLoc.location));
-
-        const isReachable = newLocationKeys.every((newLoc) => reachableCellsKeys.includes(newLoc));
-
-        if (!isReachable) {
-            return { type: ResultType.ERROR, playerId };
-        }
-
-        return { type: ResultType.SUCCESS, playerId };
+        return new MoveShipValidator(this.gameState, moveAction).validate();
     }
 
     private primeAttack(action: IGetValidAttackCellsAction) {

@@ -1,8 +1,9 @@
 import { ICellLoc, IPlayer } from "../types/types";
 
 export class LocationHelper {
-    private occupiedCells: ICellLoc[] = [];
+    public occupiedCells: ICellLoc[] = [];
     constructor(players: IPlayer[]) {
+        // TODO: this should use gameState
         this.occupiedCells = this.getOccupiedCells(players);
     }
 
@@ -28,7 +29,7 @@ export class LocationHelper {
         return false;
     }
 
-    public getOccupiedCells(players: IPlayer[]) {
+    private getOccupiedCells(players: IPlayer[]) {
         const occuipiedLocations: ICellLoc[] = players.flatMap((p) =>
             p.ships.filter((s) => !s.destroyed).flatMap((s) => s.hulls?.map((h) => h.location) ?? []),
         );

@@ -9,6 +9,7 @@ import {
     IShipAttackAction,
     ResultType,
     GameStateManager,
+    ERROR_CODE,
 } from "../..";
 
 export class ActionResolver {
@@ -124,7 +125,17 @@ export class ActionResolver {
 
         const result = gameEngine.commit.moveShip(action);
         if (result.type === ResultType.ERROR) {
-            throw new Error("Cannot move ship here.");
+            const isNonSystemError =
+                // Ship's movement may have been reduced by earlier opponent's effect
+                result.errorCode === ERROR_CODE.MOVE_ERROR_INSUFFICIENT_MOVEMENT ||
+                // Destination may have become occupied by earlier opponent's turn
+                result.errorCode === ERROR_CODE.MOVE_ERROR_LOCATION_OCCUPIED;
+
+            if (isNonSystemError) {
+                return gsm.gameState;
+            }
+
+            throw new Error(result.message || "An error occurred while moving the ship");
         }
 
         const { player, ship, hulls } = result;
