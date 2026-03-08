@@ -1,6 +1,7 @@
 import clone from "lodash.clonedeep";
 import { Board, IGameState, IHull, IPlayer, IPlayerAction, IShip } from "../types";
 import { mergeSets } from "../utils";
+import { Entity } from "./Entity";
 import { Hull } from "./Hull";
 import { Player } from "./Player";
 import { Ship } from "./Ship";
@@ -73,12 +74,16 @@ export class GameState implements IGameState {
         return this;
     }
 
-    updatePlayer(player: Partial<IPlayer>) {
-        if (!player.id) return this;
-        const playerIndex = this.players.findIndex((p) => p.id === player.id);
-        if (playerIndex === -1) return this;
-        this.players[playerIndex] = new Player({ ...this.players[playerIndex], ...player });
+    updateEntity<T extends Entity<T>>(entity: Partial<T>, collection: T[], EntityClass: new (props: any) => T): this {
+        if (!entity.id) return this;
+        const index = collection.findIndex((e) => e.id === entity.id);
+        if (index === -1) return this;
+        collection[index] = new EntityClass({ ...collection[index], ...entity });
         return this;
+    }
+
+    updatePlayer(player: Partial<IPlayer>) {
+        return this.updateEntity(player, this.players, Player);
     }
 
     getPlayer(playerId: string): Player {
@@ -95,13 +100,7 @@ export class GameState implements IGameState {
     }
 
     updateShip(ship: Partial<IShip>) {
-        if (!ship.id) return this;
-
-        const shipIndex = this.ships.findIndex((s) => s.id === ship.id);
-        if (shipIndex === -1) return this;
-
-        this.ships[shipIndex] = new Ship({ ...this.ships[shipIndex], ...ship });
-        return this;
+        return this.updateEntity(ship, this.ships, Ship);
     }
 
     addHull(hull: IHull) {
@@ -117,13 +116,7 @@ export class GameState implements IGameState {
     }
 
     updateHull(hull: Partial<IHull>) {
-        if (!hull.id) return this;
-
-        const hullIndex = this.hulls.findIndex((h) => h.id === hull.id);
-        if (hullIndex === -1) return this;
-
-        this.hulls[hullIndex] = new Hull({ ...this.hulls[hullIndex], ...hull });
-        return this;
+        return this.updateEntity(hull, this.hulls, Hull);
     }
 
     addAction(action: IPlayerAction) {
