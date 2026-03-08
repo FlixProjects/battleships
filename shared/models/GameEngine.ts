@@ -254,16 +254,16 @@ export class GameEngine {
     public calculateAttackResult(action: IShipAttackAction) {
         const ships = this.gsm.gameState.ships;
         const hulls = this.gsm.gameState.hulls;
+        const players = this.gsm.gameState.players;
+
         const { attackLocations, playerId, shipId } = action;
 
-        const player = { ...this.getPlayer(playerId) };
         const playerIndex = this.getPlayerIndex(playerId);
 
         const attackingShip = ships.find((s) => s.id === shipId);
 
         const { attackCommandPointCost, attackDamage } = attackingShip;
 
-        const otherPlayer = this.getOtherPlayer(playerId);
 
         // shipId to hullIds
         const shipsHit: Record<string, string[]> = {};
@@ -283,13 +283,13 @@ export class GameEngine {
 
         attackingShip.resolveAttack();
 
-        player.commandPoints -= attackCommandPointCost;
+        players[playerIndex].commandPoints -= attackCommandPointCost;
 
         return {
             type: ResultType.SUCCESS,
             hulls,
             ships,
-            players: playerIndex === 0 ? [player, otherPlayer] : [otherPlayer, player],
+            players,
             shipsHit,
         };
     }
