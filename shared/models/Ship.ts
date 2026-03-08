@@ -1,7 +1,8 @@
 import { IHull, IHullTemplate, IShip, locationToKey, PathHelper } from "../../shared";
+import { Entity } from "./Entity";
 import { Hull } from "./Hull";
 
-export class Ship implements IShip {
+export class Ship extends Entity<Ship> implements IShip {
     id: string;
     playerId: string;
     refNo: string;
@@ -26,6 +27,7 @@ export class Ship implements IShip {
     isVisible: boolean;
 
     constructor(props: Readonly<IShip>) {
+        super();
         Object.assign(this, props);
         if (this.hulls) {
             this.hulls = props.hulls.map((hull) => {
@@ -35,12 +37,6 @@ export class Ship implements IShip {
                 return new Hull(hull);
             });
         }
-    }
-
-    update(ship: Partial<IShip>) {
-        if (!ship.id || ship.id !== this.id) return this;
-        Object.assign(this, ship);
-        return this;
     }
 
     updateHull(hull: Partial<IHull>) {

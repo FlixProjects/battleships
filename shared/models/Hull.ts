@@ -1,7 +1,8 @@
 import { ICellLoc, IHull } from "../types";
 import { locationToKey } from "../utils";
+import { Entity } from "./Entity";
 
-export class Hull implements IHull {
+export class Hull extends Entity<Hull> implements IHull {
     id: string;
     shipId: string; // ties the hull to the ship
     location: ICellLoc;
@@ -17,13 +18,8 @@ export class Hull implements IHull {
     isVisible: boolean;
 
     constructor(props: Readonly<IHull>) {
+        super();
         Object.assign(this, props);
-    }
-
-    update(hull: Partial<IHull>) {
-        if (hull.id && hull.id !== this.id) return this;
-        Object.assign(this, hull);
-        return this;
     }
 
     updateVisibility(visibleTiles: Set<string>) {

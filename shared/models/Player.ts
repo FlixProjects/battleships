@@ -1,7 +1,8 @@
-import { IPlayer, IPlayerAction, IShip } from "../types";
 import { Ship } from ".";
+import { IPlayer, IPlayerAction, IShip } from "../types";
+import { Entity } from "./Entity";
 
-export class Player implements IPlayer {
+export class Player extends Entity<Player> implements IPlayer {
     id: string;
     name: string;
     ready: boolean;
@@ -12,6 +13,7 @@ export class Player implements IPlayer {
     commandPoints: number;
 
     constructor(props: IPlayer) {
+        super();
         const { id, name, ready, ships, maxCommandPoints, commandPoints, pendingActions } = props;
         this.id = id;
         this.name = name;
@@ -38,12 +40,6 @@ export class Player implements IPlayer {
         const oldShip = this.getShip(ship.id);
         const newShip = new Ship({ ...oldShip, ...ship });
         this.ships[index] = newShip;
-        return this;
-    }
-
-    public update(player: Partial<IPlayer>) {
-        if (player.id && player.id !== this.id) return this;
-        Object.assign(this, player);
         return this;
     }
 
