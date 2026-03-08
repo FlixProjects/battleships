@@ -41,17 +41,17 @@ export class ActionResolver {
     }
 
     public resolveTurn() {
-        const [firstPlayerAction, secondPlayerAction] = this.resolveIntiative(
+        const [firstActionInTurn, secondActionInTurn] = this.resolveIntiative(
             this.player1Actions.shift(),
             this.player2Actions.shift(),
             this.gameState.initiative,
         );
 
-        if (firstPlayerAction) {
-            this.currentTurn.push(firstPlayerAction);
+        if (firstActionInTurn) {
+            this.currentTurn.push(firstActionInTurn);
         }
-        if (secondPlayerAction) {
-            this.currentTurn.push(secondPlayerAction);
+        if (secondActionInTurn) {
+            this.currentTurn.push(secondActionInTurn);
         }
 
         this.currentTurn.forEach((action) => {
@@ -62,11 +62,15 @@ export class ActionResolver {
         this.currentTurn = [];
     }
 
-    private resolveIntiative(action1?: IPlayerAction, action2?: IPlayerAction, initiativePlayerId?: string) {
-        if (action1?.playerId === initiativePlayerId || !initiativePlayerId) {
-            return [action1, action2];
+    private resolveIntiative(
+        player1Action?: IPlayerAction,
+        player2Action?: IPlayerAction,
+        initiativePlayerId?: string,
+    ) {
+        if (player1Action?.playerId === initiativePlayerId || !initiativePlayerId) {
+            return [player1Action, player2Action];
         }
-        return [action2, action1];
+        return [player2Action, player1Action];
     }
 
     private resolveRotationOfInitiative() {
