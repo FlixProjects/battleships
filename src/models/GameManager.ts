@@ -67,7 +67,7 @@ export class GameManager {
 
         const newGameState = options?.skipResolve ? gameState : this.resolveLocalActions(gameState);
 
-        return this.savePlayerState(playerId, { ...state, gameState: newGameState }, _options);
+        return this.savePlayerState(playerId, mergician(state, { gameState: newGameState }), _options);
     }
 
     private resolveLocalActions(_gameState: IGameState): IGameState {

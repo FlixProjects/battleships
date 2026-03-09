@@ -1,4 +1,4 @@
-import { Ship } from ".";
+import { Action, Ship } from ".";
 import { IPlayer, IPlayerAction, IShip } from "../types";
 import { Entity } from "./Entity";
 
@@ -20,7 +20,13 @@ export class Player extends Entity<Player> implements IPlayer {
         this.ready = ready;
         this.commandPoints = commandPoints;
         this.maxCommandPoints = maxCommandPoints;
-        this.pendingActions = pendingActions ?? [];
+        this.pendingActions =
+            pendingActions?.map((action) => {
+                if (action instanceof Action) {
+                    return action;
+                }
+                return new Action(action);
+            }) ?? [];
 
         this.ships = ships.map((ship) => {
             if (ship instanceof Ship) {

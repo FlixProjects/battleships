@@ -1,6 +1,7 @@
 import clone from "lodash.clonedeep";
 import { Board, IGameState, IHull, IPlayer, IPlayerAction, IShip } from "../types";
 import { mergeSets } from "../utils";
+import { Action } from "./Action";
 import { Entity } from "./Entity";
 import { Hull } from "./Hull";
 import { Player } from "./Player";
@@ -16,7 +17,7 @@ export class GameState implements IGameState {
     board: Board;
     winners: string[];
     isOver: boolean;
-    actions?: IPlayerAction[];
+    actions?: Action[];
 
     // FIXME: there is issue when GameState is being passes in as a class already
     constructor(props: Readonly<IGameState>) {
@@ -27,7 +28,6 @@ export class GameState implements IGameState {
         this.winners = winners;
         this.isOver = isOver;
         this.currentRound = currentRound;
-        this.actions = actions;
 
         this.hulls =
             hulls?.map((hull) => {
@@ -46,6 +46,14 @@ export class GameState implements IGameState {
 
             return new Ship(ship);
         });
+
+        this.actions =
+            actions?.map((action) => {
+                if (action instanceof Action) {
+                    return action;
+                }
+                return new Action(action);
+            }) ?? [];
 
         this.players = players.map((player: IPlayer) => {
             if (player instanceof Player) {
@@ -125,18 +133,12 @@ export class GameState implements IGameState {
         if (actionIndex !== -1) {
             return this.updateAction(action);
         }
-        this.actions.push(action);
+        this.actions.push(action instanceof Action ? action : new Action(action));
         return this;
     }
 
     updateAction(action: Partial<IPlayerAction>) {
-        if (!action.id) return this;
-        const actionIndex = this.actions.findIndex((a) => a.id === action.id);
-        if (actionIndex === -1) {
-            return this;
-        }
-        this.actions[actionIndex] = { ...this.actions[actionIndex], ...action };
-        return this;
+        return this.updateEntity(action, this.actions, Action);
     }
 
     removeInvisibleFromPlayer(visibleTiles: Set<string>, playerId: string) {

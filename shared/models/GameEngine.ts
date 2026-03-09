@@ -105,7 +105,7 @@ export class GameEngine {
         if (!player.pendingActions.map((a) => a.id).includes(action.id)) {
             // PATCH: do not append again when resolving locally
             // FIXME: there should be a better way handle local resolution
-            player.pendingActions = [...player.pendingActions, action];
+            player.pendingActions.push(action);
         }
         player.commandPoints -= commandPointCost;
 
@@ -263,7 +263,6 @@ export class GameEngine {
         const attackingShip = ships.find((s) => s.id === shipId);
 
         const { attackCommandPointCost, attackDamage } = attackingShip;
-
 
         // shipId to hullIds
         const shipsHit: Record<string, string[]> = {};

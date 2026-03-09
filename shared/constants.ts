@@ -137,3 +137,11 @@ export const ASSET_PATHS = {
 
 export const ANIMATION_LAYER_ID = "gameBoardContainer";
 export const GAME_BOARD_ID = "gameBoard";
+
+export const ERROR_CODE = {
+    SYS_NOT_FOUND: "SYS_NOT_FOUND",
+    SYS_INVALID_PARAMS: "SYS_INVALID_PARAMS",
+    MOVE_ERROR_LOCATION_OCCUPIED: "MOVE_ERROR_LOCATION_OCCUPIED",
+    MOVE_ERROR_INSUFFICIENT_MOVEMENT: "MOVE_ERROR_INSUFFICIENT_MOVEMENT",
+} as const;
+export type TErrorCode = (typeof ERROR_CODE)[keyof typeof ERROR_CODE];
