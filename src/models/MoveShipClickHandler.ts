@@ -124,7 +124,7 @@ export class MoveShipClickHandler extends ClickHandler {
 
         animationManager.enqueue(moveShipAnimation, () => {
             gameBoard.removeFromAnimatingMap(shipId);
-            gameBoard.renderShip(ship, playerId === gameManager.firstPlayerId);
+            gameBoard.renderShip(ship, ship.hulls, playerId === gameManager.firstPlayerId);
         });
         animationManager.play();
     }

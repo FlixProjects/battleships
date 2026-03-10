@@ -8,6 +8,7 @@ import {
     GameStateManager,
     IAppState,
     ICellLoc,
+    IHull,
     IShip,
     locationToKey,
     TILE_GAP_PX,
@@ -113,18 +114,19 @@ export class GameBoard extends BaseComponent {
     private renderPlayersShips() {
         const gameState = new GameStateManager(gameManager.state.gameState).gameState;
         if (!gameState) return;
-        gameState.ships
-            ?.filter((s) => s.deployed && !s.destroyed)
-            .forEach((s) => {
-                this.renderShip(s, gameManager.firstPlayerId === s.playerId);
-            });
+        const shipsToRender = gameState.ships?.filter((s) => s.deployed && !s.destroyed);
+
+        shipsToRender.forEach((ship) => {
+            const hulls = gameState.hulls.filter((h) => h.shipId === ship.id);
+            this.renderShip(ship, hulls, gameManager.firstPlayerId === ship.playerId);
+        });
     }
 
-    public renderShip(ship: IShip, isFirstPlayer = true) {
+    public renderShip(ship: IShip, hulls: IHull[], isFirstPlayer = true) {
         if (this.elementsCurrentlyAnimatingMap.has(ship.id)) {
             return;
         }
-        const tiles = ship.hulls?.map((hull) => {
+        const tiles = hulls?.map((hull) => {
             return { key: locationToKey(hull.location) };
         });
 
