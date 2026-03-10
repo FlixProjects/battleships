@@ -277,6 +277,7 @@ export class GameEngine {
         });
 
         ships.forEach((ship) => {
+            ship.hulls = hulls.filter((h) => h.shipId === ship.id);
             ship.resolveDestroyed();
         });
 
