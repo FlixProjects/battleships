@@ -186,6 +186,6 @@ export class GameState implements IGameState {
     }
 
     getFirstPlayerId() {
-        return this.players[0]?.id;
+        return this.players.find((p) => p.order === 0)?.id;
     }
 }
