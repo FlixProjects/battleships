@@ -5,6 +5,7 @@ import { Entity } from "./Entity";
 export class Player extends Entity<Player> implements IPlayer {
     id: string;
     name: string;
+    order: number;
     ready: boolean;
     shipIds: string[];
     ships?: Ship[];
@@ -14,9 +15,10 @@ export class Player extends Entity<Player> implements IPlayer {
 
     constructor(props: IPlayer) {
         super();
-        const { id, name, ready, ships, maxCommandPoints, commandPoints, pendingActions } = props;
+        const { id, name, order, ready, ships, maxCommandPoints, commandPoints, pendingActions } = props;
         this.id = id;
         this.name = name;
+        this.order = order;
         this.ready = ready;
         this.commandPoints = commandPoints;
         this.maxCommandPoints = maxCommandPoints;

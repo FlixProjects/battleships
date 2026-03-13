@@ -10,7 +10,16 @@ import {
     transformPlainGameStateToDomain,
     transformPlainShipToDomain,
 } from "../transformers";
-import { IShip, IPlayer, IGameState, IAppState, IPlainGameState, IPlainAppState, IHull, AppStatus } from "../types/types";
+import {
+    IShip,
+    IPlayer,
+    IGameState,
+    IAppState,
+    IPlainGameState,
+    IPlainAppState,
+    IHull,
+    AppStatus,
+} from "../types/types";
 
 describe("transformObjectToPlain", () => {
     it("transforms array properties to id arrays", () => {
@@ -79,6 +88,7 @@ describe("transformPlayerToPlain", () => {
         const player: IPlayer = {
             id: "player1",
             name: "Player 1",
+            order: 0,
             ready: true,
             maxCommandPoints: 10,
             commandPoints: 5,
@@ -110,9 +120,7 @@ describe("transformGameStateToPlain", () => {
         const gameState: IGameState = {
             code: "GAME123",
             currentRound: 1,
-            players: [
-                { id: "player1", ships: [{ id: "ship1", hulls: [] } as IShip], pendingActions: [] } as IPlayer,
-            ],
+            players: [{ id: "player1", ships: [{ id: "ship1", hulls: [] } as IShip], pendingActions: [] } as IPlayer],
             ships: [{ id: "ship1", hulls: [{ id: "hull1" } as IHull] } as IShip],
             hulls: [{ id: "hull1" } as IHull],
             winners: [],

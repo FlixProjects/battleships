@@ -9,6 +9,7 @@ describe("GameStateManager", () => {
             players: [{
                 id: "player1",
                 name: "Player 1",
+                order: 0,
                 ready: false,
                 commandPoints: 2,
                 maxCommandPoints: 2,
@@ -54,6 +55,7 @@ describe("GameStateManager", () => {
                 {
                     id: "player1",
                     name: "Player 1",
+                    order: 0,
                     ready: false,
                     commandPoints: 2,
                     maxCommandPoints: 2,
@@ -61,6 +63,7 @@ describe("GameStateManager", () => {
                 {
                     id: "player2",
                     name: "Player 2",
+                    order: 1,
                     ready: false,
                     commandPoints: 2,
                     maxCommandPoints: 2,
@@ -103,6 +106,7 @@ describe("GameStateManager", () => {
                 {
                     id: "player1",
                     name: "Player 1",
+                    order: 0,
                     ready: false,
                     commandPoints: 2,
                     maxCommandPoints: 2,
@@ -110,6 +114,7 @@ describe("GameStateManager", () => {
                 {
                     id: "player2",
                     name: "Player 2",
+                    order: 1,
                     ready: false,
                     commandPoints: 2,
                     maxCommandPoints: 2,

@@ -89,18 +89,20 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [{
-                    id: "hull1",
-                    shipId: "ship1",
-                    location: [2, 1],
-                    visionRange: 2,
-                    remainingHealth: 1,
-                    remainingArmor: 0,
-                    destroyed: false,
-                    templateLocation: [0, 0],
-                    maxHealth: 1,
-                    armor: 0,
-                }],
+                hullLocations: [
+                    {
+                        id: "hull1",
+                        shipId: "ship1",
+                        location: [2, 1],
+                        visionRange: 2,
+                        remainingHealth: 1,
+                        remainingArmor: 0,
+                        destroyed: false,
+                        templateLocation: [0, 0],
+                        maxHealth: 1,
+                        armor: 0,
+                    },
+                ],
             };
 
             // Setup: Create player1's attack action (fire at [0, 0])
@@ -124,24 +126,27 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [{
-                    id: "hull2",
-                    shipId: "ship2",
-                    location: [0, 0],
-                    visionRange: 2,
-                    remainingHealth: 1,
-                    remainingArmor: 0,
-                    destroyed: false,
-                    templateLocation: [0, 0],
-                    maxHealth: 1,
-                    armor: 0,
-                }],
+                hullLocations: [
+                    {
+                        id: "hull2",
+                        shipId: "ship2",
+                        location: [0, 0],
+                        visionRange: 2,
+                        remainingHealth: 1,
+                        remainingArmor: 0,
+                        destroyed: false,
+                        templateLocation: [0, 0],
+                        maxHealth: 1,
+                        armor: 0,
+                    },
+                ],
             };
 
             // Setup: Create players
             const player1 = new Player({
                 id: "player1",
                 name: "Player 1",
+                order: 0,
                 ready: true,
                 commandPoints: 10,
                 maxCommandPoints: 10,
@@ -152,6 +157,7 @@ describe("ActionResolver", () => {
             const player2 = new Player({
                 id: "player2",
                 name: "Player 2",
+                order: 1,
                 ready: true,
                 commandPoints: 10,
                 maxCommandPoints: 10,
@@ -176,25 +182,25 @@ describe("ActionResolver", () => {
             const result = resolver.resolve();
 
             // Assert: Player1's move action was executed correctly
-            const player1HullAfter = result.gameState.hulls?.find(h => h.id === "hull1");
+            const player1HullAfter = result.gameState.hulls?.find((h) => h.id === "hull1");
             expect(player1HullAfter?.location).toEqual([2, 1]);
 
             // Assert: Player2's hull should be destroyed after being hit by attack
-            const player2HullAfter = result.gameState.hulls?.find(h => h.id === "hull2");
+            const player2HullAfter = result.gameState.hulls?.find((h) => h.id === "hull2");
             expect(player2HullAfter?.destroyed).toBe(true);
             expect(player2HullAfter?.remainingHealth).toBe(0);
 
             // Assert: Player2's ship location should be at [0, 0] after move
-            const player2HullLocationAfter = result.gameState.hulls?.find(h => h.id === "hull2")?.location;
+            const player2HullLocationAfter = result.gameState.hulls?.find((h) => h.id === "hull2")?.location;
             expect(player2HullLocationAfter).toEqual([0, 0]);
 
             // Assert: Player2's ship should be destroyed
-            const player2ShipAfter = result.gameState.ships.find(s => s.id === "ship2");
+            const player2ShipAfter = result.gameState.ships.find((s) => s.id === "ship2");
             expect(player2ShipAfter?.destroyed).toBe(true);
-            expect(player2ShipAfter?.hulls?.every(h => h.destroyed)).toBe(true);
+            expect(player2ShipAfter?.hulls?.every((h) => h.destroyed)).toBe(true);
 
             // Assert: Player1's ship should not be destroyed
-            const player1ShipAfter = result.gameState.ships.find(s => s.id === "ship1");
+            const player1ShipAfter = result.gameState.ships.find((s) => s.id === "ship1");
             expect(player1ShipAfter?.destroyed).toBe(false);
         });
 
@@ -224,6 +230,7 @@ describe("ActionResolver", () => {
             const player1 = new Player({
                 id: "player1",
                 name: "Player 1",
+                order: 0,
                 ready: true,
                 commandPoints: 10,
                 maxCommandPoints: 10,
@@ -234,6 +241,7 @@ describe("ActionResolver", () => {
             const player2 = new Player({
                 id: "player2",
                 name: "Player 2",
+                order: 1,
                 ready: true,
                 commandPoints: 10,
                 maxCommandPoints: 10,
@@ -253,7 +261,7 @@ describe("ActionResolver", () => {
             });
 
             const resolver = new ActionResolver("player1", gameState);
-            
+
             // Test that player1's action is resolved first
             const [first, second] = resolver["resolveIntiative"](moveAction1, moveAction2, "player1");
             expect(first?.playerId).toBe("player1");
@@ -286,6 +294,7 @@ describe("ActionResolver", () => {
             const player1 = new Player({
                 id: "player1",
                 name: "Player 1",
+                order: 0,
                 ready: true,
                 commandPoints: 10,
                 maxCommandPoints: 10,
@@ -296,6 +305,7 @@ describe("ActionResolver", () => {
             const player2 = new Player({
                 id: "player2",
                 name: "Player 2",
+                order: 1,
                 ready: true,
                 commandPoints: 10,
                 maxCommandPoints: 10,
