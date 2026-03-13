@@ -9,6 +9,7 @@ import {
     IShipAttackAction,
     ResultType,
     GameStateManager,
+    ERROR_CODE,
 } from "../..";
 
 export class ActionResolver {
@@ -21,8 +22,8 @@ export class ActionResolver {
         public playerId: string, // for the perspective the ActionResolver is resolving for
         public gameState: IGameState,
     ) {
-        this.player1Actions = gameState.players[0].pendingActions;
-        this.player2Actions = gameState.players[1].pendingActions;
+        this.player1Actions = [...gameState.players[0].pendingActions];
+        this.player2Actions = [...gameState.players[1].pendingActions];
     }
 
     public resolve() {
@@ -40,17 +41,17 @@ export class ActionResolver {
     }
 
     public resolveTurn() {
-        const [firstPlayerAction, secondPlayerAction] = this.resolveIntiative(
+        const [firstActionInTurn, secondActionInTurn] = this.resolveIntiative(
             this.player1Actions.shift(),
             this.player2Actions.shift(),
             this.gameState.initiative,
         );
 
-        if (firstPlayerAction) {
-            this.currentTurn.push(firstPlayerAction);
+        if (firstActionInTurn) {
+            this.currentTurn.push(firstActionInTurn);
         }
-        if (secondPlayerAction) {
-            this.currentTurn.push(secondPlayerAction);
+        if (secondActionInTurn) {
+            this.currentTurn.push(secondActionInTurn);
         }
 
         this.currentTurn.forEach((action) => {
@@ -61,11 +62,15 @@ export class ActionResolver {
         this.currentTurn = [];
     }
 
-    private resolveIntiative(action1?: IPlayerAction, action2?: IPlayerAction, initiativePlayerId?: string) {
-        if (action1?.playerId === initiativePlayerId || !initiativePlayerId) {
-            return [action1, action2];
+    private resolveIntiative(
+        player1Action?: IPlayerAction,
+        player2Action?: IPlayerAction,
+        initiativePlayerId?: string,
+    ) {
+        if (player1Action?.playerId === initiativePlayerId || !initiativePlayerId) {
+            return [player1Action, player2Action];
         }
-        return [action2, action1];
+        return [player2Action, player1Action];
     }
 
     private resolveRotationOfInitiative() {
@@ -102,7 +107,7 @@ export class ActionResolver {
     }
 
     public resolveDeploy(action: IDeployAction) {
-        const newState = new GameStateManager(this.gameState).gameState;
+        const gsm = new GameStateManager(this.gameState);
         const gameEngine = new GameEngine(this.gameState);
         const result = gameEngine.commit.deployShip(action);
 
@@ -110,42 +115,47 @@ export class ActionResolver {
             throw new Error("Cannot deploy ship here, space is occupied");
         }
 
-        const { player, playerId } = result;
-        newState.updatePlayer(player);
+        const { player, ship, hulls } = result;
+        const newState = gsm.addHulls(hulls).updateShip(ship).updatePlayer(player).addAction(action).gameState;
         return newState;
     }
 
     public resolveMove(action: IMoveAction) {
         // for now, if the player with initiative occupies the location,
         // the other player's Move is not resolved (they are not refunded the CP)
-        const newState = { ...this.gameState };
+        const gsm = new GameStateManager(this.gameState);
 
         const gameEngine = new GameEngine(this.gameState);
 
         const result = gameEngine.commit.moveShip(action);
+        if (result.type === ResultType.ERROR) {
+            const isNonSystemError =
+                // Ship's movement may have been reduced by earlier opponent's effect
+                result.errorCode === ERROR_CODE.MOVE_ERROR_INSUFFICIENT_MOVEMENT ||
+                // Destination may have become occupied by earlier opponent's turn
+                result.errorCode === ERROR_CODE.MOVE_ERROR_LOCATION_OCCUPIED;
 
-        if (result.type === ResultType.SUCCESS) {
-            const { player, playerId } = result;
+            if (isNonSystemError) {
+                return gsm.gameState;
+            }
 
-            newState.players = newState.players.map((p) => {
-                if (p.id === playerId) {
-                    return player;
-                }
-                return p;
-            });
+            throw new Error(result.message || "An error occurred while moving the ship");
         }
+
+        const { player, ship, hulls } = result;
+        const newState = gsm.updateHulls(hulls).updateShip(ship).updatePlayer(player).addAction(action).gameState;
 
         return newState;
     }
 
     public resolveAttack(action: IShipAttackAction) {
-        const newState = { ...this.gameState };
-        const gameEngine = new GameEngine(newState);
+        const gsm = new GameStateManager(this.gameState);
+        const gameEngine = new GameEngine(this.gameState);
 
         // TODO: change to commit with validation
-        const { players } = gameEngine.calculateAttackResult(action);
+        const { players, ships, hulls } = gameEngine.calculateAttackResult(action);
+        const newState = gsm.updateHulls(hulls).updateShips(ships).updatePlayers(players).addAction(action).gameState;
 
-        newState.players = players;
         return newState;
     }
 

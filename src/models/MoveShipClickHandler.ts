@@ -9,7 +9,9 @@ import {
     locationToKey,
     ResultType,
 } from "../../shared";
+import { MoveShipActionCreator } from "../../shared/models/ActionCreator";
 import { GameEngine } from "../../shared/models/GameEngine";
+import { transformGameStateToPlain } from "../../shared/transformers";
 import { getComponents } from "../components/component-helper";
 import { animationManager } from "./AnimationManager";
 import { MoveShipAnimation } from "./animations/MoveShipAnimation";
@@ -71,26 +73,25 @@ export class MoveShipClickHandler extends ClickHandler {
         const player = gsm.getPlayer(playerId);
         const ship = player.getShip(shipId);
 
-        const oldLocations = ship.hullLocations;
+        const oldLocations = ship.hulls;
         const newLocations = this.getNewHullLocations(keyToLocation(destinationTileId), ship);
 
         // FIXME: we need to handle concurrent animations for multi-hull ships
-
-        const result = gameEngine.commit.moveShip({
-            type: ActionTypes.MOVE,
+        const moveAction = new MoveShipActionCreator(player, gsm.getCurrentRound()).create({
             shipId,
-            playerId,
             hullLocations: newLocations,
             commandPointCost: movementCost,
         });
 
+        const result = gameEngine.commit.moveShip(moveAction);
+
         if (result.type === ResultType.ERROR) return;
 
-        gsm.updatePlayer(result.player);
+        gsm.updateHulls(result.hulls).updateShip(result.ship).updatePlayer(result.player).addAction(moveAction);
 
-        this.executeMoveShipAnimation(gsm.getPlayer(playerId).getShip(shipId), oldLocations);
+        this.executeMoveShipAnimation(result.ship, oldLocations);
 
-        gameManager.saveCurrentPlayerState({ gameState: gsm.gameState });
+        gameManager.savePlainAppState({ gameState: transformGameStateToPlain(gsm.gameState) });
 
         const tile = this.selectables[destinationTileId];
         tile.runOnSelects();
@@ -100,8 +101,8 @@ export class MoveShipClickHandler extends ClickHandler {
 
     // WARNING: we don't mutate the original as much as possible
     private getNewHullLocations(endCell: ICellLoc, ship: IShip) {
-        let newHullLocations = [...ship.hullLocations];
-        newHullLocations = ship.hullLocations;
+        let newHullLocations = [...ship.hulls];
+        newHullLocations = ship.hulls;
         // FIXME: only single location for now
         const hullFront = { ...newHullLocations[0] };
         hullFront.location = endCell;
@@ -116,14 +117,14 @@ export class MoveShipClickHandler extends ClickHandler {
         const moveShipAnimation = new MoveShipAnimation({
             elementId: shipId,
             fromCell: oldLocations[0].location,
-            toCell: ship.hullLocations[0].location,
+            toCell: ship.hulls[0].location,
         });
         const gameBoard = getComponents().div.gameBoard;
         gameBoard.addToAnimatingMap(shipId, moveShipAnimation.id);
-        
+
         animationManager.enqueue(moveShipAnimation, () => {
             gameBoard.removeFromAnimatingMap(shipId);
-            gameBoard.renderShip(ship, playerId === gameManager.firstPlayerId);
+            gameBoard.renderShip(ship, ship.hulls, playerId === gameManager.firstPlayerId);
         });
         animationManager.play();
     }

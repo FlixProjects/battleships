@@ -1,0 +1,100 @@
+import { v7 as uuidv7 } from "uuid";
+import { gameManager } from "..";
+import {
+    AppStatus,
+    createNewGameState,
+    FP_GAME_STATE,
+    generateGameCode,
+    getNewShipsForPlayer,
+    initialiseNewPlayer,
+    IPlainGameState,
+} from "../../shared";
+import { isLocal } from "../config/app-config";
+import { setCurrentPlayer, setGameCode } from "../utils/game-helper";
+import { updateComponents } from "./component-helper";
+import { HTMLButton } from "./native/Button";
+
+export class ResetLocalGameButton extends HTMLButton {
+    constructor() {
+        super();
+        if (isLocal) {
+            this.build();
+        }
+    }
+
+    public build(): HTMLElement {
+        const hasExisting = document.getElementById("resetLocalGameButtonContainer");
+
+        if (hasExisting) {
+            return;
+        }
+
+        const resetLocalGameButtonContainer = document.createElement("div");
+        resetLocalGameButtonContainer.id = "resetLocalGameButtonContainer";
+
+        const resetLocalGameButton = document.createElement("button");
+        this.ref = resetLocalGameButton;
+
+        resetLocalGameButton.id = "resetLocalGameBtn";
+        resetLocalGameButton.innerText = "Reset";
+        resetLocalGameButton.className = "btn secondary";
+
+        this.addClickEventListener();
+
+        resetLocalGameButtonContainer.appendChild(resetLocalGameButton);
+        document.getElementById("controls").appendChild(resetLocalGameButtonContainer);
+
+        return this.ref;
+    }
+
+    public remove() {
+        document.getElementById("resetLocalGameButtonContainer")?.remove();
+    }
+
+    private async resetLocalGame() {
+        await sessionStorage.clear();
+    }
+
+    // FIXME: to fix later, low priority since this is only for local testing
+    private initializeTwoPlayers() {
+        gameManager.clearPlayerStates(); // clear memory
+
+        const player1Name = "player1";
+        const player2Name = "player2";
+
+        const gameCode = generateGameCode();
+        const player1Id = uuidv7();
+        const player2Id = uuidv7();
+
+        const initialGameState: IPlainGameState = createNewGameState(gameCode, player1Id, player1Name);
+
+        // sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(initialGameState));
+
+        setGameCode(gameCode);
+        setCurrentPlayer(player1Id);
+
+        gameManager.savePlainAppState({ status: AppStatus.Initialised, loading: false, gameState: initialGameState });
+
+        const player2 = initialiseNewPlayer(player2Id, player2Name);
+        const { shipIds, ships } = getNewShipsForPlayer(player2Id);
+        player2.ships = shipIds;
+
+        initialGameState.ships.push(...ships);
+        initialGameState.players.push(player2);
+        initialGameState.currentRound++;
+
+        sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(initialGameState));
+
+        gameManager.setCurrentPlayer(player2Id);
+        gameManager.savePlainAppState({ status: AppStatus.Initialised, loading: false, gameState: initialGameState });
+        
+        setGameCode(gameCode);
+        updateComponents();
+    }
+
+    async onClick() {
+        await this.resetLocalGame();
+        // await this.initializeTwoPlayers();
+        await location.reload();
+    }
+}

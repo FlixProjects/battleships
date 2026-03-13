@@ -2,9 +2,11 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3
 import {
     FP_AUTH_TOKEN,
     getTokenCookie,
-    IGameState,
+    IPlainGameState,
     IPlayerAction,
-    SubmitActionResponse as ISubmitActionResponse
+    SubmitActionResponse as ISubmitActionResponse,
+    transformGameStateToPlain,
+    transformPlainGameStateToDomain,
 } from "../../shared";
 import { handleActions } from "../../shared/utils/action-handler";
 
@@ -42,8 +44,8 @@ export const handler = async (event: any) => {
         const gameCode = body.gameCode;
         const actions = body.actions as IPlayerAction[];
 
-        let gameState: IGameState = body.gameState;
-        console.log(`Request Body for ${playerId}:`, body);
+        let gameState: IPlainGameState = body.gameState; // will only be present for local
+        console.log(`Request Body for ${playerId}:`, JSON.stringify(body));
 
         if (!gameCode) {
             return {
@@ -80,9 +82,13 @@ export const handler = async (event: any) => {
             };
         }
 
-        const { results, newGameState, obscuredGameState } = handleActions(playerId!, gameState, actions);
+        const { results, newGameState, obscuredGameState } = handleActions(
+            playerId!,
+            transformPlainGameStateToDomain(gameState),
+            actions,
+        );
 
-        gameState = newGameState;
+        gameState = transformGameStateToPlain(newGameState);
 
         if (!isLocal) {
             await s3.send(
@@ -96,7 +102,7 @@ export const handler = async (event: any) => {
         }
 
         const responseBody: ISubmitActionResponse = {
-            gameState: obscuredGameState ?? gameState,
+            gameState: obscuredGameState ? transformGameStateToPlain(obscuredGameState) : gameState,
             results,
         };
 

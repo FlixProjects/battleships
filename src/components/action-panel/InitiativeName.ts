@@ -1,7 +1,7 @@
 import { HTMLSpan } from "../native/Span";
 
 export class InitiativeName extends HTMLSpan {
-    constructor(private playerName: string, private hasInitiative: boolean) {
+    constructor(private playerName: string, private isFirstPlayer: boolean) {
         super();
     }
 
@@ -13,7 +13,7 @@ export class InitiativeName extends HTMLSpan {
     }
 
     protected addStyles() {
-        this.ref.style.color = this.hasInitiative ? "#6ee7b7" : "#fbbf24";
+        this.ref.style.color = this.isFirstPlayer ? "#6ee7b7" : "#fbbf24";
         this.ref.style.fontSize = "14px";
         this.ref.style.fontWeight = "600";
     }

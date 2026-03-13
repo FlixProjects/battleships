@@ -1,6 +1,8 @@
 import { gameManager } from "..";
 import { GameStateManager, ICellLoc, ResultType } from "../../shared";
+import { DeployShipActionCreator } from "../../shared/models/ActionCreator";
 import { GameEngine } from "../../shared/models/GameEngine";
+import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
 import { getHull, keyToLocation, locationToKey } from "../../shared/utils/helpers";
 import { ClickHandler } from "./ClickHandler";
 import { DeployingShipIMEvent } from "./InteractionManager";
@@ -48,28 +50,28 @@ export class DeployShipClickHandler extends ClickHandler {
     }
 
     private handleDeployShipClick(tileId: string, shipId: string, onSuccessCb?: () => void) {
-        const gameEngine = new GameEngine(gameManager.state.gameState);
-        const gsm = new GameStateManager(gameManager.state.gameState);
+        const gameState = gameManager.state.gameState;
+        const gsm = new GameStateManager(gameState);
         const playerId = gameManager.getCurrentPlayerId();
         const player = gsm.getPlayer(playerId);
 
-        const { commandPointCost, hullTemplates } = player.getShip(shipId); // getShipFromPlayer(player, shipId);
+        const { commandPointCost, hullTemplates } = gsm.getShip(shipId);
 
         // FIXME: only single location for now
         const committedHullLocations = hullTemplates.map((template) => {
             const loc = keyToLocation(tileId);
             return getHull(shipId, template, loc); // we initialise the location here
         });
-        const result = gameEngine.commit.deployShip({
+
+        const deployAction = new DeployShipActionCreator(player, gsm.getCurrentRound()).create({
             shipId,
-            playerId,
-            hullLocations: committedHullLocations,
             commandPointCost,
+            hullLocations: committedHullLocations,
         });
 
-        if (result.type === ResultType.ERROR) return;
+        const newGameState = new ActionResolver(playerId, gameState).resolveDeploy(deployAction);
 
-        gameManager.saveCurrentPlayerState({ gameState: gsm.updatePlayer(result.player).gameState });
+        gameManager.saveCurrentPlayerStateV2({ gameState: newGameState }, { skipResolve: true });
 
         const tile = this.selectables[tileId];
         tile.runOnSelects();

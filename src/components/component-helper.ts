@@ -1,5 +1,5 @@
 import { _components, gameManager } from "..";
-import { IAppState } from "../types";
+import { IAppState } from "../../shared/types";
 import { ActionPanel } from "./action-panel/ActionPanel";
 import { GameBoard } from "./board/GameBoard";
 import { CreateGameButton } from "./CreateGameButton";
@@ -10,6 +10,7 @@ import { JoinGameInput } from "./JoinGameInput";
 import { PlayerCards } from "./player-cards/PlayerCards";
 import { PlayerNameInput } from "./PlayerNameInput";
 import { RefreshButton } from "./RefreshButton";
+import { ResetLocalGameButton } from "./ResetLocalGameButton";
 import { StatusText } from "./StatusText";
 import { SwitchPlayerButton } from "./SwitchPlayerButton";
 
@@ -25,6 +26,7 @@ export const loadComponents = () => {
         joinGameBtn: new JoinGameButton(),
         createGameBtn: new CreateGameButton(),
         switchPlayerBtn: new SwitchPlayerButton(),
+        resetLocalGameBtn: new ResetLocalGameButton(),
 
         playerCardsContainer: new PlayerCards(),
         gameBoard: new GameBoard(),

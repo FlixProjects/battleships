@@ -1,8 +1,7 @@
 import { gameManager } from "..";
-import { FP_GAME_STATE } from "../../shared";
+import { AppStatus, FP_GAME_STATE, IAppState } from "../../shared";
 import { joinGame } from "../apis/join-game";
 import { appConfig } from "../config/app-config";
-import { AppStatus, IAppState } from "../types";
 import { checkIfNameIsFilled, setGameCode } from "../utils/game-helper";
 import { getComponents, updateComponents } from "./component-helper";
 import { HTMLButton } from "./native/Button";
@@ -49,7 +48,7 @@ export class JoinGameButton extends HTMLButton {
             gameManager.setCurrentPlayer(playerId);
 
             setGameCode(gameCode);
-            gameManager.saveCurrentPlayerState(newState);
+            gameManager.savePlainAppState(newState);
 
             updateComponents();
         } catch (error) {

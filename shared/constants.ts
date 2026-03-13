@@ -1,5 +1,4 @@
-import { AppStatus, IAppState } from "../src/types";
-import { IGameState, IHullTemplate, IShipTemplate } from "./types";
+import { AppStatus, IAppState, IGameState, IHullTemplate, IShipTemplate } from "./types";
 
 export const FP_AUTH_TOKEN = "fp-auth-token";
 export const FP_USER_ID = "fp-user-id";
@@ -15,9 +14,12 @@ export const LOCAL_TEMP_PLAYER_ID = "temp-id";
 export const INITIAL_GAME_STATE: IGameState = {
     code: "",
     players: [],
+    ships: [],
+    hulls: [],
     board: { grid: [] },
     winners: [],
     isOver: false,
+    currentRound: 0,
 };
 
 export const DEFAULT_APP_STATE: IAppState = {
@@ -135,3 +137,11 @@ export const ASSET_PATHS = {
 
 export const ANIMATION_LAYER_ID = "gameBoardContainer";
 export const GAME_BOARD_ID = "gameBoard";
+
+export const ERROR_CODE = {
+    SYS_NOT_FOUND: "SYS_NOT_FOUND",
+    SYS_INVALID_PARAMS: "SYS_INVALID_PARAMS",
+    MOVE_ERROR_LOCATION_OCCUPIED: "MOVE_ERROR_LOCATION_OCCUPIED",
+    MOVE_ERROR_INSUFFICIENT_MOVEMENT: "MOVE_ERROR_INSUFFICIENT_MOVEMENT",
+} as const;
+export type TErrorCode = (typeof ERROR_CODE)[keyof typeof ERROR_CODE];

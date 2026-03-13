@@ -53,8 +53,8 @@ export class AnimationLayer {
     }
 
     private calculateRelativePosition(elementRect: DOMRect, layerRect: DOMRect) {
-        const top = elementRect.top - layerRect.top + window.scrollY;
-        const left = elementRect.left - layerRect.left + window.scrollX;
+        const top = elementRect.top - layerRect.top;
+        const left = elementRect.left - layerRect.left;
         return { top, left };
     }
 

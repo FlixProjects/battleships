@@ -1,7 +1,6 @@
 import { gameManager } from "..";
-import { DEFAULT_APP_STATE, FP_CURRENT_PLAYER, LOCAL_TEMP_PLAYER_ID } from "../../shared";
+import { DEFAULT_APP_STATE, FP_CURRENT_PLAYER, IAppState, LOCAL_TEMP_PLAYER_ID } from "../../shared";
 import { isLocal } from "../config/app-config";
-import { IAppState } from "../types";
 import { updateComponents } from "./component-helper";
 import { HTMLButton } from "./native/Button";
 

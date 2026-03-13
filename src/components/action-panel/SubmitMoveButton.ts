@@ -1,8 +1,9 @@
 import { gameManager } from "../..";
-import { FP_GAME_STATE } from "../../../shared";
+import { AppStatus, FP_GAME_STATE } from "../../../shared";
+import { transformPlainAppStateToDomain } from "../../../shared/transformers";
 import { submitAction } from "../../apis/submit-action";
 import { isLocal } from "../../config/app-config";
-import { AppStatus } from "../../types";
+import { isWaitingForOtherPlayer } from "../../utils/game-helper";
 import { updateComponents } from "../component-helper";
 import { HTMLButton } from "../native/Button";
 
@@ -46,16 +47,23 @@ export class SubmitMoveButton extends HTMLButton {
         try {
             this.setDisabled(true);
             const { gameState, gameStateForLocal } = await submitAction(gameManager.getPlayer().pendingActions);
-            const newState = { loading: false, gameState };
+
+            const newState = transformPlainAppStateToDomain({
+                status: isWaitingForOtherPlayer(gameState) ? AppStatus.WaitingForOtherPlayer : AppStatus.ReadyToSubmit,
+                loading: false,
+                gameState,
+            });
+
             if (isLocal && !!gameState) {
                 // DO NOT DELETE: this item simulates Object in S3
                 sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameStateForLocal));
             }
 
-            gameManager.saveCurrentPlayerStateV2(newState);
+            gameManager.saveCurrentPlayerStateV2(newState, { saveWithMerge: false });
 
             updateComponents();
         } catch (error) {
+            console.log("[Error] Submission failed", error);
             this.setDisabled(false);
             updateComponents({ status: AppStatus.Error });
         }

@@ -16,6 +16,9 @@ export const ActionTypes = {
 export type TActionTypes = (typeof ActionTypes)[keyof typeof ActionTypes];
 
 export interface IAction {
+    id: string;
+    order: number; // position in pendingActions
+    round: number;
     type?: TActionTypes; // TODO: Not sure if I really need the type
 }
 
@@ -46,20 +49,24 @@ export interface IShipAttackAction extends IPlayerAction {
 
 // ================= Server Actions =================
 
-export interface IGetValidDeployCellsAction extends IAction {
+export interface IGetValidDeployCellsAction {
     type?: typeof ActionTypes.GET_VALID_DEPLOY_CELLS;
     playerId: string;
     shipId: string;
 }
 
-export interface IGetValidMoveCellsAction extends IAction {
+export interface IGetValidMoveCellsAction {
     type?: typeof ActionTypes.GET_VALID_MOVE_CELLS;
     playerId: string;
     shipId: string;
 }
 
-export interface IGetValidAttackCellsAction extends IAction {
+export interface IGetValidAttackCellsAction {
     type?: typeof ActionTypes.GET_VALID_ATTACK_CELLS;
     playerId: string;
     shipId: string;
 }
+
+export type TCommitDeployShipParams = Pick<IDeployAction, "shipId" | "hullLocations" | "commandPointCost">;
+export type TCommitMoveShipParams = Pick<IMoveAction, "shipId" | "hullLocations" | "commandPointCost">;
+export type TCommitAttackShipParams = Pick<IShipAttackAction, "shipId" | "commandPointCost" | "attackLocations">;

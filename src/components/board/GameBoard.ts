@@ -6,14 +6,14 @@ import {
     CELL_SEPARATOR,
     GAME_BOARD_ID,
     GameStateManager,
+    IAppState,
     ICellLoc,
-    IPlayer,
+    IHull,
     IShip,
     locationToKey,
     TILE_GAP_PX,
     TILE_SIZE_PX,
 } from "../../../shared";
-import { IAppState } from "../../types";
 import { renderShipIcon } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 import { TSetSelectableOptions } from "../Selectable";
@@ -114,31 +114,26 @@ export class GameBoard extends BaseComponent {
     private renderPlayersShips() {
         const gameState = new GameStateManager(gameManager.state.gameState).gameState;
         if (!gameState) return;
-        gameState.players?.forEach((p) => {
-            this.renderPlayerShips(p);
+        const shipsToRender = gameState.ships?.filter((s) => s.deployed && !s.destroyed);
+
+        shipsToRender.forEach((ship) => {
+            const hulls = gameState.hulls.filter((h) => h.shipId === ship.id);
+            this.renderShip(ship, hulls, gameManager.firstPlayerId === ship.playerId);
         });
     }
 
-    private renderPlayerShips(player: IPlayer) {
-        player.ships
-            .filter((s) => s.deployed && !s.destroyed) // TEMP: we should differentiate expected destruction vs actual
-            .forEach((ship) => {
-                this.renderShip(ship, gameManager.firstPlayerId === player.id);
-            });
-    }
-
-    public renderShip(ship: IShip, isFirstPlayer = true) {
+    public renderShip(ship: IShip, hulls: IHull[], isFirstPlayer = true) {
         if (this.elementsCurrentlyAnimatingMap.has(ship.id)) {
             return;
         }
-        const tiles = ship.hullLocations?.map((hull) => {
+        const tiles = hulls?.map((hull) => {
             return { key: locationToKey(hull.location) };
         });
 
         tiles?.forEach(({ key }, i) => {
             const tile = this.tiles[key];
             // TODO: we might need to handle Ships with multiple hull locations
-            renderShipIcon(tile, ship.hullLocations[0].id, ship.id, ship.refNo, isFirstPlayer);
+            renderShipIcon(tile, ship.hulls[0].id, ship.id, ship.refNo, isFirstPlayer);
 
             if (gameManager.getPlayer().id === ship.playerId) {
                 tile.addShipClickHandler();

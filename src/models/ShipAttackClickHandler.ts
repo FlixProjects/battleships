@@ -6,12 +6,14 @@ import {
     CELL_SEPARATOR,
     COLOR,
     COLOR_FILTER,
+    GameStateManager,
     getShipFromPlayer,
     ICellLoc,
     keyToLocation,
     locationToKey,
     ResultType,
 } from "../../shared";
+import { ShipAttackActionCreator } from "../../shared/models/ActionCreator";
 import { GameEngine } from "../../shared/models/GameEngine";
 import { HTMLImage } from "../components/native/Image";
 import { Projectile } from "../components/projectiles/Projectile";
@@ -88,23 +90,22 @@ export class ShipAttackClickHandler extends ClickHandler {
 
         const attackLocation = keyToLocation(attackTileId);
         const player = gameManager.getPlayer();
-        const playerId = player.id;
         const attackingShip = getShipFromPlayer(player, shipId);
 
-        const result = gameEngine.commit.shipAttack({
-            type: ActionTypes.ATTACK,
+        const action = new ShipAttackActionCreator(player, gameManager.state.gameState.currentRound).create({
             shipId,
-            playerId,
             attackLocations: [attackLocation], // FIXME: only single location for now
             commandPointCost: attackingShip.commandPointCost,
         });
+
+        const result = gameEngine.commit.shipAttack(action);
 
         if (result.type === ResultType.ERROR) return;
 
         // FIXME: we need a better way to animate ships
         // Ship class should be responsible for their own animations
-        const destroyedShips = result.players.flatMap((p) => p.ships).filter((s) => s.destroyed);
-        const destoyedShipHullIds = destroyedShips.flatMap((s) => s.hullLocations).map((h) => h.id);
+        const destroyedShips = result.ships.filter((s) => s.destroyed);
+        const destoyedShipHullIds = destroyedShips.flatMap((s) => s.hulls).map((h) => h.id);
         const projectile = new Projectile({
             origin: this.origin,
             target: keyToLocation(attackTileId),
@@ -122,13 +123,21 @@ export class ShipAttackClickHandler extends ClickHandler {
         });
 
         for (const ship of destroyedShips) {
-            const hullIds = ship.hullLocations.map((h) => h.id);
+            const hullIds = ship.hulls.map((h) => h.id);
             animationManager.enqueue(new DestroyedAnimation({ id: ship.id, elements: getElementsFromIds(hullIds) }));
         }
 
         animationManager.play();
 
-        gameManager.updatePlayers(result.players);
+        const gsm = new GameStateManager(gameManager.state.gameState);
+
+        const newState = gsm
+            .updateHulls(result.hulls)
+            .updateShips(result.ships)
+            .updatePlayers(result.players)
+            .addAction(action).gameState;
+
+        gameManager.saveCurrentPlayerStateV2({ gameState: newState }, { skipResolve: true });
 
         const tile = this.selectables[attackTileId];
         tile.runOnSelects();

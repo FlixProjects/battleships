@@ -1,6 +1,6 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import { IGameState, getNewBoard, initialiseNewPlayer } from "../../shared";
+import { IPlainGameState, createNewGameState, generateGameCode } from "../../shared";
 
 interface CreateGameResponse {
     statusCode: number;
@@ -30,15 +30,8 @@ export const handler = async (event: any) => {
         const BUCKET_NAME = process.env.GAMES_BUCKET!; // set in lambda, TODO: we should inject this value in pipeline
         const gameCode = generateGameCode();
         const playerId = randomUUID();
-        const newPlayer = initialiseNewPlayer(playerId, playerName);
-        const initialGameState: IGameState = {
-            code: gameCode,
-            players: [newPlayer],
-            board: getNewBoard(),
-            initiative: playerId,
-            winners: [],
-            isOver: false,
-        };
+
+        const initialGameState: IPlainGameState = createNewGameState(gameCode, playerId, playerName);
 
         if (env !== LOCAL_ENV) {
             await s3.send(
@@ -95,11 +88,4 @@ export const handler = async (event: any) => {
             }),
         };
     }
-};
-
-const generateGameCode = () => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    return Array.from({ length: 4 })
-        .map(() => chars[Math.floor(Math.random() * chars.length)])
-        .join("");
 };

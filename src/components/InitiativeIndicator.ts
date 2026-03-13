@@ -1,4 +1,4 @@
-import { IAppState } from "../types";
+import { IAppState } from "../../shared/types";
 import { BaseComponent } from "./BaseComponent";
 
 export class InitiativeIndicator extends BaseComponent {

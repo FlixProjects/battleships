@@ -49,6 +49,7 @@ const saveActions = (thisPlayer: string, gameState: IGameState, actions: IPlayer
         player.pendingActions = [];
     }
 
+    newState.actions.push(...actions);
     player.pendingActions = actions;
     player.ready = true;
 
@@ -57,6 +58,10 @@ const saveActions = (thisPlayer: string, gameState: IGameState, actions: IPlayer
 
 const refreshPlayers = (gameState: IGameState) => {
     const newState = { ...gameState };
+    newState.ships.forEach((s) => {
+        s.remainingAttacks = s.attackCountMax;
+        s.remainingMovement = s.movementRange;
+    });
     newState.players.forEach((p) => {
         p.ready = false;
         p.commandPoints = p.maxCommandPoints;
@@ -66,6 +71,8 @@ const refreshPlayers = (gameState: IGameState) => {
             s.remainingMovement = s.movementRange;
         });
     });
+
+    newState.currentRound++;
 
     return newState;
 };

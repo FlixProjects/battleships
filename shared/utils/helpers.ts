@@ -1,7 +1,17 @@
 import { v7 as uuidv7 } from "uuid";
 import { BOARD_COLUMNS, BOARD_ROWS, CELL_SEPARATOR, FP_AUTH_TOKEN, SHIPS_CONFIG, TShipRefNo } from "../constants";
 import { Cell } from "../models/Cell";
-import { Board, ICellLoc, IHull, IHullTemplate, IPlayer, IShip } from "../types/types";
+import {
+    Board,
+    ICellLoc,
+    IHull,
+    IHullTemplate,
+    IPlainGameState,
+    IPlainPlayer,
+    IPlainShip,
+    IPlayer,
+    IShip
+} from "../types/types";
 
 export const parseCookies = (cookieStr: string) => {
     const cookies = {} as Record<string, string>;
@@ -31,6 +41,14 @@ export const mergeSets = <T>(sets: Set<T>[]) => {
     return new Set(arr);
 };
 
+export const generateGameCode = () => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    return Array.from({ length: 4 })
+        .map(() => chars[Math.floor(Math.random() * chars.length)])
+        .join("");
+};
+
+
 export const getNewCell = (cellLoc: ICellLoc): Cell =>
     new Cell({
         loc: cellLoc,
@@ -51,29 +69,59 @@ export const getNewBoard = (): Board => {
     return { grid };
 };
 
-export const initialiseNewPlayer = (id: string, name: string): IPlayer => {
+export const createNewGameState = (gameCode: string, playerId: string, playerName: string): IPlainGameState => {
+    const { shipIds, ships } = getNewShipsForPlayer(playerId);
+    const player = initialiseNewPlayer(playerId, playerName);
+    player.ships = shipIds;
+
+    const newGame: IPlainGameState = {
+        code: gameCode,
+        currentRound: 0,
+        players: [player],
+        ships,
+        board: getNewBoard(),
+        initiative: playerId,
+        winners: [],
+        isOver: false,
+        actions: [],
+    };
+
+    return newGame;
+};
+
+export const getNewShipsForPlayer = (playerId: string) => {
+    const ships = [
+        getShip("frigate0", playerId),
+        getShip("flagship0", playerId),
+        getShip("frigate0", playerId),
+        getShip("frigate0", playerId),
+    ];
+    return { ships, shipIds: ships.map((s) => s.id) };
+};
+
+export const initialiseNewPlayer = (id: string, name: string): IPlainPlayer => {
     return {
         name,
         id,
         ready: false,
-        ships: [getShip("frigate0", id), getShip("flagship0", id), getShip("frigate0", id), getShip("frigate0", id)], // TODO: player should choose their ships
+        ships: [],
         pendingActions: [],
-        maxCommandPoints: 2, // can be increased with flagship
+        maxCommandPoints: 2,
         commandPoints: 2,
     };
 };
 
-export const getShip = (refNo: TShipRefNo, playerId: string): IShip => {
+export const getShip = (refNo: TShipRefNo, playerId: string): IPlainShip => {
     const template = { ...SHIPS_CONFIG[refNo] };
-    const base: IShip = {
+    return {
         ...template,
         id: uuidv7(),
         playerId,
+        hulls: [],
         remainingMovement: template.movementRange,
         remainingAttacks: template.attackCountMax,
         destroyed: false,
     };
-    return base;
 };
 
 export const getShipFromPlayer = (player: IPlayer, shipId: string) => {
@@ -81,7 +129,7 @@ export const getShipFromPlayer = (player: IPlayer, shipId: string) => {
 };
 
 export const getHullFromLocation = (ship: IShip, loc: ICellLoc): IHull => {
-    return ship.hullLocations?.find((hull) => hull.location[0] === loc[0] && hull.location[1] === loc[1]);
+    return ship.hulls?.find((hull) => hull.location[0] === loc[0] && hull.location[1] === loc[1]);
 };
 
 export const getHull = (shipId: string, hullTemplate: IHullTemplate, location: ICellLoc): IHull => {

@@ -18,9 +18,7 @@ export class SelectShipClickHandler extends ClickHandler {
         const shipAtLocation = player.ships.find(
             (ship) =>
                 ship.deployed &&
-                ship.hullLocations?.some(
-                    (hull) => hull.location[0] === location[0] && hull.location[1] === location[1],
-                ),
+                ship.hulls?.some((hull) => hull.location[0] === location[0] && hull.location[1] === location[1]),
         );
 
         this.showActionMenu(tileId, shipAtLocation);

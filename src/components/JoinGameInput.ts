@@ -1,4 +1,4 @@
-import { IAppState } from "../types";
+import { IAppState } from "../../shared/types";
 import { HTMLInput } from "./native/Input";
 
 export class JoinGameInput extends HTMLInput {

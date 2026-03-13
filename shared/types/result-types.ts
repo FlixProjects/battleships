@@ -1,4 +1,4 @@
-import { ICellLoc, IPlayer } from "..";
+import { ICellLoc, IHull, IPlayer, IShip, TErrorCode } from "..";
 
 export const ResultType = {
     SUCCESS: "SUCCESS",
@@ -13,14 +13,16 @@ export interface IResult {
     message?: string;
 }
 
-export interface IErrorResult<T> extends IResult {
+export interface IErrorResult extends IResult {
     type: typeof ResultType.ERROR;
-    error?: T;
+    errorCode?: TErrorCode;
 }
 
 export interface IDeployResult extends IResult {
     type: typeof ResultType.SUCCESS;
-    player: IPlayer;
+    player: Partial<IPlayer>;
+    ship: IShip;
+    hulls: IHull[];
 }
 
 export interface IGetValidDeployCellsResult extends IResult {
@@ -30,6 +32,8 @@ export interface IGetValidDeployCellsResult extends IResult {
 export interface IMoveResult extends IResult {
     type: typeof ResultType.SUCCESS;
     player: IPlayer;
+    ship: IShip;
+    hulls: IHull[];
 }
 
 export interface IGetValidMoveCellsResult extends IResult {
@@ -41,4 +45,6 @@ export interface IAttackResult extends IResult {
     type: typeof ResultType.SUCCESS;
     players: IPlayer[];
     shipsHit: Record<string, string[]>;
+    ships: IShip[];
+    hulls: IHull[];
 }

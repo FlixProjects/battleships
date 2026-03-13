@@ -1,5 +1,5 @@
 import { gameManager } from "../..";
-import { IAppState } from "../../types";
+import { IAppState } from "../../../shared/types";
 import { BaseComponent } from "../BaseComponent";
 import { InitiativeDisplay } from "./InitiativeDisplay";
 import { ShipSelector } from "./ShipSelector";

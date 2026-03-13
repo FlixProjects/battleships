@@ -1,18 +1,19 @@
+import { mergician } from "mergician";
 import {
-    Board,
     DEFAULT_APP_STATE,
     FP_AUTH_TOKEN,
     FP_CURRENT_PLAYER,
     FP_PLAYER_STATES,
     GameStateManager,
+    IAppState,
     IGameState,
+    IPlainAppState,
     IPlayer,
 } from "../../shared";
+import { transformAppStateToPlain, transformPlainAppStateToDomain } from "../../shared/transformers";
 import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
-import { IAppState } from "../types";
-
 interface PlayerGameStates {
-    [playerId: string]: IAppState;
+    [playerId: string]: IPlainAppState;
 }
 
 /**
@@ -39,20 +40,34 @@ export class GameManager {
         return this.getCurrentPlayerState()?.gameState?.players?.[0].id;
     }
 
-    public saveCurrentPlayerState(state: Partial<IAppState>) {
+    public savePlainAppState(state: Partial<IPlainAppState>, _options: { saveWithMerge?: boolean } = {}) {
+        const DEFAULT_OPTIONS = { saveWithMerge: true };
+        const options = { ...DEFAULT_OPTIONS, ..._options };
         const playerId = this.getCurrentPlayerId();
-        return this.savePlayerState(playerId, state);
+        const currentPlayerAppState = this.playerGameStates[playerId] ?? {};
+
+        const newAppState = options.saveWithMerge
+            ? (mergician(currentPlayerAppState, state) as IPlainAppState)
+            : (state as IPlainAppState);
+        this.playerGameStates[playerId] = newAppState;
+        this.savePlayerStates();
     }
 
-    public saveCurrentPlayerStateV2(state: Partial<IAppState>) {
+    public saveCurrentPlayerStateV2(
+        state: Partial<IAppState>,
+        _options: { skipResolve?: boolean; saveWithMerge?: boolean } = {},
+    ) {
+        const DEFAULT_OPTIONS = { skipResolve: false, saveWithMerge: true };
+        const options = { ...DEFAULT_OPTIONS, ..._options };
+
         const playerId = this.getCurrentPlayerId();
         const { gameState } = state;
 
         if (!this.state.gameState) return;
 
-        const newGameState = this.resolveLocalActions(gameState);
+        const newGameState = options?.skipResolve ? gameState : this.resolveLocalActions(gameState);
 
-        return this.savePlayerState(playerId, { ...state, gameState: newGameState });
+        return this.savePlayerState(playerId, mergician(state, { gameState: newGameState }), _options);
     }
 
     private resolveLocalActions(_gameState: IGameState): IGameState {
@@ -67,9 +82,7 @@ export class GameManager {
             const resolver = new ActionResolver(playerId, gsm.gameState);
             const { gameState: resolvedGameState } = resolver.resolve();
             // FIXME: there should not be game logic in the save state function
-
             gsm.setGameState(resolvedGameState);
-            thisPlayer = gsm.getPlayer(playerId);
         }
         return gsm.gameState;
     }
@@ -94,40 +107,8 @@ export class GameManager {
         return this.state.gameState?.players.find((p) => p.id !== this.getCurrentPlayerId());
     }
 
-    // TODO: refactor if possible
-    public updatePlayers(players: Array<Partial<IPlayer>>) {
-        const thisPlayer = this.getPlayer();
-        const otherPlayer = this.getOtherPlayer();
-
-        const newThisPlayerIndex = players.findIndex((p) => p.id === thisPlayer.id);
-        const newOtherPlayerIndex = players.findIndex((p) => p.id === otherPlayer.id);
-
-        const newThisPlayerState = { ...thisPlayer, ...players[newThisPlayerIndex] };
-        const newOtherPlayerState = { ...otherPlayer, ...players[newOtherPlayerIndex] };
-
-        const playerAppState = this.getCurrentPlayerState();
-
-        playerAppState.gameState.players = playerAppState.gameState.players.map((p) => {
-            if (p.id === thisPlayer.id) {
-                return newThisPlayerState;
-            }
-            if (p.id === otherPlayer.id) {
-                return newOtherPlayerState;
-            }
-            return p;
-        });
-
-        this.saveCurrentPlayerState(playerAppState);
-    }
-
     public getCurrentPlayerId(): string | null {
         return sessionStorage.getItem(FP_CURRENT_PLAYER);
-    }
-
-    private savePlayerState(playerId: string, state: Partial<IAppState>) {
-        this.playerGameStates[playerId] = { ...this.playerGameStates[playerId], ...state };
-        this.savePlayerStates();
-        return this.playerGameStates[playerId];
     }
 
     private getCurrentPlayerState() {
@@ -139,7 +120,9 @@ export class GameManager {
     }
 
     private loadPlayerState(playerId: string): IAppState | undefined {
-        return this.playerGameStates[playerId] ?? DEFAULT_APP_STATE;
+        const rawState = this.playerGameStates[playerId] ?? transformAppStateToPlain(DEFAULT_APP_STATE);
+        const domain = transformPlainAppStateToDomain(rawState);
+        return domain;
     }
 
     private loadAllPlayerStates(): PlayerGameStates {
@@ -147,7 +130,28 @@ export class GameManager {
         return stored ? JSON.parse(stored) : {};
     }
 
+    private savePlayerState(playerId: string, state: Partial<IAppState>, _options: { saveWithMerge?: boolean } = {}) {
+        const DEFAULT_OPTIONS = { saveWithMerge: true };
+        const options = { ...DEFAULT_OPTIONS, ..._options };
+
+        const linkedAppState = transformPlainAppStateToDomain(this.playerGameStates[playerId]);
+        const mergedAppState = options.saveWithMerge
+            ? (mergician(linkedAppState, state) as IAppState)
+            : (state as IAppState);
+
+        const delinkedAppState = transformAppStateToPlain(mergedAppState);
+
+        this.playerGameStates[playerId] = delinkedAppState;
+        this.savePlayerStates();
+    }
+
     private savePlayerStates() {
         sessionStorage.setItem(FP_PLAYER_STATES, JSON.stringify(this.playerGameStates));
+    }
+
+    // only for local
+    public clearPlayerStates() {
+        sessionStorage.removeItem(FP_PLAYER_STATES);
+        this.playerGameStates = {};
     }
 }

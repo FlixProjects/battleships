@@ -1,6 +1,5 @@
-import { FP_AUTH_TOKEN, FP_CURRENT_PLAYER } from "../../shared";
+import { FP_AUTH_TOKEN, FP_CURRENT_PLAYER, IAppState } from "../../shared";
 import { isLocal } from "../config/app-config";
-import { IAppState } from "../types";
 import { getCookie } from "../utils/cookie-helper";
 import { HTMLInput } from "./native/Input";
 

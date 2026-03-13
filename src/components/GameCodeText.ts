@@ -1,4 +1,4 @@
-import { AppStatus, IAppState } from "../types";
+import { AppStatus, IAppState } from "../../shared/types";
 import { HTMLSpan } from "./native/Span";
 
 export class GameCodeText extends HTMLSpan {
@@ -43,7 +43,7 @@ export class GameCodeText extends HTMLSpan {
         const element = this.ref;
         const { status, gameState } = _state;
 
-        if(!gameState){
+        if (!gameState) {
             return;
         }
 
