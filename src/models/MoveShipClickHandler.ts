@@ -113,6 +113,7 @@ export class MoveShipClickHandler extends ClickHandler {
     private executeMoveShipAnimation(ship: IShip, oldLocations: IHull[]) {
         const shipId = ship.id;
         const playerId = ship.playerId;
+        const gsm = new GameStateManager(gameManager.state.gameState);
 
         const moveShipAnimation = new MoveShipAnimation({
             elementId: shipId,
@@ -124,7 +125,7 @@ export class MoveShipClickHandler extends ClickHandler {
 
         animationManager.enqueue(moveShipAnimation, () => {
             gameBoard.removeFromAnimatingMap(shipId);
-            gameBoard.renderShip(ship, ship.hulls, playerId === gameManager.firstPlayerId);
+            gameBoard.renderShip(ship, ship.hulls, playerId === gsm.gameState.getFirstPlayerId());
         });
         animationManager.play();
     }

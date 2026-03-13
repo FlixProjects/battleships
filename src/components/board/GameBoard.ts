@@ -118,7 +118,7 @@ export class GameBoard extends BaseComponent {
 
         shipsToRender.forEach((ship) => {
             const hulls = gameState.hulls.filter((h) => h.shipId === ship.id);
-            this.renderShip(ship, hulls, gameManager.firstPlayerId === ship.playerId);
+            this.renderShip(ship, hulls, gameState.getFirstPlayerId() === ship.playerId);
         });
     }
 

@@ -1,5 +1,6 @@
 import { gameManager } from "../..";
 import { COLOR, IAppState } from "../../../shared";
+import { GameStateManager } from "../../../shared/models";
 import { Selectable } from "../Selectable";
 import { ShipIcon } from "../ships/ShipIcon";
 
@@ -28,11 +29,11 @@ export class ShipRow extends Selectable {
 
     renderShipIcon() {
         const { shipId, refNo } = this.props;
-
+        const gsm = new GameStateManager(gameManager.state.gameState);
         const shipIcon = new ShipIcon({
             refNo,
             shipId,
-            color: gameManager.isFirstPlayer ? COLOR.TEAL : COLOR.ORANGE,
+            color: gsm.gameState.getFirstPlayerId() === gameManager.getCurrentPlayerId() ? COLOR.TEAL : COLOR.ORANGE,
         });
 
         this.addChild(shipIcon);
