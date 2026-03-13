@@ -1,16 +1,15 @@
+import { ERROR_CODE } from "../../constants";
+import { GameEngine, GameStateManager } from "../../models";
 import {
     ActionTypes,
-    GameEngine,
-    IGameState,
     IDeployAction,
     IMoveAction,
     IPlayerAction,
-    IResult,
     IShipAttackAction,
+    IResult,
+    IGameState,
     ResultType,
-    GameStateManager,
-    ERROR_CODE,
-} from "../..";
+} from "../../types";
 
 export class ActionResolver {
     public currentTurn: IPlayerAction[] = [];
@@ -123,8 +122,9 @@ export class ActionResolver {
     public resolveMove(action: IMoveAction) {
         // for now, if the player with initiative occupies the location,
         // the other player's Move is not resolved (they are not refunded the CP)
+        console.log(">>>>resolveMove", this.gameState);
         const gsm = new GameStateManager(this.gameState);
-
+        console.log(">>>>GameStateManager");
         const gameEngine = new GameEngine(this.gameState);
 
         const result = gameEngine.commit.moveShip(action);

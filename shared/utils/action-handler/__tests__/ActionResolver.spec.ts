@@ -1,7 +1,21 @@
-import { ActionResolver } from "../ActionResolver";
-import { IMoveAction, IShipAttackAction } from "../../../types";
+import { PlayerBuilder } from "../../../factories/player-builder";
+import { GameState, Hull, Ship } from "../../../models";
+import { IMoveAction, IPlayer, IShipAttackAction } from "../../../types";
 import { ActionTypes } from "../../../types/action-types";
-import { Player, Ship, Hull, GameState } from "../../../models";
+import { ActionResolver } from "../ActionResolver";
+
+const buildPlayer1 = (overrides?: Partial<IPlayer>) =>
+    new PlayerBuilder({
+        id: "player1",
+        name: "Player 1",
+    }).build(overrides);
+
+const buildPlayer2 = (overrides?: Partial<IPlayer>) =>
+    new PlayerBuilder({
+        id: "player2",
+        name: "Player 2",
+        order: 1,
+    }).build(overrides);
 
 describe("ActionResolver", () => {
     describe("initiative and action resolution order", () => {
@@ -143,27 +157,11 @@ describe("ActionResolver", () => {
             };
 
             // Setup: Create players
-            const player1 = new Player({
-                id: "player1",
-                name: "Player 1",
-                order: 0,
-                ready: true,
-                commandPoints: 10,
-                maxCommandPoints: 10,
+            const player1 = buildPlayer1({
                 ships: [player1Ship],
                 pendingActions: [player1MoveAction, player1AttackAction],
             });
-
-            const player2 = new Player({
-                id: "player2",
-                name: "Player 2",
-                order: 1,
-                ready: true,
-                commandPoints: 10,
-                maxCommandPoints: 10,
-                ships: [player2Ship],
-                pendingActions: [player2MoveAction],
-            });
+            const player2 = buildPlayer2({ ships: [player2Ship], pendingActions: [player2MoveAction] });
 
             // Setup: Create game state with player1 having initiative
             const gameState = new GameState({
@@ -227,27 +225,8 @@ describe("ActionResolver", () => {
                 hullLocations: [],
             };
 
-            const player1 = new Player({
-                id: "player1",
-                name: "Player 1",
-                order: 0,
-                ready: true,
-                commandPoints: 10,
-                maxCommandPoints: 10,
-                ships: [],
-                pendingActions: [moveAction1],
-            });
-
-            const player2 = new Player({
-                id: "player2",
-                name: "Player 2",
-                order: 1,
-                ready: true,
-                commandPoints: 10,
-                maxCommandPoints: 10,
-                ships: [],
-                pendingActions: [moveAction2],
-            });
+            const player1 = buildPlayer1({ ships: [], pendingActions: [moveAction1] });
+            const player2 = buildPlayer2({ ships: [], pendingActions: [moveAction2] });
 
             const gameState = new GameState({
                 code: "TEST",
@@ -291,27 +270,8 @@ describe("ActionResolver", () => {
                 hullLocations: [],
             };
 
-            const player1 = new Player({
-                id: "player1",
-                name: "Player 1",
-                order: 0,
-                ready: true,
-                commandPoints: 10,
-                maxCommandPoints: 10,
-                ships: [],
-                pendingActions: [moveAction1],
-            });
-
-            const player2 = new Player({
-                id: "player2",
-                name: "Player 2",
-                order: 1,
-                ready: true,
-                commandPoints: 10,
-                maxCommandPoints: 10,
-                ships: [],
-                pendingActions: [moveAction2],
-            });
+            const player1 = buildPlayer1({ ships: [], pendingActions: [moveAction1, moveAction2] });
+            const player2 = buildPlayer2({ ships: [], pendingActions: [moveAction2] });
 
             const gameState = new GameState({
                 code: "TEST",
@@ -325,7 +285,7 @@ describe("ActionResolver", () => {
             });
 
             const resolver = new ActionResolver("player1", gameState);
-            
+
             // Test that player2's action is resolved first
             const [first, second] = resolver["resolveIntiative"](moveAction1, moveAction2, "player2");
             expect(first?.playerId).toBe("player2");

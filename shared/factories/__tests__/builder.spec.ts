@@ -10,6 +10,23 @@ interface TestObject {
     };
 }
 
+class TestEntity implements TestObject {
+    id: string;
+    name: string;
+    count: number;
+    nested?: {
+        value: string;
+        items: string[];
+    };
+
+    constructor(props: TestObject) {
+        this.id = props.id;
+        this.name = props.name;
+        this.count = props.count;
+        this.nested = props.nested;
+    }
+}
+
 class TestBuilder extends Builder<TestObject> {
     constructor(overrides: Partial<TestObject> = {}) {
         super(
@@ -18,7 +35,8 @@ class TestBuilder extends Builder<TestObject> {
                 name: "default-name",
                 count: 0,
             },
-            overrides
+            overrides,
+            TestEntity
         );
     }
 }
@@ -84,6 +102,21 @@ describe("Builder", () => {
                 value: "override",
                 items: ["b", "c"],
             });
+        });
+
+        it("returns instance of the entity class", () => {
+            const builder = new TestBuilder();
+            const result = builder.build();
+            expect(result).toBeInstanceOf(TestEntity);
+        });
+
+        it("returns instance with correct properties", () => {
+            const builder = new TestBuilder({ name: "test-name", count: 42 });
+            const result = builder.build();
+            expect(result).toBeInstanceOf(TestEntity);
+            expect(result.id).toBe("default-id");
+            expect(result.name).toBe("test-name");
+            expect(result.count).toBe(42);
         });
     });
 

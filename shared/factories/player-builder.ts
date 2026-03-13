@@ -1,4 +1,5 @@
 import { IPlayer } from "../types";
+import { Player } from "../models";
 import { Builder } from "./builder";
 
 export class PlayerBuilder extends Builder<IPlayer> {
@@ -11,6 +12,6 @@ export class PlayerBuilder extends Builder<IPlayer> {
             maxCommandPoints: 2,
             commandPoints: 2,
         };
-        super(defaultProps, defaultOverrides);
+        super(defaultProps, defaultOverrides, Player);
     }
 }

@@ -1,7 +1,6 @@
+import { BOARD_COLUMNS, BOARD_ROWS } from "../constants";
+import { GameStateManager } from "../models";
 import {
-    BOARD_COLUMNS,
-    BOARD_ROWS,
-    GameStateManager,
     IAttackResult,
     ICellLoc,
     IDeployAction,
@@ -18,12 +17,10 @@ import {
     IPlayer,
     IResult,
     IShipAttackAction,
-    LocationHelper,
-    locationToKey,
-    MoveShipValidator,
-    PathHelper,
     ResultType,
-} from "..";
+} from "../types";
+import { LocationHelper, locationToKey, PathHelper } from "../utils";
+import { MoveShipValidator } from "../utils/validator";
 
 // TODO: migrate to a more signal based approach
 // GameEngine receives commands/signals from UI and updates the GameManager state

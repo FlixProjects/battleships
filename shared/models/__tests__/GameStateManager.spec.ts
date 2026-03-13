@@ -1,19 +1,24 @@
 import { GameStateManager } from "../GameStateManager";
 import { IGameState, IHull, IShip } from "../../types";
+import { PlayerBuilder } from "../../factories/player-builder";
+
+const buildPlayer1 = () => new PlayerBuilder({
+    id: "player1",
+    name: "Player 1",
+}).build();
+
+const buildPlayer2 = () => new PlayerBuilder({
+    id: "player2",
+    name: "Player 2",
+    order: 1,
+}).build();
 
 describe("GameStateManager", () => {
     it("should get visible tiles for player with deployed ship", () => {
         const gameState: IGameState = {
             code: "TEST",
             currentRound: 1,
-            players: [{
-                id: "player1",
-                name: "Player 1",
-                order: 0,
-                ready: false,
-                commandPoints: 2,
-                maxCommandPoints: 2,
-            }],
+            players: [buildPlayer1()],
             ships: [{
                 id: "ship1",
                 playerId: "player1",
@@ -51,24 +56,7 @@ describe("GameStateManager", () => {
         const gameState: IGameState = {
             code: "TEST",
             currentRound: 1,
-            players: [
-                {
-                    id: "player1",
-                    name: "Player 1",
-                    order: 0,
-                    ready: false,
-                    commandPoints: 2,
-                    maxCommandPoints: 2,
-                },
-                {
-                    id: "player2",
-                    name: "Player 2",
-                    order: 1,
-                    ready: false,
-                    commandPoints: 2,
-                    maxCommandPoints: 2,
-                },
-            ],
+            players: [buildPlayer1(), buildPlayer2()],
             ships: [{
                 id: "ship2",
                 playerId: "player2",
@@ -102,24 +90,7 @@ describe("GameStateManager", () => {
         const gameState: IGameState = {
             code: "TEST",
             currentRound: 1,
-            players: [
-                {
-                    id: "player1",
-                    name: "Player 1",
-                    order: 0,
-                    ready: false,
-                    commandPoints: 2,
-                    maxCommandPoints: 2,
-                },
-                {
-                    id: "player2",
-                    name: "Player 2",
-                    order: 1,
-                    ready: false,
-                    commandPoints: 2,
-                    maxCommandPoints: 2,
-                },
-            ],
+            players: [buildPlayer1(), buildPlayer2()],
             ships: [{
                 id: "ship2",
                 playerId: "player2",

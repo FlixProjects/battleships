@@ -30,12 +30,12 @@ export class Player extends Entity<Player> implements IPlayer {
                 return new Action(action);
             }) ?? [];
 
-        this.ships = ships.map((ship) => {
+        this.ships = ships?.map((ship) => {
             if (ship instanceof Ship) {
                 return ship;
             }
             return new Ship(ship);
-        });
+        }) ?? [];
     }
 
     public getShip(shipId: string) {
