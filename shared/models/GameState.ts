@@ -184,4 +184,8 @@ export class GameState implements IGameState {
         });
         return this;
     }
+
+    getFirstPlayerId() {
+        return this.players[0]?.id;
+    }
 }
