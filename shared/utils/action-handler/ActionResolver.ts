@@ -21,8 +21,8 @@ export class ActionResolver {
         public playerId: string, // for the perspective the ActionResolver is resolving for
         public gameState: IGameState,
     ) {
-        this.player1Actions = [...gameState.players[0].pendingActions];
-        this.player2Actions = [...gameState.players[1].pendingActions];
+        this.player1Actions = [...(gameState.players[0]?.pendingActions ?? [])];
+        this.player2Actions = [...(gameState.players[1]?.pendingActions ?? [])];
     }
 
     public resolve() {

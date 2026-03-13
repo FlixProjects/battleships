@@ -31,11 +31,11 @@ export class Player extends Entity<Player> implements IPlayer {
             }) ?? [];
 
         this.ships = ships?.map((ship) => {
-            if (ship instanceof Ship) {
-                return ship;
-            }
-            return new Ship(ship);
-        }) ?? [];
+                if (ship instanceof Ship) {
+                    return ship;
+                }
+                return new Ship(ship);
+            }) ?? [];
     }
 
     public getShip(shipId: string) {

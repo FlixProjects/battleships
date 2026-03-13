@@ -64,7 +64,7 @@ export class GameState implements IGameState {
             // NOTE: there's a weird bug on browser that show pendingActions to be [] when there are actually elements
             player.pendingActions = this.actions?.filter(
                 (a) => a.playerId === player.id && a.round === this.currentRound,
-            );
+            ) ?? [];
 
             return new Player(player);
         });
