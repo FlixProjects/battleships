@@ -1,4 +1,5 @@
 import { PlayerBuilder } from "../factories/player-builder";
+import { ShipBuilder } from "../factories/ship-builder";
 import {
     transformAppStateToPlain,
     transformGameStateToPlain,
@@ -31,6 +32,13 @@ const playerBuilder = new PlayerBuilder({
     commandPoints: 2,
 });
 
+const shipBuilder = new ShipBuilder({
+    id: "ship1",
+    playerId: "player1",
+    refNo: "ref1",
+    name: "Destroyer",
+});
+
 describe("transformObjectToPlain", () => {
     it("transforms array properties to id arrays", () => {
         const obj = {
@@ -52,28 +60,10 @@ describe("transformObjectToPlain", () => {
 
 describe("transformShipToPlain", () => {
     it("converts ship hulls to id array", () => {
-        const ship: IShip = {
+        const ship: IShip = shipBuilder.build({
             id: "ship1",
-            playerId: "player1",
-            refNo: "ref1",
-            name: "Destroyer",
-            dimensions: [2, 1],
-            deployed: true,
-            destroyed: false,
-            commandPointCost: 1,
-            movementRange: 3,
-            movementCommandPointCost: 1,
-            attackCountMax: 1,
-            attackCommandPointCost: 1,
-            attackRange: 5,
-            attackDamage: 10,
-            attackMinRange: 0,
-            hullTemplates: [],
-            isFlagship: false,
-            remainingMovement: 3,
-            remainingAttacks: 1,
             hulls: [{ id: "hull1" } as IHull, { id: "hull2" } as IHull],
-        };
+        });
         const result = transformShipToPlain(ship);
         expect(result.hulls).toEqual(["hull1", "hull2"]);
         expect(result.id).toBe("ship1");

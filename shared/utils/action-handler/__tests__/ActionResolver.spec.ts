@@ -1,5 +1,6 @@
 import { PlayerBuilder } from "../../../factories/player-builder";
-import { GameState, Hull, Ship } from "../../../models";
+import { ShipBuilder } from "../../../factories/ship-builder";
+import { GameState, Hull } from "../../../models";
 import { IMoveAction, IPlayer, IShipAttackAction } from "../../../types";
 import { ActionTypes } from "../../../types/action-types";
 import { ActionResolver } from "../ActionResolver";
@@ -16,6 +17,12 @@ const buildPlayer2 = (overrides?: Partial<IPlayer>) =>
         name: "Player 2",
         order: 1,
     }).build(overrides);
+
+const shipBuilder = new ShipBuilder({
+    refNo: "frigate0",
+    name: "Frigate",
+    deployed: true,
+});
 
 describe("ActionResolver", () => {
     describe("initiative and action resolution order", () => {
@@ -48,49 +55,15 @@ describe("ActionResolver", () => {
             });
 
             // Setup: Create ships
-            const player1Ship = new Ship({
+            const player1Ship = shipBuilder.build({
                 id: "ship1",
                 playerId: "player1",
-                refNo: "frigate0",
-                name: "Frigate",
-                dimensions: [1, 1],
-                deployed: true,
-                destroyed: false,
-                commandPointCost: 1,
-                movementRange: 2,
-                movementCommandPointCost: 1,
-                attackCountMax: 1,
-                attackCommandPointCost: 1,
-                attackRange: 3,
-                attackDamage: 1,
-                attackMinRange: 0,
-                hullTemplates: [],
-                isFlagship: false,
-                remainingMovement: 2,
-                remainingAttacks: 1,
                 hulls: [player1Hull],
             });
 
-            const player2Ship = new Ship({
+            const player2Ship = shipBuilder.build({
                 id: "ship2",
                 playerId: "player2",
-                refNo: "frigate0",
-                name: "Frigate",
-                dimensions: [1, 1],
-                deployed: true,
-                destroyed: false,
-                commandPointCost: 1,
-                movementRange: 2,
-                movementCommandPointCost: 1,
-                attackCountMax: 1,
-                attackCommandPointCost: 1,
-                attackRange: 3,
-                attackDamage: 1,
-                attackMinRange: 0,
-                hullTemplates: [],
-                isFlagship: false,
-                remainingMovement: 2,
-                remainingAttacks: 1,
                 hulls: [player2Hull],
             });
 

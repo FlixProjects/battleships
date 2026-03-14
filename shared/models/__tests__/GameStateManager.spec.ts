@@ -1,6 +1,7 @@
-import { GameStateManager } from "../GameStateManager";
-import { IGameState, IHull, IShip } from "../../types";
 import { PlayerBuilder } from "../../factories/player-builder";
+import { ShipBuilder } from "../../factories/ship-builder";
+import { IGameState, IHull } from "../../types";
+import { GameStateManager } from "../GameStateManager";
 
 const buildPlayer1 = () => new PlayerBuilder({
     id: "player1",
@@ -13,20 +14,21 @@ const buildPlayer2 = () => new PlayerBuilder({
     order: 1,
 }).build();
 
+const shipBuilder = new ShipBuilder({
+    deployed: true,
+    destroyed: false,
+});
+
 describe("GameStateManager", () => {
     it("should get visible tiles for player with deployed ship", () => {
         const gameState: IGameState = {
             code: "TEST",
             currentRound: 1,
             players: [buildPlayer1()],
-            ships: [{
+            ships: [shipBuilder.build({
                 id: "ship1",
                 playerId: "player1",
-                deployed: true,
-                destroyed: false,
-                remainingMovement: 0,
-                remainingAttacks: 0,
-            } as IShip],
+            })],
             hulls: [{
                 id: "hull1",
                 shipId: "ship1",
@@ -57,14 +59,10 @@ describe("GameStateManager", () => {
             code: "TEST",
             currentRound: 1,
             players: [buildPlayer1(), buildPlayer2()],
-            ships: [{
+            ships: [shipBuilder.build({
                 id: "ship2",
                 playerId: "player2",
-                deployed: true,
-                destroyed: false,
-                remainingMovement: 0,
-                remainingAttacks: 0,
-            } as IShip],
+            })],
             hulls: [{
                 id: "hull2",
                 shipId: "ship2",
@@ -91,14 +89,10 @@ describe("GameStateManager", () => {
             code: "TEST",
             currentRound: 1,
             players: [buildPlayer1(), buildPlayer2()],
-            ships: [{
+            ships: [shipBuilder.build({
                 id: "ship2",
                 playerId: "player2",
-                deployed: true,
-                destroyed: false,
-                remainingMovement: 0,
-                remainingAttacks: 0,
-            } as IShip],
+            })],
             hulls: [{
                 id: "hull2",
                 shipId: "ship2",
