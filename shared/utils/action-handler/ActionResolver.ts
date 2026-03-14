@@ -122,9 +122,7 @@ export class ActionResolver {
     public resolveMove(action: IMoveAction) {
         // for now, if the player with initiative occupies the location,
         // the other player's Move is not resolved (they are not refunded the CP)
-        console.log(">>>>resolveMove", this.gameState);
         const gsm = new GameStateManager(this.gameState);
-        console.log(">>>>GameStateManager");
         const gameEngine = new GameEngine(this.gameState);
 
         const result = gameEngine.commit.moveShip(action);
