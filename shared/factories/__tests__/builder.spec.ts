@@ -27,7 +27,7 @@ class TestEntity implements TestObject {
     }
 }
 
-class TestBuilder extends Builder<TestObject> {
+class TestBuilder extends Builder<TestObject, TestEntity> {
     constructor(overrides: Partial<TestObject> = {}) {
         super(
             {

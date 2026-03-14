@@ -2,7 +2,7 @@ import { IPlayer } from "../types";
 import { Player } from "../models";
 import { Builder } from "./builder";
 
-export class PlayerBuilder extends Builder<IPlayer> {
+export class PlayerBuilder extends Builder<IPlayer, Player> {
     constructor(defaultOverrides?: Partial<IPlayer>) {
         const defaultProps: IPlayer = {
             id: "",
