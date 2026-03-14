@@ -1,6 +1,6 @@
 import { Action, Ship } from ".";
 import { IPlayer, IPlayerAction, IShip } from "../types";
-import { Entity } from "./Entity";
+import { Entity } from "./entities";
 
 export class Player extends Entity<Player> implements IPlayer {
     id: string;
@@ -30,7 +30,8 @@ export class Player extends Entity<Player> implements IPlayer {
                 return new Action(action);
             }) ?? [];
 
-        this.ships = ships?.map((ship) => {
+        this.ships =
+            ships?.map((ship) => {
                 if (ship instanceof Ship) {
                     return ship;
                 }

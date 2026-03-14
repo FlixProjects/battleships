@@ -1,6 +1,6 @@
 import { ICellLoc, IHull } from "../types";
 import { locationToKey } from "../utils";
-import { Entity } from "./Entity";
+import { Entity } from "./entities";
 
 export class Hull extends Entity<Hull> implements IHull {
     id: string;

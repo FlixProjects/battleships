@@ -2,7 +2,7 @@ import clone from "lodash.clonedeep";
 import { Board, IGameState, IHull, IPlayer, IPlayerAction, IShip } from "../types";
 import { mergeSets } from "../utils";
 import { Action } from "./Action";
-import { Entity } from "./Entity";
+import { Entity } from "./entities";
 import { Hull } from "./Hull";
 import { Player } from "./Player";
 import { Ship } from "./Ship";
@@ -62,9 +62,8 @@ export class GameState implements IGameState {
 
             player.ships = this.ships?.filter((s) => s.playerId === player.id);
             // NOTE: there's a weird bug on browser that show pendingActions to be [] when there are actually elements
-            player.pendingActions = this.actions?.filter(
-                (a) => a.playerId === player.id && a.round === this.currentRound,
-            ) ?? [];
+            player.pendingActions =
+                this.actions?.filter((a) => a.playerId === player.id && a.round === this.currentRound) ?? [];
 
             return new Player(player);
         });
