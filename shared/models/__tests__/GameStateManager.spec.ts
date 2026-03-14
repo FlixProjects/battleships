@@ -1,6 +1,7 @@
+import { HullBuilder } from "../../factories/hull-builder";
 import { PlayerBuilder } from "../../factories/player-builder";
 import { ShipBuilder } from "../../factories/ship-builder";
-import { IGameState, IHull } from "../../types";
+import { IGameState } from "../../types";
 import { GameStateManager } from "../GameStateManager";
 
 const buildPlayer1 = () => new PlayerBuilder({
@@ -19,6 +20,12 @@ const shipBuilder = new ShipBuilder({
     destroyed: false,
 });
 
+const hullBuilder = new HullBuilder({
+    visionRange: 2,
+    remainingHealth: 1,
+    maxHealth: 1,
+});
+
 describe("GameStateManager", () => {
     it("should get visible tiles for player with deployed ship", () => {
         const gameState: IGameState = {
@@ -29,15 +36,11 @@ describe("GameStateManager", () => {
                 id: "ship1",
                 playerId: "player1",
             })],
-            hulls: [{
+            hulls: [hullBuilder.build({
                 id: "hull1",
                 shipId: "ship1",
                 location: [1, 1],
-                visionRange: 2,
-                remainingHealth: 1,
-                remainingArmor: 0,
-                destroyed: false,
-            } as IHull],
+            })],
             winners: [],
             isOver: false,
         };
@@ -63,15 +66,11 @@ describe("GameStateManager", () => {
                 id: "ship2",
                 playerId: "player2",
             })],
-            hulls: [{
+            hulls: [hullBuilder.build({
                 id: "hull2",
                 shipId: "ship2",
                 location: [2, 2],
-                visionRange: 2,
-                remainingHealth: 1,
-                remainingArmor: 0,
-                destroyed: false,
-            } as IHull],
+            })],
             winners: [],
             isOver: false,
         };
@@ -93,15 +92,11 @@ describe("GameStateManager", () => {
                 id: "ship2",
                 playerId: "player2",
             })],
-            hulls: [{
+            hulls: [hullBuilder.build({
                 id: "hull2",
                 shipId: "ship2",
                 location: [2, 2],
-                visionRange: 2,
-                remainingHealth: 1,
-                remainingArmor: 0,
-                destroyed: false,
-            } as IHull],
+            })],
             winners: [],
             isOver: false,
         };

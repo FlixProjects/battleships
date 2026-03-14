@@ -1,3 +1,4 @@
+import { HullBuilder } from "../factories/hull-builder";
 import { PlayerBuilder } from "../factories/player-builder";
 import { ShipBuilder } from "../factories/ship-builder";
 import {
@@ -33,11 +34,12 @@ const playerBuilder = new PlayerBuilder({
 });
 
 const shipBuilder = new ShipBuilder({
-    id: "ship1",
     playerId: "player1",
     refNo: "ref1",
     name: "Destroyer",
 });
+
+const hullBuilder = new HullBuilder();
 
 describe("transformObjectToPlain", () => {
     it("transforms array properties to id arrays", () => {
@@ -62,7 +64,7 @@ describe("transformShipToPlain", () => {
     it("converts ship hulls to id array", () => {
         const ship: IShip = shipBuilder.build({
             id: "ship1",
-            hulls: [{ id: "hull1" } as IHull, { id: "hull2" } as IHull],
+            hulls: [hullBuilder.build({ id: "hull1" }), hullBuilder.build({ id: "hull2" })],
         });
         const result = transformShipToPlain(ship);
         expect(result.hulls).toEqual(["hull1", "hull2"]);

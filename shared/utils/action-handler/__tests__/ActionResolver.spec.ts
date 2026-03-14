@@ -1,6 +1,7 @@
+import { HullBuilder } from "../../../factories/hull-builder";
 import { PlayerBuilder } from "../../../factories/player-builder";
 import { ShipBuilder } from "../../../factories/ship-builder";
-import { GameState, Hull } from "../../../models";
+import { GameState } from "../../../models";
 import { IMoveAction, IPlayer, IShipAttackAction } from "../../../types";
 import { ActionTypes } from "../../../types/action-types";
 import { ActionResolver } from "../ActionResolver";
@@ -24,34 +25,27 @@ const shipBuilder = new ShipBuilder({
     deployed: true,
 });
 
+const hullBuilder = new HullBuilder({
+    visionRange: 2,
+    remainingHealth: 1,
+    maxHealth: 1,
+    templateLocation: [0, 0],
+});
+
 describe("ActionResolver", () => {
     describe("initiative and action resolution order", () => {
         it("should resolve player1 actions before player2 when player1 has initiative", () => {
             // Setup: Create hulls
-            const player1Hull = new Hull({
+            const player1Hull = hullBuilder.build({
                 id: "hull1",
                 shipId: "ship1",
                 location: [1, 1],
-                visionRange: 2,
-                remainingHealth: 1,
-                remainingArmor: 0,
-                destroyed: false,
-                templateLocation: [0, 0],
-                maxHealth: 1,
-                armor: 0,
             });
 
-            const player2Hull = new Hull({
+            const player2Hull = hullBuilder.build({
                 id: "hull2",
                 shipId: "ship2",
                 location: [0, 1],
-                visionRange: 2,
-                remainingHealth: 1,
-                remainingArmor: 0,
-                destroyed: false,
-                templateLocation: [0, 0],
-                maxHealth: 1,
-                armor: 0,
             });
 
             // Setup: Create ships
