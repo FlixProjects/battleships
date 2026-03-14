@@ -323,18 +323,6 @@ export class GameEngine {
 
     // ================= Helpers =================
 
-    private getFirstPlayer() {
-        return this.gameState.players[0];
-    }
-
-    private getShip(playerId: string, shipId: string) {
-        return this.getPlayer(playerId).ships.find((s) => s.id === shipId);
-    }
-
-    private getOtherPlayer(currentPlayerId: string) {
-        return this.gameState.players.find((p) => p.id !== currentPlayerId);
-    }
-
     private getPlayer(playerId: string): IPlayer {
         return this.gameState.players.find((p) => p.id === playerId);
     }
@@ -344,6 +332,6 @@ export class GameEngine {
     }
 
     private isFirstPlayer(playerId: string) {
-        return this.gameState.players[0].id === playerId;
+        return this.gsm.gameState.getFirstPlayerId() === playerId;
     }
 }
