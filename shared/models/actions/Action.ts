@@ -1,5 +1,5 @@
-import { IPlayerAction, TActionTypes } from "../types";
-import { Entity } from "./entities";
+import { IPlayerAction, TActionTypes } from "../../types";
+import { Entity } from "../entities";
 
 export class Action extends Entity<Action> implements IPlayerAction {
     id: string;

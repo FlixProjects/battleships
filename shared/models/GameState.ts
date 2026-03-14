@@ -1,7 +1,7 @@
 import clone from "lodash.clonedeep";
 import { Board, IGameState, IHull, IPlayer, IPlayerAction, IShip } from "../types";
 import { mergeSets } from "../utils";
-import { Action } from "./Action";
+import { Action } from "./actions";
 import { Entity } from "./entities";
 import { Hull } from "./Hull";
 import { Player } from "./Player";
