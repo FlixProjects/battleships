@@ -1,7 +1,4 @@
-
 export const IMEventType = {
-    IDLE: "Idle",
-    START_TURN: "Start_Turn",
     DEPLOYING_SHIP: "Deploying_Ship",
     MOVING_SHIP: "Moving_Ship",
     SELECT_SHIP: "Select_Ship",
