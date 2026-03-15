@@ -1,6 +1,6 @@
 import { Command } from "../commands/Command";
 
-export interface ICommandHandler {
+export interface ICommandHistory {
     currentStep: number;
     history: Command[];
     lastIndex: number;
