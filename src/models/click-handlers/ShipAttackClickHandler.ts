@@ -1,4 +1,4 @@
-import { gameManager } from "..";
+import { gameManager } from "../..";
 import {
     ActionTypes,
     ANIMATION_LAYER_ID,
@@ -12,20 +12,20 @@ import {
     keyToLocation,
     locationToKey,
     ResultType,
-} from "../../shared";
-import { ShipAttackActionCreator } from "../../shared/models/ActionCreator";
-import { GameEngine } from "../../shared/models/GameEngine";
-import { HTMLImage } from "../components/native/Image";
-import { Projectile } from "../components/projectiles/Projectile";
-import { Selectable } from "../components/Selectable";
-import { Icon } from "../components/ships/Icon";
-import { getElementsFromIds } from "../utils/game-helper";
-import { animationManager } from "./AnimationManager";
-import { DestroyedAnimation } from "./animations";
-import { HitAnimation } from "./animations/HitAnimation";
-import { StillAnimation } from "./animations/StillAnimation";
+} from "../../../shared";
+import { ShipAttackActionCreator } from "../../../shared/models/ActionCreator";
+import { GameEngine } from "../../../shared/models/GameEngine";
+import { HTMLImage } from "../../components/native/Image";
+import { Projectile } from "../../components/projectiles/Projectile";
+import { Selectable } from "../../components/Selectable";
+import { Icon } from "../../components/ships/Icon";
+import { getElementsFromIds } from "../../utils/game-helper";
+import { animationManager } from "../AnimationManager";
+import { DestroyedAnimation } from "../animations";
+import { HitAnimation } from "../animations/HitAnimation";
+import { StillAnimation } from "../animations/StillAnimation";
 import { ClickHandler } from "./ClickHandler";
-import { ShipAttackActionIMEvent } from "./interaction-manager/types";
+import { ShipAttackActionIMEvent } from "../interaction-manager/types";
 
 const TARGET_ICON_ID_PREFIX = "target-icon";
 

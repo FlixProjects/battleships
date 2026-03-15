@@ -1,4 +1,4 @@
-import { gameManager } from "..";
+import { gameManager } from "../..";
 import {
     ActionTypes,
     GameStateManager,
@@ -8,15 +8,15 @@ import {
     keyToLocation,
     locationToKey,
     ResultType,
-} from "../../shared";
-import { MoveShipActionCreator } from "../../shared/models/ActionCreator";
-import { GameEngine } from "../../shared/models/GameEngine";
-import { transformGameStateToPlain } from "../../shared/transformers";
-import { getComponents } from "../components/component-helper";
-import { animationManager } from "./AnimationManager";
-import { MoveShipAnimation } from "./animations/MoveShipAnimation";
+} from "../../../shared";
+import { MoveShipActionCreator } from "../../../shared/models/ActionCreator";
+import { GameEngine } from "../../../shared/models/GameEngine";
+import { transformGameStateToPlain } from "../../../shared/transformers";
+import { getComponents } from "../../components/component-helper";
+import { animationManager } from "../AnimationManager";
+import { MoveShipAnimation } from "../animations/MoveShipAnimation";
 import { ClickHandler } from "./ClickHandler";
-import { MovingShipIMEvent } from "./interaction-manager/types";
+import { MovingShipIMEvent } from "../interaction-manager/types";
 
 export class MoveShipClickHandler extends ClickHandler {
     private validCells: ICellLoc[] = [];

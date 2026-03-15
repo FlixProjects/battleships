@@ -1,9 +1,9 @@
 import { Selectable } from "../../components/Selectable";
-import { ClickHandler } from "../ClickHandler";
-import { DeployShipClickHandler } from "../DeployShipClickHandler";
-import { MoveShipClickHandler } from "../MoveShipClickHandler";
-import { SelectShipClickHandler } from "../SelectShipClickHandler";
-import { ShipAttackClickHandler } from "../ShipAttackClickHandler";
+import { ClickHandler } from "../click-handlers/ClickHandler";
+import { DeployShipClickHandler } from "../click-handlers/DeployShipClickHandler";
+import { MoveShipClickHandler } from "../click-handlers/MoveShipClickHandler";
+import { SelectShipClickHandler } from "../click-handlers/SelectShipClickHandler";
+import { ShipAttackClickHandler } from "../click-handlers/ShipAttackClickHandler";
 import {
     DeployingShipIMEvent,
     IMEventType,

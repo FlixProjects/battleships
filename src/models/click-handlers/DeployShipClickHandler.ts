@@ -1,11 +1,11 @@
-import { gameManager } from "..";
-import { GameStateManager, ICellLoc, ResultType } from "../../shared";
-import { DeployShipActionCreator } from "../../shared/models/ActionCreator";
-import { GameEngine } from "../../shared/models/GameEngine";
-import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
-import { getHull, keyToLocation, locationToKey } from "../../shared/utils/helpers";
+import { gameManager } from "../..";
+import { GameStateManager, ICellLoc, ResultType } from "../../../shared";
+import { DeployShipActionCreator } from "../../../shared/models/ActionCreator";
+import { GameEngine } from "../../../shared/models/GameEngine";
+import { ActionResolver } from "../../../shared/utils/action-handler/ActionResolver";
+import { getHull, keyToLocation, locationToKey } from "../../../shared/utils/helpers";
 import { ClickHandler } from "./ClickHandler";
-import { DeployingShipIMEvent } from "./interaction-manager/types";
+import { DeployingShipIMEvent } from "../interaction-manager/types";
 
 export class DeployShipClickHandler extends ClickHandler {
     private validCells: ICellLoc[] = [];
