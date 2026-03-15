@@ -1,6 +1,7 @@
-import { Command } from "./commands/Command";
+import { Command } from "../commands/Command";
+import { ICommandHandler } from "./types";
 
-export class CommandHandler {
+export class CommandHandler implements ICommandHandler {
     public currentStep: number = -1;
 
     public history: Command[] = [];
