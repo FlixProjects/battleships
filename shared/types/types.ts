@@ -16,6 +16,7 @@ export interface IGameState {
 export interface IPlayer {
     name: string;
     id: string;
+    order: number;
     ready: boolean;
     ships?: IShip[];
     pendingActions?: IPlayerAction[];

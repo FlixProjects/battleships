@@ -1,5 +1,6 @@
 import clone from "lodash.clonedeep";
-import { GameState, IGameState, IHull, IPlainAction, IPlayer, IShip } from "..";
+import { IGameState, IHull, IPlainAction, IPlayer, IShip } from "../types";
+import { GameState } from "./GameState";
 
 export class GameStateManager {
     private _gameState: GameState;

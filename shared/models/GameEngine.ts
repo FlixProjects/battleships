@@ -1,7 +1,6 @@
+import { BOARD_COLUMNS, BOARD_ROWS } from "../constants";
+import { GameStateManager } from "../models";
 import {
-    BOARD_COLUMNS,
-    BOARD_ROWS,
-    GameStateManager,
     IAttackResult,
     ICellLoc,
     IDeployAction,
@@ -18,12 +17,10 @@ import {
     IPlayer,
     IResult,
     IShipAttackAction,
-    LocationHelper,
-    locationToKey,
-    MoveShipValidator,
-    PathHelper,
     ResultType,
-} from "..";
+} from "../types";
+import { LocationHelper, locationToKey, PathHelper } from "../utils";
+import { MoveShipValidator } from "../utils/validator";
 
 // TODO: migrate to a more signal based approach
 // GameEngine receives commands/signals from UI and updates the GameManager state
@@ -326,18 +323,6 @@ export class GameEngine {
 
     // ================= Helpers =================
 
-    private getFirstPlayer() {
-        return this.gameState.players[0];
-    }
-
-    private getShip(playerId: string, shipId: string) {
-        return this.getPlayer(playerId).ships.find((s) => s.id === shipId);
-    }
-
-    private getOtherPlayer(currentPlayerId: string) {
-        return this.gameState.players.find((p) => p.id !== currentPlayerId);
-    }
-
     private getPlayer(playerId: string): IPlayer {
         return this.gameState.players.find((p) => p.id === playerId);
     }
@@ -347,6 +332,6 @@ export class GameEngine {
     }
 
     private isFirstPlayer(playerId: string) {
-        return this.gameState.players[0].id === playerId;
+        return this.gsm.gameState.getFirstPlayerId() === playerId;
     }
 }

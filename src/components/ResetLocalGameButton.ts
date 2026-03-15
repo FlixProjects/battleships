@@ -75,7 +75,7 @@ export class ResetLocalGameButton extends HTMLButton {
 
         gameManager.savePlainAppState({ status: AppStatus.Initialised, loading: false, gameState: initialGameState });
 
-        const player2 = initialiseNewPlayer(player2Id, player2Name);
+        const player2 = initialiseNewPlayer({ id: player2Id, name: player2Name, order: 1 });
         const { shipIds, ships } = getNewShipsForPlayer(player2Id);
         player2.ships = shipIds;
 

@@ -91,7 +91,7 @@ export const transformPlainGameStateToDomain = (_gameState: IPlainGameState): IG
 
     const linkedPlayers = players?.map((_player) => {
         const playerShips = linkedShips?.filter((ship) => ship.playerId === _player.id);
-        const pendingActions = actions?.filter((action) => _player.pendingActions.includes(action.id));
+        const pendingActions = actions?.filter((action) => _player.pendingActions?.includes(action.id));
         const player: IPlayer = {
             ..._player,
             ships: playerShips,

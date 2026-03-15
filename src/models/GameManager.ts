@@ -32,14 +32,6 @@ export class GameManager {
         return this.getCurrentPlayerState();
     }
 
-    get isFirstPlayer() {
-        return this.getCurrentPlayerState()?.gameState?.players?.[0].id === this.getCurrentPlayerId();
-    }
-
-    get firstPlayerId() {
-        return this.getCurrentPlayerState()?.gameState?.players?.[0].id;
-    }
-
     public savePlainAppState(state: Partial<IPlainAppState>, _options: { saveWithMerge?: boolean } = {}) {
         const DEFAULT_OPTIONS = { saveWithMerge: true };
         const options = { ...DEFAULT_OPTIONS, ..._options };

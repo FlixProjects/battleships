@@ -1,5 +1,5 @@
 import { gameManager } from "../..";
-import { COLOR, COLOR_RGBA } from "../../../shared";
+import { COLOR, COLOR_RGBA, GameStateManager } from "../../../shared";
 import { BaseComponent } from "../BaseComponent";
 
 interface Props {
@@ -51,7 +51,8 @@ export class PlayerCard extends BaseComponent {
 
     protected addStyles(): void {
         this.ref.style.border = "6px solid";
-        if (this.props.playerId === gameManager.firstPlayerId) {
+        const gsm = new GameStateManager(gameManager.state.gameState);
+        if (this.props.playerId === gsm.gameState.getFirstPlayerId()) {
             this.ref.style.borderColor = COLOR_RGBA[COLOR.TEAL];
         } else {
             this.ref.style.borderColor = COLOR_RGBA[COLOR.ORANGE];

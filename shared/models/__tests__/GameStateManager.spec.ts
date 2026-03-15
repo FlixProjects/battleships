@@ -1,35 +1,46 @@
+import { HullBuilder } from "../../factories/hull-builder";
+import { PlayerBuilder } from "../../factories/player-builder";
+import { ShipBuilder } from "../../factories/ship-builder";
+import { IGameState } from "../../types";
 import { GameStateManager } from "../GameStateManager";
-import { IGameState, IHull, IShip } from "../../types";
+
+const buildPlayer1 = () => new PlayerBuilder({
+    id: "player1",
+    name: "Player 1",
+}).build();
+
+const buildPlayer2 = () => new PlayerBuilder({
+    id: "player2",
+    name: "Player 2",
+    order: 1,
+}).build();
+
+const shipBuilder = new ShipBuilder({
+    deployed: true,
+    destroyed: false,
+});
+
+const hullBuilder = new HullBuilder({
+    visionRange: 2,
+    remainingHealth: 1,
+    maxHealth: 1,
+});
 
 describe("GameStateManager", () => {
     it("should get visible tiles for player with deployed ship", () => {
         const gameState: IGameState = {
             code: "TEST",
             currentRound: 1,
-            players: [{
-                id: "player1",
-                name: "Player 1",
-                ready: false,
-                commandPoints: 2,
-                maxCommandPoints: 2,
-            }],
-            ships: [{
+            players: [buildPlayer1()],
+            ships: [shipBuilder.build({
                 id: "ship1",
                 playerId: "player1",
-                deployed: true,
-                destroyed: false,
-                remainingMovement: 0,
-                remainingAttacks: 0,
-            } as IShip],
-            hulls: [{
+            })],
+            hulls: [hullBuilder.build({
                 id: "hull1",
                 shipId: "ship1",
                 location: [1, 1],
-                visionRange: 2,
-                remainingHealth: 1,
-                remainingArmor: 0,
-                destroyed: false,
-            } as IHull],
+            })],
             winners: [],
             isOver: false,
         };
@@ -50,39 +61,16 @@ describe("GameStateManager", () => {
         const gameState: IGameState = {
             code: "TEST",
             currentRound: 1,
-            players: [
-                {
-                    id: "player1",
-                    name: "Player 1",
-                    ready: false,
-                    commandPoints: 2,
-                    maxCommandPoints: 2,
-                },
-                {
-                    id: "player2",
-                    name: "Player 2",
-                    ready: false,
-                    commandPoints: 2,
-                    maxCommandPoints: 2,
-                },
-            ],
-            ships: [{
+            players: [buildPlayer1(), buildPlayer2()],
+            ships: [shipBuilder.build({
                 id: "ship2",
                 playerId: "player2",
-                deployed: true,
-                destroyed: false,
-                remainingMovement: 0,
-                remainingAttacks: 0,
-            } as IShip],
-            hulls: [{
+            })],
+            hulls: [hullBuilder.build({
                 id: "hull2",
                 shipId: "ship2",
                 location: [2, 2],
-                visionRange: 2,
-                remainingHealth: 1,
-                remainingArmor: 0,
-                destroyed: false,
-            } as IHull],
+            })],
             winners: [],
             isOver: false,
         };
@@ -99,39 +87,16 @@ describe("GameStateManager", () => {
         const gameState: IGameState = {
             code: "TEST",
             currentRound: 1,
-            players: [
-                {
-                    id: "player1",
-                    name: "Player 1",
-                    ready: false,
-                    commandPoints: 2,
-                    maxCommandPoints: 2,
-                },
-                {
-                    id: "player2",
-                    name: "Player 2",
-                    ready: false,
-                    commandPoints: 2,
-                    maxCommandPoints: 2,
-                },
-            ],
-            ships: [{
+            players: [buildPlayer1(), buildPlayer2()],
+            ships: [shipBuilder.build({
                 id: "ship2",
                 playerId: "player2",
-                deployed: true,
-                destroyed: false,
-                remainingMovement: 0,
-                remainingAttacks: 0,
-            } as IShip],
-            hulls: [{
+            })],
+            hulls: [hullBuilder.build({
                 id: "hull2",
                 shipId: "ship2",
                 location: [2, 2],
-                visionRange: 2,
-                remainingHealth: 1,
-                remainingArmor: 0,
-                destroyed: false,
-            } as IHull],
+            })],
             winners: [],
             isOver: false,
         };

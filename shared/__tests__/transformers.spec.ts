@@ -1,16 +1,45 @@
+import { HullBuilder } from "../factories/hull-builder";
+import { PlayerBuilder } from "../factories/player-builder";
+import { ShipBuilder } from "../factories/ship-builder";
 import {
-    transformObjectToPlain,
-    transformShipToPlain,
-    transformShipsToPlain,
-    transformPlayerToPlain,
-    transformPlayersToPlain,
-    transformGameStateToPlain,
     transformAppStateToPlain,
+    transformGameStateToPlain,
+    transformObjectToPlain,
     transformPlainAppStateToDomain,
     transformPlainGameStateToDomain,
     transformPlainShipToDomain,
+    transformPlayerToPlain,
+    transformPlayersToPlain,
+    transformShipToPlain,
+    transformShipsToPlain,
 } from "../transformers";
-import { IShip, IPlayer, IGameState, IAppState, IPlainGameState, IPlainAppState, IHull, AppStatus } from "../types/types";
+import {
+    AppStatus,
+    IAppState,
+    IGameState,
+    IHull,
+    IPlainAppState,
+    IPlainGameState,
+    IPlainPlayer,
+    IPlayer,
+    IShip,
+} from "../types/types";
+
+const playerBuilder = new PlayerBuilder({
+    id: "player1",
+    name: "Player 1",
+    ready: false,
+    maxCommandPoints: 2,
+    commandPoints: 2,
+});
+
+const shipBuilder = new ShipBuilder({
+    playerId: "player1",
+    refNo: "ref1",
+    name: "Destroyer",
+});
+
+const hullBuilder = new HullBuilder();
 
 describe("transformObjectToPlain", () => {
     it("transforms array properties to id arrays", () => {
@@ -33,28 +62,10 @@ describe("transformObjectToPlain", () => {
 
 describe("transformShipToPlain", () => {
     it("converts ship hulls to id array", () => {
-        const ship: IShip = {
+        const ship: IShip = shipBuilder.build({
             id: "ship1",
-            playerId: "player1",
-            refNo: "ref1",
-            name: "Destroyer",
-            dimensions: [2, 1],
-            deployed: true,
-            destroyed: false,
-            commandPointCost: 1,
-            movementRange: 3,
-            movementCommandPointCost: 1,
-            attackCountMax: 1,
-            attackCommandPointCost: 1,
-            attackRange: 5,
-            attackDamage: 10,
-            attackMinRange: 0,
-            hullTemplates: [],
-            isFlagship: false,
-            remainingMovement: 3,
-            remainingAttacks: 1,
-            hulls: [{ id: "hull1" } as IHull, { id: "hull2" } as IHull],
-        };
+            hulls: [hullBuilder.build({ id: "hull1" }), hullBuilder.build({ id: "hull2" })],
+        });
         const result = transformShipToPlain(ship);
         expect(result.hulls).toEqual(["hull1", "hull2"]);
         expect(result.id).toBe("ship1");
@@ -76,15 +87,13 @@ describe("transformShipsToPlain", () => {
 
 describe("transformPlayerToPlain", () => {
     it("converts player ships and pendingActions to id arrays", () => {
-        const player: IPlayer = {
+        const player: IPlayer = playerBuilder.build({
             id: "player1",
             name: "Player 1",
-            ready: true,
-            maxCommandPoints: 10,
-            commandPoints: 5,
             ships: [{ id: "ship1" } as IShip, { id: "ship2" } as IShip],
             pendingActions: [{ id: "action1" } as any, { id: "action2" } as any],
-        };
+        });
+
         const result = transformPlayerToPlain(player);
         expect(result.ships).toEqual(["ship1", "ship2"]);
         expect(result.pendingActions).toEqual(["action1", "action2"]);
@@ -95,8 +104,18 @@ describe("transformPlayerToPlain", () => {
 describe("transformPlayersToPlain", () => {
     it("converts multiple players", () => {
         const players: IPlayer[] = [
-            { id: "player1", ships: [{ id: "ship1" } as IShip], pendingActions: [] } as IPlayer,
-            { id: "player2", ships: [{ id: "ship2" } as IShip], pendingActions: [] } as IPlayer,
+            playerBuilder.build({
+                id: "player1",
+                name: "Player 1",
+                ships: [{ id: "ship1" } as IShip],
+                pendingActions: [],
+            }),
+            playerBuilder.build({
+                id: "player2",
+                name: "Player 2",
+                ships: [{ id: "ship2" } as IShip],
+                pendingActions: [],
+            }),
         ];
         const result = transformPlayersToPlain(players);
         expect(result).toHaveLength(2);
@@ -111,7 +130,11 @@ describe("transformGameStateToPlain", () => {
             code: "GAME123",
             currentRound: 1,
             players: [
-                { id: "player1", ships: [{ id: "ship1", hulls: [] } as IShip], pendingActions: [] } as IPlayer,
+                playerBuilder.build({
+                    id: "player1",
+                    ships: [{ id: "ship1", hulls: [] } as IShip],
+                    pendingActions: [],
+                }),
             ],
             ships: [{ id: "ship1", hulls: [{ id: "hull1" } as IHull] } as IShip],
             hulls: [{ id: "hull1" } as IHull],
@@ -151,7 +174,7 @@ describe("transformPlainGameStateToDomain", () => {
         const plainGameState: IPlainGameState = {
             code: "GAME123",
             currentRound: 1,
-            players: [{ id: "player1", name: "Player 1", ships: ["ship1"], pendingActions: [] } as any],
+            players: [{ id: "player1", name: "Player 1", ships: ["ship1"], pendingActions: [] } as IPlainPlayer],
             ships: [{ id: "ship1", playerId: "player1", hulls: ["hull1"] } as any],
             hulls: [{ id: "hull1", shipId: "ship1" } as IHull],
             actions: [],

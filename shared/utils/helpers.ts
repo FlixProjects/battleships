@@ -10,7 +10,7 @@ import {
     IPlainPlayer,
     IPlainShip,
     IPlayer,
-    IShip
+    IShip,
 } from "../types/types";
 
 export const parseCookies = (cookieStr: string) => {
@@ -48,7 +48,6 @@ export const generateGameCode = () => {
         .join("");
 };
 
-
 export const getNewCell = (cellLoc: ICellLoc): Cell =>
     new Cell({
         loc: cellLoc,
@@ -71,7 +70,7 @@ export const getNewBoard = (): Board => {
 
 export const createNewGameState = (gameCode: string, playerId: string, playerName: string): IPlainGameState => {
     const { shipIds, ships } = getNewShipsForPlayer(playerId);
-    const player = initialiseNewPlayer(playerId, playerName);
+    const player = initialiseNewPlayer({ id: playerId, name: playerName, order: 0 });
     player.ships = shipIds;
 
     const newGame: IPlainGameState = {
@@ -99,10 +98,14 @@ export const getNewShipsForPlayer = (playerId: string) => {
     return { ships, shipIds: ships.map((s) => s.id) };
 };
 
-export const initialiseNewPlayer = (id: string, name: string): IPlainPlayer => {
+export const initialiseNewPlayer = (_options: { id: string; name: string; order?: number }): IPlainPlayer => {
+    const defaultOptions = { order: 1 };
+    let options = { ...defaultOptions, ..._options };
+    const { id, name, order } = options;
     return {
         name,
         id,
+        order,
         ready: false,
         ships: [],
         pendingActions: [],

@@ -55,10 +55,6 @@ export const handler = async (event: any) => {
 
         // TODO: might not need this since we don't modify actual game state and don't need to save
         // the new actual gameState to sessionStorage
-        if (isLocal) {
-            responseBody.gameStateForLocal = gameState;
-        }
-
         return {
             statusCode: 200,
             headers: {

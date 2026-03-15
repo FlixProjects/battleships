@@ -43,11 +43,6 @@ export const handler = async (event: any) => {
         const s3 = new S3Client({ region: process.env.AWS_REGION }); // AWS_REGION is a reserved keyword for AWS, for now its okay to leave as is
         const BUCKET_NAME = process.env.GAMES_BUCKET!; // set in lambda, TODO: we should inject this value
 
-        const playerId = randomUUID();
-        const newPlayer = initialiseNewPlayer(playerId, playerName);
-        const { shipIds, ships } = getNewShipsForPlayer(playerId);
-        newPlayer.ships = shipIds;
-
         if (!isLocal) {
             const { Body } = await s3.send(
                 new GetObjectCommand({
@@ -71,6 +66,11 @@ export const handler = async (event: any) => {
                 }),
             };
         }
+
+        const playerId = randomUUID();
+        const newPlayer = initialiseNewPlayer({ id: playerId, name: playerName, order: gameState.players.length });
+        const { shipIds, ships } = getNewShipsForPlayer(playerId);
+        newPlayer.ships = shipIds;
 
         gameState.ships.push(...ships);
         gameState.players.push(newPlayer);

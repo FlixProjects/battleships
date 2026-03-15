@@ -1,10 +1,11 @@
 import { Action, Ship } from ".";
 import { IPlayer, IPlayerAction, IShip } from "../types";
-import { Entity } from "./Entity";
+import { Entity } from "./entities";
 
 export class Player extends Entity<Player> implements IPlayer {
     id: string;
     name: string;
+    order: number;
     ready: boolean;
     shipIds: string[];
     ships?: Ship[];
@@ -14,9 +15,10 @@ export class Player extends Entity<Player> implements IPlayer {
 
     constructor(props: IPlayer) {
         super();
-        const { id, name, ready, ships, maxCommandPoints, commandPoints, pendingActions } = props;
+        const { id, name, order, ready, ships, maxCommandPoints, commandPoints, pendingActions } = props;
         this.id = id;
         this.name = name;
+        this.order = order;
         this.ready = ready;
         this.commandPoints = commandPoints;
         this.maxCommandPoints = maxCommandPoints;
@@ -28,12 +30,13 @@ export class Player extends Entity<Player> implements IPlayer {
                 return new Action(action);
             }) ?? [];
 
-        this.ships = ships.map((ship) => {
-            if (ship instanceof Ship) {
-                return ship;
-            }
-            return new Ship(ship);
-        });
+        this.ships =
+            ships?.map((ship) => {
+                if (ship instanceof Ship) {
+                    return ship;
+                }
+                return new Ship(ship);
+            }) ?? [];
     }
 
     public getShip(shipId: string) {

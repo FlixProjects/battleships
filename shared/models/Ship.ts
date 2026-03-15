@@ -1,5 +1,5 @@
 import { IHull, IHullTemplate, IShip, locationToKey, PathHelper } from "../../shared";
-import { Entity } from "./Entity";
+import { Entity } from "./entities";
 import { Hull } from "./Hull";
 
 export class Ship extends Entity<Ship> implements IShip {
