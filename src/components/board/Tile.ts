@@ -1,5 +1,5 @@
 import { interactionManager } from "../..";
-import { IMEventType } from "../../models/interaction-manager/InteractionManager";
+import { IMEventType } from "../../models/interaction-manager/types";
 import { Selectable, TSetSelectableOptions } from "../Selectable";
 
 interface Props {

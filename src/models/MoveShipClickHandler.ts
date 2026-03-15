@@ -16,7 +16,7 @@ import { getComponents } from "../components/component-helper";
 import { animationManager } from "./AnimationManager";
 import { MoveShipAnimation } from "./animations/MoveShipAnimation";
 import { ClickHandler } from "./ClickHandler";
-import { MovingShipIMEvent } from "./interaction-manager/InteractionManager";
+import { MovingShipIMEvent } from "./interaction-manager/types";
 
 export class MoveShipClickHandler extends ClickHandler {
     private validCells: ICellLoc[] = [];

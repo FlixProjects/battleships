@@ -1,6 +1,6 @@
 import { gameManager, interactionManager } from "../..";
 import { ASSET_PATHS, IShip, SELECTABLE_ID } from "../../../shared";
-import { IMEventType } from "../../models/interaction-manager/InteractionManager";
+import { IMEventType } from "../../models/interaction-manager/types";
 import { getComponents } from "../component-helper";
 import { Selectable } from "../Selectable";
 import { SelectShipAttackButton } from "./SelectAttackButton";
