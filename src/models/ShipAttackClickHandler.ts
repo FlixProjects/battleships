@@ -25,7 +25,7 @@ import { DestroyedAnimation } from "./animations";
 import { HitAnimation } from "./animations/HitAnimation";
 import { StillAnimation } from "./animations/StillAnimation";
 import { ClickHandler } from "./ClickHandler";
-import { ShipAttackActionIMEvent } from "./InteractionManager";
+import { ShipAttackActionIMEvent } from "./interaction-manager/InteractionManager";
 
 const TARGET_ICON_ID_PREFIX = "target-icon";
 

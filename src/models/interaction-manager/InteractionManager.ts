@@ -1,9 +1,9 @@
-import { Selectable } from "../components/Selectable";
-import { ClickHandler } from "./ClickHandler";
-import { DeployShipClickHandler } from "./DeployShipClickHandler";
-import { MoveShipClickHandler } from "./MoveShipClickHandler";
-import { SelectShipClickHandler } from "./SelectShipClickHandler";
-import { ShipAttackClickHandler } from "./ShipAttackClickHandler";
+import { Selectable } from "../../components/Selectable";
+import { ClickHandler } from "../ClickHandler";
+import { DeployShipClickHandler } from "../DeployShipClickHandler";
+import { MoveShipClickHandler } from "../MoveShipClickHandler";
+import { SelectShipClickHandler } from "../SelectShipClickHandler";
+import { ShipAttackClickHandler } from "../ShipAttackClickHandler";
 
 export class InteractionManager {
     public uiState = "Idle";

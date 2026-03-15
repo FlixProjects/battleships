@@ -2,7 +2,7 @@ import { gameManager } from "..";
 import { IShip, keyToLocation, SELECTABLE_ID } from "../../shared";
 import { ActionMenu } from "../components/ships/ActionMenu";
 import { ClickHandler } from "./ClickHandler";
-import { SelectShipActionIMEvent } from "./InteractionManager";
+import { SelectShipActionIMEvent } from "./interaction-manager/InteractionManager";
 
 export class SelectShipClickHandler extends ClickHandler {
     private actionMenu: ActionMenu;

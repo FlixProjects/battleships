@@ -5,7 +5,7 @@ import { GameEngine } from "../../shared/models/GameEngine";
 import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
 import { getHull, keyToLocation, locationToKey } from "../../shared/utils/helpers";
 import { ClickHandler } from "./ClickHandler";
-import { DeployingShipIMEvent } from "./InteractionManager";
+import { DeployingShipIMEvent } from "./interaction-manager/InteractionManager";
 
 export class DeployShipClickHandler extends ClickHandler {
     private validCells: ICellLoc[] = [];
