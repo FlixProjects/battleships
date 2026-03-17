@@ -1,12 +1,12 @@
-import { Command } from "../commands/Command";
+import { IGame } from "../../types";
+import { ICommand } from "../commands/types";
 import { ICommandHistory } from "./types";
 
 export class CommandHistory implements ICommandHistory {
     public currentStep: number = -1;
+    public history: ICommand[] = [];
 
-    public history: Command[] = [];
-
-    constructor() {}
+    constructor(private game: IGame) {}
 
     get lastIndex() {
         return this.history.length - 1;
@@ -15,7 +15,7 @@ export class CommandHistory implements ICommandHistory {
     /**
      * Does not run the command!
      */
-    public push(command: Command) {
+    public push(command: ICommand) {
         if (this.currentStep !== this.lastIndex) {
             this.history = this.history.slice(0, this.currentStep + 1);
         }
@@ -32,7 +32,7 @@ export class CommandHistory implements ICommandHistory {
             return this;
         }
         const poppedCommand = this.history.pop();
-        poppedCommand?.undo();
+        this.game.undo(poppedCommand);
         this.currentStep--;
         return this;
     }
@@ -42,7 +42,7 @@ export class CommandHistory implements ICommandHistory {
             return this;
         }
         this.currentStep++;
-        this.history[this.currentStep].execute();
+        this.game.run(this.history[this.currentStep]);
         return this;
     }
 
@@ -50,7 +50,7 @@ export class CommandHistory implements ICommandHistory {
         if (this.currentStep === -1) {
             return this;
         }
-        this.history[this.currentStep].undo();
+        this.game.undo(this.history[this.currentStep]);
         this.currentStep--;
         return this;
     }
