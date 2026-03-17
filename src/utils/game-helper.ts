@@ -1,4 +1,4 @@
-import { gameManager } from "..";
+import { game, gameManager } from "..";
 import {
     AppStatus,
     COLOR,
@@ -10,6 +10,7 @@ import {
     TILE_GAP_PX,
     TILE_SIZE_PX,
 } from "../../shared";
+import { FECommand } from "../../shared/models/commands/FECommand";
 import { getGame } from "../apis/get-game";
 import { BaseComponent } from "../components/BaseComponent";
 import { getComponents, updateComponents } from "../components/component-helper";
@@ -127,4 +128,8 @@ export const isWaitingForOtherPlayer = (gameState: { players: { id: string; read
     const playerId = gameManager.getCurrentPlayerId();
     const isWaitingForOtherPlayer = gameState.players.find((p) => p.id === playerId).ready;
     return isWaitingForOtherPlayer;
+};
+
+export const queueCommand = async (command: FECommand) => {
+    await game.queueCommand(command);
 };

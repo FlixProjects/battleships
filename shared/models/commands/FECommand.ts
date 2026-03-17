@@ -1,6 +1,6 @@
 import { Command } from "./Command";
-import { CommandType } from "./types";
+import { CommandType, IFECommand } from "./types";
 
-export abstract class FECommand extends Command {
-    protected commandType = CommandType.Client;
+export abstract class FECommand extends Command implements IFECommand {
+    public commandType = CommandType.Client as "Client";
 }

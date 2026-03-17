@@ -14,6 +14,11 @@ export interface ICommandExecutionParams {
 }
 
 export interface ICommand {
+    commandType: TCommandType;
     execute(params: ICommandExecutionParams): Promise<void>;
     undo(params: ICommandExecutionParams): Promise<void>;
+}
+
+export interface IFECommand extends ICommand {
+    commandType: "Client";
 }
