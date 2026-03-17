@@ -1,3 +1,4 @@
+import { IGameStateManager } from "../../types";
 import { FECommand } from "./FECommand";
 
 export class FESelectShipCommand extends FECommand {
@@ -10,10 +11,6 @@ export class FESelectShipCommand extends FECommand {
         this.shipId = shipId;
     }
 
-    execute(): void {
-        
-    }
-    undo(): void {
-        
-    }
+    execute(gsm: IGameStateManager): void {}
+    undo(gsm: IGameStateManager): void {}
 }

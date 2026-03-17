@@ -1,4 +1,24 @@
+import type { GameState } from "../models";
 import { IPlayerAction } from "./action-types";
+
+export interface IGameStateManager {
+    get gameState(): GameState;
+    setGameState(_gameState: IGameState): void;
+    getCurrentRound(): number;
+    getPlayer(playerId: string): IPlayer | undefined;
+    getPlayers(): IPlayer[];
+    getPlayerShips(playerId: string): IShip[];
+    getShip(shipId: string): IShip | undefined;
+    updatePlayer(player: Partial<IPlayer>): this;
+    updatePlayers(players: Partial<IPlayer>[]): this;
+    updateShip(ship: Partial<IShip>): this;
+    updateShips(ships: Partial<IShip>[]): this;
+    updateHull(hull: Partial<IHull>): this;
+    addHull(hull: IHull): this;
+    updateActions(actions: Partial<IPlainAction>[]): this;
+    updateAction(action: Partial<IPlainAction>): this;
+    addAction(action: IPlainAction): this;
+}
 
 export interface IGameState {
     code: string;

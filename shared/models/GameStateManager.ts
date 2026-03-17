@@ -1,8 +1,8 @@
 import clone from "lodash.clonedeep";
-import { IGameState, IHull, IPlainAction, IPlayer, IShip } from "../types";
+import { IGameState, IGameStateManager, IHull, IPlainAction, IPlayer, IShip } from "../types";
 import { GameState } from "./GameState";
 
-export class GameStateManager {
+export class GameStateManager implements IGameStateManager {
     private _gameState: GameState;
     constructor(_gameState: IGameState) {
         // each time we instantiate we deep clone the gameState

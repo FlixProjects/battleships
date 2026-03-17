@@ -1,4 +1,6 @@
+import { IGameStateManager } from "../../types";
+
 export abstract class Command {
-    abstract execute(): void;
-    abstract undo(): void;
+    abstract execute(gsm?: IGameStateManager): void;
+    abstract undo(gsm?: IGameStateManager): void;
 }

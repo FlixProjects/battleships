@@ -4,16 +4,18 @@ import { ShipBuilder } from "../../factories/ship-builder";
 import { IGameState } from "../../types";
 import { GameStateManager } from "../GameStateManager";
 
-const buildPlayer1 = () => new PlayerBuilder({
-    id: "player1",
-    name: "Player 1",
-}).build();
+const buildPlayer1 = () =>
+    new PlayerBuilder({
+        id: "player1",
+        name: "Player 1",
+    }).build();
 
-const buildPlayer2 = () => new PlayerBuilder({
-    id: "player2",
-    name: "Player 2",
-    order: 1,
-}).build();
+const buildPlayer2 = () =>
+    new PlayerBuilder({
+        id: "player2",
+        name: "Player 2",
+        order: 1,
+    }).build();
 
 const shipBuilder = new ShipBuilder({
     deployed: true,
@@ -32,15 +34,19 @@ describe("GameStateManager", () => {
             code: "TEST",
             currentRound: 1,
             players: [buildPlayer1()],
-            ships: [shipBuilder.build({
-                id: "ship1",
-                playerId: "player1",
-            })],
-            hulls: [hullBuilder.build({
-                id: "hull1",
-                shipId: "ship1",
-                location: [1, 1],
-            })],
+            ships: [
+                shipBuilder.build({
+                    id: "ship1",
+                    playerId: "player1",
+                }),
+            ],
+            hulls: [
+                hullBuilder.build({
+                    id: "hull1",
+                    shipId: "ship1",
+                    location: [1, 1],
+                }),
+            ],
             winners: [],
             isOver: false,
         };
@@ -62,15 +68,19 @@ describe("GameStateManager", () => {
             code: "TEST",
             currentRound: 1,
             players: [buildPlayer1(), buildPlayer2()],
-            ships: [shipBuilder.build({
-                id: "ship2",
-                playerId: "player2",
-            })],
-            hulls: [hullBuilder.build({
-                id: "hull2",
-                shipId: "ship2",
-                location: [2, 2],
-            })],
+            ships: [
+                shipBuilder.build({
+                    id: "ship2",
+                    playerId: "player2",
+                }),
+            ],
+            hulls: [
+                hullBuilder.build({
+                    id: "hull2",
+                    shipId: "ship2",
+                    location: [2, 2],
+                }),
+            ],
             winners: [],
             isOver: false,
         };
@@ -79,7 +89,7 @@ describe("GameStateManager", () => {
         const visibleTiles = new Set<string>();
         const obscuredState = gsm.gameState.removeInvisibleFromPlayer(visibleTiles, "player1");
 
-        const player2 = obscuredState.players.find(p => p.id === "player2");
+        const player2 = obscuredState.players.find((p) => p.id === "player2");
         expect(player2?.ships.length).toBe(0);
     });
 
@@ -88,15 +98,19 @@ describe("GameStateManager", () => {
             code: "TEST",
             currentRound: 1,
             players: [buildPlayer1(), buildPlayer2()],
-            ships: [shipBuilder.build({
-                id: "ship2",
-                playerId: "player2",
-            })],
-            hulls: [hullBuilder.build({
-                id: "hull2",
-                shipId: "ship2",
-                location: [2, 2],
-            })],
+            ships: [
+                shipBuilder.build({
+                    id: "ship2",
+                    playerId: "player2",
+                }),
+            ],
+            hulls: [
+                hullBuilder.build({
+                    id: "hull2",
+                    shipId: "ship2",
+                    location: [2, 2],
+                }),
+            ],
             winners: [],
             isOver: false,
         };
@@ -105,7 +119,7 @@ describe("GameStateManager", () => {
         const visibleTiles = new Set<string>(["2/2"]);
         const obscuredState = gsm.gameState.removeInvisibleFromPlayer(visibleTiles, "player1");
 
-        const player2 = obscuredState.players.find(p => p.id === "player2");
+        const player2 = obscuredState.players.find((p) => p.id === "player2");
         expect(player2?.ships.length).toBe(1);
     });
 });
