@@ -14,12 +14,16 @@ export class Game {
         private GSM: new (_gameState: IGameState) => IGameStateManager,
     ) {}
 
-    public queueCommand(command: ICommand): void {
+    // for now, runs the command immediately if the queue is empty, otherwise queues it
+    public async queueCommand(command: ICommand): Promise<void> {
         // Implementation for queuing commands
         this.commandQueue.push({
             command,
             executeNext: async () => await this.runNextCommandInQueue(),
         });
+        if (this.commandQueue.length === 1) {
+            await this.runNextCommandInQueue();
+        }
     }
 
     public async run(command: ICommand) {
