@@ -1,9 +1,9 @@
-import { IActionMenu, IBaseComponent } from "../../types/fe-types";
+import { IActionMenu } from "../../types/fe-types";
 import { FECommand } from "./FECommand";
 
 export class FEActionMenuCloseCommand extends FECommand {
     constructor(
-        public readonly tileRef: HTMLElement,
+        public readonly parentRef: HTMLElement,
         public readonly actionMenu: IActionMenu,
     ) {
         super();
@@ -14,6 +14,6 @@ export class FEActionMenuCloseCommand extends FECommand {
     }
 
     async undo(): Promise<void> {
-        this.tileRef.appendChild(this.actionMenu.build());
+        this.parentRef?.appendChild(this.actionMenu.build());
     }
 }

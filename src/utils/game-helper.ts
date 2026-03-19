@@ -6,6 +6,7 @@ import {
     FP_CURRENT_PLAYER,
     FP_GAME_CODE,
     ICellLoc,
+    IShip,
     TColor,
     TILE_GAP_PX,
     TILE_SIZE_PX,
@@ -14,6 +15,7 @@ import { FECommand } from "../../shared/models/commands/FECommand";
 import { getGame } from "../apis/get-game";
 import { BaseComponent } from "../components/BaseComponent";
 import { getComponents, updateComponents } from "../components/component-helper";
+import { DeployedHullIcon } from "../components/ships/DeployedHullIcon";
 import { ShipIcon } from "../components/ships/ShipIcon";
 import { animationManager } from "../models/AnimationManager";
 import { MoveShipAnimation } from "../models/animations";
@@ -41,19 +43,38 @@ export const checkIfNameIsFilled = () => {
     return !!playerNameInput.value;
 };
 
+// TODO: to be deprecated
 export const renderShipIcon = (
     parentComponent: BaseComponent,
     hullId: string,
     shipId: string,
+    playerId: string,
     refNo: string,
     isFirstPlayer = true,
 ) => {
     const invert = isFirstPlayer;
     const color = isFirstPlayer ? COLOR.TEAL : COLOR.ORANGE;
 
-    const shipIcon = new ShipIcon({ hullId, shipId, invert, color, refNo });
+    const shipIcon = new ShipIcon({ hullId, shipId, playerId, invert, color, refNo });
     parentComponent.addChild(shipIcon);
     parentComponent.ref.appendChild(shipIcon.build());
+};
+
+export const renderShipIconV2 = (
+    parentComponent: BaseComponent,
+    shipProps: Pick<IShip, "id" | "playerId" | "refNo" | "hulls">,
+    isFirstPlayer = true,
+) => {
+    const invert = isFirstPlayer;
+    const color = isFirstPlayer ? COLOR.TEAL : COLOR.ORANGE;
+    const { hulls, id, playerId, refNo } = shipProps;
+
+    // FIXME: (WIP) temporary implementation, we should render per hull with different parentComponents
+    hulls.forEach((hull) => {
+        const hullIcon = new DeployedHullIcon({ hullId: hull.id, shipId: id, playerId, invert, color, refNo });
+        parentComponent.addChild(hullIcon);
+        parentComponent.ref.appendChild(hullIcon.build());
+    });
 };
 
 export const getColorFilter = (color: TColor) => {

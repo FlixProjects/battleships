@@ -29,10 +29,14 @@ export class ShipRow extends Selectable {
 
     renderShipIcon() {
         const { shipId, refNo } = this.props;
+
         const gsm = new GameStateManager(gameManager.state.gameState);
+        const playerId = gsm.gameState.getShip(shipId)?.playerId;
+
         const shipIcon = new ShipIcon({
             refNo,
             shipId,
+            playerId,
             color: gsm.gameState.getFirstPlayerId() === gameManager.getCurrentPlayerId() ? COLOR.TEAL : COLOR.ORANGE,
         });
 

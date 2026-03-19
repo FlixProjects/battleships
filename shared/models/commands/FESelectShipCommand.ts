@@ -1,16 +1,38 @@
-import { IGameStateManager } from "../../types";
+import { IShip } from "../../types";
+import { IActionMenu } from "../../types/fe-types";
+import { FEActionMenuCloseCommand } from "./FEActionMenuCloseCommand";
+import { FEActionMenuOpenCommand } from "./FEActionMenuOpenCommand";
 import { FECommand } from "./FECommand";
+import { ICommandExecutionParams } from "./types";
 
 export class FESelectShipCommand extends FECommand {
-    private playerId: string;
-    private shipId: string;
-
-    constructor(playerId: string, shipId: string) {
+    constructor(
+        private selectShipComponent: HTMLElement,
+        private shipId: string,
+        private getActionMenu: (ship: IShip) => IActionMenu,
+    ) {
         super();
-        this.playerId = playerId;
-        this.shipId = shipId;
     }
 
-    execute(gsm: IGameStateManager): void {}
-    undo(gsm: IGameStateManager): void {}
+    async execute(params: ICommandExecutionParams): Promise<void> {
+        const { game, gsm } = params;
+
+        const ship = gsm.getShip(this.shipId);
+
+        const feActionMenuOpenCommand = new FEActionMenuOpenCommand(this.selectShipComponent, this.getActionMenu(ship));
+
+        await game.queueCommand(feActionMenuOpenCommand);
+    }
+
+    async undo(params: ICommandExecutionParams): Promise<void> {
+        const { game, gsm } = params;
+
+        const ship = gsm.getShip(this.shipId);
+
+        const feActionMenuCloseCommand = new FEActionMenuCloseCommand(
+            this.selectShipComponent,
+            this.getActionMenu(ship),
+        );
+        await game.queueCommand(feActionMenuCloseCommand);
+    }
 }

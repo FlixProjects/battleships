@@ -145,3 +145,5 @@ export const ERROR_CODE = {
     MOVE_ERROR_INSUFFICIENT_MOVEMENT: "MOVE_ERROR_INSUFFICIENT_MOVEMENT",
 } as const;
 export type TErrorCode = (typeof ERROR_CODE)[keyof typeof ERROR_CODE];
+
+export const DEPLOYED_HULL_PREFIX = `hull-`;

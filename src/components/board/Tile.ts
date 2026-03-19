@@ -116,14 +116,4 @@ export class Tile extends Selectable {
         this.ref.removeEventListener("mouseenter", this.mouseEnterStyle);
         this.ref.removeEventListener("mouseleave", this.mouseLeaveStyle);
     }
-
-    public addShipClickHandler() {
-        this.ref.addEventListener("click", () => {
-            interactionManager.handleEvent({
-                type: IMEventType.SELECT_SHIP,
-                tileId: this.id,
-                selectableId: "select-ship", // FIXME: should this be dynamic?
-            });
-        });
-    }
 }

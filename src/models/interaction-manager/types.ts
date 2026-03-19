@@ -26,6 +26,8 @@ export interface MovingShipIMEvent extends IMEvent {
 export interface SelectShipActionIMEvent extends IMEvent {
     type: typeof IMEventType.SELECT_SHIP;
     tileId: string;
+    hullId: string;
+    shipId: string;
     selectableId: string;
 }
 

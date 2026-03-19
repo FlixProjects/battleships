@@ -14,7 +14,7 @@ import {
     TILE_GAP_PX,
     TILE_SIZE_PX,
 } from "../../../shared";
-import { renderShipIcon } from "../../utils/game-helper";
+import { renderShipIconV2 } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 import { TSetSelectableOptions } from "../Selectable";
 import { Tile } from "./Tile";
@@ -133,11 +133,9 @@ export class GameBoard extends BaseComponent {
         tiles?.forEach(({ key }, i) => {
             const tile = this.tiles[key];
             // TODO: we might need to handle Ships with multiple hull locations
-            renderShipIcon(tile, ship.hulls[0].id, ship.id, ship.refNo, isFirstPlayer);
+            const shipProps = { id: ship.id, playerId: ship.playerId, refNo: ship.refNo, hulls: ship.hulls };
 
-            if (gameManager.getPlayer().id === ship.playerId) {
-                tile.addShipClickHandler();
-            }
+            renderShipIconV2(tile, shipProps, isFirstPlayer);
         });
     }
 }
