@@ -1,16 +1,8 @@
-import { IPlayerAction, TActionTypes } from "../../types";
-import { Entity } from "../entities";
+import { IPlayerAction } from "../../types";
+import { ActionEntity } from "../entities/ActionEntity";
 
-export class Action extends Entity<Action> implements IPlayerAction {
-    id: string;
-    order: number;
-    round: number;
-    playerId: string;
-    commandPointCost: number;
-    type?: TActionTypes;
-
+export class Action extends ActionEntity {
     constructor(props: Readonly<IPlayerAction>) {
-        super();
-        Object.assign(this, props);
+        super(props);
     }
 }
