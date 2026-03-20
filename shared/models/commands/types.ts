@@ -1,4 +1,4 @@
-import { IGame, IGameManager, IGameStateManager } from "../../types";
+import { IActionResolver, IGame, IGameManager, IGameStateManager } from "../../types";
 
 export const CommandType = {
     Client: "Client",
@@ -12,6 +12,7 @@ export interface ICommandExecutionParams {
     gsm?: IGameStateManager;
     game: IGame;
     db: IGameManager;
+    resolver: IActionResolver
 }
 
 export interface ICommand {

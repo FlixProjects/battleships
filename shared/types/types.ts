@@ -1,11 +1,15 @@
 import type { GameState } from "../models";
 import { ICommand } from "../models/commands/types";
-import { IPlayerAction } from "./action-types";
+import { IDeployAction, IPlayerAction } from "./action-types";
 
 export interface IGame {
     queueCommand(command: ICommand): void;
     run(command: ICommand): Promise<void>;
     undo(command: ICommand): Promise<void>;
+}
+
+export interface IActionResolver {
+    resolveDeploy(action: IDeployAction): GameState
 }
 
 export interface IGameManager {

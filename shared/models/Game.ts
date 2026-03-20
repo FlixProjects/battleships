@@ -1,4 +1,4 @@
-import { IGameManager, IGameState, IGameStateManager } from "../types";
+import { IActionResolver, IGameManager, IGameState, IGameStateManager } from "../types";
 import { ICommand } from "./commands/types";
 
 interface IQueueCommand {
@@ -12,6 +12,7 @@ export class Game {
     constructor(
         private db: IGameManager,
         private GSM: new (_gameState: IGameState) => IGameStateManager,
+        private Resolver: new (playerId: string, gameState: IGameState) => IActionResolver,
     ) {}
 
     // for now, runs the command immediately if the queue is empty, otherwise queues it
@@ -27,22 +28,30 @@ export class Game {
     }
 
     public async run(command: ICommand) {
-        const gsm = new this.GSM(this.db.state.gameState);
+        const currentPlayerId = this.db.getCurrentPlayerId();
+        const gameState = this.db.state.gameState;
+        const gsm = new this.GSM(gameState);
+        const resolver = new this.Resolver(currentPlayerId, gameState);
         await command.execute({
-            currentPlayerId: this.db.getCurrentPlayerId(),
+            currentPlayerId,
             gsm,
             game: this,
             db: this.db,
+            resolver,
         });
     }
 
     public async undo(command: ICommand) {
-        const gsm = new this.GSM(this.db.state.gameState);
+        const currentPlayerId = this.db.getCurrentPlayerId();
+        const gameState = this.db.state.gameState;
+        const gsm = new this.GSM(gameState);
+        const resolver = new this.Resolver(currentPlayerId, gameState);
         await command.undo({
-            currentPlayerId: this.db.getCurrentPlayerId(),
+            currentPlayerId,
             gsm,
             game: this,
             db: this.db,
+            resolver,
         });
     }
 

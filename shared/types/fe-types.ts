@@ -9,7 +9,9 @@ export interface IActionMenu extends IBaseComponent {
     close(): void;
 }
 
-export interface ISelectable {}
+export interface ISelectable {
+    runOnSelects: () => void;
+}
 
 export interface TSetSelectableOptions {
     onSelectable?: (selectable: ISelectable) => void;
