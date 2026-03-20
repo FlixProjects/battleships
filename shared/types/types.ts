@@ -8,6 +8,17 @@ export interface IGame {
     undo(command: ICommand): Promise<void>;
 }
 
+export interface IGameManager {
+    state: IAppState;
+    getCurrentPlayerId: () => string;
+    saveCurrentPlayerStateV2: (
+        state: Partial<IAppState>,
+        _options?: {
+            skipResolve?: boolean;
+            saveWithMerge?: boolean;
+        },
+    ) => void;
+}
 export interface IGameStateManager {
     get gameState(): GameState;
     setGameState(_gameState: IGameState): void;

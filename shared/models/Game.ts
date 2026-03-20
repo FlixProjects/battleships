@@ -1,4 +1,4 @@
-import { IAppState, IGameState, IGameStateManager } from "../types";
+import { IGameManager, IGameState, IGameStateManager } from "../types";
 import { ICommand } from "./commands/types";
 
 interface IQueueCommand {
@@ -10,7 +10,7 @@ export class Game {
     private commandQueue: IQueueCommand[] = [];
 
     constructor(
-        private db: { state: IAppState; getCurrentPlayerId: () => string },
+        private db: IGameManager,
         private GSM: new (_gameState: IGameState) => IGameStateManager,
     ) {}
 
@@ -32,6 +32,7 @@ export class Game {
             currentPlayerId: this.db.getCurrentPlayerId(),
             gsm,
             game: this,
+            db: this.db,
         });
     }
 
@@ -41,6 +42,7 @@ export class Game {
             currentPlayerId: this.db.getCurrentPlayerId(),
             gsm,
             game: this,
+            db: this.db,
         });
     }
 
