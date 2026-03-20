@@ -1,11 +1,14 @@
 import { gameManager } from "../..";
-import { GameStateManager, ICellLoc, ResultType } from "../../../shared";
+import { GameStateManager, ICellLoc } from "../../../shared";
 import { DeployShipActionCreator } from "../../../shared/models/ActionCreator";
+import { FEHighlightLocationsCommand } from "../../../shared/models/commands/FEHighlightLocationsCommand";
 import { GameEngine } from "../../../shared/models/GameEngine";
 import { ActionResolver } from "../../../shared/utils/action-handler/ActionResolver";
 import { getHull, keyToLocation, locationToKey } from "../../../shared/utils/helpers";
-import { ClickHandler } from "./ClickHandler";
+import { getComponents } from "../../components/component-helper";
+import { queueCommand } from "../../utils/game-helper";
 import { DeployingShipIMEvent } from "../interaction-manager/types";
+import { ClickHandler } from "./ClickHandler";
 
 export class DeployShipClickHandler extends ClickHandler {
     private validCells: ICellLoc[] = [];
@@ -20,7 +23,7 @@ export class DeployShipClickHandler extends ClickHandler {
         const gameEngine = new GameEngine(gameManager.state.gameState);
         const { validCells } = gameEngine.prime.deployShip({ playerId, shipId });
 
-        this.updateGameBoard(validCells);
+        queueCommand(new FEHighlightLocationsCommand(getComponents().div.gameBoard, validCells));
         this.validCells = validCells;
 
         return {
