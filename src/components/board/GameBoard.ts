@@ -14,9 +14,9 @@ import {
     TILE_GAP_PX,
     TILE_SIZE_PX,
 } from "../../../shared";
+import { TSetSelectableOptions } from "../../../shared/types/fe-types";
 import { renderShipIconV2 } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
-import { TSetSelectableOptions } from "../Selectable";
 import { Tile } from "./Tile";
 
 export class GameBoard extends BaseComponent {

@@ -1,7 +1,8 @@
 import { interactionManager } from "..";
+import { ISelectable } from "../../shared/types/fe-types";
 import { BaseComponent } from "./BaseComponent";
 
-export class Selectable extends BaseComponent {
+export class Selectable extends BaseComponent implements ISelectable {
     public isSelectableAction = true;
     private onSelects?: Array<() => void> = [];
     constructor(public id: string) {
@@ -33,10 +34,3 @@ export class Selectable extends BaseComponent {
         this.onSelects.forEach((callback) => callback());
     }
 }
-
-export interface TSetSelectableOptions {
-    onSelectable?: (selectable: Selectable) => void;
-    onUnselectable?: (selectable: Selectable) => void;
-}
-
-export interface IOnSelectable {}

@@ -1,6 +1,7 @@
+import { TSetSelectableOptions } from "../../../shared/types/fe-types";
 import { ICellLoc } from "../../../shared/types/types";
 import { getComponents, updateComponents } from "../../components/component-helper";
-import { Selectable, TSetSelectableOptions } from "../../components/Selectable";
+import { Selectable } from "../../components/Selectable";
 
 export class ClickHandler {
     protected removeGlobalClickEventListener: () => void;
