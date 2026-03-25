@@ -1,6 +1,6 @@
-import type { GameState } from "../models";
+import type { GameState, Ship } from "../models";
 import { ICommand } from "../models/commands/types";
-import { IDeployAction, IPlayerAction } from "./action-types";
+import { IDeployAction, IMoveAction, IPlayerAction } from "./action-types";
 
 export interface IGame {
     queueCommand(command: ICommand): void;
@@ -9,7 +9,8 @@ export interface IGame {
 }
 
 export interface IActionResolver {
-    resolveDeploy(action: IDeployAction): GameState
+    resolveDeploy(action: IDeployAction): GameState;
+    resolveMove(action: IMoveAction): GameState;
 }
 
 export interface IGameManager {
@@ -22,6 +23,12 @@ export interface IGameManager {
             saveWithMerge?: boolean;
         },
     ) => void;
+    savePlainAppState: (
+        state: Partial<IPlainAppState>,
+        _options?: {
+            saveWithMerge?: boolean;
+        },
+    ) => void;
 }
 export interface IGameStateManager {
     get gameState(): GameState;
@@ -30,7 +37,7 @@ export interface IGameStateManager {
     getPlayer(playerId: string): IPlayer | undefined;
     getPlayers(): IPlayer[];
     getPlayerShips(playerId: string): IShip[];
-    getShip(shipId: string): IShip | undefined;
+    getShip(shipId: string): Ship | undefined;
     updatePlayer(player: Partial<IPlayer>): this;
     updatePlayers(players: Partial<IPlayer>[]): this;
     updateShip(ship: Partial<IShip>): this;

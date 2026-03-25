@@ -1,4 +1,5 @@
-import { IShip, locationToKey, PathHelper } from "../../shared";
+import { mergician } from "mergician";
+import { ICellLoc, IHull, IShip, locationToKey, PathHelper } from "../../shared";
 import { ShipEntity } from "./entities/ShipEntity";
 
 export class Ship extends ShipEntity {
@@ -41,5 +42,14 @@ export class Ship extends ShipEntity {
     resolveAttack() {
         this.remainingAttacks -= 1;
         return this;
+    }
+
+    getNewHullLocations(endCell: ICellLoc) {
+        // TODO: implement proper rotation and multi-tile handling
+        const newHulls = this.hulls.map((h) => mergician({}, h)) as IHull[];
+        
+        newHulls[0].location = endCell;
+
+        return newHulls;
     }
 }
