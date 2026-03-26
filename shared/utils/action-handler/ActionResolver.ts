@@ -151,7 +151,13 @@ export class ActionResolver {
         const gameEngine = new GameEngine(this.gameState);
 
         // TODO: change to commit with validation
-        const { players, ships, hulls } = gameEngine.calculateAttackResult(action);
+        const result = gameEngine.commit.shipAttack(action);
+
+        if (result.type === ResultType.ERROR) {
+            throw new Error(result.message || "An error occurred while attacking");
+        }
+
+        const { players, ships, hulls } = result;
         const newState = gsm.updateHulls(hulls).updateShips(ships).updatePlayers(players).addAction(action).gameState;
 
         return newState;

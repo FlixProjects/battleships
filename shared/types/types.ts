@@ -1,4 +1,54 @@
-import { IPlayerAction } from "./action-types";
+import type { GameState, Ship } from "../models";
+import { ICommand } from "../models/commands/types";
+import { IDeployAction, IMoveAction, IPlayerAction, IShipAttackAction } from "./action-types";
+
+export interface IGame {
+    queueCommand(command: ICommand): void;
+    run(command: ICommand): Promise<void>;
+    undo(command: ICommand): Promise<void>;
+}
+
+export interface IActionResolver {
+    resolveDeploy(action: IDeployAction): GameState;
+    resolveMove(action: IMoveAction): GameState;
+    resolveAttack(action: IShipAttackAction): GameState;
+}
+
+export interface IGameManager {
+    state: IAppState;
+    getCurrentPlayerId: () => string;
+    saveCurrentPlayerStateV2: (
+        state: Partial<IAppState>,
+        _options?: {
+            skipResolve?: boolean;
+            saveWithMerge?: boolean;
+        },
+    ) => void;
+    savePlainAppState: (
+        state: Partial<IPlainAppState>,
+        _options?: {
+            saveWithMerge?: boolean;
+        },
+    ) => void;
+}
+export interface IGameStateManager {
+    get gameState(): GameState;
+    setGameState(_gameState: IGameState): void;
+    getCurrentRound(): number;
+    getPlayer(playerId: string): IPlayer | undefined;
+    getPlayers(): IPlayer[];
+    getPlayerShips(playerId: string): IShip[];
+    getShip(shipId: string): Ship | undefined;
+    updatePlayer(player: Partial<IPlayer>): this;
+    updatePlayers(players: Partial<IPlayer>[]): this;
+    updateShip(ship: Partial<IShip>): this;
+    updateShips(ships: Partial<IShip>[]): this;
+    updateHull(hull: Partial<IHull>): this;
+    addHull(hull: IHull): this;
+    updateActions(actions: Partial<IPlainAction>[]): this;
+    updateAction(action: Partial<IPlainAction>): this;
+    addAction(action: IPlainAction): this;
+}
 
 export interface IGameState {
     code: string;

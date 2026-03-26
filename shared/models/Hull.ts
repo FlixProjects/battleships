@@ -1,25 +1,10 @@
-import { ICellLoc, IHull } from "../types";
+import { IHull } from "../types";
 import { locationToKey } from "../utils";
-import { Entity } from "./entities";
+import { HullEntity } from "./entities/HullEntity";
 
-export class Hull extends Entity<Hull> implements IHull {
-    id: string;
-    shipId: string; // ties the hull to the ship
-    location: ICellLoc;
-    destroyed: boolean;
-    remainingHealth: number;
-    remainingArmor: number;
-    // template
-    templateLocation: ICellLoc;
-    maxHealth: number;
-    armor: number;
-    visionRange: number;
-    // extra
-    isVisible: boolean;
-
+export class Hull extends HullEntity {
     constructor(props: Readonly<IHull>) {
-        super();
-        Object.assign(this, props);
+        super(props);
     }
 
     updateVisibility(visibleTiles: Set<string>) {

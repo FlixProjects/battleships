@@ -5,11 +5,13 @@ import { BaseComponent } from "../BaseComponent";
 interface Props {
     hullId?: string;
     shipId: string;
+    playerId?: string;
     imgSrc?: string;
     invert?: boolean;
     color?: TColor;
     refNo?: string;
 }
+
 export class ShipIcon extends BaseComponent {
     constructor(private props: Props) {
         super();

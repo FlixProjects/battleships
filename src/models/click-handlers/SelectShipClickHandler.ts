@@ -1,28 +1,33 @@
-import { gameManager } from "..";
-import { IShip, keyToLocation, SELECTABLE_ID } from "../../shared";
-import { ActionMenu } from "../components/ships/ActionMenu";
+import { DEPLOYED_HULL_PREFIX, IShip, SELECTABLE_ID } from "../../../shared";
+import { FEActionMenuCloseCommand } from "../../../shared/models/commands/FEActionMenuCloseCommand";
+import { FESelectShipCommand } from "../../../shared/models/commands/FESelectShipCommand";
+import { ActionMenu } from "../../components/ships/ActionMenu";
+import { queueCommand } from "../../utils/game-helper";
+import { SelectShipActionIMEvent } from "../interaction-manager/types";
 import { ClickHandler } from "./ClickHandler";
-import { SelectShipActionIMEvent } from "./InteractionManager";
 
 export class SelectShipClickHandler extends ClickHandler {
     private actionMenu: ActionMenu;
+    private hullRef: HTMLElement;
     constructor(protected event: SelectShipActionIMEvent) {
         super();
     }
 
     public handleEvent() {
-        const { tileId } = this.event;
+        const { shipId, hullId } = this.event;
+        
         this.removePreviousActionMenu();
-        const player = gameManager.getPlayer();
-        const location = keyToLocation(tileId);
-        const shipAtLocation = player.ships.find(
-            (ship) =>
-                ship.deployed &&
-                ship.hulls?.some((hull) => hull.location[0] === location[0] && hull.location[1] === location[1]),
-        );
-
-        this.showActionMenu(tileId, shipAtLocation);
-
+        
+        const hull = this.selectables[`${DEPLOYED_HULL_PREFIX}${hullId}`];
+        this.hullRef = hull.ref;
+        
+        const getActionMenu = (ship: IShip) => {
+            this.actionMenu = new ActionMenu({ ship });
+            return this.actionMenu;
+        };
+        // FIXME: should this be async?
+        queueCommand(new FESelectShipCommand(this.hullRef, shipId, getActionMenu));
+        
         return { nextClickhandler: async (e: MouseEvent) => await this.handler(e) };
     }
 
@@ -41,19 +46,13 @@ export class SelectShipClickHandler extends ClickHandler {
         }
     }
 
-    private showActionMenu(tileId: string, ship: IShip) {
-        const tile = this.selectables[tileId];
-        const actionMenu = new ActionMenu({ ship });
-        this.actionMenu = actionMenu;
-        tile.ref.appendChild(actionMenu.build());
-    }
-
     private closeActionMenu() {
-        this.actionMenu.close();
+        queueCommand(new FEActionMenuCloseCommand(this.hullRef, this.actionMenu));
     }
 
     private removePreviousActionMenu() {
         const oldActionMenu = this.selectables[SELECTABLE_ID.ACTION_MENU];
+        // TODO: should change this to use command instead
         if (oldActionMenu) {
             oldActionMenu.ref.remove();
         }

@@ -1,6 +1,5 @@
-import { ICellLoc } from "../../shared/types/types";
-import { getComponents, updateComponents } from "../components/component-helper";
-import { Selectable, TSetSelectableOptions } from "../components/Selectable";
+import { updateComponents } from "../../components/component-helper";
+import { Selectable } from "../../components/Selectable";
 
 export class ClickHandler {
     protected removeGlobalClickEventListener: () => void;
@@ -18,11 +17,6 @@ export class ClickHandler {
         this.selectables = selectables;
         this.removeGlobalClickEventListener = removeGlobalClickEventListener;
         return this;
-    }
-
-    protected updateGameBoard(cells: ICellLoc[], options?: TSetSelectableOptions) {
-        const gameBoard = getComponents().div.gameBoard;
-        gameBoard.updateSelectableTiles(cells, options);
     }
 
     protected handleInvalidClick(onInvalidClickCb?: () => void) {

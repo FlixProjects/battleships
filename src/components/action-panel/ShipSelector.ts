@@ -1,6 +1,6 @@
 import { interactionManager } from "../..";
 import { IPlayer } from "../../../shared";
-import { IMEventType } from "../../models/InteractionManager";
+import { IMEventType } from "../../models/interaction-manager/types";
 import { BaseComponent } from "../BaseComponent";
 import { getComponents } from "../component-helper";
 import { Toast } from "../Toast";
