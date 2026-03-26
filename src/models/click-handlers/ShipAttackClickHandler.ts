@@ -1,6 +1,5 @@
 import { gameManager } from "../..";
 import {
-    ActionTypes,
     ANIMATION_LAYER_ID,
     ASSET_PATHS,
     CELL_SEPARATOR,
@@ -11,21 +10,23 @@ import {
     ICellLoc,
     keyToLocation,
     locationToKey,
-    ResultType,
+    ResultType
 } from "../../../shared";
 import { ShipAttackActionCreator } from "../../../shared/models/ActionCreator";
+import { FEHighlightLocationsCommand } from "../../../shared/models/commands/FEHighlightLocationsCommand";
 import { GameEngine } from "../../../shared/models/GameEngine";
+import { getComponents } from "../../components/component-helper";
 import { HTMLImage } from "../../components/native/Image";
 import { Projectile } from "../../components/projectiles/Projectile";
 import { Selectable } from "../../components/Selectable";
 import { Icon } from "../../components/ships/Icon";
-import { getElementsFromIds } from "../../utils/game-helper";
+import { getElementsFromIds, queueCommand } from "../../utils/game-helper";
 import { animationManager } from "../AnimationManager";
 import { DestroyedAnimation } from "../animations";
 import { HitAnimation } from "../animations/HitAnimation";
 import { StillAnimation } from "../animations/StillAnimation";
-import { ClickHandler } from "./ClickHandler";
 import { ShipAttackActionIMEvent } from "../interaction-manager/types";
+import { ClickHandler } from "./ClickHandler";
 
 const TARGET_ICON_ID_PREFIX = "target-icon";
 
@@ -52,7 +53,12 @@ export class ShipAttackClickHandler extends ClickHandler {
             this.removeTargetIcon(selectable);
         };
 
-        this.updateGameBoard(validCells, { onSelectable, onUnselectable });
+        queueCommand(
+            new FEHighlightLocationsCommand(getComponents().div.gameBoard, validCells, {
+                onSelectable,
+                onUnselectable,
+            }),
+        );
 
         this.validCells = validCells;
         this.origin = origin;
