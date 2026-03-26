@@ -1,30 +1,13 @@
 import { gameManager } from "../..";
-import {
-    ANIMATION_LAYER_ID,
-    ASSET_PATHS,
-    CELL_SEPARATOR,
-    COLOR,
-    COLOR_FILTER,
-    GameStateManager,
-    getShipFromPlayer,
-    ICellLoc,
-    keyToLocation,
-    locationToKey,
-    ResultType
-} from "../../../shared";
-import { ShipAttackActionCreator } from "../../../shared/models/ActionCreator";
+import { ASSET_PATHS, CELL_SEPARATOR, COLOR, COLOR_FILTER, ICellLoc, locationToKey } from "../../../shared";
 import { FEHighlightLocationsCommand } from "../../../shared/models/commands/FEHighlightLocationsCommand";
+import { FEShipAttackCommand } from "../../../shared/models/commands/FEShipAttackCommand";
 import { GameEngine } from "../../../shared/models/GameEngine";
 import { getComponents } from "../../components/component-helper";
 import { HTMLImage } from "../../components/native/Image";
-import { Projectile } from "../../components/projectiles/Projectile";
 import { Selectable } from "../../components/Selectable";
 import { Icon } from "../../components/ships/Icon";
-import { getElementsFromIds, queueCommand } from "../../utils/game-helper";
-import { animationManager } from "../AnimationManager";
-import { DestroyedAnimation } from "../animations";
-import { HitAnimation } from "../animations/HitAnimation";
-import { StillAnimation } from "../animations/StillAnimation";
+import { queueCommand } from "../../utils/game-helper";
 import { ShipAttackActionIMEvent } from "../interaction-manager/types";
 import { ClickHandler } from "./ClickHandler";
 
@@ -86,69 +69,24 @@ export class ShipAttackClickHandler extends ClickHandler {
         this.loadOnSelects(validCellIndices, onGlobalDeselect);
 
         if (validCellIndices.includes(id)) {
-            this.handleShipAttackClick(id, shipId, onSuccessfulSelect);
+            await this.handleShipAttackClick(id, shipId, onSuccessfulSelect);
         }
     }
 
     // FIXME: should we handle multiple location hits?
-    private handleShipAttackClick(attackTileId: string, shipId: string, onSuccessCb?: () => void) {
-        const gameEngine = new GameEngine(gameManager.state.gameState);
-
-        const attackLocation = keyToLocation(attackTileId);
+    private async handleShipAttackClick(attackTileId: string, shipId: string, onSuccessCb?: () => void) {
         const player = gameManager.getPlayer();
-        const attackingShip = getShipFromPlayer(player, shipId);
 
-        const action = new ShipAttackActionCreator(player, gameManager.state.gameState.currentRound).create({
-            shipId,
-            attackLocations: [attackLocation], // FIXME: only single location for now
-            commandPointCost: attackingShip.commandPointCost,
-        });
-
-        const result = gameEngine.commit.shipAttack(action);
-
-        if (result.type === ResultType.ERROR) return;
-
-        // FIXME: we need a better way to animate ships
-        // Ship class should be responsible for their own animations
-        const destroyedShips = result.ships.filter((s) => s.destroyed);
-        const destoyedShipHullIds = destroyedShips.flatMap((s) => s.hulls).map((h) => h.id);
-        const projectile = new Projectile({
-            origin: this.origin,
-            target: keyToLocation(attackTileId),
-            parent: document.querySelector(ANIMATION_LAYER_ID) || undefined,
-        });
-
-        animationManager.enqueueMany([
-            { animation: new StillAnimation({ elements: getElementsFromIds(destoyedShipHullIds), duration: 500 }) },
-            { animation: projectile.createAnimation() },
-        ]);
-
-        Object.entries(result.shipsHit).forEach(([hitShipId, hullIds]) => {
-            // FIXME: we ignore hitLocations for now
-            animationManager.enqueue(new HitAnimation({ id: hitShipId, elements: getElementsFromIds(hullIds) }));
-        });
-
-        for (const ship of destroyedShips) {
-            const hullIds = ship.hulls.map((h) => h.id);
-            animationManager.enqueue(new DestroyedAnimation({ id: ship.id, elements: getElementsFromIds(hullIds) }));
-        }
-
-        animationManager.play();
-
-        const gsm = new GameStateManager(gameManager.state.gameState);
-
-        const newState = gsm
-            .updateHulls(result.hulls)
-            .updateShips(result.ships)
-            .updatePlayers(result.players)
-            .addAction(action).gameState;
-
-        gameManager.saveCurrentPlayerStateV2({ gameState: newState }, { skipResolve: true });
-
-        const tile = this.selectables[attackTileId];
-        tile.runOnSelects();
-
-        onSuccessCb?.();
+        await queueCommand(
+            new FEShipAttackCommand({
+                tileId: attackTileId,
+                shipId,
+                playerId: player.id,
+                locationElement: this.selectables[attackTileId],
+                attackOrigin: this.origin,
+                onSuccessCb,
+            }),
+        );
     }
 
     private loadRedStyle(selectable: Selectable) {

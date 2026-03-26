@@ -29,5 +29,11 @@ export interface IGameBoard {
 
 export interface IAnimationManager {
     enqueue: (animation: IAnimation, onEndCallback?: () => void) => void;
+    enqueueMany: (
+        animations: {
+            animation: IAnimation;
+            onEndCallback?: () => void;
+        }[],
+    ) => void;
     play: () => Promise<void>;
 }

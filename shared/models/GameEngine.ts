@@ -232,7 +232,7 @@ export class GameEngine {
         const { playerId } = action;
 
         // update for frontend
-        const { players, ships, hulls, shipsHit } = this.calculateAttackResult(action);
+        const { players, ships, hulls } = this.calculateAttackResult(action);
 
         // load actions for eventual submission
         const thisPlayerIndex = players.findIndex((p) => p.id === playerId);
@@ -242,7 +242,6 @@ export class GameEngine {
             type: ResultType.SUCCESS,
             playerId,
             players,
-            shipsHit,
             ships,
             hulls,
         };
