@@ -1,8 +1,10 @@
+import { ASSET_PATHS, CELL_SEPARATOR, COLOR, COLOR_FILTER } from "@shared/constants";
+import { FEHighlightLocationsCommand } from "@shared/models/commands/FEHighlightLocationsCommand";
+import { FEShipAttackCommand } from "@shared/models/commands/FEShipAttackCommand";
+import { GameEngine } from "@shared/models/GameEngine";
+import { ICellLoc } from "@shared/types";
+import { locationToKey } from "@shared/utils";
 import { gameManager } from "../..";
-import { ASSET_PATHS, CELL_SEPARATOR, COLOR, COLOR_FILTER, ICellLoc, locationToKey } from "../../../shared";
-import { FEHighlightLocationsCommand } from "../../../shared/models/commands/FEHighlightLocationsCommand";
-import { FEShipAttackCommand } from "../../../shared/models/commands/FEShipAttackCommand";
-import { GameEngine } from "../../../shared/models/GameEngine";
 import { getComponents } from "../../components/component-helper";
 import { HTMLImage } from "../../components/native/Image";
 import { Selectable } from "../../components/Selectable";

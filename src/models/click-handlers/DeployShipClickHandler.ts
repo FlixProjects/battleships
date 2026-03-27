@@ -1,9 +1,9 @@
+import { FEDeployShipCommand } from "@shared/models/commands/FEDeployShipCommand";
+import { FEHighlightLocationsCommand } from "@shared/models/commands/FEHighlightLocationsCommand";
+import { GameEngine } from "@shared/models/GameEngine";
+import { ICellLoc } from "@shared/types";
+import { locationToKey } from "@shared/utils/helpers";
 import { gameManager } from "../..";
-import { ICellLoc } from "../../../shared";
-import { FEDeployShipCommand } from "../../../shared/models/commands/FEDeployShipCommand";
-import { FEHighlightLocationsCommand } from "../../../shared/models/commands/FEHighlightLocationsCommand";
-import { GameEngine } from "../../../shared/models/GameEngine";
-import { locationToKey } from "../../../shared/utils/helpers";
 import { getComponents } from "../../components/component-helper";
 import { queueCommand } from "../../utils/game-helper";
 import { DeployingShipIMEvent } from "../interaction-manager/types";

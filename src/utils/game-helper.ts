@@ -1,17 +1,7 @@
+import { COLOR, COLOR_FILTER, FP_CURRENT_PLAYER, FP_GAME_CODE, TColor, TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
+import { FECommand } from "@shared/models/commands/FECommand";
+import { AppStatus, ICellLoc, IShip } from "@shared/types";
 import { game, gameManager } from "..";
-import {
-    AppStatus,
-    COLOR,
-    COLOR_FILTER,
-    FP_CURRENT_PLAYER,
-    FP_GAME_CODE,
-    ICellLoc,
-    IShip,
-    TColor,
-    TILE_GAP_PX,
-    TILE_SIZE_PX,
-} from "../../shared";
-import { FECommand } from "../../shared/models/commands/FECommand";
 import { getGame } from "../apis/get-game";
 import { BaseComponent } from "../components/BaseComponent";
 import { getComponents, updateComponents } from "../components/component-helper";

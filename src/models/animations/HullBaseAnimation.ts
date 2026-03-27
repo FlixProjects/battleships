@@ -1,4 +1,4 @@
-import { GAME_BOARD_ID } from "../../../shared/constants";
+import { GAME_BOARD_ID } from "@shared/constants";
 import { IHullBaseAnimationProps } from "../../types";
 import { BaseAnimation } from "./Animation";
 

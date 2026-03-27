@@ -1,4 +1,5 @@
-import { FP_GAME_STATE, IPlainGameState, JoinGameRequest, JoinGameResponse } from "../../shared";
+import { IPlainGameState, JoinGameRequest, JoinGameResponse } from "@shared/types";
+import { FP_GAME_STATE } from "@shared/constants";
 import { appConfig, isLocal } from "../config/app-config";
 import { CryptoHelper } from "../utils/crypto-helper";
 

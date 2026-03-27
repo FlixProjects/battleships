@@ -1,5 +1,5 @@
 import { interactionManager } from "..";
-import { ISelectable } from "../../shared/types/fe-types";
+import { ISelectable } from "@shared/types/fe-types";
 import { BaseComponent } from "./BaseComponent";
 
 export class Selectable extends BaseComponent implements ISelectable {

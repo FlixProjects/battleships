@@ -1,5 +1,5 @@
 import { gameManager } from "../..";
-import { GameStateManager } from "../../../shared";
+import { GameStateManager } from "@shared/models";
 import { BaseComponent } from "../BaseComponent";
 import { InitiativeIcon } from "./InitiativeIcon";
 import { InitiativeName } from "./InitiativeName";

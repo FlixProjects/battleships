@@ -1,4 +1,5 @@
-import { FP_AUTH_TOKEN, parseCookies } from "../../shared";
+import { FP_AUTH_TOKEN } from "@shared/constants";
+import { parseCookies } from "@shared/utils";
 
 const getCookies = () => {
     return parseCookies(document?.cookie);

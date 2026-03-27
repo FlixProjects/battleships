@@ -1,4 +1,4 @@
-import { ANIMATION_LAYER_ID } from "../../shared";
+import { ANIMATION_LAYER_ID } from "@shared/constants";
 
 export class AnimationLayer {
     public _layer: HTMLElement;

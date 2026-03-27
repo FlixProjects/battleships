@@ -1,17 +1,10 @@
+import { DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_CURRENT_PLAYER, FP_PLAYER_STATES } from "@shared/constants";
+import { GameStateManager } from "@shared/models";
+import { transformAppStateToPlain, transformPlainAppStateToDomain } from "@shared/transformers";
+import { IAppState, IGameState, IPlainAppState, IPlayer } from "@shared/types";
+import { ActionResolver } from "@shared/utils/action-handler/ActionResolver";
 import { mergician } from "mergician";
-import {
-    DEFAULT_APP_STATE,
-    FP_AUTH_TOKEN,
-    FP_CURRENT_PLAYER,
-    FP_PLAYER_STATES,
-    GameStateManager,
-    IAppState,
-    IGameState,
-    IPlainAppState,
-    IPlayer,
-} from "../../shared";
-import { transformAppStateToPlain, transformPlainAppStateToDomain } from "../../shared/transformers";
-import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
+
 interface PlayerGameStates {
     [playerId: string]: IPlainAppState;
 }

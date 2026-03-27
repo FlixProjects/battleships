@@ -1,5 +1,6 @@
+import { COLOR, COLOR_RGBA } from "@shared/constants";
+import { GameStateManager } from "@shared/models";
 import { gameManager } from "../..";
-import { COLOR, COLOR_RGBA, GameStateManager } from "../../../shared";
 import { BaseComponent } from "../BaseComponent";
 
 interface Props {

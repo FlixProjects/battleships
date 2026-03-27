@@ -1,4 +1,4 @@
-import { TILE_GAP_PX, TILE_SIZE_PX } from "../../../shared";
+import { TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
 import { IMoveAnimationProps } from "../../types";
 import { BaseAnimation } from "./Animation";
 

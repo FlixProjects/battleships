@@ -1,6 +1,7 @@
+import { FP_GAME_STATE } from "@shared/constants";
+import { transformPlainAppStateToDomain } from "@shared/transformers";
+import { AppStatus } from "@shared/types";
 import { gameManager } from "../..";
-import { AppStatus, FP_GAME_STATE } from "../../../shared";
-import { transformPlainAppStateToDomain } from "../../../shared/transformers";
 import { submitAction } from "../../apis/submit-action";
 import { isLocal } from "../../config/app-config";
 import { isWaitingForOtherPlayer } from "../../utils/game-helper";

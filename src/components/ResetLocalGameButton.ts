@@ -1,14 +1,8 @@
+import { FP_GAME_STATE } from "@shared/constants";
+import { AppStatus, IPlainGameState } from "@shared/types";
+import { createNewGameState, generateGameCode, getNewShipsForPlayer, initialiseNewPlayer } from "@shared/utils";
 import { v7 as uuidv7 } from "uuid";
 import { gameManager } from "..";
-import {
-    AppStatus,
-    createNewGameState,
-    FP_GAME_STATE,
-    generateGameCode,
-    getNewShipsForPlayer,
-    initialiseNewPlayer,
-    IPlainGameState,
-} from "../../shared";
 import { isLocal } from "../config/app-config";
 import { setCurrentPlayer, setGameCode } from "../utils/game-helper";
 import { updateComponents } from "./component-helper";

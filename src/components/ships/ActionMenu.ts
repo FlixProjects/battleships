@@ -1,5 +1,6 @@
+import { ASSET_PATHS, SELECTABLE_ID } from "@shared/constants";
+import { IShip } from "@shared/types";
 import { gameManager, interactionManager } from "../..";
-import { ASSET_PATHS, IShip, SELECTABLE_ID } from "../../../shared";
 import { IMEventType } from "../../models/interaction-manager/types";
 import { getComponents } from "../component-helper";
 import { Selectable } from "../Selectable";

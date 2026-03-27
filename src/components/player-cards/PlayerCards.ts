@@ -1,4 +1,4 @@
-import { IAppState } from "../../../shared";
+import { IAppState } from "@shared/types";
 import { BaseComponent } from "../BaseComponent";
 import { PlayerCard } from "./PlayerCard";
 

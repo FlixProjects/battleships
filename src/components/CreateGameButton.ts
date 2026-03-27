@@ -1,5 +1,6 @@
+import { FP_GAME_STATE } from "@shared/constants";
+import { AppStatus, IAppState } from "@shared/types";
 import { gameManager } from "../";
-import { FP_GAME_STATE, AppStatus, IAppState } from "../../shared";
 import { createGame } from "../apis/create-game";
 import { isLocal } from "../config/app-config";
 import { checkIfNameIsFilled, setCurrentPlayer, setGameCode } from "../utils/game-helper";

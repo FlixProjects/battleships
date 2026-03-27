@@ -1,6 +1,7 @@
-import { DEPLOYED_HULL_PREFIX, IShip, SELECTABLE_ID } from "../../../shared";
-import { FEActionMenuCloseCommand } from "../../../shared/models/commands/FEActionMenuCloseCommand";
-import { FESelectShipCommand } from "../../../shared/models/commands/FESelectShipCommand";
+import { DEPLOYED_HULL_PREFIX, SELECTABLE_ID } from "@shared/constants";
+import { FEActionMenuCloseCommand } from "@shared/models/commands/FEActionMenuCloseCommand";
+import { FESelectShipCommand } from "@shared/models/commands/FESelectShipCommand";
+import { IShip } from "@shared/types";
 import { ActionMenu } from "../../components/ships/ActionMenu";
 import { queueCommand } from "../../utils/game-helper";
 import { SelectShipActionIMEvent } from "../interaction-manager/types";
@@ -15,19 +16,19 @@ export class SelectShipClickHandler extends ClickHandler {
 
     public handleEvent() {
         const { shipId, hullId } = this.event;
-        
+
         this.removePreviousActionMenu();
-        
+
         const hull = this.selectables[`${DEPLOYED_HULL_PREFIX}${hullId}`];
         this.hullRef = hull.ref;
-        
+
         const getActionMenu = (ship: IShip) => {
             this.actionMenu = new ActionMenu({ ship });
             return this.actionMenu;
         };
         // FIXME: should this be async?
         queueCommand(new FESelectShipCommand(this.hullRef, shipId, getActionMenu));
-        
+
         return { nextClickhandler: async (e: MouseEvent) => await this.handler(e) };
     }
 

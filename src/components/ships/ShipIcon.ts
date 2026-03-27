@@ -1,4 +1,4 @@
-import { TColor } from "../../../shared";
+import { TColor } from "@shared/constants";
 import { getColorFilter } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 

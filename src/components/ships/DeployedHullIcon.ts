@@ -1,5 +1,5 @@
 import { gameManager, interactionManager } from "../..";
-import { DEPLOYED_HULL_PREFIX, TColor } from "../../../shared/constants";
+import { DEPLOYED_HULL_PREFIX, TColor } from "@shared/constants";
 import { IMEventType } from "../../models/interaction-manager/types";
 import { Selectable } from "../Selectable";
 import { ShipIcon } from "./ShipIcon";

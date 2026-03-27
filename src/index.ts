@@ -1,6 +1,6 @@
-import { GameStateManager } from "../shared";
-import { Game } from "../shared/models/Game";
-import { ActionResolver } from "../shared/utils/action-handler/ActionResolver";
+import { GameStateManager } from "@shared/models";
+import { Game } from "@shared/models/Game";
+import { ActionResolver } from "@shared/utils/action-handler/ActionResolver";
 import { loadComponents } from "./components/component-helper";
 import { App } from "./models/App";
 import { GameManager } from "./models/GameManager";

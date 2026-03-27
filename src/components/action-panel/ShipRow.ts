@@ -1,6 +1,7 @@
 import { gameManager } from "../..";
-import { COLOR, IAppState } from "../../../shared";
-import { GameStateManager } from "../../../shared/models";
+import { COLOR } from "@shared/constants";
+import { IAppState } from "@shared/types";
+import { GameStateManager } from "@shared/models";
 import { Selectable } from "../Selectable";
 import { ShipIcon } from "../ships/ShipIcon";
 

@@ -1,4 +1,5 @@
-import { FP_GAME_CODE, FP_GAME_STATE, IGameState, GetGameResponse } from "../../shared";
+import { FP_GAME_CODE, FP_GAME_STATE } from "@shared/constants";
+import { GetGameResponse, IGameState } from "@shared/types";
 import { appConfig, isLocal } from "../config/app-config";
 import { deleteAuthCookie } from "../utils/cookie-helper";
 

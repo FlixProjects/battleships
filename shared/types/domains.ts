@@ -1,4 +1,4 @@
-import { IGameState, IAction, IResult, IPlainGameState } from "../../shared";
+import { IAction, IResult, IPlainGameState } from "@shared/types";
 
 export interface GetGameRequest {
     gameCode: string;

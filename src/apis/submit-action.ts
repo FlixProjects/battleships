@@ -1,10 +1,5 @@
-import {
-    FP_GAME_STATE,
-    IAction,
-    IPlainGameState,
-    SubmitActionRequest,
-    SubmitActionResponse
-} from "../../shared";
+import { FP_GAME_STATE } from "@shared/constants";
+import { IAction, IPlainGameState, SubmitActionRequest, SubmitActionResponse } from "@shared/types";
 import { appConfig, isLocal } from "../config/app-config";
 import { CryptoHelper } from "../utils/crypto-helper";
 import { getGameCode } from "../utils/game-helper";

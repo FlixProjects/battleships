@@ -1,20 +1,17 @@
-import { gameManager } from "../..";
 import {
     ANIMATION_LAYER_ID,
     BOARD_COLUMNS,
     BOARD_ROWS,
     CELL_SEPARATOR,
     GAME_BOARD_ID,
-    GameStateManager,
-    IAppState,
-    ICellLoc,
-    IHull,
-    IShip,
-    locationToKey,
     TILE_GAP_PX,
     TILE_SIZE_PX,
-} from "../../../shared";
-import { TSetSelectableOptions } from "../../../shared/types/fe-types";
+} from "@shared/constants";
+import { GameStateManager } from "@shared/models";
+import { IAppState, ICellLoc, IHull, IShip } from "@shared/types";
+import { TSetSelectableOptions } from "@shared/types/fe-types";
+import { locationToKey } from "@shared/utils";
+import { gameManager } from "../..";
 import { renderShipIconV2 } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 import { Tile } from "./Tile";

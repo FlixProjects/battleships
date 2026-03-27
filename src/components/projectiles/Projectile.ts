@@ -1,6 +1,6 @@
 import { v7 as uuidv7 } from "uuid";
-import { ANIMATION_LAYER_ID } from "../../../shared";
-import { ICellLoc } from "../../../shared/types/types";
+import { ANIMATION_LAYER_ID } from "@shared/constants";
+import { ICellLoc } from "@shared/types/types";
 import { animationManager } from "../../models/AnimationManager";
 import { ProjectileAnimation } from "../../models/animations/ProjectileAnimation";
 import { getPxFromCellLocation, toDegrees } from "../../utils/game-helper";

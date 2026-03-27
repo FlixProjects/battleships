@@ -1,4 +1,4 @@
-import { TSetSelectableOptions } from "../../../shared/types/fe-types";
+import { TSetSelectableOptions } from "@shared/types/fe-types";
 import { Selectable } from "../Selectable";
 
 interface Props {

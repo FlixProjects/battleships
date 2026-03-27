@@ -1,5 +1,5 @@
 import { gameManager } from "..";
-import { IAppState } from "../../shared/types";
+import { IAppState } from "@shared/types";
 import { Toast, ToastOptions } from "./Toast";
 
 const SHARED_OPTIONS = {

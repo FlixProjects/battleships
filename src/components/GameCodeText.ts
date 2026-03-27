@@ -1,4 +1,4 @@
-import { AppStatus, IAppState } from "../../shared/types";
+import { AppStatus, IAppState } from "@shared/types";
 import { HTMLSpan } from "./native/Span";
 
 export class GameCodeText extends HTMLSpan {

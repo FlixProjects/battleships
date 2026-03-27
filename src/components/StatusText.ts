@@ -1,4 +1,4 @@
-import { IAppState } from "../../shared/types";
+import { IAppState } from "@shared/types";
 import { HTMLSpan } from "./native/Span";
 
 export class StatusText extends HTMLSpan {

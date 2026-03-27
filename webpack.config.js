@@ -23,6 +23,9 @@ module.exports = {
     },
     resolve: {
         extensions: [".tsx", ".ts", ".js"],
+        alias: {
+            "@shared": path.resolve(__dirname, "shared"),
+        },
         fallback: {
             crypto: require.resolve("crypto-browserify"),
             buffer: require.resolve("buffer"),

@@ -1,5 +1,5 @@
 import { _components, gameManager } from "..";
-import { IAppState } from "../../shared/types";
+import { IAppState } from "@shared/types";
 import { ActionPanel } from "./action-panel/ActionPanel";
 import { GameBoard } from "./board/GameBoard";
 import { CreateGameButton } from "./CreateGameButton";

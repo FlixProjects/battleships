@@ -1,6 +1,7 @@
+import { DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_GAME_CODE } from "@shared/constants";
+import { transformPlainAppStateToDomain } from "@shared/transformers";
+import { AppStatus, IAppState } from "@shared/types";
 import { gameManager } from "..";
-import { AppStatus, DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_GAME_CODE, IAppState } from "../../shared";
-import { transformPlainAppStateToDomain } from "../../shared/transformers";
 import { getGame } from "../apis/get-game";
 import { updateComponents } from "../components/component-helper";
 import { deleteAuthCookie, getCookie } from "../utils/cookie-helper";

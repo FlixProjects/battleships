@@ -1,5 +1,6 @@
+import { ICellLoc, IHull, IShip } from "@shared/types";
+import { locationToKey, PathHelper } from "@shared/utils";
 import { mergician } from "mergician";
-import { ICellLoc, IHull, IShip, locationToKey, PathHelper } from "../../shared";
 import { ShipEntity } from "./entities/ShipEntity";
 
 export class Ship extends ShipEntity {

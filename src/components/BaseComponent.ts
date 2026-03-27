@@ -1,4 +1,4 @@
-import { IAppState } from "../../shared/types";
+import { IAppState } from "@shared/types";
 
 export abstract class BaseComponent {
     public id?: string;

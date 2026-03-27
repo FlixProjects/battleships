@@ -1,4 +1,4 @@
-import { ICellLoc } from "../shared";
+import { ICellLoc } from "@shared/types";
 import type { HTMLImage } from "./components/native/Image";
 import { SwitchPlayerButton } from "./components/SwitchPlayerButton";
 import { AnimationLayer } from "./models/AnimationLayer";
