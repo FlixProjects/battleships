@@ -1,4 +1,3 @@
-import { TSetSelectableOptions } from "@shared/types/fe-types";
 import { Selectable } from "../Selectable";
 
 interface Props {
@@ -37,55 +36,9 @@ export class Tile extends Selectable {
         this.ref.style.position = "relative";
     }
 
-    public setSelectable(isSelectable: boolean, options: TSetSelectableOptions = {}) {
-        if (this.isSelectable !== undefined && this.isSelectable !== null) {
-            if (this.isSelectable && !isSelectable) {
-                // selectable -> unselectable
-                this.runOnUnselectable();
-            } else if (!this.isSelectable && isSelectable) {
-                // unselectable -> selectable
-                this.runOnSelectable();
-            }
-        }
-
-        this.isSelectable = isSelectable;
-
-        const { onSelectable, onUnselectable } = options;
-
-        if (onSelectable) {
-            this.onSelectable = () => onSelectable(this);
-        }
-
-        if (onUnselectable) {
-            this.onUnselectable = () => onUnselectable(this);
-        }
-
-        this.setState();
-    }
-
     public setVisible(isVisible: boolean) {
         this.isVisible = isVisible;
         this.applyVisibility();
-    }
-
-    private setState(): void {
-        if (this.isSelectable) {
-            this.setSelectableStyle();
-            this.runOnSelectable();
-        } else {
-            this.setUnselectableStyle();
-            this.runOnUnselectable();
-        }
-    }
-
-    private runOnUnselectable() {
-        this.onUnselectable?.();
-        this.onUnselectable = undefined;
-    }
-
-    private runOnSelectable() {
-        this.onSelectable?.();
-        this.onSelectable = undefined;
     }
 
     private applyVisibility() {
@@ -105,11 +58,20 @@ export class Tile extends Selectable {
         this.ref.style.opacity = "0.3";
     }
 
-    private setSelectableStyle() {
+    protected setSelectableStyle() {
         this.loadDefaultSelectableStyle();
 
         this.ref.addEventListener("mouseenter", this.mouseEnterStyle);
         this.ref.addEventListener("mouseleave", this.mouseLeaveStyle);
+    }
+
+    protected setUnselectableStyle() {
+        this.ref.style.background = "rgba(255, 255, 255, 0.04)";
+        this.ref.style.border = "1px solid rgba(255, 255, 255, 0.08)";
+        this.ref.style.animation = "";
+
+        this.ref.removeEventListener("mouseenter", this.mouseEnterStyle);
+        this.ref.removeEventListener("mouseleave", this.mouseLeaveStyle);
     }
 
     private loadDefaultSelectableStyle() {
@@ -125,13 +87,4 @@ export class Tile extends Selectable {
     mouseLeaveStyle = () => {
         this.ref.style.transform = "scale(1)";
     };
-
-    private setUnselectableStyle() {
-        this.ref.style.background = "rgba(255, 255, 255, 0.04)";
-        this.ref.style.border = "1px solid rgba(255, 255, 255, 0.08)";
-        this.ref.style.animation = "";
-
-        this.ref.removeEventListener("mouseenter", this.mouseEnterStyle);
-        this.ref.removeEventListener("mouseleave", this.mouseLeaveStyle);
-    }
 }
