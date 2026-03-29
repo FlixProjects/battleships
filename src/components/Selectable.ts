@@ -3,6 +3,7 @@ import { ISelectable } from "@shared/types/fe-types";
 import { BaseComponent } from "./BaseComponent";
 
 export class Selectable extends BaseComponent implements ISelectable {
+    public isSelectable?: boolean = undefined;
     public isSelectableAction = true;
     private onSelects?: Array<() => void> = [];
     constructor(public id: string) {

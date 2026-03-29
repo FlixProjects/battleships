@@ -6,26 +6,14 @@ interface Props {
 }
 
 export class Tile extends Selectable {
-    private isSelectable = false;
+    public isSelectable = false;
     private isVisible = true;
 
     constructor(props: Props) {
         super(props.id);
     }
 
-    setState(): void {
-        if (this.isSelectable) {
-            this.setSelectableStyle();
-            this.onSelectable?.();
-            this.onSelectable = undefined;
-        } else {
-            this.setUnselectableStyle();
-            this.onUnselectable?.();
-            this.onUnselectable = undefined;
-        }
-    }
-
-    build() {
+    public build() {
         this.ref = document.createElement("div");
         this.ref.id = this.id;
         this.ref.classList.add("tile");
@@ -50,7 +38,18 @@ export class Tile extends Selectable {
     }
 
     public setSelectable(isSelectable: boolean, options: TSetSelectableOptions = {}) {
+        if (this.isSelectable !== undefined && this.isSelectable !== null) {
+            if (this.isSelectable && !isSelectable) {
+                // selectable -> unselectable
+                this.runOnUnselectable();
+            } else if (!this.isSelectable && isSelectable) {
+                // unselectable -> selectable
+                this.runOnSelectable();
+            }
+        }
+
         this.isSelectable = isSelectable;
+
         const { onSelectable, onUnselectable } = options;
 
         if (onSelectable) {
@@ -67,6 +66,26 @@ export class Tile extends Selectable {
     public setVisible(isVisible: boolean) {
         this.isVisible = isVisible;
         this.applyVisibility();
+    }
+
+    private setState(): void {
+        if (this.isSelectable) {
+            this.setSelectableStyle();
+            this.runOnSelectable();
+        } else {
+            this.setUnselectableStyle();
+            this.runOnUnselectable();
+        }
+    }
+
+    private runOnUnselectable() {
+        this.onUnselectable?.();
+        this.onUnselectable = undefined;
+    }
+
+    private runOnSelectable() {
+        this.onSelectable?.();
+        this.onSelectable = undefined;
     }
 
     private applyVisibility() {

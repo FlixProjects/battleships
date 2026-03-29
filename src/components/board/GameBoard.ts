@@ -9,7 +9,7 @@ import {
 } from "@shared/constants";
 import { GameStateManager } from "@shared/models";
 import { IAppState, ICellLoc, IHull, IShip } from "@shared/types";
-import { TSetSelectableOptions } from "@shared/types/fe-types";
+import { IUpdateSelectableOptions, TSetSelectableOptions } from "@shared/types/fe-types";
 import { locationToKey } from "@shared/utils";
 import { gameManager } from "../..";
 import { renderShipIconV2 } from "../../utils/game-helper";
@@ -65,11 +65,28 @@ export class GameBoard extends BaseComponent {
         this.ref.style.gap = `${TILE_GAP_PX}px`;
     }
 
-    public updateSelectableTiles(validCells: [number, number][], options?: TSetSelectableOptions) {
+    public updateSelectableTiles(validCells: [number, number][], _options?: IUpdateSelectableOptions) {
+        const DEFAULT_OPTIONS: IUpdateSelectableOptions = { setAllAsUnselectableBeforeUpdate: true };
+        const options = { ...DEFAULT_OPTIONS, ..._options };
+
         const validCellIndices = validCells.map((cell: ICellLoc) => locationToKey(cell));
+
+        const { onSelectable, onUnselectable, setAllAsUnselectableBeforeUpdate } = options;
+
+        const selectableOptions: TSetSelectableOptions = {
+            onSelectable,
+            onUnselectable,
+        };
+
+        if (setAllAsUnselectableBeforeUpdate) {
+            Object.keys(this.tiles).forEach((tileIndex: string) => {
+                this.tiles[tileIndex].setSelectable(false);
+            });
+        }
+
         Object.keys(this.tiles).forEach((tileIndex: string) => {
             const isValidCell = validCellIndices.includes(tileIndex);
-            this.tiles[tileIndex].setSelectable(isValidCell, options);
+            this.tiles[tileIndex].setSelectable(isValidCell, selectableOptions);
         });
     }
 

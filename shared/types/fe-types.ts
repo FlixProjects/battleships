@@ -15,6 +15,10 @@ export interface ISelectable {
     runOnSelects: () => void;
 }
 
+export interface IUpdateSelectableOptions extends TSetSelectableOptions {
+    setAllAsUnselectableBeforeUpdate?: boolean;
+}
+
 export interface TSetSelectableOptions {
     onSelectable?: (selectable: ISelectable) => void;
     onUnselectable?: (selectable: ISelectable) => void;
