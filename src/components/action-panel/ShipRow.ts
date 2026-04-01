@@ -12,6 +12,8 @@ interface Props {
     onSelect?: (id: string) => void;
     isSelectable?: boolean;
 }
+
+// TODO: Should extend from generic Row component
 export class ShipRow extends Selectable {
     constructor(public props: Props) {
         const { shipId } = props;
@@ -51,27 +53,23 @@ export class ShipRow extends Selectable {
 
         this.addStyles();
 
-        if (this.props.isSelectable) {
-            this.setAsSelectable();
-        } else {
-            this.setAsUnselectable();
-        }
+        this.isSelectable = this.props.isSelectable;
+        this.setState()
 
         this.renderShipIcon();
         return this.ref;
     }
 
-    public setAsUnselectable(): void {
-        // TODO: Extract to a ActionRow base class
-        this.removeClickEventListener();
-        this.ref.removeEventListener("mouseenter", this.mouseEnter);
-        this.ref.removeEventListener("mouseleave", this.mouseLeave);
-    }
-
-    public setAsSelectable(): void {
+    public onSelectable(): void {
         this.addClickEventListener();
         this.ref.addEventListener("mouseenter", this.mouseEnter);
         this.ref.addEventListener("mouseleave", this.mouseLeave);
+    }
+
+    public onUnselectable(): void {
+        this.removeClickEventListener();
+        this.ref.removeEventListener("mouseenter", this.mouseEnter);
+        this.ref.removeEventListener("mouseleave", this.mouseLeave);
     }
 
     private mouseEnter = () => {

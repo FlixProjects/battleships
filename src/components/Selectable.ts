@@ -66,13 +66,17 @@ export class Selectable extends BaseComponent implements ISelectable {
 
     protected setUnselectableStyle() {}
 
-    public setAsUnselectable() {}
+    public setAsUnselectable(options: TSetSelectableOptions = {}) {
+        this.setSelectable(false, options);
+    }
 
-    public setAsSelectable() {}
+    public setAsSelectable(options: TSetSelectableOptions = {}) {
+        this.setSelectable(true, options);
+    }
 
-    public onSelectable?: () => void;
+    public onSelectable() {}
 
-    public onUnselectable?: () => void;
+    public onUnselectable() {}
 
     public clearOnSelect() {
         this.onSelects = [];

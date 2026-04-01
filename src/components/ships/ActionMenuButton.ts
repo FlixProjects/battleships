@@ -9,7 +9,10 @@ interface Props {
 
 export class ActionMenuButton extends Selectable {
     public ref: HTMLButtonElement;
-    constructor(id: string, private props: Props) {
+    constructor(
+        id: string,
+        private props: Props,
+    ) {
         super(id);
     }
 
@@ -54,20 +57,20 @@ export class ActionMenuButton extends Selectable {
         this.ref.style.transition = "all 0.2s ease";
     }
 
-    public setAsUnselectable(): void {
+    public onSelectable(): void {
+        this.ref.style.cursor = "pointer";
+        this.addClickEventListener();
+        this.ref.addEventListener("mouseenter", this.mouseEnter);
+        this.ref.addEventListener("mouseleave", this.mouseLeave);
+    }
+
+    public onUnselectable(): void {
         // TODO: Extract to a ActionRow base class
         this.ref.style.cursor = "not-allowed";
         this.removeClickEventListener();
         this.ref.style.border = "1px solid rgba(255, 0, 0, 0.3)";
         this.ref.removeEventListener("mouseenter", this.mouseEnter);
         this.ref.removeEventListener("mouseleave", this.mouseLeave);
-    }
-
-    public setAsSelectable(): void {
-        this.ref.style.cursor = "pointer";
-        this.addClickEventListener();
-        this.ref.addEventListener("mouseenter", this.mouseEnter);
-        this.ref.addEventListener("mouseleave", this.mouseLeave);
     }
 
     private mouseEnter = () => {
