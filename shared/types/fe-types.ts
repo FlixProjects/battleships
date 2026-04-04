@@ -5,13 +5,15 @@ import { IHull, IShip } from "./types";
 export interface IBaseComponent {
     ref: HTMLElement;
     build(): HTMLElement;
+    addChild(child: IBaseComponent): void;
 }
 
-export interface IActionMenu extends IBaseComponent {
+export interface IActionMenu extends ISelectable {
     close(): void;
 }
 
-export interface ISelectable {
+export interface ISelectable extends IBaseComponent {
+    ref: HTMLElement;
     runOnSelects: () => void;
 }
 
@@ -25,6 +27,7 @@ export interface TSetSelectableOptions {
 }
 
 export interface IGameBoard {
+    tiles: Record<string, ISelectable>;
     updateSelectableTiles: (validCells: [number, number][], options?: TSetSelectableOptions) => void;
     addToAnimatingMap: (elementId: string, animationId: string) => void;
     removeFromAnimatingMap: (elementId: string) => void;

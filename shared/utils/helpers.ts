@@ -4,6 +4,7 @@ import { Cell } from "../models/Cell";
 import {
     Board,
     ICellLoc,
+    IGameState,
     IHull,
     IHullTemplate,
     IPlainGameState,
@@ -127,14 +128,6 @@ export const getShip = (refNo: TShipRefNo, playerId: string): IPlainShip => {
     };
 };
 
-export const getShipFromPlayer = (player: IPlayer, shipId: string) => {
-    return player.ships.find((ship) => ship.id === shipId);
-};
-
-export const getHullFromLocation = (ship: IShip, loc: ICellLoc): IHull => {
-    return ship.hulls?.find((hull) => hull.location[0] === loc[0] && hull.location[1] === loc[1]);
-};
-
 export const getHull = (shipId: string, hullTemplate: IHullTemplate, location: ICellLoc): IHull => {
     return {
         ...hullTemplate,
@@ -147,18 +140,15 @@ export const getHull = (shipId: string, hullTemplate: IHullTemplate, location: I
     };
 };
 
-export const getPlayerFromShipId = (players: IPlayer[], shipId: string) => {
-    return getShipFromShipId(players, shipId).playerId;
-};
-
-export const getShipFromShipId = (players: IPlayer[], shipId: string) => {
-    return players.flatMap((p) => p.ships).find((s) => s.id === shipId);
-};
-
 export const locationToKey = (location: ICellLoc) => {
     return `${location[0]}${CELL_SEPARATOR}${location[1]}`;
 };
 
 export const keyToLocation = (key: string): ICellLoc => {
     return key.split(CELL_SEPARATOR).map((x) => parseInt(x)) as ICellLoc;
+};
+
+export const getOccupiedLocations = (gameState: IGameState) => {
+    const occuipiedLocations: ICellLoc[] = gameState.hulls?.filter((h) => !h.destroyed).map((h) => h.location) ?? [];
+    return occuipiedLocations;
 };

@@ -1,5 +1,6 @@
 import { ASSET_PATHS, SELECTABLE_ID } from "@shared/constants";
 import { IShip } from "@shared/types";
+import { IActionMenu } from "@shared/types/fe-types";
 import { gameManager, interactionManager } from "../..";
 import { IMEventType } from "../../models/interaction-manager/types";
 import { getComponents } from "../component-helper";
@@ -11,7 +12,7 @@ interface Props {
     ship: IShip;
 }
 
-export class ActionMenu extends Selectable {
+export class ActionMenu extends Selectable implements IActionMenu {
     private isGameOver: boolean = false;
     constructor(private props: Props) {
         super(SELECTABLE_ID.ACTION_MENU);

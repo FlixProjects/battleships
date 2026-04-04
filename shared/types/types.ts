@@ -35,10 +35,10 @@ export interface IGameStateManager {
     get gameState(): GameState;
     setGameState(_gameState: IGameState): void;
     getCurrentRound(): number;
-    getPlayer(playerId: string): IPlayer | undefined;
+    getPlayer(playerId: string): IPlayer;
     getPlayers(): IPlayer[];
     getPlayerShips(playerId: string): IShip[];
-    getShip(shipId: string): Ship | undefined;
+    getShip(shipId: string): Ship;
     updatePlayer(player: Partial<IPlayer>): this;
     updatePlayers(players: Partial<IPlayer>[]): this;
     updateShip(ship: Partial<IShip>): this;
@@ -86,7 +86,7 @@ export interface IShip extends IShipTemplate {
 export interface IHull extends IHullTemplate {
     id: string;
     shipId: string; // FK reference
-    location?: ICellLoc;
+    location: ICellLoc;
     remainingHealth: number;
     remainingArmor: number;
     destroyed: boolean;
@@ -192,6 +192,7 @@ export interface IHullTemplate extends Omit<IGOWithVisibility, "id"> {
     templateLocation: ICellLoc;
     maxHealth: number;
     armor: number;
+    imgSrc?: string;
 }
 
 export interface IGameObject {
@@ -201,4 +202,12 @@ export interface IGameObject {
 export interface IGOWithVisibility extends IGameObject {
     visionRange: number;
     location?: ICellLoc;
+}
+
+export type THullCalculatorConstructor = new (gsm: IGameStateManager, isFirstPlayer: boolean) => IHullCalculator;
+
+export interface IHullCalculator {
+    getDeployedHullLocation(selectedLoc: ICellLoc, _hullTemplateLoc: ICellLoc): ICellLoc;
+    getDeployedHullLocations(selectedLoc: ICellLoc, _hullTemplateLocs: ICellLoc[]): ICellLoc[];
+    getValidDeploymentLocations(selectableLocations: ICellLoc[], hullTemplateLocs: ICellLoc[]): ICellLoc[];
 }

@@ -3,23 +3,26 @@ import {
     BOARD_COLUMNS,
     BOARD_ROWS,
     CELL_SEPARATOR,
+    COMPONENT_ID,
     GAME_BOARD_ID,
     TILE_GAP_PX,
     TILE_SIZE_PX,
 } from "@shared/constants";
 import { GameStateManager } from "@shared/models";
-import { IAppState, ICellLoc, IHull, IShip } from "@shared/types";
+import { FERenderShipCommand } from "@shared/models/commands/FERenderShipCommand";
+import { IAppState, ICellLoc, IShip } from "@shared/types";
 import { IUpdateSelectableOptions, TSetSelectableOptions } from "@shared/types/fe-types";
 import { locationToKey } from "@shared/utils";
 import { gameManager } from "../..";
-import { renderShipIconV2 } from "../../utils/game-helper";
+import { queueCommand } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 import { Tile } from "./Tile";
 
 export class GameBoard extends BaseComponent {
-    private container = document.getElementById("gameArea") as HTMLDivElement;
-    private gameBoardContainer = document.getElementById("gameBoardContainer") as HTMLDivElement;
-    private tiles: Record<string, Tile> = {};
+    public tiles: Record<string, Tile> = {};
+
+    private container = document.getElementById(COMPONENT_ID.GAME_AREA) as HTMLDivElement;
+    private gameBoardContainer = document.getElementById(COMPONENT_ID.GAME_BOARD_CONTAINER) as HTMLDivElement;
     private elementsCurrentlyAnimatingMap = new Map<string, string>(); // elementId to animationId (e.g. shipId)
 
     constructor() {
@@ -131,25 +134,14 @@ export class GameBoard extends BaseComponent {
         const shipsToRender = gameState.ships?.filter((s) => s.deployed && !s.destroyed);
 
         shipsToRender.forEach((ship) => {
-            const hulls = gameState.hulls.filter((h) => h.shipId === ship.id);
-            this.renderShip(ship, hulls, gameState.getFirstPlayerId() === ship.playerId);
+            this.renderShip(ship);
         });
     }
 
-    public renderShip(ship: IShip, hulls: IHull[], isFirstPlayer = true) {
+    public renderShip(ship: IShip) {
         if (this.elementsCurrentlyAnimatingMap.has(ship.id)) {
             return;
         }
-        const tiles = hulls?.map((hull) => {
-            return { key: locationToKey(hull.location) };
-        });
-
-        tiles?.forEach(({ key }, i) => {
-            const tile = this.tiles[key];
-            // TODO: we might need to handle Ships with multiple hull locations
-            const shipProps = { id: ship.id, playerId: ship.playerId, refNo: ship.refNo, hulls: ship.hulls };
-
-            renderShipIconV2(tile, shipProps, isFirstPlayer);
-        });
+        queueCommand(new FERenderShipCommand(ship.id));
     }
 }

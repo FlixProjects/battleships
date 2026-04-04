@@ -1,4 +1,4 @@
-import { TColor } from "@shared/constants";
+import { COLOR, TColor } from "@shared/constants";
 import { getColorFilter } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 
@@ -19,8 +19,8 @@ export class ShipIcon extends BaseComponent {
 
     public build() {
         this.ref = document.createElement("img");
-        this.id = this.props.hullId;
-        (this.ref as HTMLImageElement).id = this.props.hullId;
+        this.id = this.props.shipId;
+        (this.ref as HTMLImageElement).id = this.props.shipId;
         (this.ref as HTMLImageElement).src =
             this.props.imgSrc || this.props.refNo
                 ? `./assets/ships/${this.props.refNo}.png`
@@ -38,7 +38,7 @@ export class ShipIcon extends BaseComponent {
         this.ref.style.cursor = "pointer";
         this.ref.style.transition = "all 0.2s ease";
 
-        this.ref.style.filter = getColorFilter(this.props.color);
+        this.ref.style.filter = getColorFilter(this.props.color ?? COLOR.PINK);
 
         if (this.props.invert) {
             this.ref.style.transform = "scaleY(-1)";

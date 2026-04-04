@@ -10,7 +10,7 @@ export class PlayerEntity extends Entity<PlayerEntity> implements IPlayer {
     ready: boolean;
     shipIds: string[];
     ships?: Ship[];
-    pendingActions?: IPlayerAction[];
+    pendingActions: IPlayerAction[];
     maxCommandPoints: number;
     commandPoints: number;
 

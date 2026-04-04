@@ -1,14 +1,14 @@
-import { gameManager, interactionManager } from "../..";
 import { DEPLOYED_HULL_PREFIX, TColor } from "@shared/constants";
+import { gameManager, interactionManager } from "../../index";
 import { IMEventType } from "../../models/interaction-manager/types";
 import { Selectable } from "../Selectable";
-import { ShipIcon } from "./ShipIcon";
+import { HullIcon } from "./HullIcon";
 
 interface Props {
-    hullId?: string;
+    hullId: string;
     shipId: string;
-    playerId?: string;
-    imgSrc?: string;
+    playerId: string;
+    imgSrc: string;
     invert?: boolean;
     color?: TColor;
     refNo?: string;
@@ -22,22 +22,47 @@ export class DeployedHullIcon extends Selectable {
     public build(): HTMLElement {
         const hullContainer = document.createElement("div");
         hullContainer.id = this.id;
-        const hullIcon = new ShipIcon(this.props);
-        hullContainer.appendChild(hullIcon.build());
         this.ref = hullContainer;
-        this.addClickEventListener();
+
+        const hullIcon = new HullIcon(this.props);
+
+        hullContainer.appendChild(hullIcon.build());
+        
+        this.isSelectable = gameManager.getPlayer().id === this.props.playerId; // temporarily disallow selecting other player's ships
+        this.setState();
+
         return this.ref;
     }
 
     public async onClick(e?: MouseEvent): Promise<void> {
-        if (gameManager.getPlayer().id === this.props.playerId) {
-            interactionManager.handleEvent({
-                type: IMEventType.SELECT_SHIP,
-                tileId: this.id,
-                hullId: this.props.hullId,
-                shipId: this.props.shipId,
-                selectableId: "select-ship", // FIXME: should this be dynamic?
-            });
-        }
+        interactionManager.handleEvent({
+            type: IMEventType.SELECT_SHIP,
+            tileId: this.id,
+            hullId: this.props.hullId,
+            shipId: this.props.shipId,
+            selectableId: "select-ship", // FIXME: should this be dynamic?
+        });
     }
+
+    public onSelectable(): void {
+        this.addClickEventListener();
+        this.ref.addEventListener("mouseenter", this.mouseEnter);
+        this.ref.addEventListener("mouseleave", this.mouseLeave);
+    }
+
+    public onUnselectable(): void {
+        this.removeClickEventListener();
+        this.ref.removeEventListener("mouseenter", this.mouseEnter);
+        this.ref.removeEventListener("mouseleave", this.mouseLeave);
+    }
+
+    private mouseEnter = () => {
+        this.ref.style.transform = `scale(1.1, 1.1)`;
+        this.ref.style.borderBottomColor = "rgba(110, 231, 183, 0.9)";
+    };
+
+    private mouseLeave = () => {
+        this.ref.style.transform = `scale(1, 1)`;
+        this.ref.style.borderBottomColor = "rgba(110, 231, 183, 0.6)";
+    };
 }

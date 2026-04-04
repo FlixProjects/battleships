@@ -48,6 +48,7 @@ export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
             maxHealth: 1,
             armor: 0,
             visionRange: 2,
+            imgSrc: "assets/ships/frigate0.png",
         },
     ],
     [SHIP_REF_NO.flagship0]: [
@@ -56,6 +57,14 @@ export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
             maxHealth: 1,
             armor: 0,
             visionRange: 2,
+            imgSrc: "assets/ships/flagship-0.png",
+        },
+        {
+            templateLocation: [0, 1],
+            maxHealth: 1,
+            armor: 0,
+            visionRange: 2,
+            imgSrc: "assets/ships/flagship-1.png",
         },
     ],
 };
@@ -135,6 +144,11 @@ export const ASSET_PATHS = {
     MOVE_ICON: "./assets/move-icon.svg",
 };
 
+export const COMPONENT_ID = {
+    GAME_AREA: "gameArea",
+    GAME_BOARD_CONTAINER: "gameBoardContainer",
+    GAME_BOARD: "gameBoard",
+} as const;
 export const ANIMATION_LAYER_ID = "gameBoardContainer";
 export const GAME_BOARD_ID = "gameBoard";
 
