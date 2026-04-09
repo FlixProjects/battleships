@@ -45,12 +45,45 @@ export class Ship extends ShipEntity {
         return this;
     }
 
+    getFrontHull() {
+        if (!this.hulls || this.hulls.length === 0) {
+            throw new Error("[Error] Trying to get front hull when there are no hulls!");
+        }
+        return this.hulls?.find((h) => h.front) ?? this.hulls?.[0];
+    }
+
     getNewHullLocations(endCell: ICellLoc) {
-        // TODO: implement proper rotation and multi-tile handling
-        const newHulls = this.hulls.map((h) => mergician({}, h)) as IHull[];
-        
-        newHulls[0].location = endCell;
+        const newHulls = this.hulls?.map((h) => mergician({}, h)) as IHull[];
+        const frontHull = this.getFrontHull();
+
+        // TODO: to inject movement behaviour calculator
+        // TODO: barely serviceable implementation
+        newHulls.map((h) => {
+            if (h.front) {
+                h.location = endCell;
+                h.orientation = this.getOrientation(frontHull.location, endCell, h.orientation);
+            } else {
+                h.location = frontHull.location;
+                h.orientation = this.getOrientation(frontHull.location, endCell, h.orientation);
+            }
+            return h;
+        });
 
         return newHulls;
+    }
+
+    getOrientation(prevLocation: ICellLoc, newLocation: ICellLoc, currentOrientation?: number) {
+        const [prevX, prevY] = prevLocation;
+        const [newX, newY] = newLocation;
+
+        if (prevX === newX) {
+            // pure vertical movement
+            return prevY > newY ? 0 : 180; // up: 0, down: 180
+        } else if (prevY === newY) {
+            // pure horizontal movement
+            return prevX > newX ? 270 : 90; // left: 270, right: 90
+        } else {
+            return currentOrientation;
+        }
     }
 }

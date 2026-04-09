@@ -1,13 +1,7 @@
-import {
-    BOARD_COLUMNS,
-    BOARD_ROWS,
-    ERROR_CODE,
-    IErrorResult,
-    LocationHelper,
-    locationToKey,
-    PathHelper
-} from "../..";
-import { IGameState, IMoveAction, ResultType } from "../../types";
+import { BOARD_COLUMNS, BOARD_ROWS, ERROR_CODE } from "../../constants";
+import { Ship } from "../../models/Ship";
+import { IErrorResult, IGameState, IMoveAction, ResultType } from "../../types";
+import { LocationHelper, locationToKey, PathHelper } from "../../utils";
 import { Validator } from "./Validator";
 
 export class MoveShipValidator extends Validator {
@@ -65,19 +59,27 @@ export class MoveShipValidator extends Validator {
 
     private validateWithinMovementRange() {
         const { shipId, hullLocations: newLocations } = this.moveAction;
-        const ship = this.gameState.ships.find((s) => s.id === shipId);
-
-        const currentLoc = ship.hulls[0].location;
+        const _ship = this.gameState.ships.find((s) => s.id === shipId);
+        const ship = new Ship(_ship!);
+        const currentLoc = ship.getFrontHull().location;
         const movementRange = ship.movementRange || 0;
 
         const reachableCells = this.pathHelper.getReachableCells({
             start: currentLoc,
             range: movementRange,
         });
-
         const reachableCellsKeys = reachableCells.map((loc) => locationToKey(loc));
-        const newLocationKeys = newLocations.map((newHullLoc) => locationToKey(newHullLoc.location));
+        const frontHullNewLoc = newLocations.find((h) => h.front)?.location;
 
+        if (!frontHullNewLoc) {
+            throw {
+                type: ResultType.ERROR,
+                errorCode: ERROR_CODE.SYS_INVALID_PARAMS,
+                message: "Front hull location not found in new locations",
+            };
+        }
+
+        const newLocationKeys = [locationToKey(frontHullNewLoc)];
         const isReachable = newLocationKeys.every((newLoc) => reachableCellsKeys.includes(newLoc));
 
         if (!isReachable) {
@@ -91,12 +93,10 @@ export class MoveShipValidator extends Validator {
 
     private validateDestinationNotOccupied() {
         const { shipId, hullLocations: newLocations } = this.moveAction;
-        // Exclude current ship from occupied cells check
         const players = this.gameState.players.map((p) => ({
             ...p,
             ships: p.ships.map((s) => (s.id === shipId ? { ...s, hulls: [] } : s)),
         }));
-
         const locationHelper = new LocationHelper(players);
 
         if (locationHelper.isLocationOccupied(newLocations[0].location)) {

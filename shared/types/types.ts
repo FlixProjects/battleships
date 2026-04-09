@@ -193,6 +193,8 @@ export interface IHullTemplate extends Omit<IGOWithVisibility, "id"> {
     maxHealth: number;
     armor: number;
     imgSrc?: string;
+    front?: boolean;
+    orientation: number;
 }
 
 export interface IGameObject {

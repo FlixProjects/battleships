@@ -12,6 +12,7 @@ import { ClickHandler } from "./ClickHandler";
 export class MoveShipClickHandler extends ClickHandler {
     private validCells: ICellLoc[] = [];
     private origin: ICellLoc;
+    
     constructor(protected event: MovingShipIMEvent) {
         super();
     }

@@ -19,16 +19,21 @@ export class FEMoveShipCommand extends FECommand {
         super();
     }
 
-    async execute(params: ICommandExecutionParams): Promise<void> {
+    public async execute(params: ICommandExecutionParams): Promise<void> {
         const { tileId, shipId, playerId, locationElement, onSuccessCb } = this.props;
         const { gsm, db, resolver } = params;
         const ship = gsm.getShip(shipId);
+
+        if (!ship.hulls || ship.hulls.length === 0) {
+            throw new Error("[Error] Trying to move a ship with no hulls");
+        }
+
         const oldLocations = [...ship.hulls];
-        
+
         const player = gsm.getPlayer(playerId);
 
         const newHullLocations = ship.getNewHullLocations(keyToLocation(tileId));
-        
+
         const moveAction = new MoveShipActionCreator(player, gsm.getCurrentRound()).create({
             shipId,
             commandPointCost: ship.movementCommandPointCost,
@@ -53,7 +58,7 @@ export class FEMoveShipCommand extends FECommand {
         return;
     }
 
-    undo(params: ICommandExecutionParams): Promise<void> {
+    public async undo(params: ICommandExecutionParams): Promise<void> {
         // TODO: implement undo for move ship
         return;
     }

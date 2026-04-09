@@ -7,8 +7,8 @@ interface Props {
     shipId: string;
     playerId?: string;
     imgSrc: string;
-    invert?: boolean;
     color?: TColor;
+    rotation?: number;
 }
 
 export class HullIcon extends Selectable {
@@ -38,8 +38,6 @@ export class HullIcon extends Selectable {
 
         this.ref.style.filter = getColorFilter(this.props.color ?? COLOR.PINK);
 
-        if (this.props.invert) {
-            this.ref.style.transform = "scaleY(-1)";
-        }
+        this.ref.style.transform = `rotate(${this.props.rotation}deg)`;
     }
 }

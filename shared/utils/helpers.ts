@@ -128,7 +128,14 @@ export const getShip = (refNo: TShipRefNo, playerId: string): IPlainShip => {
     };
 };
 
-export const getHull = (shipId: string, hullTemplate: IHullTemplate, location: ICellLoc): IHull => {
+export const getHull = (options: {
+    shipId: string;
+    hullTemplate: IHullTemplate;
+    location: ICellLoc;
+    isFirstPlayer: boolean;
+}): IHull => {
+    const { shipId, hullTemplate, location, isFirstPlayer } = options;
+
     return {
         ...hullTemplate,
         id: uuidv7(),
@@ -137,6 +144,7 @@ export const getHull = (shipId: string, hullTemplate: IHullTemplate, location: I
         remainingHealth: hullTemplate.maxHealth,
         location,
         destroyed: false,
+        orientation: isFirstPlayer ? 180 : 0,
     };
 };
 

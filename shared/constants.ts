@@ -49,6 +49,8 @@ export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
             armor: 0,
             visionRange: 2,
             imgSrc: "assets/ships/frigate0.png",
+            front: true,
+            orientation: 0,
         },
     ],
     [SHIP_REF_NO.flagship0]: [
@@ -58,6 +60,7 @@ export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
             armor: 0,
             visionRange: 2,
             imgSrc: "assets/ships/flagship-0.png",
+            orientation: 0,
         },
         {
             templateLocation: [0, 1],
@@ -65,6 +68,8 @@ export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
             armor: 0,
             visionRange: 2,
             imgSrc: "assets/ships/flagship-1.png",
+            front: true,
+            orientation: 0,
         },
     ],
 };

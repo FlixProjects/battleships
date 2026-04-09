@@ -34,7 +34,12 @@ export class FEDeployShipCommand extends FECommand {
 
         const committedHullLocations = hullTemplates.map((ht) => {
             const deployedLoc = hullCalculator.getDeployedHullLocation(selectedLocation, ht.templateLocation);
-            return getHull(shipId, ht, deployedLoc);
+            return getHull({
+                shipId,
+                hullTemplate: ht,
+                location: deployedLoc,
+                isFirstPlayer,
+            });
         });
 
         const deployAction = new DeployShipActionCreator(player, gsm.getCurrentRound()).create({

@@ -133,15 +133,15 @@ export class GameBoard extends BaseComponent {
         if (!gameState) return;
         const shipsToRender = gameState.ships?.filter((s) => s.deployed && !s.destroyed);
 
-        shipsToRender.forEach((ship) => {
-            this.renderShip(ship);
+        shipsToRender.forEach(async (ship) => {
+            await this.renderShip(ship);
         });
     }
 
-    public renderShip(ship: IShip) {
+    public async renderShip(ship: IShip) {
         if (this.elementsCurrentlyAnimatingMap.has(ship.id)) {
             return;
         }
-        queueCommand(new FERenderShipCommand(ship.id));
+        await queueCommand(new FERenderShipCommand(ship.id));
     }
 }

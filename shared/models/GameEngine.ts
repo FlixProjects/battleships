@@ -149,7 +149,7 @@ export class GameEngine {
             return { type: ResultType.SUCCESS, playerId, validCells: [] };
         }
 
-        const currentLoc = ship.hulls[0].location; // FIXME: We always take the first hull loc as origin
+        const currentLoc = ship.getFrontHull().location;
         const movementRange = ship.remainingMovement || 0;
 
         // FIXME: we should only take into account 'visible' ships
@@ -219,7 +219,7 @@ export class GameEngine {
 
         const currentLoc = ship.hulls[0].location;
         const attackRange = ship.attackRange || 0;
-
+        
         const reachableCells = this.pathHelper.getReachableCells({
             start: currentLoc,
             range: attackRange,

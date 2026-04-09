@@ -15,6 +15,7 @@ export class HullBuilder extends Builder<IHull, Hull> {
             maxHealth: 1,
             armor: 0,
             visionRange: 3,
+            orientation: 0,
         };
         super(defaultProps, defaultOverrides, Hull);
     }

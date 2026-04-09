@@ -29,10 +29,10 @@ export class FERenderHullCommand extends FERenderCommand {
         const hullIcon = new DeployedHullIcon({
             hullId: hull.id,
             shipId: hull.shipId,
-            invert,
             color,
             imgSrc: hull.imgSrc ?? "",
             playerId,
+            rotation: hull.orientation,
         });
 
         parentElement.addChild(hullIcon);

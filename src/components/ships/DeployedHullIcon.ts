@@ -9,9 +9,9 @@ interface Props {
     shipId: string;
     playerId: string;
     imgSrc: string;
-    invert?: boolean;
     color?: TColor;
     refNo?: string;
+    rotation?: number;
 }
 
 export class DeployedHullIcon extends Selectable {
