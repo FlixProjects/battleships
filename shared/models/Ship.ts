@@ -17,10 +17,12 @@ export class Ship extends ShipEntity {
     }
 
     updateVisibility(visibleTiles: Set<string>) {
-        this.isVisible = !!this.hulls?.some((h) => {
+        this.hulls?.forEach((h) => {
             h.updateVisibility(visibleTiles);
-            return visibleTiles.has(locationToKey(h.location));
         });
+
+        this.isVisible = !!this.hulls?.some((h) => h.isVisible);
+
         this.removeInvisibleHullLocations();
         return this;
     }
@@ -55,18 +57,18 @@ export class Ship extends ShipEntity {
     getNewHullLocations(endCell: ICellLoc) {
         const newHulls = this.hulls?.map((h) => mergician({}, h)) as IHull[];
         const frontHull = this.getFrontHull();
+        const oldFrontLocation = frontHull.location;
 
         // TODO: to inject movement behaviour calculator
-        // TODO: barely serviceable implementation
-        newHulls.map((h) => {
+        // TODO: barely serviceable implementation for 2-tile ships
+        newHulls.forEach((h) => {
             if (h.front) {
                 h.location = endCell;
-                h.orientation = this.getOrientation(frontHull.location, endCell, h.orientation);
+                h.orientation = this.getOrientation(oldFrontLocation, endCell, h.orientation);
             } else {
-                h.location = frontHull.location;
-                h.orientation = this.getOrientation(frontHull.location, endCell, h.orientation);
+                h.location = oldFrontLocation;
+                h.orientation = this.getOrientation(h.location, oldFrontLocation, h.orientation);
             }
-            return h;
         });
 
         return newHulls;
