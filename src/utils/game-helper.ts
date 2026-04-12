@@ -4,8 +4,6 @@ import { AppStatus, ICellLoc } from "@shared/types";
 import { game, gameManager } from "..";
 import { getGame } from "../apis/get-game";
 import { getComponents, updateComponents } from "../components/component-helper";
-import { animationManager } from "../models/AnimationManager";
-import { MoveShipAnimation } from "../models/animations";
 
 // client functions
 
@@ -61,14 +59,6 @@ export const refresh = async () => {
     } catch (error) {
         updateComponents({ status: AppStatus.Error });
     }
-};
-
-export const queueMoveShipAnimation = (
-    shipId: string,
-    fromLocation: [number, number],
-    toLocation: [number, number],
-) => {
-    animationManager.enqueue(new MoveShipAnimation({ elementId: shipId, fromCell: fromLocation, toCell: toLocation }));
 };
 
 export const toDegrees = (radians: number) => {
