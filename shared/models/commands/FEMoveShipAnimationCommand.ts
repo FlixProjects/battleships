@@ -3,7 +3,7 @@ import { ICellLoc } from "../../types/types";
 import { FEAnimationCommand } from "./FEAnimationCommand";
 import { ICommandExecutionParams } from "./types";
 
-export class FEMoveShipAnimation extends FEAnimationCommand {
+export class FEMoveShipAnimationCommand extends FEAnimationCommand {
     constructor(
         private props: {
             shipId: string;

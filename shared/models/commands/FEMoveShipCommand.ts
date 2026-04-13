@@ -3,7 +3,7 @@ import { ISelectable } from "../../types/fe-types";
 import { keyToLocation } from "../../utils/helpers";
 import { MoveShipActionCreator } from "../ActionCreator";
 import { FECommand } from "./FECommand";
-import { FEMoveShipAnimation } from "./FEMoveShipAnimationCommand";
+import { FEMoveShipAnimationCommand } from "./FEMoveShipAnimationCommand";
 import { ICommandExecutionParams } from "./types";
 
 export class FEMoveShipCommand extends FECommand {
@@ -45,7 +45,7 @@ export class FEMoveShipCommand extends FECommand {
         db.saveCurrentPlayerStateV2({ gameState: newGameState }, { skipResolve: true });
 
         await queueCommand(
-            new FEMoveShipAnimation({
+            new FEMoveShipAnimationCommand({
                 shipId,
                 playerId,
                 oldLocations: oldLocations.map((h) => h.location),
