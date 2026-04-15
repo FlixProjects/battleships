@@ -14,7 +14,7 @@ export class FEMoveShipAnimationCommand extends FEAnimationCommand {
     ) {
         super();
     }
-    execute(params: ICommandExecutionParams): Promise<void> {
+    public async execute(params: ICommandExecutionParams): Promise<void> {
         const { shipId, playerId, oldLocations, newLocations } = this.props;
         const { gsm } = params;
 
@@ -32,12 +32,9 @@ export class FEMoveShipAnimationCommand extends FEAnimationCommand {
             this.gameBoard.renderShip(ship, ship.hulls, playerId === gsm.gameState.getFirstPlayerId());
         });
         this.animationManager.play();
-
-        return;
     }
 
-    undo(params: ICommandExecutionParams): Promise<void> {
+    public async undo(params: ICommandExecutionParams): Promise<void> {
         // TODO: undo animation
-        return;
     }
 }
