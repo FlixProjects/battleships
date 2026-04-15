@@ -62,19 +62,14 @@ export class Ship extends ShipEntity {
         // TODO: to inject movement behaviour calculator
         // TODO: barely serviceable implementation for 2-tile ships
         newHulls.forEach((h) => {
-            if (h.front) {
-                h.location = endCell;
-                h.orientation = this.getOrientation(oldFrontLocation, endCell, h.orientation);
-            } else {
-                h.location = oldFrontLocation;
-                h.orientation = this.getOrientation(h.location, oldFrontLocation, h.orientation);
-            }
+            h.location = h.front ? endCell : oldFrontLocation;
+            h.orientation = this.getOrientation(oldFrontLocation, endCell, h.orientation);
         });
 
         return newHulls;
     }
 
-    getOrientation(prevLocation: ICellLoc, newLocation: ICellLoc, currentOrientation?: number) {
+    getOrientation(prevLocation: ICellLoc, newLocation: ICellLoc, currentOrientation: number) {
         const [prevX, prevY] = prevLocation;
         const [newX, newY] = newLocation;
 
