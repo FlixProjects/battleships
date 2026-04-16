@@ -1,4 +1,4 @@
-import type { GameState, Ship } from "../models";
+import type { GameState, Hull, Ship } from "../models";
 import { ICommand } from "../models/commands/types";
 import { IDeployAction, IMoveAction, IPlayerAction, IShipAttackAction } from "./action-types";
 
@@ -213,4 +213,9 @@ export interface IHullCalculator {
     getDeployedHullLocation(selectedLoc: ICellLoc, _hullTemplateLoc: ICellLoc): ICellLoc;
     getDeployedHullLocations(selectedLoc: ICellLoc, _hullTemplateLocs: ICellLoc[]): ICellLoc[];
     getValidDeploymentLocations(selectableLocations: ICellLoc[], hullTemplateLocs: ICellLoc[]): ICellLoc[];
+}
+
+export interface INewOldHullLocMap {
+    oldLoc: ICellLoc;
+    newLoc: ICellLoc;
 }

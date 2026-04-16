@@ -7,7 +7,7 @@ export class MoveAnimation extends BaseAnimation {
         super(props);
     }
     public async execute(): Promise<void> {
-        const elementToMove = document.getElementById(this.props.elementId);
+        const elementToMove = this.props.element;
 
         const [fromCol, fromRow] = this.props.fromCell;
         const [toCol, toRow] = this.props.toCell;

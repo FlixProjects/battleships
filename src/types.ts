@@ -1,3 +1,4 @@
+import type { INewOldHullLocMap } from "@shared/index";
 import { ICellLoc } from "@shared/types";
 import type { HTMLImage } from "./components/native/Image";
 import { SwitchPlayerButton } from "./components/SwitchPlayerButton";
@@ -25,10 +26,22 @@ export interface IAnimationProps {
     duration?: number;
 }
 
+export interface IMoveShipAnimationProps extends IAnimationProps {
+    shipId: string;
+    toLocation: ICellLoc;
+    hullMap: Map<string, INewOldHullLocMap>;
+}
+
 export interface IMoveAnimationProps extends IAnimationProps {
-    elementId: string;
     fromCell: ICellLoc;
     toCell: ICellLoc;
+    removeAfterComplete?: boolean;
+    element: HTMLElement;
+}
+
+export interface IRotateAnimationProps extends IAnimationProps {
+    elementId: string;
+    degrees: number;
     removeAfterComplete?: boolean;
 }
 

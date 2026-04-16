@@ -28,7 +28,11 @@ export class FEMoveShipCommand extends FECommand {
             throw new Error("[Error] Trying to move a ship with no hulls");
         }
 
-        const oldLocations = [...ship.hulls];
+        const oldHulls = gsm.getShipHulls(shipId);
+        const hullMap = new Map();
+        oldHulls.forEach((h) => {
+            hullMap.set(h.id, { oldLoc: h.location, newLoc: [] });
+        });
 
         const player = gsm.getPlayer(playerId);
 
@@ -44,12 +48,19 @@ export class FEMoveShipCommand extends FECommand {
 
         db.saveCurrentPlayerStateV2({ gameState: newGameState }, { skipResolve: true });
 
+        // Note: do not use the above GSM, use the new game state
+        newGameState.getShipHulls(shipId).forEach((h) => {
+            const mappedVal = hullMap.get(h.id);
+            mappedVal.newLoc = h.location;
+            hullMap.set(h.id, mappedVal);
+        });
+
         await queueCommand(
             new FEMoveShipAnimationCommand({
                 shipId,
                 playerId,
-                oldLocations: oldLocations.map((h) => h.location),
-                newLocations: newHullLocations.map((h) => h.location),
+                toLocation: keyToLocation(tileId),
+                hullMap,
             }),
         );
 

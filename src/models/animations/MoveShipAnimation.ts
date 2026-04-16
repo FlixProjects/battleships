@@ -1,31 +1,42 @@
-import { GAME_BOARD_ID, TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
-import { IMoveAnimationProps } from "../../types";
+import { GAME_BOARD_ID } from "@shared/constants";
+import { ICellLoc } from "@shared/index";
+import { IMoveShipAnimationProps } from "../../types";
+import { BaseAnimation } from "./Animation";
 import { MoveAnimation } from "./MoveAnimation";
 
-export class MoveShipAnimation extends MoveAnimation {
-    constructor(protected props: IMoveAnimationProps) {
+export class MoveShipAnimation extends BaseAnimation {
+    constructor(protected props: IMoveShipAnimationProps) {
         super(props);
     }
     public async execute(): Promise<void> {
-        const shipId = this.props.elementId;
-        const _shipElements = Array.from(document.getElementById(GAME_BOARD_ID).querySelectorAll("img")).filter((img) =>
-            img.alt.includes(shipId),
-        );
+        const { hullMap } = this.props;
+
+        const gameBoard = document.getElementById(GAME_BOARD_ID) as HTMLDivElement;
+        const _shipElements = Array.from(hullMap.keys()).map((k) => gameBoard.querySelector(`[id='${k}']`));
+
         const shipElements = _shipElements.map((el) => this.animationLayer.copyToLayer(this.id, el as HTMLElement));
+
         if (shipElements.length === 0) return;
-
-        const [fromCol, fromRow] = this.props.fromCell;
-        const [toCol, toRow] = this.props.toCell;
-
-        const deltaX = (toCol - fromCol) * (TILE_SIZE_PX + TILE_GAP_PX);
-        const deltaY = (toRow - fromRow) * (TILE_SIZE_PX + TILE_GAP_PX);
-
+        // FIXME: ship should rotate as a whole ship, not on its own
         await Promise.all(
-            shipElements.map((element) => {
-                const animationFn = () => {
-                    this.moveElement(element, deltaX, deltaY);
+            shipElements.map(async (element) => {
+                const elementId = element.id;
+
+                const animationFn = async () => {
+                    const hullMapValue = hullMap.get(elementId);
+
+                    if (!hullMapValue) {
+                        throw new Error(`Hull map is missing elementId ${elementId}`);
+                    }
+
+                    const fromCell: ICellLoc = hullMapValue.oldLoc ?? [0, 0];
+                    const toCell: ICellLoc = hullMapValue.newLoc ?? [0, 1];
+
+                    const moveAnimation = new MoveAnimation({ element, fromCell, toCell });
+                    return await moveAnimation.execute();
                 };
-                return this.animate(animationFn);
+
+                return await this.animate(animationFn);
             }),
         );
     }
