@@ -137,6 +137,14 @@ export class GameState implements IGameState {
         return hull;
     }
 
+    getShipHulls(shipId: string) {
+        const hulls = this.hulls?.filter((h) => h.shipId === shipId);
+        if (!this.hulls || hulls.length === 0) {
+            throw new Error(`Ship ${shipId} has no hulls`);
+        }
+        return hulls;
+    }
+
     updateHull(hull: Partial<IHull>) {
         return this.updateEntity(hull, this.hulls, Hull);
     }

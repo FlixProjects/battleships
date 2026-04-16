@@ -39,6 +39,7 @@ export interface IGameStateManager {
     getPlayers(): IPlayer[];
     getPlayerShips(playerId: string): IShip[];
     getShip(shipId: string): Ship;
+    getShipHulls(shipId: string): Hull[];
     updatePlayer(player: Partial<IPlayer>): this;
     updatePlayers(players: Partial<IPlayer>[]): this;
     updateShip(ship: Partial<IShip>): this;

@@ -45,6 +45,10 @@ export class GameStateManager implements IGameStateManager {
         return this.gameState.getShip(shipId);
     }
 
+    getShipHulls(shipId: string) {
+        return this.gameState.getShipHulls(shipId);
+    }
+
     updatePlayer(player: Partial<IPlayer>) {
         this._gameState = this.gameState.updatePlayer(player);
         return this;
