@@ -33,6 +33,7 @@ export class FEMoveShipCommand extends FECommand {
         oldHulls.forEach((h) => {
             hullMap.set(h.id, { oldLoc: h.location, newLoc: [] });
         });
+        const startingOrientation = ship.getFrontHull().orientation;
 
         const player = gsm.getPlayer(playerId);
 
@@ -43,6 +44,8 @@ export class FEMoveShipCommand extends FECommand {
             commandPointCost: ship.movementCommandPointCost,
             hullLocations: newHullLocations,
         });
+
+        // After resolution ============================================================
 
         const newGameState = resolver.resolveMove(moveAction);
 
@@ -59,8 +62,8 @@ export class FEMoveShipCommand extends FECommand {
             new FEMoveShipAnimationCommand({
                 shipId,
                 playerId,
-                toLocation: keyToLocation(tileId),
                 hullMap,
+                startingOrientation,
             }),
         );
 

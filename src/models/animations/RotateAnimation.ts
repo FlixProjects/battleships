@@ -6,8 +6,7 @@ export class RotateAnimation extends BaseAnimation {
         super(props);
     }
     public async execute(): Promise<void> {
-        const elementToRotate = document.getElementById(this.props.elementId);
-
+        const elementToRotate = this.props.element;
         const animationFn = () => {
             this.rotateElement(elementToRotate, this.props.degrees);
         };

@@ -1,24 +1,37 @@
-import { CELL_SEPARATOR, GAME_BOARD_ID } from "@shared/constants";
-import { ICellLoc, INewOldHullLocMap } from "@shared/index";
+import { GAME_BOARD_ID, TILE_SIZE_PX } from "@shared/constants";
+import { ICellLoc } from "@shared/index";
 import { IMoveShipAnimationProps } from "../../types";
 import { BaseAnimation } from "./Animation";
 import { MoveAnimation } from "./MoveAnimation";
 import { RotateAnimation } from "./RotateAnimation";
 
 export class MoveShipAnimation extends BaseAnimation {
+    private currentOrientation: number = 0;
+    private currentCenter: ICellLoc = [0, 0];
+    private targetCenter: ICellLoc = [0, 0];
+    private shipElement?: HTMLElement;
+    private gameBoard?: HTMLDivElement;
+    private boundingRect?: DOMRect;
+
     constructor(protected props: IMoveShipAnimationProps) {
         super(props);
     }
 
     public async execute(): Promise<void> {
-        const { hullMap, shipId } = this.props;
+        const { hullMap, shipId, startingOrientation } = this.props;
+
+        this.currentOrientation = startingOrientation;
 
         const gameBoard = document.getElementById(GAME_BOARD_ID) as HTMLDivElement;
+        this.gameBoard = gameBoard;
+        this.boundingRect = gameBoard.getBoundingClientRect();
+
         const _shipElements = Array.from(hullMap.keys()).map((k) =>
             gameBoard.querySelector(`[id='${k}']`),
         ) as HTMLElement[];
 
         const shipElement = this.animationLayer.wrapAndCopyToLayer(this.id, _shipElements, shipId);
+        this.shipElement = shipElement;
 
         const hullLocations = Array.from(hullMap.values());
         if (hullLocations.length === 0) return;
@@ -27,62 +40,55 @@ export class MoveShipAnimation extends BaseAnimation {
         const newLocs = hullLocations.map((h) => h.newLoc);
 
         const startCenter = this.calculateCenter(oldLocs);
+        this.currentCenter = startCenter;
+
         const endCenter = this.calculateCenter(newLocs);
 
-        // Single hull: L-path (Y then X) without rotation
-        if (hullLocations.length < 2) {
-            const mid: ICellLoc = [startCenter[0], endCenter[1]];
-            await this.moveIfNeeded(shipElement, startCenter, mid);
-            await this.moveIfNeeded(shipElement, mid, endCenter);
-            this.animationLayer.destroyCopiedElements(this.id);
-            return;
-        }
+        const isVertical = this.isShipVertical();
 
-        const isVertical = this.isShipVertical(oldLocs);
         const turningPoint = this.getTurningPoint(startCenter, endCenter, isVertical);
-        const rotationDegrees = this.calculateRotation(hullLocations);
+        this.targetCenter = turningPoint;
 
         // Set transform-origin to turning point tile center for correct rotation pivot
-        if (rotationDegrees !== 0) {
-            this.setTransformOriginToTile(shipElement, turningPoint, gameBoard);
-        }
+        this.setTransformOriginToTile(this.currentCenter);
+        await this.rotateIfNeeded(this.calculateRotation(this.currentCenter, this.targetCenter));
 
-        if (isVertical) {
-            // Step 1: Move along Y-axis to turning point
-            await this.moveIfNeeded(shipElement, startCenter, [startCenter[0], turningPoint[1]]);
-            // Step 2: Rotate at turning point
-            await this.rotateIfNeeded(shipId, rotationDegrees);
-            // Step 3: Move along X-axis to final position
-            await this.moveIfNeeded(shipElement, [startCenter[0], turningPoint[1]], endCenter);
-        } else {
-            // Step 1: Move along X-axis to turning point
-            await this.moveIfNeeded(shipElement, startCenter, [turningPoint[0], startCenter[1]]);
-            // Step 2: Rotate at turning point
-            await this.rotateIfNeeded(shipId, rotationDegrees);
-            // Step 3: Move along Y-axis to final position
-            await this.moveIfNeeded(shipElement, [turningPoint[0], startCenter[1]], endCenter);
+        this.setTransformOriginToTile(turningPoint); // before move, the transform origin set by turning point is correct
+        await this.moveIfNeeded(startCenter, this.targetCenter);
+
+        if (!this.isSameLocation(turningPoint, endCenter)) {
+            this.targetCenter = endCenter;
+            await this.rotateIfNeeded(this.calculateRotation(this.currentCenter, this.targetCenter));
+            await this.moveIfNeeded([startCenter[0], turningPoint[1]], endCenter);
         }
 
         this.animationLayer.destroyCopiedElements(this.id);
     }
 
-    private async moveIfNeeded(element: HTMLElement, from: ICellLoc, to: ICellLoc): Promise<void> {
-        if (from[0] === to[0] && from[1] === to[1]) return;
+    private isSameLocation(loc1: ICellLoc, loc2: ICellLoc): boolean {
+        return loc1[0] === loc2[0] && loc1[1] === loc2[1];
+    }
+
+    private async moveIfNeeded(from: ICellLoc, to: ICellLoc): Promise<void> {
+        if (this.isSameLocation(from, to) || !this.shipElement) return;
         const moveAnim = new MoveAnimation({
-            element,
+            element: this.shipElement!,
             fromCell: from,
             toCell: to,
         });
         await moveAnim.execute();
+        this.currentCenter = to;
     }
 
-    private async rotateIfNeeded(elementId: string, degrees: number): Promise<void> {
-        if (degrees === 0) return;
+    private async rotateIfNeeded(degrees: number): Promise<void> {
+        if (degrees === 0 || !this.shipElement) return;
+
         const rotateAnim = new RotateAnimation({
-            elementId,
+            element: this.shipElement,
             degrees,
         });
         await rotateAnim.execute();
+        this.currentOrientation = (this.currentOrientation + degrees) % 360;
     }
 
     private calculateCenter(locations: ICellLoc[]): ICellLoc {
@@ -91,10 +97,8 @@ export class MoveShipAnimation extends BaseAnimation {
         return [sumX / locations.length, sumY / locations.length];
     }
 
-    private isShipVertical(locations: ICellLoc[]): boolean {
-        if (locations.length < 2) return true;
-        // Ship is vertical if hulls share the same column
-        return locations[0][0] === locations[1][0];
+    private isShipVertical(): boolean {
+        return this.currentOrientation % 180 === 0;
     }
 
     private getTurningPoint(start: ICellLoc, end: ICellLoc, isVertical: boolean): ICellLoc {
@@ -106,60 +110,47 @@ export class MoveShipAnimation extends BaseAnimation {
         return [end[0], start[1]];
     }
 
-    private calculateRotation(hullLocations: INewOldHullLocMap[]): number {
-        if (hullLocations.length < 2) return 0;
+    private calculateRotation(frontHullTarget: ICellLoc, currentFrontHullLoc: ICellLoc): number {
+        const newLocs = frontHullTarget;
+        const newDir = this.getShipDirection(newLocs, currentFrontHullLoc);
 
-        const frontIndex = this.getFrontHullIndex(hullLocations);
-        const oldLocs = hullLocations.map((h) => h.oldLoc);
-        const newLocs = hullLocations.map((h) => h.newLoc);
+        const oldAngle = this.currentOrientation;
 
-        const oldDir = this.getShipDirection(oldLocs, frontIndex);
-        const newDir = this.getShipDirection(newLocs, frontIndex);
-
-        // If directions are the same, no rotation needed
-        if (oldDir[0] === newDir[0] && oldDir[1] === newDir[1]) return 0;
-
-        // Convert direction vectors to angles using game convention:
-        // up [0,-1] → 0°, right [1,0] → 90°, down [0,1] → 180°, left [-1,0] → 270°
-        const oldAngle = Math.atan2(oldDir[0], -oldDir[1]) * (180 / Math.PI);
-        const newAngle = Math.atan2(newDir[0], -newDir[1]) * (180 / Math.PI);
+        const newAngle = Math.atan2(newDir[1], newDir[0]) * (180 / Math.PI) + 90;
 
         let rotation = newAngle - oldAngle;
         // Normalize to [-180, 180] for shortest rotation path
-        while (rotation > 180) rotation -= 360;
-        while (rotation <= -180) rotation += 360;
+        // while (rotation > 180) rotation/ -= 360;
+        // while (rotation <= -180) rotation += 360;
 
         return rotation;
     }
 
-    private getFrontHullIndex(hullLocations: INewOldHullLocMap[]): number {
-        // For a 2-hull ship: back hull's new location = front hull's old location
-        const [a, b] = hullLocations;
-        if (a.newLoc[0] === b.oldLoc[0] && a.newLoc[1] === b.oldLoc[1]) {
-            return 1; // B is front
-        }
-        return 0; // A is front
+    private getShipDirection(origin: ICellLoc, target: ICellLoc) {
+        console.log("Calculating direction from", origin, "to", target);
+        const deltaX = target[0] - origin[0];
+        const deltaY = target[1] - origin[1];
+
+        return [deltaX, deltaY];
     }
 
-    private getShipDirection(locations: ICellLoc[], frontIndex: number): ICellLoc {
-        const backIndex = 1 - frontIndex;
-        return [
-            locations[frontIndex][0] - locations[backIndex][0],
-            locations[frontIndex][1] - locations[backIndex][1],
-        ];
-    }
+    private setTransformOriginToTile(turningPoint: ICellLoc): void {
+        if (!this.shipElement || !this.gameBoard) return;
 
-    private setTransformOriginToTile(wrapper: HTMLElement, turningPoint: ICellLoc, gameBoard: HTMLElement): void {
-        const tileId = `${turningPoint[0]}${CELL_SEPARATOR}${turningPoint[1]}`;
-        const tile = gameBoard.querySelector(`[id='${tileId}']`) as HTMLElement;
-        if (!tile) return;
+        const { left, top, width, height } = this.boundingRect ?? { left: 0, top: 0, width: 0, height: 0 };
 
-        const tileRect = tile.getBoundingClientRect();
-        const wrapperRect = wrapper.getBoundingClientRect();
+        const tileRect = {
+            left: left + TILE_SIZE_PX * turningPoint[0],
+            top: top + TILE_SIZE_PX * turningPoint[1],
+            width: TILE_SIZE_PX,
+            height: TILE_SIZE_PX,
+        };
+
+        const wrapperRect = this.shipElement.getBoundingClientRect();
 
         const originX = tileRect.left + tileRect.width / 2 - wrapperRect.left;
         const originY = tileRect.top + tileRect.height / 2 - wrapperRect.top;
 
-        wrapper.style.transformOrigin = `${originX}px ${originY}px`;
+        this.shipElement.style.transformOrigin = `${originX}px ${originY}px`;
     }
 }

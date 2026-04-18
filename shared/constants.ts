@@ -32,7 +32,7 @@ export const BOARD_ROWS = 10;
 export const BOARD_COLUMNS = 7;
 export const CELL_SEPARATOR = "/";
 export const TILE_SIZE_PX = 48;
-export const TILE_GAP_PX = 2;
+export const TILE_GAP_PX = 0;
 
 export const SHIP_REF_NO = {
     frigate0: "frigate0",

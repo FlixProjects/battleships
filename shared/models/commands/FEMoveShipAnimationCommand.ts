@@ -1,21 +1,18 @@
+import { IMoveShipAnimationProps } from "src/types";
 import { MoveShipAnimation } from "../../../src/models/animations/MoveShipAnimation";
-import { ICellLoc, INewOldHullLocMap } from "../../types/types";
 import { FEAnimationCommand } from "./FEAnimationCommand";
 import { ICommandExecutionParams } from "./types";
 
+interface IFEAnimationCommandProps extends IMoveShipAnimationProps {
+    playerId: string;
+}
+
 export class FEMoveShipAnimationCommand extends FEAnimationCommand {
-    constructor(
-        private props: {
-            shipId: string;
-            playerId: string;
-            toLocation: ICellLoc;
-            hullMap: Map<string, INewOldHullLocMap>;
-        },
-    ) {
+    constructor(private props: IFEAnimationCommandProps) {
         super();
     }
     public async execute(params: ICommandExecutionParams): Promise<void> {
-        const { shipId: shipId, playerId, toLocation, hullMap } = this.props;
+        const { shipId, playerId, hullMap, startingOrientation } = this.props;
         const { gsm } = params;
 
         const ship = gsm.getShip(shipId);
@@ -23,7 +20,7 @@ export class FEMoveShipAnimationCommand extends FEAnimationCommand {
 
         const moveShipAnimation = new MoveShipAnimation({
             shipId,
-            toLocation,
+            startingOrientation,
             hullMap,
         });
 

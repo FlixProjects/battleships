@@ -28,7 +28,7 @@ export interface IAnimationProps {
 
 export interface IMoveShipAnimationProps extends IAnimationProps {
     shipId: string;
-    toLocation: ICellLoc;
+    startingOrientation: number;
     hullMap: Map<string, INewOldHullLocMap>;
 }
 
@@ -40,7 +40,7 @@ export interface IMoveAnimationProps extends IAnimationProps {
 }
 
 export interface IRotateAnimationProps extends IAnimationProps {
-    elementId: string;
+    element: HTMLElement;
     degrees: number;
     removeAfterComplete?: boolean;
 }
