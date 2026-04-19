@@ -1,5 +1,6 @@
 import { ICellLoc, IHull, IShip } from "@shared/types";
-import { locationToKey, PathHelper } from "@shared/utils";
+import { PathHelper } from "@shared/utils";
+import { SegmentBuilder } from "@shared/utils/segment-builder";
 import { mergician } from "mergician";
 import { ShipEntity } from "./entities/ShipEntity";
 
@@ -55,6 +56,14 @@ export class Ship extends ShipEntity {
     }
 
     getNewHullLocations(endCell: ICellLoc) {
+        const segmentBuilder = new SegmentBuilder();
+        const startingOrientation = this.getFrontHull().orientation;
+        const segments = segmentBuilder.buildSegments(
+            this.getFrontHull().location,
+            endCell,
+            startingOrientation,
+        );
+
         const newHulls = this.hulls?.map((h) => mergician({}, h)) as IHull[];
         const frontHull = this.getFrontHull();
         const oldFrontLocation = frontHull.location;
@@ -63,24 +72,11 @@ export class Ship extends ShipEntity {
         // TODO: barely serviceable implementation for 2-tile ships
         newHulls.forEach((h) => {
             h.location = h.front ? endCell : oldFrontLocation;
-            h.orientation = this.getOrientation(oldFrontLocation, endCell, h.orientation);
+            h.orientation = segments.reduce((sum, curr) => {
+                return sum + curr.rotateDegrees;
+            }, startingOrientation);
         });
 
         return newHulls;
-    }
-
-    getOrientation(prevLocation: ICellLoc, newLocation: ICellLoc, currentOrientation: number) {
-        const [prevX, prevY] = prevLocation;
-        const [newX, newY] = newLocation;
-
-        if (prevX === newX) {
-            // pure vertical movement
-            return prevY > newY ? 0 : 180; // up: 0, down: 180
-        } else if (prevY === newY) {
-            // pure horizontal movement
-            return prevX > newX ? 270 : 90; // left: 270, right: 90
-        } else {
-            return currentOrientation;
-        }
     }
 }
