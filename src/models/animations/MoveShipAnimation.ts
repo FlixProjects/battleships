@@ -1,4 +1,4 @@
-import { GAME_BOARD_ID } from "@shared/constants";
+import { COMPONENT_ID } from "@shared/constants";
 import { SegmentBuilder } from "@shared/utils/segment-builder";
 import { IMoveShipAnimationProps } from "../../types";
 import { BaseAnimation } from "./Animation";
@@ -14,7 +14,7 @@ export class MoveShipAnimation extends BaseAnimation {
         const hullLocations = Array.from(hullMap.values());
         if (hullLocations.length === 0) return;
 
-        const gameBoard = document.getElementById(GAME_BOARD_ID) as HTMLDivElement;
+        const gameBoard = document.getElementById(COMPONENT_ID.GAME_BOARD_STATIC_LAYER) as HTMLDivElement;
         const gameBoardRect = gameBoard.getBoundingClientRect();
 
         const hullElements = Array.from(hullMap.keys()).map((k) =>

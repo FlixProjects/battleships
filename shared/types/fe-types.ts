@@ -44,3 +44,8 @@ export interface IAnimationManager {
     ) => void;
     play: () => Promise<void>;
 }
+
+export interface IRect {
+    top: number;
+    left: number;
+}

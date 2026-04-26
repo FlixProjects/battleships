@@ -153,8 +153,9 @@ export const COMPONENT_ID = {
     GAME_AREA: "gameArea",
     GAME_BOARD_CONTAINER: "gameBoardContainer",
     GAME_BOARD: "gameBoard",
+    GAME_BOARD_STATIC_LAYER: "gameBoardStaticLayer",
 } as const;
-export const ANIMATION_LAYER_ID = "gameBoardContainer";
+export const ANIMATION_LAYER_ID = COMPONENT_ID.GAME_BOARD_CONTAINER;
 export const GAME_BOARD_ID = "gameBoard";
 
 export const ERROR_CODE = {

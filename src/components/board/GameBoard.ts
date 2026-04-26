@@ -23,6 +23,7 @@ export class GameBoard extends BaseComponent {
 
     private container = document.getElementById(COMPONENT_ID.GAME_AREA) as HTMLDivElement;
     private gameBoardContainer = document.getElementById(COMPONENT_ID.GAME_BOARD_CONTAINER) as HTMLDivElement;
+    private staticLayer = document.getElementById(COMPONENT_ID.GAME_BOARD_STATIC_LAYER) as HTMLDivElement;
     private elementsCurrentlyAnimatingMap = new Map<string, string>(); // elementId to animationId (e.g. shipId)
 
     constructor() {
@@ -42,6 +43,7 @@ export class GameBoard extends BaseComponent {
         if (!this.gameBoardContainer) {
             this.renderBoardOverlay();
         }
+
         this.ref = document.createElement("div");
         this.ref.id = GAME_BOARD_ID;
         this.addStyles();
@@ -52,11 +54,13 @@ export class GameBoard extends BaseComponent {
             }
         }
 
+        this.staticLayer?.remove();
+        this.renderStaticLayer();
+
         this.renderPlayersShips();
         this.applyVisibility();
 
         this.gameBoardContainer.appendChild(this.ref);
-
         return this.ref;
     }
 
@@ -66,6 +70,7 @@ export class GameBoard extends BaseComponent {
         this.ref.style.display = "grid";
         this.ref.style.gridTemplateColumns = `repeat(${BOARD_COLUMNS}, ${TILE_SIZE_PX}px)`;
         this.ref.style.gap = `${TILE_GAP_PX}px`;
+        this.ref.style.background = "rgba(255, 255, 255, 0)";
     }
 
     public updateSelectableTiles(validCells: [number, number][], _options?: IUpdateSelectableOptions) {
@@ -119,6 +124,13 @@ export class GameBoard extends BaseComponent {
         this.gameBoardContainer.id = ANIMATION_LAYER_ID;
         this.gameBoardContainer.style.position = "relative";
         this.container.appendChild(this.gameBoardContainer);
+    }
+
+    private renderStaticLayer() {
+        this.staticLayer = document.createElement("div");
+        this.staticLayer.id = COMPONENT_ID.GAME_BOARD_STATIC_LAYER;
+        this.staticLayer.style.position = "relative";
+        this.gameBoardContainer.appendChild(this.staticLayer);
     }
 
     private renderTile(key: string) {

@@ -12,6 +12,8 @@ interface Props {
     color?: TColor;
     refNo?: string;
     rotation?: number;
+    mouseEnter?: (hullIconRef?: HTMLElement, defaultMouseEnter?: () => void) => void;
+    mouseLeave?: (hullIconRef?: HTMLElement, defaultMouseLeave?: () => void) => void;
 }
 
 export class DeployedHullIcon extends Selectable {
@@ -57,11 +59,19 @@ export class DeployedHullIcon extends Selectable {
     }
 
     private mouseEnter = () => {
+        this.props.mouseEnter?.(this.ref, this._mouseEnter) ?? this._mouseEnter();
+    };
+
+    private mouseLeave = () => {
+        this.props.mouseLeave?.(this.ref, this._mouseLeave) ?? this._mouseLeave();
+    };
+
+    private _mouseEnter = () => {
         this.ref.style.transform = `scale(1.1, 1.1)`;
         this.ref.style.borderBottomColor = "rgba(110, 231, 183, 0.9)";
     };
 
-    private mouseLeave = () => {
+    private _mouseLeave = () => {
         this.ref.style.transform = `scale(1, 1)`;
         this.ref.style.borderBottomColor = "rgba(110, 231, 183, 0.6)";
     };
