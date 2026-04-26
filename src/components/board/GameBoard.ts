@@ -34,6 +34,7 @@ export class GameBoard extends BaseComponent {
 
     updateState(_state?: IAppState): void {
         this.remove();
+        this.staticLayer?.remove();
         if (_state?.gameState?.players?.length === 2) {
             this.build();
             return;

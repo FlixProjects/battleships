@@ -15,11 +15,11 @@ export class SelectShipClickHandler extends ClickHandler {
     }
 
     public handleEvent() {
-        const { shipId, hullId } = this.event;
+        const { shipId } = this.event;
 
         this.removePreviousActionMenu();
 
-        const hull = this.selectables[`${DEPLOYED_SHIP_PREFIX}${shipId}`]
+        const hull = this.selectables[`${DEPLOYED_SHIP_PREFIX}${shipId}`];
         this.shipRef = hull.ref;
 
         const getActionMenu = (ship: IShip) => {
@@ -36,6 +36,7 @@ export class SelectShipClickHandler extends ClickHandler {
         const { onGlobalDeselect, selectableId, tileId } = this.event;
         const target = e.target as HTMLElement;
         const clickedTile = target.closest(".tile") as HTMLElement;
+
         const id = this.addGetIdOfClick(e);
 
         // if not select-ship or not on the tile, we deselect
