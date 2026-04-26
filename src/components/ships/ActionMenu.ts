@@ -1,4 +1,4 @@
-import { ASSET_PATHS, SELECTABLE_ID } from "@shared/constants";
+import { ASSET_PATHS, SELECTABLE_ID, TILE_SIZE_PX } from "@shared/constants";
 import { IShip } from "@shared/types";
 import { IActionMenu } from "@shared/types/fe-types";
 import { gameManager, interactionManager } from "../..";
@@ -90,7 +90,7 @@ export class ActionMenu extends Selectable implements IActionMenu {
     protected addStyles() {
         this.ref.style.position = "absolute";
         this.ref.style.top = "-40px";
-        this.ref.style.left = "50%";
+        this.ref.style.left = `${TILE_SIZE_PX/2}px`;
         this.ref.style.transform = "translateX(-50%)";
         this.ref.style.background = "rgba(15, 23, 36, 0.95)";
         this.ref.style.border = "1px solid rgba(110, 231, 183, 0.3)";

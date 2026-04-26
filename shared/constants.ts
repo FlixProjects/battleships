@@ -167,3 +167,4 @@ export const ERROR_CODE = {
 export type TErrorCode = (typeof ERROR_CODE)[keyof typeof ERROR_CODE];
 
 export const DEPLOYED_HULL_PREFIX = `hull-`;
+export const DEPLOYED_SHIP_PREFIX = `ship-`;
