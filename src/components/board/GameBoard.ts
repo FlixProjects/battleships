@@ -123,13 +123,16 @@ export class GameBoard extends BaseComponent {
         this.gameBoardContainer = document.createElement("div");
         this.gameBoardContainer.id = ANIMATION_LAYER_ID;
         this.gameBoardContainer.style.position = "relative";
+
         this.container.appendChild(this.gameBoardContainer);
     }
 
     private renderStaticLayer() {
         this.staticLayer = document.createElement("div");
         this.staticLayer.id = COMPONENT_ID.GAME_BOARD_STATIC_LAYER;
-        this.staticLayer.style.position = "relative";
+        this.staticLayer.style.position = "absolute";
+        this.staticLayer.style.zIndex = "10";
+
         this.gameBoardContainer.appendChild(this.staticLayer);
     }
 

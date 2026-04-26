@@ -1,5 +1,5 @@
 import { Selectable } from "../Selectable";
-import { COLOR, TColor } from "@shared/constants";
+import { COLOR, TColor, TILE_SIZE_PX } from "@shared/constants";
 import { getColorFilter } from "../../utils/game-helper";
 
 interface Props {
@@ -31,7 +31,7 @@ export class HullIcon extends Selectable {
     }
 
     protected addStyles() {
-        this.ref.style.maxWidth = "40px";
+        this.ref.style.maxWidth = `${TILE_SIZE_PX}px`;
         this.ref.style.maxHeight = "100%";
         this.ref.style.cursor = "pointer";
         this.ref.style.transition = "all 0.2s ease";
