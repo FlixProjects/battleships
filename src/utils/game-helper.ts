@@ -77,10 +77,10 @@ export const getPxFromCellLocation = (cell: ICellLoc): { top: number; left: numb
 };
 
 export const getElementsFromIds = (ids: string[]) => {
-    const gameBoard = getComponents().div.gameBoard;
+    const gameBoardContainer = document.getElementById(COMPONENT_ID.GAME_BOARD_CONTAINER)
     const elements = ids
         .map((id) => {
-            return gameBoard.ref.querySelector(`[id="${id}"]`);
+            return gameBoardContainer.querySelector(`[id="${id}"]`);
         })
         .filter((el): el is HTMLElement => el !== null)
         .map((el) => ({ el, rect: el.getBoundingClientRect() }));
