@@ -1,3 +1,4 @@
+import { Z_INDEX } from "@shared/constants";
 import { IconProps } from "../../types";
 import { Icon } from "../ships/Icon";
 
@@ -29,6 +30,6 @@ export class ProjectileIcon extends Icon {
         this.ref.style.top = `${this.top - 16}px`;
         this.ref.style.left = `${this.left - 16}px`;
         this.ref.style.transform = `rotate(${this.rotation}deg)`;
-        this.ref.style.zIndex = "100";
+        this.ref.style.zIndex = Z_INDEX.PROJECTILE;
     }
 }

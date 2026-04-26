@@ -7,6 +7,7 @@ import {
     GAME_BOARD_ID,
     TILE_GAP_PX,
     TILE_SIZE_PX,
+    Z_INDEX,
 } from "@shared/constants";
 import { GameStateManager } from "@shared/models";
 import { FERenderShipCommand } from "@shared/models/commands/FERenderShipCommand";
@@ -131,7 +132,7 @@ export class GameBoard extends BaseComponent {
         this.staticLayer = document.createElement("div");
         this.staticLayer.id = COMPONENT_ID.GAME_BOARD_STATIC_LAYER;
         this.staticLayer.style.position = "absolute";
-        this.staticLayer.style.zIndex = "10";
+        this.staticLayer.style.zIndex = Z_INDEX.STATIC_LAYER;
 
         this.gameBoardContainer.appendChild(this.staticLayer);
     }

@@ -1,4 +1,4 @@
-import { ASSET_PATHS, CELL_SEPARATOR, COLOR, COLOR_FILTER } from "@shared/constants";
+import { ASSET_PATHS, CELL_SEPARATOR, COLOR, COLOR_FILTER, Z_INDEX } from "@shared/constants";
 import { FEHighlightLocationsCommand } from "@shared/models/commands/FEHighlightLocationsCommand";
 import { FEShipAttackCommand } from "@shared/models/commands/FEShipAttackCommand";
 import { GameEngine } from "@shared/models/GameEngine";
@@ -117,7 +117,7 @@ export class ShipAttackClickHandler extends ClickHandler {
         ref.style.position = "absolute";
         ref.style.opacity = "0.5";
         ref.style.filter = COLOR_FILTER[COLOR.RED];
-        ref.style.zIndex = "10";
+        ref.style.zIndex = Z_INDEX.TARGET_ATTACK_ICON;
     }
 
     private removeTargetIcon(selectable: Selectable) {

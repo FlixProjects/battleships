@@ -1,4 +1,4 @@
-import { ASSET_PATHS, SELECTABLE_ID, TILE_SIZE_PX } from "@shared/constants";
+import { ASSET_PATHS, SELECTABLE_ID, TILE_SIZE_PX, Z_INDEX } from "@shared/constants";
 import { IShip } from "@shared/types";
 import { IActionMenu } from "@shared/types/fe-types";
 import { gameManager, interactionManager } from "../..";
@@ -99,7 +99,7 @@ export class ActionMenu extends Selectable implements IActionMenu {
         this.ref.style.display = "flex";
         this.ref.style.gap = "4px";
         this.ref.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.4)";
-        this.ref.style.zIndex = "1000";
+        this.ref.style.zIndex = Z_INDEX.ACTION_MENU;
         this.ref.style.animation = "fadeIn 0.2s ease";
     }
 }

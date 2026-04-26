@@ -34,6 +34,15 @@ export const CELL_SEPARATOR = "/";
 export const TILE_SIZE_PX = 48;
 export const TILE_GAP_PX = 0;
 
+export const Z_INDEX = {
+    TOAST: "100",
+    ACTION_PANEL: "100",
+    STATIC_LAYER: "1",
+    PROJECTILE: "100",
+    ACTION_MENU: "1000",
+    TARGET_ATTACK_ICON: "10",
+}
+
 export const SHIP_REF_NO = {
     frigate0: "frigate0",
     flagship0: "flagship0",

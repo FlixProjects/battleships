@@ -35,7 +35,6 @@ export class HullIcon extends Selectable {
         this.ref.style.maxHeight = "100%";
         this.ref.style.cursor = "pointer";
         this.ref.style.transition = "all 0.2s ease";
-
         this.ref.style.filter = getColorFilter(this.props.color ?? COLOR.PINK);
 
         this.ref.style.transform = `rotate(${this.props.rotation}deg)`;
