@@ -214,16 +214,26 @@ export class GameEngine {
 
     private primeAttack(action: IGetValidAttackCellsAction) {
         const { playerId, shipId } = action;
-        const player = this.getPlayer(playerId);
-        const ship = player.ships.find((s) => s.id === shipId);
 
-        const currentLoc = ship.hulls[0].location;
+        const ship = this.gsm.getShip(shipId);
+
+        const locArr =
+            this.gsm.gameState.hulls
+                .filter((h) =>
+                    this.gsm
+                        .getPlayer(playerId)
+                        .ships?.map((s) => s.id)
+                        .includes(h.shipId),
+                )
+                ?.map((h) => locationToKey(h.location)) || [];
+
+        const currentLoc = ship.hulls?.find((h) => h.shipId === shipId && h.front)?.location ?? [0, 0];
         const attackRange = ship.attackRange || 0;
-        
+
         const reachableCells = this.pathHelper.getReachableCells({
             start: currentLoc,
             range: attackRange,
-            filterFn: (loc: ICellLoc) => true,
+            filterFn: (loc: ICellLoc) => !locArr.includes(locationToKey(loc)),
         });
 
         return {
