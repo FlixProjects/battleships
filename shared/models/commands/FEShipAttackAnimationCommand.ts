@@ -20,12 +20,13 @@ export class FEShipAttackAnimationCommand extends FEAnimationCommand {
     ) {
         super();
     }
-    execute(params: ICommandExecutionParams): Promise<void> {
+
+    public async execute(params: ICommandExecutionParams): Promise<void> {
         const { attackOrigin, attackTileId, shipsHit } = this.props;
         const { gsm } = params;
 
         const destroyedShips = gsm.gameState.ships.filter((s) => s.destroyed);
-        const destoyedShipHullIds = destroyedShips.flatMap((s) => s.hulls).map((h) => h.id);
+        const destroyedShipHullIds = destroyedShips.flatMap((s) => s.hulls).map((h) => h.id);
         const projectile = new Projectile({
             origin: attackOrigin,
             target: keyToLocation(attackTileId),
@@ -33,7 +34,7 @@ export class FEShipAttackAnimationCommand extends FEAnimationCommand {
         });
 
         this.animationManager.enqueueMany([
-            { animation: new StillAnimation({ elements: getElementsFromIds(destoyedShipHullIds), duration: 500 }) },
+            { animation: new StillAnimation({ elements: getElementsFromIds(destroyedShipHullIds), duration: 500 }) },
             { animation: projectile.createAnimation() },
         ]);
 
@@ -42,18 +43,15 @@ export class FEShipAttackAnimationCommand extends FEAnimationCommand {
             animationManager.enqueue(new HitAnimation({ id: hitShipId, elements: getElementsFromIds(hullIds) }));
         });
 
-        for (const ship of destroyedShips) {
+        destroyedShips.forEach((ship) => {
             const hullIds = ship.hulls.map((h) => h.id);
             animationManager.enqueue(new DestroyedAnimation({ id: ship.id, elements: getElementsFromIds(hullIds) }));
-        }
+        });
 
         this.animationManager.play();
-
-        return;
     }
 
-    undo(params: ICommandExecutionParams): Promise<void> {
+    public async undo(params: ICommandExecutionParams): Promise<void> {
         // TODO: undo animation
-        return;
     }
 }

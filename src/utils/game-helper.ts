@@ -1,4 +1,4 @@
-import { COLOR, COLOR_FILTER, FP_CURRENT_PLAYER, FP_GAME_CODE, TColor, TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
+import { COLOR, COLOR_FILTER, COMPONENT_ID, FP_CURRENT_PLAYER, FP_GAME_CODE, TColor, TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
 import { FECommand } from "@shared/models/commands/FECommand";
 import { AppStatus, ICellLoc } from "@shared/types";
 import { game, gameManager } from "..";
