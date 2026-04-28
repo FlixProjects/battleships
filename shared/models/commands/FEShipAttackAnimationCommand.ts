@@ -1,5 +1,4 @@
 import { Projectile } from "../../../src/components/projectiles/Projectile";
-import { animationManager } from "../../../src/models/AnimationManager";
 import { DestroyedAnimation } from "../../../src/models/animations";
 import { HitAnimation } from "../../../src/models/animations/HitAnimation";
 import { StillAnimation } from "../../../src/models/animations/StillAnimation";
@@ -40,12 +39,19 @@ export class FEShipAttackAnimationCommand extends FEAnimationCommand {
 
         Object.entries(shipsHit).forEach(([hitShipId, hullIds]) => {
             // FIXME: we ignore hitLocations for now
-            animationManager.enqueue(new HitAnimation({ id: hitShipId, elements: getElementsFromIds(hullIds) }));
+            const hitShipIsDestroyed = destroyedShips.map((s) => s.id).includes(hitShipId);
+            const destroyedShip = destroyedShips.find((s) => s.id === hitShipId);
+            // Note: we just play a hit animation on all hulls of the ship if it's destroyed
+            const hitHulls = hitShipIsDestroyed ? (destroyedShip?.hulls?.map((h) => h.id) ?? hullIds) : hullIds;
+
+            this.animationManager.enqueue(new HitAnimation({ id: hitShipId, elements: getElementsFromIds(hitHulls) }));
         });
 
         destroyedShips.forEach((ship) => {
             const hullIds = ship.hulls.map((h) => h.id);
-            animationManager.enqueue(new DestroyedAnimation({ id: ship.id, elements: getElementsFromIds(hullIds) }));
+            this.animationManager.enqueue(
+                new DestroyedAnimation({ id: ship.id, elements: getElementsFromIds(hullIds) }),
+            );
         });
 
         this.animationManager.play();
