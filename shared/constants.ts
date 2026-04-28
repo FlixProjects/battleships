@@ -32,7 +32,16 @@ export const BOARD_ROWS = 10;
 export const BOARD_COLUMNS = 7;
 export const CELL_SEPARATOR = "/";
 export const TILE_SIZE_PX = 48;
-export const TILE_GAP_PX = 2;
+export const TILE_GAP_PX = 0;
+
+export const Z_INDEX = {
+    TOAST: "100",
+    ACTION_PANEL: "100",
+    STATIC_LAYER: "1",
+    PROJECTILE: "100",
+    ACTION_MENU: "1000",
+    TARGET_ATTACK_ICON: "10",
+}
 
 export const SHIP_REF_NO = {
     frigate0: "frigate0",
@@ -48,6 +57,9 @@ export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
             maxHealth: 1,
             armor: 0,
             visionRange: 2,
+            imgSrc: "assets/ships/frigate0.png",
+            front: true,
+            orientation: 0,
         },
     ],
     [SHIP_REF_NO.flagship0]: [
@@ -56,6 +68,17 @@ export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
             maxHealth: 1,
             armor: 0,
             visionRange: 2,
+            imgSrc: "assets/ships/flagship-0.png",
+            orientation: 0,
+        },
+        {
+            templateLocation: [0, 1],
+            maxHealth: 1,
+            armor: 0,
+            visionRange: 2,
+            imgSrc: "assets/ships/flagship-1.png",
+            front: true,
+            orientation: 0,
         },
     ],
 };
@@ -135,7 +158,13 @@ export const ASSET_PATHS = {
     MOVE_ICON: "./assets/move-icon.svg",
 };
 
-export const ANIMATION_LAYER_ID = "gameBoardContainer";
+export const COMPONENT_ID = {
+    GAME_AREA: "gameArea",
+    GAME_BOARD_CONTAINER: "gameBoardContainer",
+    GAME_BOARD: "gameBoard",
+    GAME_BOARD_STATIC_LAYER: "gameBoardStaticLayer",
+} as const;
+export const ANIMATION_LAYER_ID = COMPONENT_ID.GAME_BOARD_CONTAINER;
 export const GAME_BOARD_ID = "gameBoard";
 
 export const ERROR_CODE = {
@@ -147,3 +176,4 @@ export const ERROR_CODE = {
 export type TErrorCode = (typeof ERROR_CODE)[keyof typeof ERROR_CODE];
 
 export const DEPLOYED_HULL_PREFIX = `hull-`;
+export const DEPLOYED_SHIP_PREFIX = `ship-`;

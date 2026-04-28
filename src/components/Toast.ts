@@ -1,3 +1,4 @@
+import { Z_INDEX } from "@shared/constants";
 import { BaseComponent } from "./BaseComponent";
 
 export interface ToastOptions {
@@ -39,7 +40,7 @@ export class Toast extends BaseComponent {
         c.style.top = "20px";
         c.style.left = "50%";
         c.style.transform = "translateX(-50%)";
-        c.style.zIndex = "100";
+        c.style.zIndex = Z_INDEX.TOAST;
         c.style.display = "flex";
         c.style.width = "100%";
         c.style.flexDirection = "column";

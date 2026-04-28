@@ -3,23 +3,28 @@ import {
     BOARD_COLUMNS,
     BOARD_ROWS,
     CELL_SEPARATOR,
+    COMPONENT_ID,
     GAME_BOARD_ID,
     TILE_GAP_PX,
     TILE_SIZE_PX,
+    Z_INDEX,
 } from "@shared/constants";
 import { GameStateManager } from "@shared/models";
-import { IAppState, ICellLoc, IHull, IShip } from "@shared/types";
+import { FERenderShipCommand } from "@shared/models/commands/FERenderShipCommand";
+import { IAppState, ICellLoc, IShip } from "@shared/types";
 import { IUpdateSelectableOptions, TSetSelectableOptions } from "@shared/types/fe-types";
 import { locationToKey } from "@shared/utils";
 import { gameManager } from "../..";
-import { renderShipIconV2 } from "../../utils/game-helper";
+import { queueCommand } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 import { Tile } from "./Tile";
 
 export class GameBoard extends BaseComponent {
-    private container = document.getElementById("gameArea") as HTMLDivElement;
-    private gameBoardContainer = document.getElementById("gameBoardContainer") as HTMLDivElement;
-    private tiles: Record<string, Tile> = {};
+    public tiles: Record<string, Tile> = {};
+
+    private container = document.getElementById(COMPONENT_ID.GAME_AREA) as HTMLDivElement;
+    private gameBoardContainer = document.getElementById(COMPONENT_ID.GAME_BOARD_CONTAINER) as HTMLDivElement;
+    private staticLayer = document.getElementById(COMPONENT_ID.GAME_BOARD_STATIC_LAYER) as HTMLDivElement;
     private elementsCurrentlyAnimatingMap = new Map<string, string>(); // elementId to animationId (e.g. shipId)
 
     constructor() {
@@ -29,6 +34,7 @@ export class GameBoard extends BaseComponent {
 
     updateState(_state?: IAppState): void {
         this.remove();
+        this.staticLayer?.remove();
         if (_state?.gameState?.players?.length === 2) {
             this.build();
             return;
@@ -39,6 +45,7 @@ export class GameBoard extends BaseComponent {
         if (!this.gameBoardContainer) {
             this.renderBoardOverlay();
         }
+
         this.ref = document.createElement("div");
         this.ref.id = GAME_BOARD_ID;
         this.addStyles();
@@ -49,11 +56,13 @@ export class GameBoard extends BaseComponent {
             }
         }
 
+        this.staticLayer?.remove();
+        this.renderStaticLayer();
+
         this.renderPlayersShips();
         this.applyVisibility();
 
         this.gameBoardContainer.appendChild(this.ref);
-
         return this.ref;
     }
 
@@ -63,6 +72,7 @@ export class GameBoard extends BaseComponent {
         this.ref.style.display = "grid";
         this.ref.style.gridTemplateColumns = `repeat(${BOARD_COLUMNS}, ${TILE_SIZE_PX}px)`;
         this.ref.style.gap = `${TILE_GAP_PX}px`;
+        this.ref.style.background = "rgba(255, 255, 255, 0)";
     }
 
     public updateSelectableTiles(validCells: [number, number][], _options?: IUpdateSelectableOptions) {
@@ -115,7 +125,17 @@ export class GameBoard extends BaseComponent {
         this.gameBoardContainer = document.createElement("div");
         this.gameBoardContainer.id = ANIMATION_LAYER_ID;
         this.gameBoardContainer.style.position = "relative";
+
         this.container.appendChild(this.gameBoardContainer);
+    }
+
+    private renderStaticLayer() {
+        this.staticLayer = document.createElement("div");
+        this.staticLayer.id = COMPONENT_ID.GAME_BOARD_STATIC_LAYER;
+        this.staticLayer.style.position = "absolute";
+        this.staticLayer.style.zIndex = Z_INDEX.STATIC_LAYER;
+
+        this.gameBoardContainer.appendChild(this.staticLayer);
     }
 
     private renderTile(key: string) {
@@ -130,26 +150,15 @@ export class GameBoard extends BaseComponent {
         if (!gameState) return;
         const shipsToRender = gameState.ships?.filter((s) => s.deployed && !s.destroyed);
 
-        shipsToRender.forEach((ship) => {
-            const hulls = gameState.hulls.filter((h) => h.shipId === ship.id);
-            this.renderShip(ship, hulls, gameState.getFirstPlayerId() === ship.playerId);
+        shipsToRender.forEach(async (ship) => {
+            await this.renderShip(ship);
         });
     }
 
-    public renderShip(ship: IShip, hulls: IHull[], isFirstPlayer = true) {
+    public async renderShip(ship: IShip) {
         if (this.elementsCurrentlyAnimatingMap.has(ship.id)) {
             return;
         }
-        const tiles = hulls?.map((hull) => {
-            return { key: locationToKey(hull.location) };
-        });
-
-        tiles?.forEach(({ key }, i) => {
-            const tile = this.tiles[key];
-            // TODO: we might need to handle Ships with multiple hull locations
-            const shipProps = { id: ship.id, playerId: ship.playerId, refNo: ship.refNo, hulls: ship.hulls };
-
-            renderShipIconV2(tile, shipProps, isFirstPlayer);
-        });
+        await queueCommand(new FERenderShipCommand(ship.id));
     }
 }

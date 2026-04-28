@@ -1,3 +1,4 @@
+import { HullCalculator as _HullCalculator } from "@shared/utils/hull-helper";
 import { BOARD_COLUMNS, BOARD_ROWS } from "../constants";
 import { GameStateManager } from "../models";
 import {
@@ -18,6 +19,7 @@ import {
     IResult,
     IShipAttackAction,
     ResultType,
+    THullCalculatorConstructor,
 } from "../types";
 import { LocationHelper, locationToKey, PathHelper } from "../utils";
 import { MoveShipValidator } from "../utils/validator";
@@ -29,6 +31,7 @@ import { MoveShipValidator } from "../utils/validator";
 export class GameEngine {
     private gsm: GameStateManager;
     private pathHelper = new PathHelper();
+    private HullCalculator: THullCalculatorConstructor = _HullCalculator;
     constructor(public gameState: IGameState) {
         this.gsm = new GameStateManager(gameState);
     }
@@ -65,9 +68,10 @@ export class GameEngine {
     }
 
     private primeDeployShip(action: IGetValidDeployCellsAction): IGetValidDeployCellsResult {
-        const { playerId } = action;
+        const { playerId, shipId } = action;
 
         const availableCells: ICellLoc[] = [];
+        const ship = this.gsm.getShip(shipId);
 
         const isFirstPlayer = this.isFirstPlayer(playerId);
 
@@ -75,7 +79,10 @@ export class GameEngine {
             availableCells.push([i, isFirstPlayer ? 0 : BOARD_ROWS - 1]);
         }
 
-        const validCells = new LocationHelper(this.gameState.players).getAvailableCells(availableCells);
+        const validCells = new this.HullCalculator(this.gsm, isFirstPlayer).getValidDeploymentLocations(
+            availableCells,
+            ship.hullTemplates.map((ht) => ht.templateLocation),
+        );
 
         return {
             type: ResultType.SUCCESS,
@@ -89,9 +96,8 @@ export class GameEngine {
     private commitDeployShip(action: IDeployAction): IDeployResult {
         const { shipId, playerId, hullLocations } = action;
 
-        const playerShips = this.gsm.getPlayerShips(playerId);
         const player = this.gsm.getPlayer(playerId);
-        const shipToDeploy = playerShips.find((ship) => ship.id === shipId);
+        const shipToDeploy = this.gsm.getShip(shipId);
         const commandPointCost = shipToDeploy?.commandPointCost ? shipToDeploy.commandPointCost : 0;
 
         shipToDeploy.deployed = true;
@@ -143,7 +149,7 @@ export class GameEngine {
             return { type: ResultType.SUCCESS, playerId, validCells: [] };
         }
 
-        const currentLoc = ship.hulls[0].location; // FIXME: We always take the first hull loc as origin
+        const currentLoc = ship.getFrontHull().location;
         const movementRange = ship.remainingMovement || 0;
 
         // FIXME: we should only take into account 'visible' ships
@@ -208,16 +214,26 @@ export class GameEngine {
 
     private primeAttack(action: IGetValidAttackCellsAction) {
         const { playerId, shipId } = action;
-        const player = this.getPlayer(playerId);
-        const ship = player.ships.find((s) => s.id === shipId);
 
-        const currentLoc = ship.hulls[0].location;
+        const ship = this.gsm.getShip(shipId);
+
+        const locArr =
+            this.gsm.gameState.hulls
+                .filter((h) =>
+                    this.gsm
+                        .getPlayer(playerId)
+                        .ships?.map((s) => s.id)
+                        .includes(h.shipId),
+                )
+                ?.map((h) => locationToKey(h.location)) || [];
+
+        const currentLoc = ship.hulls?.find((h) => h.shipId === shipId && h.front)?.location ?? [0, 0];
         const attackRange = ship.attackRange || 0;
 
         const reachableCells = this.pathHelper.getReachableCells({
             start: currentLoc,
             range: attackRange,
-            filterFn: (loc: ICellLoc) => true,
+            filterFn: (loc: ICellLoc) => !locArr.includes(locationToKey(loc)),
         });
 
         return {

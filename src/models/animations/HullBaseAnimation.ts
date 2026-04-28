@@ -1,4 +1,4 @@
-import { GAME_BOARD_ID } from "@shared/constants";
+import { COMPONENT_ID } from "@shared/constants";
 import { IHullBaseAnimationProps } from "../../types";
 import { BaseAnimation } from "./Animation";
 
@@ -18,9 +18,9 @@ export class HullBaseAnimation extends BaseAnimation {
 
     private getShipElements() {
         const shipId = this.props.id;
-        const _shipElements = Array.from(document.getElementById(GAME_BOARD_ID).querySelectorAll("img")).filter((img) =>
-            img.alt.includes(shipId),
-        );
+        const _shipElements = Array.from(
+            document.getElementById(COMPONENT_ID.GAME_BOARD_STATIC_LAYER).querySelectorAll("img"),
+        ).filter((img) => img.alt.includes(shipId));
         this.copyElementsToLayer = () => {
             return _shipElements.map((el) => this.animationLayer.copyToLayer(this.id, el as HTMLElement));
         };

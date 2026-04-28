@@ -137,3 +137,6 @@ dist
 
 # js bundle
 bundle.js
+
+.amazon*
+.claude*

@@ -15,14 +15,14 @@ export class BaseAnimation implements IAnimation {
     public id: string = uuidv7();
     public elements: HTMLElement[];
     public animationLayer: AnimationLayer;
-    protected onCancelClick: () => void = DEFAULT_CANCEL_CLICK;
     public duration: number;
+
+    protected onCancelClicks: (() => void)[] = [DEFAULT_CANCEL_CLICK];
+    protected onCancelClick: () => void = () => this.onCancelClicks.forEach((cc) => cc());
 
     constructor(props: IAnimationProps) {
         this.duration = props.duration || 750;
-        if (!this.animationLayer) {
-            this.animationLayer = new AnimationLayer();
-        }
+        this.animationLayer = new AnimationLayer();
     }
     public async execute(): Promise<void> {
         // To be implemented by subclasses
@@ -50,7 +50,7 @@ export class BaseAnimation implements IAnimation {
 
     private loadCancelClickHandler(resolve: TResolve) {
         const onCancelClick = this.getEndAnimation(resolve);
-        this.onCancelClick = onCancelClick;
+        this.onCancelClicks.push(onCancelClick);
         return onCancelClick;
     }
 
@@ -70,7 +70,7 @@ export class BaseAnimation implements IAnimation {
     }
 
     private resetCancelClickListener() {
-        this.onCancelClick = DEFAULT_CANCEL_CLICK;
+        this.onCancelClicks = [DEFAULT_CANCEL_CLICK];
     }
 
     private addCancelAnimationListener() {

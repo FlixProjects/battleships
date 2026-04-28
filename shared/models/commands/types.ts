@@ -9,7 +9,7 @@ export type TCommandType = keyof typeof CommandType;
 
 export interface ICommandExecutionParams {
     currentPlayerId: string;
-    gsm?: IGameStateManager;
+    gsm: IGameStateManager;
     game: IGame;
     db: IGameManager;
     resolver: IActionResolver

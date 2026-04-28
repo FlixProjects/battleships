@@ -1,4 +1,4 @@
-import { interactionManager } from "..";
+import { interactionManager } from "../index";
 import { ISelectable, TSetSelectableOptions } from "@shared/types/fe-types";
 import { BaseComponent } from "./BaseComponent";
 
@@ -54,12 +54,12 @@ export class Selectable extends BaseComponent implements ISelectable {
 
     protected runOnUnselectable() {
         this.onUnselectable?.();
-        this.onUnselectable = undefined;
+        this.onUnselectable = () => {};
     }
 
     protected runOnSelectable() {
         this.onSelectable?.();
-        this.onSelectable = undefined;
+        this.onSelectable = () => {};
     }
 
     protected setSelectableStyle() {}
@@ -83,10 +83,10 @@ export class Selectable extends BaseComponent implements ISelectable {
     }
 
     public addOnSelect(callback: () => void) {
-        this.onSelects.push(callback);
+        this.onSelects?.push(callback);
     }
 
     public runOnSelects() {
-        this.onSelects.forEach((callback) => callback());
+        this.onSelects?.forEach((callback) => callback());
     }
 }

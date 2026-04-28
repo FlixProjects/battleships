@@ -12,6 +12,57 @@ export class AnimationLayer {
         this.initialiseLayer();
     }
 
+    public wrapAndCopyToLayer(
+        animationId: string,
+        elementsToAnimate: HTMLElement[],
+        refId: string,
+        customRect?: DOMRect,
+    ): HTMLElement {
+        this.initialiseLayer();
+
+        const wrapper = document.createElement("div");
+        wrapper.id = refId;
+
+        // Calculate bounding box of all elements
+        const rects = elementsToAnimate.map((el) => el.getBoundingClientRect());
+        const minTop = Math.min(...rects.map((r) => r.top));
+        const minLeft = Math.min(...rects.map((r) => r.left));
+        const maxBottom = Math.max(...rects.map((r) => r.bottom));
+        const maxRight = Math.max(...rects.map((r) => r.right));
+
+        // Position each clone within the wrapper based on its rendered DOM position
+        elementsToAnimate.forEach((elementToAnimate, i) => {
+            const clone = elementToAnimate.cloneNode(true) as HTMLElement;
+            const rect = rects[i];
+            clone.style.position = "absolute";
+            clone.style.top = `${rect.top - minTop}px`;
+            clone.style.left = `${rect.left - minLeft}px`;
+            clone.style.width = `${rect.width}px`;
+            clone.style.height = `${rect.height}px`;
+            wrapper.appendChild(clone);
+        });
+
+        const wrapperWidth = maxRight - minLeft;
+        const wrapperHeight = maxBottom - minTop;
+        const boundingRect = new DOMRect(minLeft, minTop, wrapperWidth, wrapperHeight);
+
+        const { top, left } = this.calculateRelativePosition(
+            customRect ?? boundingRect,
+            this.layer.getBoundingClientRect(),
+        );
+
+        this.addToAnimationMap(animationId, wrapper);
+        this.layer.appendChild(wrapper);
+
+        wrapper.style.position = "absolute";
+        wrapper.style.top = `${top}px`;
+        wrapper.style.left = `${left}px`;
+        wrapper.style.width = `${wrapperWidth}px`;
+        wrapper.style.height = `${wrapperHeight}px`;
+
+        return wrapper;
+    }
+
     public copyToLayer(animationId: string, elementToAnimate: HTMLElement, customRect?: DOMRect): HTMLElement {
         this.initialiseLayer();
 

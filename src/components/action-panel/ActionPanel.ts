@@ -1,5 +1,6 @@
-import { gameManager } from "../..";
+import { Z_INDEX } from "@shared/constants";
 import { IAppState } from "@shared/types";
+import { gameManager } from "../..";
 import { BaseComponent } from "../BaseComponent";
 import { InitiativeDisplay } from "./InitiativeDisplay";
 import { ShipSelector } from "./ShipSelector";
@@ -88,7 +89,7 @@ export class ActionPanel extends BaseComponent {
         this.ref.style.display = "none";
         this.ref.style.flexDirection = "column";
         this.ref.style.gap = "16px";
-        this.ref.style.zIndex = "100";
+        this.ref.style.zIndex = Z_INDEX.ACTION_PANEL;
     }
 
     private show() {

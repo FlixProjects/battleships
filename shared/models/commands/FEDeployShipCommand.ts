@@ -1,3 +1,5 @@
+import { IHullCalculator, THullCalculatorConstructor } from "@shared/types";
+import { HullCalculator as _HullCalculator } from "@shared/utils/hull-helper";
 import { ISelectable } from "../../types/fe-types";
 import { getHull, keyToLocation } from "../../utils/helpers";
 import { DeployShipActionCreator } from "../ActionCreator";
@@ -5,6 +7,8 @@ import { FECommand } from "./FECommand";
 import { ICommandExecutionParams } from "./types";
 
 export class FEDeployShipCommand extends FECommand {
+    private HullCalculator: THullCalculatorConstructor = _HullCalculator;
+
     constructor(
         private props: {
             tileId: string;
@@ -17,16 +21,25 @@ export class FEDeployShipCommand extends FECommand {
         super();
     }
 
-    execute(params: ICommandExecutionParams): Promise<void> {
+    public async execute(params: ICommandExecutionParams): Promise<void> {
         const { tileId, shipId, playerId, locationElement, onSuccessCb } = this.props;
         const { gsm, db, resolver } = params;
-        const { commandPointCost, hullTemplates } = gsm.getShip(shipId);
-        const player = gsm.getPlayer(playerId);
+        const { commandPointCost, hullTemplates } = gsm.getShip(shipId)!;
 
-        // FIXME: only single location for now
-        const committedHullLocations = hullTemplates.map((template) => {
-            const loc = keyToLocation(tileId);
-            return getHull(shipId, template, loc); // we initialise the location here
+        const player = gsm.getPlayer(playerId);
+        const isFirstPlayer = gsm.gameState.isFirstPlayer(playerId);
+
+        const selectedLocation = keyToLocation(tileId);
+        const hullCalculator: IHullCalculator = new this.HullCalculator(gsm, isFirstPlayer);
+
+        const committedHullLocations = hullTemplates.map((ht) => {
+            const deployedLoc = hullCalculator.getDeployedHullLocation(selectedLocation, ht.templateLocation);
+            return getHull({
+                shipId,
+                hullTemplate: ht,
+                location: deployedLoc,
+                isFirstPlayer,
+            });
         });
 
         const deployAction = new DeployShipActionCreator(player, gsm.getCurrentRound()).create({
@@ -44,7 +57,7 @@ export class FEDeployShipCommand extends FECommand {
         return;
     }
 
-    undo(params: ICommandExecutionParams): Promise<void> {
+    public async undo(params: ICommandExecutionParams): Promise<void> {
         // TODO: implement undo for deploy ship
         return;
     }

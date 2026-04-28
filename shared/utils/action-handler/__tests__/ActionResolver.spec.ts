@@ -40,12 +40,14 @@ describe("ActionResolver", () => {
                 id: "hull1",
                 shipId: "ship1",
                 location: [1, 1],
+                front: true,
             });
 
             const player2Hull = hullBuilder.build({
                 id: "hull2",
                 shipId: "ship2",
                 location: [0, 1],
+                front: true,
             });
 
             // Setup: Create ships
@@ -72,16 +74,9 @@ describe("ActionResolver", () => {
                 commandPointCost: 1,
                 hullLocations: [
                     {
-                        id: "hull1",
-                        shipId: "ship1",
+                        ...player1Hull,
                         location: [2, 1],
-                        visionRange: 2,
-                        remainingHealth: 1,
-                        remainingArmor: 0,
-                        destroyed: false,
-                        templateLocation: [0, 0],
-                        maxHealth: 1,
-                        armor: 0,
+                        front: true,
                     },
                 ],
             };
@@ -109,16 +104,9 @@ describe("ActionResolver", () => {
                 commandPointCost: 1,
                 hullLocations: [
                     {
-                        id: "hull2",
-                        shipId: "ship2",
+                        ...player2Hull,
                         location: [0, 0],
-                        visionRange: 2,
-                        remainingHealth: 1,
-                        remainingArmor: 0,
-                        destroyed: false,
-                        templateLocation: [0, 0],
-                        maxHealth: 1,
-                        armor: 0,
+                        front: true,
                     },
                 ],
             };

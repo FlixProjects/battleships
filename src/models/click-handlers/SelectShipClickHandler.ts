@@ -1,4 +1,4 @@
-import { DEPLOYED_HULL_PREFIX, SELECTABLE_ID } from "@shared/constants";
+import { DEPLOYED_SHIP_PREFIX, SELECTABLE_ID } from "@shared/constants";
 import { FEActionMenuCloseCommand } from "@shared/models/commands/FEActionMenuCloseCommand";
 import { FESelectShipCommand } from "@shared/models/commands/FESelectShipCommand";
 import { IShip } from "@shared/types";
@@ -9,25 +9,25 @@ import { ClickHandler } from "./ClickHandler";
 
 export class SelectShipClickHandler extends ClickHandler {
     private actionMenu: ActionMenu;
-    private hullRef: HTMLElement;
+    private shipRef: HTMLElement;
     constructor(protected event: SelectShipActionIMEvent) {
         super();
     }
 
     public handleEvent() {
-        const { shipId, hullId } = this.event;
+        const { shipId } = this.event;
 
         this.removePreviousActionMenu();
 
-        const hull = this.selectables[`${DEPLOYED_HULL_PREFIX}${hullId}`];
-        this.hullRef = hull.ref;
+        const hull = this.selectables[`${DEPLOYED_SHIP_PREFIX}${shipId}`];
+        this.shipRef = hull.ref;
 
         const getActionMenu = (ship: IShip) => {
             this.actionMenu = new ActionMenu({ ship });
             return this.actionMenu;
         };
         // FIXME: should this be async?
-        queueCommand(new FESelectShipCommand(this.hullRef, shipId, getActionMenu));
+        queueCommand(new FESelectShipCommand(this.shipRef, shipId, getActionMenu));
 
         return { nextClickhandler: async (e: MouseEvent) => await this.handler(e) };
     }
@@ -36,6 +36,7 @@ export class SelectShipClickHandler extends ClickHandler {
         const { onGlobalDeselect, selectableId, tileId } = this.event;
         const target = e.target as HTMLElement;
         const clickedTile = target.closest(".tile") as HTMLElement;
+
         const id = this.addGetIdOfClick(e);
 
         // if not select-ship or not on the tile, we deselect
@@ -48,7 +49,7 @@ export class SelectShipClickHandler extends ClickHandler {
     }
 
     private closeActionMenu() {
-        queueCommand(new FEActionMenuCloseCommand(this.hullRef, this.actionMenu));
+        queueCommand(new FEActionMenuCloseCommand(this.shipRef, this.actionMenu));
     }
 
     private removePreviousActionMenu() {

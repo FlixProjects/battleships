@@ -13,6 +13,9 @@ export class HullEntity extends Entity<HullEntity> implements IHull {
     maxHealth: number;
     armor: number;
     visionRange: number;
+    imgSrc?: string | undefined; // TODO: amend to non-optional once ships config is updated
+    front?: boolean | undefined;
+    orientation: number;
     // extra
     isVisible: boolean;
 

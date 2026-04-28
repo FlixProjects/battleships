@@ -1,4 +1,4 @@
-import { ASSET_PATHS, CELL_SEPARATOR, COLOR, COLOR_FILTER } from "@shared/constants";
+import { ASSET_PATHS, CELL_SEPARATOR, COLOR, COLOR_FILTER, Z_INDEX } from "@shared/constants";
 import { FEHighlightLocationsCommand } from "@shared/models/commands/FEHighlightLocationsCommand";
 import { FEShipAttackCommand } from "@shared/models/commands/FEShipAttackCommand";
 import { GameEngine } from "@shared/models/GameEngine";
@@ -55,9 +55,10 @@ export class ShipAttackClickHandler extends ClickHandler {
 
     protected async handler(e: MouseEvent) {
         const { shipId, onGlobalDeselect, onSuccessfulSelect } = this.event;
-        const target = e.target as HTMLElement;
-
-        const id = target.closest(`.tile`)?.id;
+        
+        const elements = document.elementsFromPoint(e.clientX, e.clientY);
+        const id = elements.find((el) => el.className === "tile")?.id;
+        
         const validCellIndices = this.validCells.map((cell) => locationToKey(cell));
 
         const isInvalidClick =
@@ -117,7 +118,7 @@ export class ShipAttackClickHandler extends ClickHandler {
         ref.style.position = "absolute";
         ref.style.opacity = "0.5";
         ref.style.filter = COLOR_FILTER[COLOR.RED];
-        ref.style.zIndex = "10";
+        ref.style.zIndex = Z_INDEX.TARGET_ATTACK_ICON;
     }
 
     private removeTargetIcon(selectable: Selectable) {

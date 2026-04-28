@@ -1,7 +1,7 @@
 import { FEDeployShipCommand } from "@shared/models/commands/FEDeployShipCommand";
 import { FEHighlightLocationsCommand } from "@shared/models/commands/FEHighlightLocationsCommand";
 import { GameEngine } from "@shared/models/GameEngine";
-import { ICellLoc } from "@shared/types";
+import { ICellLoc, ResultType } from "@shared/types";
 import { locationToKey } from "@shared/utils/helpers";
 import { gameManager } from "../..";
 import { getComponents } from "../../components/component-helper";
@@ -20,7 +20,13 @@ export class DeployShipClickHandler extends ClickHandler {
         const playerId = gameManager.getPlayer().id;
 
         const gameEngine = new GameEngine(gameManager.state.gameState);
-        const { validCells } = gameEngine.prime.deployShip({ playerId, shipId });
+        const result = gameEngine.prime.deployShip({ playerId, shipId });
+
+        if (result.type === ResultType.ERROR) {
+            throw new Error(result.message || "[Error] Failed to get valid deploy cells");
+        }
+
+        const { validCells } = result;
 
         queueCommand(new FEHighlightLocationsCommand(getComponents().div.gameBoard, validCells));
         this.validCells = validCells;
@@ -55,6 +61,10 @@ export class DeployShipClickHandler extends ClickHandler {
         const playerId = gameManager.getCurrentPlayerId();
         const tile = this.selectables[tileId];
 
+        if (!playerId) {
+            throw new Error("[Error] Player ID not found");
+        }
+        
         queueCommand(
             new FEDeployShipCommand({
                 tileId,

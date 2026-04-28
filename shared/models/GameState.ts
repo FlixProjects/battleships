@@ -95,6 +95,9 @@ export class GameState implements IGameState {
 
     getPlayer(playerId: string): Player {
         const player = this.players.find((p) => p.id === playerId);
+        if (!player) {
+            throw new Error(`Player with id ${playerId} not found`);
+        }
         return player;
     }
 
@@ -103,7 +106,11 @@ export class GameState implements IGameState {
     }
 
     getShip(shipId: string) {
-        return this.ships.find((s) => s.id === shipId);
+        const ship = this.ships.find((s) => s.id === shipId);
+        if (!ship) {
+            throw new Error(`Ship with id ${shipId} not found`);
+        }
+        return ship;
     }
 
     updateShip(ship: Partial<IShip>) {
@@ -120,6 +127,22 @@ export class GameState implements IGameState {
 
         this.hulls.push(new Hull(hull));
         return this;
+    }
+
+    getHull(hullId: string) {
+        const hull = this.hulls.find((h) => h.id === hullId);
+        if (!hull) {
+            throw new Error(`Hull with id ${hullId} not found`);
+        }
+        return hull;
+    }
+
+    getShipHulls(shipId: string) {
+        const hulls = this.hulls?.filter((h) => h.shipId === shipId);
+        if (!this.hulls || hulls.length === 0) {
+            throw new Error(`Ship ${shipId} has no hulls`);
+        }
+        return hulls;
     }
 
     updateHull(hull: Partial<IHull>) {
@@ -186,5 +209,9 @@ export class GameState implements IGameState {
 
     getFirstPlayerId() {
         return this.players.find((p) => p.order === 0)?.id;
+    }
+
+    isFirstPlayer(playerId: string) {
+        return this.getFirstPlayerId() === playerId;
     }
 }

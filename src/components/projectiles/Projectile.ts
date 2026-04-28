@@ -8,12 +8,12 @@ import { ProjectileIcon } from "./ProjectileIcon";
 
 interface Props {
     origin: ICellLoc;
-    target?: ICellLoc;
+    target: ICellLoc;
     parent?: HTMLElement;
 }
 
 export class Projectile {
-    iconRef: HTMLElement;
+    private iconRef: HTMLElement;
     constructor(public props: Props) {}
 
     public createAnimation() {
@@ -24,7 +24,6 @@ export class Projectile {
         }
 
         return new ProjectileAnimation({
-            elementId: this.iconRef.id,
             fromCell: origin,
             toCell: target,
             duration: 500,
@@ -51,7 +50,7 @@ export class Projectile {
     public create() {
         const { parent } = this.props;
         this.createProjectileIcon();
-        (parent ?? document.getElementById(ANIMATION_LAYER_ID)).appendChild(this.iconRef);
+        (parent ?? document.getElementById(ANIMATION_LAYER_ID))?.appendChild(this.iconRef);
         return this;
     }
 

@@ -1,14 +1,9 @@
-import { COLOR, COLOR_FILTER, FP_CURRENT_PLAYER, FP_GAME_CODE, TColor, TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
+import { COLOR, COLOR_FILTER, COMPONENT_ID, FP_CURRENT_PLAYER, FP_GAME_CODE, TColor, TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
 import { FECommand } from "@shared/models/commands/FECommand";
-import { AppStatus, ICellLoc, IShip } from "@shared/types";
+import { AppStatus, ICellLoc } from "@shared/types";
 import { game, gameManager } from "..";
 import { getGame } from "../apis/get-game";
-import { BaseComponent } from "../components/BaseComponent";
 import { getComponents, updateComponents } from "../components/component-helper";
-import { DeployedHullIcon } from "../components/ships/DeployedHullIcon";
-import { ShipIcon } from "../components/ships/ShipIcon";
-import { animationManager } from "../models/AnimationManager";
-import { MoveShipAnimation } from "../models/animations";
 
 // client functions
 
@@ -31,40 +26,6 @@ export const setCurrentPlayer = (playerId: string) => {
 export const checkIfNameIsFilled = () => {
     const playerNameInput = getComponents().input.playerName;
     return !!playerNameInput.value;
-};
-
-// TODO: to be deprecated
-export const renderShipIcon = (
-    parentComponent: BaseComponent,
-    hullId: string,
-    shipId: string,
-    playerId: string,
-    refNo: string,
-    isFirstPlayer = true,
-) => {
-    const invert = isFirstPlayer;
-    const color = isFirstPlayer ? COLOR.TEAL : COLOR.ORANGE;
-
-    const shipIcon = new ShipIcon({ hullId, shipId, playerId, invert, color, refNo });
-    parentComponent.addChild(shipIcon);
-    parentComponent.ref.appendChild(shipIcon.build());
-};
-
-export const renderShipIconV2 = (
-    parentComponent: BaseComponent,
-    shipProps: Pick<IShip, "id" | "playerId" | "refNo" | "hulls">,
-    isFirstPlayer = true,
-) => {
-    const invert = isFirstPlayer;
-    const color = isFirstPlayer ? COLOR.TEAL : COLOR.ORANGE;
-    const { hulls, id, playerId, refNo } = shipProps;
-
-    // FIXME: (WIP) temporary implementation, we should render per hull with different parentComponents
-    hulls.forEach((hull) => {
-        const hullIcon = new DeployedHullIcon({ hullId: hull.id, shipId: id, playerId, invert, color, refNo });
-        parentComponent.addChild(hullIcon);
-        parentComponent.ref.appendChild(hullIcon.build());
-    });
 };
 
 export const getColorFilter = (color: TColor) => {
@@ -100,14 +61,6 @@ export const refresh = async () => {
     }
 };
 
-export const queueMoveShipAnimation = (
-    shipId: string,
-    fromLocation: [number, number],
-    toLocation: [number, number],
-) => {
-    animationManager.enqueue(new MoveShipAnimation({ elementId: shipId, fromCell: fromLocation, toCell: toLocation }));
-};
-
 export const toDegrees = (radians: number) => {
     return radians * (180 / Math.PI);
 };
@@ -124,10 +77,10 @@ export const getPxFromCellLocation = (cell: ICellLoc): { top: number; left: numb
 };
 
 export const getElementsFromIds = (ids: string[]) => {
-    const gameBoard = getComponents().div.gameBoard;
+    const gameBoardContainer = document.getElementById(COMPONENT_ID.GAME_BOARD_CONTAINER)
     const elements = ids
         .map((id) => {
-            return gameBoard.ref.querySelector(`[id="${id}"]`);
+            return gameBoardContainer.querySelector(`[id="${id}"]`);
         })
         .filter((el): el is HTMLElement => el !== null)
         .map((el) => ({ el, rect: el.getBoundingClientRect() }));

@@ -1,5 +1,6 @@
 import { ICellLoc, IHull, IShip } from "@shared/types";
-import { locationToKey, PathHelper } from "@shared/utils";
+import { PathHelper } from "@shared/utils";
+import { SegmentBuilder } from "@shared/utils/segment-builder";
 import { mergician } from "mergician";
 import { ShipEntity } from "./entities/ShipEntity";
 
@@ -17,10 +18,12 @@ export class Ship extends ShipEntity {
     }
 
     updateVisibility(visibleTiles: Set<string>) {
-        this.isVisible = !!this.hulls?.some((h) => {
+        this.hulls?.forEach((h) => {
             h.updateVisibility(visibleTiles);
-            return visibleTiles.has(locationToKey(h.location));
         });
+
+        this.isVisible = !!this.hulls?.some((h) => h.isVisible);
+
         this.removeInvisibleHullLocations();
         return this;
     }
@@ -45,11 +48,34 @@ export class Ship extends ShipEntity {
         return this;
     }
 
+    getFrontHull() {
+        if (!this.hulls || this.hulls.length === 0) {
+            throw new Error("[Error] Trying to get front hull when there are no hulls!");
+        }
+        return this.hulls?.find((h) => h.front) ?? this.hulls?.[0];
+    }
+
     getNewHullLocations(endCell: ICellLoc) {
-        // TODO: implement proper rotation and multi-tile handling
-        const newHulls = this.hulls.map((h) => mergician({}, h)) as IHull[];
-        
-        newHulls[0].location = endCell;
+        const segmentBuilder = new SegmentBuilder();
+        const startingOrientation = this.getFrontHull().orientation;
+        const segments = segmentBuilder.buildSegments(
+            this.getFrontHull().location,
+            endCell,
+            startingOrientation,
+        );
+
+        const newHulls = this.hulls?.map((h) => mergician({}, h)) as IHull[];
+        const frontHull = this.getFrontHull();
+        const oldFrontLocation = frontHull.location;
+
+        // TODO: to inject movement behaviour calculator
+        // TODO: barely serviceable implementation for 2-tile ships
+        newHulls.forEach((h) => {
+            h.location = h.front ? endCell : oldFrontLocation;
+            h.orientation = segments.reduce((sum, curr) => {
+                return sum + curr.rotateDegrees;
+            }, startingOrientation);
+        });
 
         return newHulls;
     }

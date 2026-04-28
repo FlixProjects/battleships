@@ -1,5 +1,6 @@
-import { ASSET_PATHS, SELECTABLE_ID } from "@shared/constants";
+import { ASSET_PATHS, SELECTABLE_ID, TILE_SIZE_PX, Z_INDEX } from "@shared/constants";
 import { IShip } from "@shared/types";
+import { IActionMenu } from "@shared/types/fe-types";
 import { gameManager, interactionManager } from "../..";
 import { IMEventType } from "../../models/interaction-manager/types";
 import { getComponents } from "../component-helper";
@@ -11,7 +12,7 @@ interface Props {
     ship: IShip;
 }
 
-export class ActionMenu extends Selectable {
+export class ActionMenu extends Selectable implements IActionMenu {
     private isGameOver: boolean = false;
     constructor(private props: Props) {
         super(SELECTABLE_ID.ACTION_MENU);
@@ -89,7 +90,7 @@ export class ActionMenu extends Selectable {
     protected addStyles() {
         this.ref.style.position = "absolute";
         this.ref.style.top = "-40px";
-        this.ref.style.left = "50%";
+        this.ref.style.left = `${TILE_SIZE_PX/2}px`;
         this.ref.style.transform = "translateX(-50%)";
         this.ref.style.background = "rgba(15, 23, 36, 0.95)";
         this.ref.style.border = "1px solid rgba(110, 231, 183, 0.3)";
@@ -98,7 +99,7 @@ export class ActionMenu extends Selectable {
         this.ref.style.display = "flex";
         this.ref.style.gap = "4px";
         this.ref.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.4)";
-        this.ref.style.zIndex = "1000";
+        this.ref.style.zIndex = Z_INDEX.ACTION_MENU;
         this.ref.style.animation = "fadeIn 0.2s ease";
     }
 }

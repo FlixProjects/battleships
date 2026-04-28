@@ -1,32 +1,49 @@
-import { GAME_BOARD_ID, TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
-import { IMoveAnimationProps } from "../../types";
-import { MoveAnimation } from "./MoveAnimation";
+import { COMPONENT_ID } from "@shared/constants";
+import { SegmentBuilder } from "@shared/utils/segment-builder";
+import { IMoveShipAnimationProps } from "../../types";
+import { BaseAnimation } from "./Animation";
+import { PivotWrapper } from "./PivotWrapper";
 
-export class MoveShipAnimation extends MoveAnimation {
-    constructor(protected props: IMoveAnimationProps) {
+export class MoveShipAnimation extends BaseAnimation {
+    constructor(protected props: IMoveShipAnimationProps) {
         super(props);
     }
+
     public async execute(): Promise<void> {
-        const shipId = this.props.elementId;
-        const _shipElements = Array.from(document.getElementById(GAME_BOARD_ID).querySelectorAll("img")).filter((img) =>
-            img.alt.includes(shipId),
-        );
-        const shipElements = _shipElements.map((el) => this.animationLayer.copyToLayer(this.id, el as HTMLElement));
-        if (shipElements.length === 0) return;
+        const { hullMap, shipId, startingOrientation } = this.props;
+        const hullLocations = Array.from(hullMap.values());
+        if (hullLocations.length === 0) return;
 
-        const [fromCol, fromRow] = this.props.fromCell;
-        const [toCol, toRow] = this.props.toCell;
+        const gameBoard = document.getElementById(COMPONENT_ID.GAME_BOARD_STATIC_LAYER) as HTMLDivElement;
+        const gameBoardRect = gameBoard.getBoundingClientRect();
 
-        const deltaX = (toCol - fromCol) * (TILE_SIZE_PX + TILE_GAP_PX);
-        const deltaY = (toRow - fromRow) * (TILE_SIZE_PX + TILE_GAP_PX);
+        const hullElements = Array.from(hullMap.keys()).map((k) =>
+            gameBoard.querySelector(`[id='${k}']`),
+        ) as HTMLElement[];
+        const ship = this.animationLayer.wrapAndCopyToLayer(this.id, hullElements, shipId);
 
-        await Promise.all(
-            shipElements.map((element) => {
-                const animationFn = () => {
-                    this.moveElement(element, deltaX, deltaY);
-                };
-                return this.animate(animationFn);
-            }),
-        );
+        const segmentBuilder = new SegmentBuilder();
+
+        const startCenter = segmentBuilder.centerOfCells(hullLocations.map((h) => h.oldLoc));
+        const endCenter = segmentBuilder.centerOfCells(hullLocations.map((h) => h.newLoc));
+        const segments = segmentBuilder.buildSegments(startCenter, endCenter, startingOrientation);
+
+        let shipCell = startCenter;
+
+        for (const segment of segments) {
+            const pivot = new PivotWrapper({
+                pivotCell: segment.pivotCell,
+                ship,
+                shipCell,
+                layer: this.animationLayer.layer,
+                gameBoardRect,
+                duration: this.duration,
+            });
+            await pivot.rotate(segment.rotateDegrees);
+            await pivot.moveBy(segmentBuilder.delta(shipCell, segment.targetCell));
+            shipCell = pivot.release().cell;
+        }
+
+        this.animationLayer.destroyCopiedElements(this.id);
     }
 }

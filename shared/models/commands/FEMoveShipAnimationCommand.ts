@@ -1,43 +1,38 @@
+import { IMoveShipAnimationProps } from "src/types";
 import { MoveShipAnimation } from "../../../src/models/animations/MoveShipAnimation";
-import { ICellLoc } from "../../types/types";
 import { FEAnimationCommand } from "./FEAnimationCommand";
 import { ICommandExecutionParams } from "./types";
 
-export class FEMoveShipAnimation extends FEAnimationCommand {
-    constructor(
-        private props: {
-            shipId: string;
-            playerId: string;
-            oldLocations: ICellLoc[];
-            newLocations: ICellLoc[];
-        },
-    ) {
+interface IFEAnimationCommandProps extends IMoveShipAnimationProps {
+    playerId: string;
+}
+
+export class FEMoveShipAnimationCommand extends FEAnimationCommand {
+    constructor(private props: IFEAnimationCommandProps) {
         super();
     }
-    execute(params: ICommandExecutionParams): Promise<void> {
-        const { shipId, playerId, oldLocations, newLocations } = this.props;
+    public async execute(params: ICommandExecutionParams): Promise<void> {
+        const { shipId, playerId, hullMap, startingOrientation } = this.props;
         const { gsm } = params;
 
         const ship = gsm.getShip(shipId);
+        const shipHulls = gsm.getShipHulls(shipId);
 
         const moveShipAnimation = new MoveShipAnimation({
-            elementId: shipId,
-            fromCell: oldLocations[0],
-            toCell: newLocations[0],
+            shipId,
+            startingOrientation,
+            hullMap,
         });
 
         this.gameBoard.addToAnimatingMap(shipId, moveShipAnimation.id);
         this.animationManager.enqueue(moveShipAnimation, () => {
             this.gameBoard.removeFromAnimatingMap(shipId);
-            this.gameBoard.renderShip(ship, ship.hulls, playerId === gsm.gameState.getFirstPlayerId());
+            this.gameBoard.renderShip(ship, shipHulls, playerId === gsm.gameState.getFirstPlayerId());
         });
         this.animationManager.play();
-
-        return;
     }
 
-    undo(params: ICommandExecutionParams): Promise<void> {
+    public async undo(params: ICommandExecutionParams): Promise<void> {
         // TODO: undo animation
-        return;
     }
 }
