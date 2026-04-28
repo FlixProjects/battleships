@@ -2,15 +2,16 @@
     "compilerOptions": {
         "outDir": "./dist/",
         "noImplicitAny": true,
-        "module": "es6",
-        "target": "es5",
+        "module": "ESNext",
+        "target": "es6",
+        "lib": ["ES2023", "DOM"],
         "jsx": "react",
         "allowJs": true,
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
+        "skipLibCheck": true,
         "allowSyntheticDefaultImports": true,
-        "baseUrl": ".",
         "paths": {
-            "@shared/*": ["shared/*"],
+            "@shared/*": ["./shared/*"]
         }
     },
     "include": ["src", "shared"]
