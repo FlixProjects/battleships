@@ -12,7 +12,8 @@
         "allowSyntheticDefaultImports": true,
         "paths": {
             "@shared/*": ["./shared/*"]
-        }
+        },
+        "strictPropertyInitialization": false
     },
     "include": ["src", "shared"]
 }
