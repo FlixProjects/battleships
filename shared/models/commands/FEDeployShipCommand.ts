@@ -24,7 +24,7 @@ export class FEDeployShipCommand extends FECommand {
     public async execute(params: ICommandExecutionParams): Promise<void> {
         const { tileId, shipId, playerId, locationElement, onSuccessCb } = this.props;
         const { gsm, db, resolver } = params;
-        const { commandPointCost, hullTemplates } = gsm.getShip(shipId)!;
+        const { commandPointCost, hullTemplates } = gsm.getShip(shipId);
 
         const player = gsm.getPlayer(playerId);
         const isFirstPlayer = gsm.gameState.isFirstPlayer(playerId);

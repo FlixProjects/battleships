@@ -22,7 +22,7 @@ export class GameCodeText extends HTMLSpan {
         element.textContent = "✅ Copied!";
 
         setTimeout(() => {
-            element.textContent = original!;
+            element.textContent = original ?? "";
         }, 1200);
     }
 

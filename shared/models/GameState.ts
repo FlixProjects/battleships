@@ -14,10 +14,10 @@ export class GameState implements IGameState {
     players: Player[];
     ships: Ship[];
     hulls: Hull[];
-    board: Board;
+    board?: Board;
     winners: string[];
     isOver: boolean;
-    actions?: Action[];
+    actions: Action[] = [];
 
     // FIXME: there is issue when GameState is being passes in as a class already
     constructor(props: Readonly<IGameState>) {
@@ -81,11 +81,11 @@ export class GameState implements IGameState {
         return this;
     }
 
-    updateEntity<T extends Entity<T>>(entity: Partial<T>, collection: T[], EntityClass: new (props: any) => T): this {
+    updateEntity<T extends Entity<T>, P>(entity: Partial<T>, collection: T[], EntityClass: new (props: P) => T): this {
         if (!entity.id) return this;
         const index = collection.findIndex((e) => e.id === entity.id);
         if (index === -1) return this;
-        collection[index] = new EntityClass({ ...collection[index], ...entity });
+        collection[index] = new EntityClass({ ...collection[index], ...entity } as P);
         return this;
     }
 

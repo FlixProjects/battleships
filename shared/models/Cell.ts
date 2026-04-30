@@ -3,7 +3,6 @@ import { ICell } from "..";
 export class Cell implements ICell {
     public loc: [number, number];
     public selectable = false;
-    public items?: any[];
     public hidden: boolean;
     public visibleTo: string[];
 

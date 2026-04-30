@@ -41,7 +41,9 @@ export class SubmitMoveButton extends HTMLButton {
     }
 
     private getTextcontent() {
-        return this.isOver ? "Game Over" : this.isSubmitted ? "Awaiting other player" : "Submit Move";
+        if (this.isOver) return "Game Over";
+        if (this.isSubmitted) return "Awaiting other player";
+        return "Submit Move";
     }
 
     async onClick() {
