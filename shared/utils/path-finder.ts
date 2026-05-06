@@ -19,25 +19,29 @@ interface IPathFinderProps {
 const DEFAULT_BOUNDS = {
     xLowerBound: 0,
     yLowerBound: 0,
-    xUpperBound: BOARD_ROWS - 1,
-    yUpperBound: BOARD_COLUMNS - 1,
+    xUpperBound: BOARD_COLUMNS - 1,
+    yUpperBound: BOARD_ROWS - 1,
 };
 
 export class PathFinder {
-    public nodes: Map<string, PathNode> = new Map();
+    private nodes: Map<string, PathNode> = new Map();
     private xLowerBound = 0;
     private yLowerBound = 0;
     private xUpperBound = BOARD_ROWS - 1;
     private yUpperBound = BOARD_COLUMNS - 1;
-    public travellers: Traveller[] = [];
-    public routes: Map<string, string[][]> = new Map();
+    private travellers: Traveller[] = [];
+    private routes: Map<string, string[][]> = new Map();
 
-    constructor(props: Partial<IPathFinderProps> = DEFAULT_BOUNDS) {
+    constructor(props: Partial<IPathFinderProps>) {
         Object.assign(this, props);
     }
 
-    public getPathToNode(startNode: PathNode, movement: Movement, endNodeId: string) {
-        this.sendTraveller(startNode, movement);
+    public getNode(nodeId: string) {
+        return this.nodes.get(nodeId);
+    }
+
+    public getPathToNode(travellerProps: ITravellerProps, endNodeId: string) {
+        this.sendTraveller(travellerProps);
         this.registerRoutesFromTravellers();
         // TODO: have a Route class
         return this.routes.get(endNodeId) ?? [];
@@ -84,11 +88,13 @@ export class PathFinder {
         node.nextTo = nextTo;
     }
 
-    private sendTraveller(startNode: PathNode, movement?: Movement) {
+    private sendTraveller(travellerProps: ITravellerProps) {
+        const { current: startNode, movement, onStopCb } = travellerProps;
         const traveller = new Traveller(
             {
                 current: startNode,
                 movement: movement ?? new Movement(),
+                onStopCb,
             },
             (tvlr) => {
                 this.travellers.push(tvlr);
@@ -109,6 +115,14 @@ export class PathFinder {
                 existingRoute.push(traveller.route);
             }
         });
+    }
+
+    public get _testExports() {
+        return {
+            nodes: this.nodes,
+            travellers: this.travellers,
+            routes: this.routes,
+        };
     }
 }
 
