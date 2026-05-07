@@ -25,10 +25,10 @@ const DEFAULT_BOUNDS = {
 
 export class PathFinder {
     private nodes: Map<string, PathNode> = new Map();
-    private xLowerBound = 0;
-    private yLowerBound = 0;
-    private xUpperBound = BOARD_ROWS - 1;
-    private yUpperBound = BOARD_COLUMNS - 1;
+    private xLowerBound = DEFAULT_BOUNDS.xLowerBound;
+    private yLowerBound = DEFAULT_BOUNDS.yLowerBound;
+    private xUpperBound = DEFAULT_BOUNDS.xUpperBound;
+    private yUpperBound = DEFAULT_BOUNDS.yUpperBound;
     private travellers: Traveller[] = [];
     private routes: Map<string, string[][]> = new Map();
 
@@ -44,12 +44,19 @@ export class PathFinder {
         this.sendTraveller(travellerProps);
         this.registerRoutesFromTravellers();
         // TODO: have a Route class
-        return this.routes.get(endNodeId) ?? [];
+        const routes = this.routes.get(endNodeId) ?? [];
+        // this.reset();
+        return routes;
     }
 
     public initialiseNodes() {
         this.createAndLoadIdForNodes();
         this.loadNextNodesForNodes();
+    }
+
+    private reset() {
+        this.travellers = [];
+        this.routes.clear();
     }
 
     private createAndLoadIdForNodes() {
@@ -69,21 +76,22 @@ export class PathFinder {
 
     private loadNextNodesForNode(node: PathNode) {
         const [xStr, yStr] = node.id.split(CELL_SEPARATOR);
-        const x = parseInt(xStr);
-        const y = parseInt(yStr);
+        const x = Number(xStr);
+        const y = Number(yStr);
 
         const nextTo: PathNode[] = [];
+
         if (x > this.xLowerBound) {
-            nextTo.push(this.nodes.get(`${x - 1}${CELL_SEPARATOR}${y}`)!);
+            this.pushIfExists(nextTo, this.nodes.get(`${x - 1}${CELL_SEPARATOR}${y}`));
         }
         if (x < this.xUpperBound) {
-            nextTo.push(this.nodes.get(`${x + 1}${CELL_SEPARATOR}${y}`)!);
+            this.pushIfExists(nextTo, this.nodes.get(`${x + 1}${CELL_SEPARATOR}${y}`));
         }
         if (y > this.yLowerBound) {
-            nextTo.push(this.nodes.get(`${x}${CELL_SEPARATOR}${y - 1}`)!);
+             this.pushIfExists(nextTo, this.nodes.get(`${x}${CELL_SEPARATOR}${y - 1}`));
         }
         if (y < this.yUpperBound) {
-            nextTo.push(this.nodes.get(`${x}${CELL_SEPARATOR}${y + 1}`)!);
+             this.pushIfExists(nextTo, this.nodes.get(`${x}${CELL_SEPARATOR}${y + 1}`));
         }
         node.nextTo = nextTo;
     }
@@ -115,6 +123,12 @@ export class PathFinder {
                 existingRoute.push(traveller.route);
             }
         });
+    }
+
+    private pushIfExists<T>(arr: T[], ele?: T) {
+        if (ele !== undefined) {
+            arr.push(ele);
+        }
     }
 
     public get _testExports() {
@@ -190,6 +204,7 @@ class Traveller {
 
     public recordRoute(node: PathNode) {
         this.route.push(node.id);
+        this.reportBackIn(this);
     }
 
     public updateCurrent(node: PathNode) {
@@ -198,10 +213,11 @@ class Traveller {
 
     public stop() {
         this.isStopped = true;
-        this.reportBackIn(this);
+
         this.onStop();
     }
 
+    // TODO: use node eventually
     public canEnterNextNode(node: PathNode): boolean {
         // minus movement cost, check if node has special effects, etc.
         if (this.isStopped) {
@@ -234,6 +250,7 @@ class Traveller {
         this.onStopCb?.();
     }
 
+    // TODO: implement better copy
     public copy() {
         const _movement = new Movement(mergician({}, this.movement));
 
@@ -243,7 +260,7 @@ class Traveller {
                     {},
                     {
                         current: this.current,
-                        route: this.route,
+                        route: [...this.route],
                         onStopCb: this.onStopCb,
                         movement: _movement,
                     },

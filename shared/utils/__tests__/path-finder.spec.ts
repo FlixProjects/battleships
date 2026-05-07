@@ -115,10 +115,66 @@ describe("PathFinder", () => {
             };
             const routes = pathFinder.getPathToNode(travellerProps, createCellId(1, 1));
 
-            expect(pathFinder._testExports.travellers.length).toBe(6);
+            expect(pathFinder._testExports.travellers.length).toBe(8);
             expect(routes.length).toBe(2);
             expect(routes[0]).toEqual([createCellId(0, 0), createCellId(1, 0), createCellId(1, 1)]);
             expect(routes[1]).toEqual([createCellId(0, 0), createCellId(0, 1), createCellId(1, 1)]);
+        });
+
+        it("should return node requiring less than max movement", () => {
+            const pathFinder = new PathFinder({
+                xLowerBound: 0,
+                yLowerBound: 0,
+                xUpperBound: 2,
+                yUpperBound: 2,
+            });
+
+            pathFinder.initialiseNodes();
+            const startNode = pathFinder.getNode(createCellId(0, 0));
+            if (!startNode) {
+                throw new Error("No start node");
+            }
+            const movement = new Movement({ originalMovementCost: 1, unitsOfMovementLeft: 2 });
+            const travellerProps = {
+                current: startNode,
+                movement,
+            };
+            const routes = pathFinder.getPathToNode(travellerProps, createCellId(0, 1));
+
+            expect(pathFinder._testExports.travellers.length).toBe(8);
+            expect(routes.length).toBe(1);
+
+            expect(routes[0]).toEqual([createCellId(0, 0), createCellId(0, 1)]);
+        });
+
+        it("should return multiple paths with different movements", () => {
+            const pathFinder = new PathFinder({
+                xLowerBound: 0,
+                yLowerBound: 0,
+                xUpperBound: 2,
+                yUpperBound: 2,
+            });
+
+            pathFinder.initialiseNodes();
+            const startNode = pathFinder.getNode(createCellId(0, 0));
+            if (!startNode) {
+                throw new Error("No start node");
+            }
+            const movement = new Movement({ originalMovementCost: 1, unitsOfMovementLeft: 3 });
+            const travellerProps = {
+                current: startNode,
+                movement,
+            };
+            const routes = pathFinder.getPathToNode(travellerProps, createCellId(0, 1));
+
+            expect(routes.length).toBe(6);
+
+            expect(routes[0]).toEqual([createCellId(0, 0), createCellId(1, 0), createCellId(0, 0), createCellId(0, 1)]);
+            expect(routes[1]).toEqual([createCellId(0, 0), createCellId(1, 0), createCellId(1, 1), createCellId(0, 1)]);
+            expect(routes[2]).toEqual([createCellId(0, 0), createCellId(0, 1)]);
+            expect(routes[3]).toEqual([createCellId(0, 0), createCellId(0, 1), createCellId(1, 1), createCellId(0, 1)]);
+            expect(routes[4]).toEqual([createCellId(0, 0), createCellId(0, 1), createCellId(0, 0), createCellId(0, 1)]);
+            expect(routes[5]).toEqual([createCellId(0, 0), createCellId(0, 1), createCellId(0, 2), createCellId(0, 1)]);
         });
     });
 });
