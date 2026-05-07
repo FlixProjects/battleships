@@ -1,6 +1,7 @@
-import { BOARD_COLUMNS, BOARD_ROWS, CELL_SEPARATOR } from "@shared/constants";
+import { BOARD_COLUMNS, BOARD_ROWS } from "@shared/constants";
 import { Movement } from "@shared/models/Movement";
-import { mergician } from "mergician";
+import { ICellLoc } from "@shared/types";
+import { keyToLocation, locationToKey } from "./helpers";
 
 interface ITravellerProps {
     current?: PathNode;
@@ -23,6 +24,12 @@ const DEFAULT_BOUNDS = {
     yUpperBound: BOARD_ROWS - 1,
 };
 
+export const cellLocToNodeId = locationToKey;
+export const nodeIdToCellLoc = keyToLocation;
+export const routeToCellLocs = (route: string[]): ICellLoc[] => route.map(nodeIdToCellLoc);
+
+export type NodeFilterFn = (loc: ICellLoc) => boolean;
+
 export class PathFinder {
     private nodes: Map<string, PathNode> = new Map();
     private xLowerBound = DEFAULT_BOUNDS.xLowerBound;
@@ -32,8 +39,11 @@ export class PathFinder {
     private travellers: Traveller[] = [];
     private routes: Map<string, string[][]> = new Map();
 
-    constructor(props: Partial<IPathFinderProps>) {
-        Object.assign(this, props);
+    constructor(props: Partial<IPathFinderProps> = {}) {
+        if (props.xLowerBound !== undefined) this.xLowerBound = props.xLowerBound;
+        if (props.yLowerBound !== undefined) this.yLowerBound = props.yLowerBound;
+        if (props.xUpperBound !== undefined) this.xUpperBound = props.xUpperBound;
+        if (props.yUpperBound !== undefined) this.yUpperBound = props.yUpperBound;
     }
 
     public getNode(nodeId: string) {
@@ -41,17 +51,38 @@ export class PathFinder {
     }
 
     public getPathToNode(travellerProps: ITravellerProps, endNodeId: string) {
-        this.sendTraveller(travellerProps);
-        this.registerRoutesFromTravellers();
-        // TODO: have a Route class
-        const routes = this.routes.get(endNodeId) ?? [];
-        // this.reset();
-        return routes;
+        this.run(travellerProps);
+        return this.dedupeRoutes(this.routes.get(endNodeId) ?? []);
     }
 
-    public initialiseNodes() {
-        this.createAndLoadIdForNodes();
+    public getReachableCells(travellerProps: ITravellerProps): string[] {
+        this.run(travellerProps);
+        const startId = travellerProps.current?.id;
+        return Array.from(this.routes.keys()).filter((id) => id !== startId);
+    }
+
+    public initialiseNodes(filterFn?: NodeFilterFn) {
+        this.nodes.clear();
+        this.createAndLoadIdForNodes(filterFn);
         this.loadNextNodesForNodes();
+    }
+
+    private run(travellerProps: ITravellerProps) {
+        this.reset();
+        this.sendTraveller(travellerProps);
+        this.registerRoutesFromTravellers();
+    }
+
+    private dedupeRoutes(routes: string[][]): string[][] {
+        const seen = new Set<string>();
+        const unique: string[][] = [];
+        routes.forEach((r) => {
+            const key = r.join(">");
+            if (seen.has(key)) return;
+            seen.add(key);
+            unique.push(r);
+        });
+        return unique;
     }
 
     private reset() {
@@ -59,11 +90,12 @@ export class PathFinder {
         this.routes.clear();
     }
 
-    private createAndLoadIdForNodes() {
+    private createAndLoadIdForNodes(filterFn?: NodeFilterFn) {
         for (let x = this.xLowerBound; x <= this.xUpperBound; x++) {
             for (let y = this.yLowerBound; y <= this.yUpperBound; y++) {
-                const id = `${x}${CELL_SEPARATOR}${y}`;
-                this.nodes.set(id, new PathNode(id));
+                const id = cellLocToNodeId([x, y]);
+                const enterable = filterFn ? filterFn([x, y]) : true;
+                this.nodes.set(id, new PathNode(id, [], enterable));
             }
         }
     }
@@ -75,34 +107,23 @@ export class PathFinder {
     }
 
     private loadNextNodesForNode(node: PathNode) {
-        const [xStr, yStr] = node.id.split(CELL_SEPARATOR);
-        const x = Number(xStr);
-        const y = Number(yStr);
-
+        const [x, y] = nodeIdToCellLoc(node.id);
         const nextTo: PathNode[] = [];
 
-        if (x > this.xLowerBound) {
-            this.pushIfExists(nextTo, this.nodes.get(`${x - 1}${CELL_SEPARATOR}${y}`));
-        }
-        if (x < this.xUpperBound) {
-            this.pushIfExists(nextTo, this.nodes.get(`${x + 1}${CELL_SEPARATOR}${y}`));
-        }
-        if (y > this.yLowerBound) {
-             this.pushIfExists(nextTo, this.nodes.get(`${x}${CELL_SEPARATOR}${y - 1}`));
-        }
-        if (y < this.yUpperBound) {
-             this.pushIfExists(nextTo, this.nodes.get(`${x}${CELL_SEPARATOR}${y + 1}`));
-        }
+        if (x > this.xLowerBound) this.pushIfExists(nextTo, this.nodes.get(cellLocToNodeId([x - 1, y])));
+        if (x < this.xUpperBound) this.pushIfExists(nextTo, this.nodes.get(cellLocToNodeId([x + 1, y])));
+        if (y > this.yLowerBound) this.pushIfExists(nextTo, this.nodes.get(cellLocToNodeId([x, y - 1])));
+        if (y < this.yUpperBound) this.pushIfExists(nextTo, this.nodes.get(cellLocToNodeId([x, y + 1])));
+
         node.nextTo = nextTo;
     }
 
     private sendTraveller(travellerProps: ITravellerProps) {
-        const { current: startNode, movement, onStopCb } = travellerProps;
         const traveller = new Traveller(
             {
-                current: startNode,
-                movement: movement ?? new Movement(),
-                onStopCb,
+                current: travellerProps.current,
+                movement: travellerProps.movement ?? new Movement(),
+                onStopCb: travellerProps.onStopCb,
             },
             (tvlr) => {
                 this.travellers.push(tvlr);
@@ -126,9 +147,7 @@ export class PathFinder {
     }
 
     private pushIfExists<T>(arr: T[], ele?: T) {
-        if (ele !== undefined) {
-            arr.push(ele);
-        }
+        if (ele !== undefined) arr.push(ele);
     }
 
     public get _testExports() {
@@ -144,10 +163,11 @@ export class PathNode {
     constructor(
         public id: string,
         public nextTo: PathNode[] = [],
+        private enterable: boolean = true,
     ) {}
 
-    public canBeEntered(traveller: Traveller): boolean {
-        return true;
+    public canBeEntered(_traveller: Traveller): boolean {
+        return this.enterable;
     }
 
     public receive(traveller: Traveller) {
@@ -181,7 +201,6 @@ class Traveller {
     public route: string[];
     public onStopCb?: () => void;
     public reportBackIn: (traveller: Traveller) => void;
-
     public movement: Movement;
 
     constructor(props: ITravellerProps, reportBackIn: (traveller: Traveller) => void) {
@@ -213,27 +232,16 @@ class Traveller {
 
     public stop() {
         this.isStopped = true;
-
         this.onStop();
     }
 
-    // TODO: use node eventually
-    public canEnterNextNode(node: PathNode): boolean {
-        // minus movement cost, check if node has special effects, etc.
-        if (this.isStopped) {
-            return false;
-        }
-
-        const hasStepsLeft = this.movement.stillPossible;
-
-        if (!hasStepsLeft) {
-            return false;
-        }
-
+    public canEnterNextNode(_node: PathNode): boolean {
+        if (this.isStopped) return false;
+        if (!this.movement.stillPossible) return false;
         return true;
     }
 
-    public onEnterNextNode(node: PathNode) {
+    public onEnterNextNode(_node: PathNode) {
         this.resolveMovement();
     }
 
@@ -250,22 +258,19 @@ class Traveller {
         this.onStopCb?.();
     }
 
-    // TODO: implement better copy
     public copy() {
-        const _movement = new Movement(mergician({}, this.movement));
-
         return new Traveller(
             {
-                ...mergician(
-                    {},
-                    {
-                        current: this.current,
-                        route: [...this.route],
-                        onStopCb: this.onStopCb,
-                        movement: _movement,
-                    },
-                ),
-            } as ITravellerProps,
+                current: this.current,
+                route: [...this.route],
+                onStopCb: this.onStopCb,
+                movement: new Movement({
+                    originalMovementCost: this.movement.originalMovementCost,
+                    unitsOfMovementLeft: this.movement.unitsOfMovementLeft,
+                    unitsOfMovementUsed: this.movement.unitsOfMovementUsed,
+                    movementCost: this.movement.movementCost,
+                }),
+            },
             this.reportBackIn,
         );
     }

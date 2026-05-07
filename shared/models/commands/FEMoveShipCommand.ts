@@ -1,4 +1,5 @@
 import { queueCommand } from "../../../src/utils/game-helper";
+import { ICellLoc } from "../../types";
 import { ISelectable } from "../../types/fe-types";
 import { keyToLocation } from "../../utils/helpers";
 import { MoveShipActionCreator } from "../ActionCreator";
@@ -14,13 +15,14 @@ export class FEMoveShipCommand extends FECommand {
             playerId: string;
             locationElement: ISelectable;
             onSuccessCb?: () => void;
+            route?: ICellLoc[];
         },
     ) {
         super();
     }
 
     public async execute(params: ICommandExecutionParams): Promise<void> {
-        const { tileId, shipId, playerId, locationElement, onSuccessCb } = this.props;
+        const { tileId, shipId, playerId, locationElement, onSuccessCb, route } = this.props;
         const { gsm, db, resolver } = params;
         const ship = gsm.getShip(shipId);
 
@@ -64,6 +66,7 @@ export class FEMoveShipCommand extends FECommand {
                 playerId,
                 hullMap,
                 startingOrientation,
+                route,
             }),
         );
 

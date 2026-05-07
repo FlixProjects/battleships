@@ -38,7 +38,7 @@ export interface IMoveResult extends IResult {
 
 export interface IGetValidMoveCellsResult extends IResult {
     validCells: ICellLoc[];
-    origin?: ICellLoc;
+    origin: ICellLoc;
 }
 
 export interface IAttackResult extends IResult {

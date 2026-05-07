@@ -22,7 +22,9 @@ import {
     THullCalculatorConstructor,
 } from "../types";
 import { LocationHelper, locationToKey, PathHelper } from "../utils";
+import { cellLocToNodeId, nodeIdToCellLoc, PathFinder, routeToCellLocs } from "../utils/path-finder";
 import { MoveShipValidator } from "../utils/validator";
+import { Movement } from "./Movement";
 
 // TODO: migrate to a more signal based approach
 // GameEngine receives commands/signals from UI and updates the GameManager state
@@ -40,6 +42,8 @@ export class GameEngine {
         return {
             deployShip: (action: IGetValidDeployCellsAction) => this.primeDeployShip(action),
             moveShip: (action: IGetValidMoveCellsAction) => this.primeMoveShip(action),
+            moveShipRoutes: (action: IGetValidMoveCellsAction, destinationTileId: string) =>
+                this.primeMoveShipRoutes(action, destinationTileId),
             shipAttack: (action: IGetValidAttackCellsAction) => this.primeAttack(action),
         };
     }
@@ -144,23 +148,18 @@ export class GameEngine {
         const { playerId, shipId } = action;
         const ship = this.gsm.getPlayer(playerId).getShip(shipId);
 
-        if (!ship?.hulls?.[0]) {
-            // TODO: Should not be selectable
-            return { type: ResultType.SUCCESS, playerId, validCells: [] };
-        }
-
         const currentLoc = ship.getFrontHull().location;
         const movementRange = ship.remainingMovement || 0;
 
-        // FIXME: we should only take into account 'visible' ships
-        const players = this.gsm.getPlayers();
-        const locationHelper = new LocationHelper(players);
+        const pathFinder = this.buildMoveShipPathFinder(shipId);
+        const startNode = pathFinder.getNode(cellLocToNodeId(currentLoc));
 
-        const validCells = this.pathHelper.getReachableCells({
-            start: currentLoc,
-            range: movementRange,
-            filterFn: (loc: ICellLoc) => !locationHelper.isLocationOccupied(loc),
-        });
+        const validCells = pathFinder
+            .getReachableCells({
+                current: startNode,
+                movement: new Movement({ originalMovementCost: 1, unitsOfMovementLeft: movementRange }),
+            })
+            .map(nodeIdToCellLoc);
 
         return {
             type: ResultType.SUCCESS,
@@ -168,6 +167,37 @@ export class GameEngine {
             validCells,
             origin: currentLoc,
         };
+    }
+
+    private primeMoveShipRoutes(action: IGetValidMoveCellsAction, destinationTileId: string): ICellLoc[][] {
+        const { playerId, shipId } = action;
+        const ship = this.gsm.getPlayer(playerId).getShip(shipId);
+        if (!ship?.hulls?.[0]) return [];
+
+        const currentLoc = ship.getFrontHull().location;
+        const movementRange = ship.remainingMovement || 0;
+
+        const pathFinder = this.buildMoveShipPathFinder(shipId);
+        const startNode = pathFinder.getNode(cellLocToNodeId(currentLoc));
+
+        const routes = pathFinder.getPathToNode(
+            {
+                current: startNode,
+                movement: new Movement({ originalMovementCost: 1, unitsOfMovementLeft: movementRange }),
+            },
+            destinationTileId,
+        );
+
+        return routes.map(routeToCellLocs);
+    }
+
+    public buildMoveShipPathFinder(_shipId: string): PathFinder {
+        // FIXME: we should only take into account 'visible' ships
+        const locationHelper = new LocationHelper(this.gsm.getPlayers());
+
+        const pathFinder = new PathFinder();
+        pathFinder.initialiseNodes((loc: ICellLoc) => !locationHelper.isLocationOccupied(loc));
+        return pathFinder;
     }
 
     private commitMoveShip(action: IMoveAction): IMoveResult {
@@ -272,7 +302,7 @@ export class GameEngine {
 
         const playerIndex = this.getPlayerIndex(playerId);
 
-        const attackingShip = ships.find((s) => s.id === shipId);
+        const attackingShip = this.gsm.gameState.getShip(shipId);
 
         const { attackCommandPointCost, attackDamage } = attackingShip;
 
@@ -337,10 +367,6 @@ export class GameEngine {
     }
 
     // ================= Helpers =================
-
-    private getPlayer(playerId: string): IPlayer {
-        return this.gameState.players.find((p) => p.id === playerId);
-    }
 
     private getPlayerIndex(playerId: string): number {
         return this.gameState.players.findIndex((p) => p.id === playerId);

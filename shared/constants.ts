@@ -151,6 +151,7 @@ export const COLOR_RGBA = {
 
 export const SELECTABLE_ID = {
     ACTION_MENU: "action-menu",
+    PATH_MENU: "path-menu",
 };
 
 export const ASSET_PATHS = {
