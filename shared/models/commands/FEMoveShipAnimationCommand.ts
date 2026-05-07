@@ -12,7 +12,7 @@ export class FEMoveShipAnimationCommand extends FEAnimationCommand {
         super();
     }
     public async execute(params: ICommandExecutionParams): Promise<void> {
-        const { shipId, playerId, hullMap, startingOrientation } = this.props;
+        const { shipId, playerId, hullMap, startingOrientation, route } = this.props;
         const { gsm } = params;
 
         const ship = gsm.getShip(shipId);
@@ -22,6 +22,7 @@ export class FEMoveShipAnimationCommand extends FEAnimationCommand {
             shipId,
             startingOrientation,
             hullMap,
+            route,
         });
 
         this.gameBoard.addToAnimatingMap(shipId, moveShipAnimation.id);

@@ -30,6 +30,7 @@ export interface IMoveShipAnimationProps extends IAnimationProps {
     shipId: string;
     startingOrientation: number;
     hullMap: Map<string, INewOldHullLocMap>;
+    route?: ICellLoc[];
 }
 
 export interface IMoveAnimationProps extends IAnimationProps {

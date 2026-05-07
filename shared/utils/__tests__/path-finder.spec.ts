@@ -1,5 +1,6 @@
 import { CELL_SEPARATOR } from "@shared/constants";
 import { Movement } from "@shared/models/Movement";
+import { ICellLoc } from "@shared/types";
 import { PathFinder } from "../path-finder";
 
 const createCellId = (x: number, y: number) => x.toString() + CELL_SEPARATOR + y.toString();
@@ -175,6 +176,101 @@ describe("PathFinder", () => {
             expect(routes[3]).toEqual([createCellId(0, 0), createCellId(0, 1), createCellId(1, 1), createCellId(0, 1)]);
             expect(routes[4]).toEqual([createCellId(0, 0), createCellId(0, 1), createCellId(0, 0), createCellId(0, 1)]);
             expect(routes[5]).toEqual([createCellId(0, 0), createCellId(0, 1), createCellId(0, 2), createCellId(0, 1)]);
+        });
+
+        it("should return correct results across consecutive calls", () => {
+            const pathFinder = new PathFinder({
+                xLowerBound: 0,
+                yLowerBound: 0,
+                xUpperBound: 2,
+                yUpperBound: 2,
+            });
+            pathFinder.initialiseNodes();
+            const startNode = pathFinder.getNode(createCellId(0, 0));
+            if (!startNode) throw new Error("No start node");
+
+            const firstRoutes = pathFinder.getPathToNode(
+                { current: startNode, movement: new Movement({ originalMovementCost: 1, unitsOfMovementLeft: 2 }) },
+                createCellId(1, 1),
+            );
+            const secondRoutes = pathFinder.getPathToNode(
+                { current: startNode, movement: new Movement({ originalMovementCost: 1, unitsOfMovementLeft: 2 }) },
+                createCellId(1, 1),
+            );
+
+            expect(secondRoutes.length).toBe(firstRoutes.length);
+            expect(secondRoutes).toEqual(firstRoutes);
+        });
+    });
+
+    describe("getReachableCells", () => {
+        it("should return all cells within movement range, excluding the start cell", () => {
+            const pathFinder = new PathFinder({
+                xLowerBound: 0,
+                yLowerBound: 0,
+                xUpperBound: 2,
+                yUpperBound: 2,
+            });
+            pathFinder.initialiseNodes();
+            const startNode = pathFinder.getNode(createCellId(0, 0));
+            if (!startNode) throw new Error("No start node");
+
+            const cells = pathFinder.getReachableCells({
+                current: startNode,
+                movement: new Movement({ originalMovementCost: 1, unitsOfMovementLeft: 2 }),
+            });
+
+            expect(cells).not.toContain(createCellId(0, 0));
+            expect(cells.sort()).toEqual(
+                [
+                    createCellId(0, 1),
+                    createCellId(0, 2),
+                    createCellId(1, 0),
+                    createCellId(1, 1),
+                    createCellId(2, 0),
+                ].sort(),
+            );
+        });
+    });
+
+    describe("filterFn (occupancy)", () => {
+        it("should not traverse cells the filterFn rejects", () => {
+            const blocked: ICellLoc = [1, 0];
+            const pathFinder = new PathFinder({
+                xLowerBound: 0,
+                yLowerBound: 0,
+                xUpperBound: 2,
+                yUpperBound: 2,
+            });
+            pathFinder.initialiseNodes((loc) => !(loc[0] === blocked[0] && loc[1] === blocked[1]));
+            const startNode = pathFinder.getNode(createCellId(0, 0));
+            if (!startNode) throw new Error("No start node");
+
+            const cells = pathFinder.getReachableCells({
+                current: startNode,
+                movement: new Movement({ originalMovementCost: 1, unitsOfMovementLeft: 2 }),
+            });
+
+            expect(cells).not.toContain(createCellId(1, 0));
+        });
+
+        it("should filter out routes passing through rejected cells", () => {
+            const pathFinder = new PathFinder({
+                xLowerBound: 0,
+                yLowerBound: 0,
+                xUpperBound: 2,
+                yUpperBound: 2,
+            });
+            pathFinder.initialiseNodes((loc) => !(loc[0] === 1 && loc[1] === 0));
+            const startNode = pathFinder.getNode(createCellId(0, 0));
+            if (!startNode) throw new Error("No start node");
+
+            const routes = pathFinder.getPathToNode(
+                { current: startNode, movement: new Movement({ originalMovementCost: 1, unitsOfMovementLeft: 2 }) },
+                createCellId(1, 1),
+            );
+
+            routes.forEach((r) => expect(r).not.toContain(createCellId(1, 0)));
         });
     });
 });

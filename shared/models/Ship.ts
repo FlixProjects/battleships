@@ -55,28 +55,53 @@ export class Ship extends ShipEntity {
         return this.hulls?.find((h) => h.front) ?? this.hulls?.[0];
     }
 
-    getNewHullLocations(endCell: ICellLoc) {
+    getNewHullLocations(endCell: ICellLoc, route?: ICellLoc[]) {
         const segmentBuilder = new SegmentBuilder();
         const startingOrientation = this.getFrontHull().orientation;
-        const segments = segmentBuilder.buildSegments(
-            this.getFrontHull().location,
-            endCell,
+        const oldFrontLocation = this.getFrontHull().location;
+
+        const { finalOrientation, backLocation } = this.computeRouteOutcome({
+            segmentBuilder,
             startingOrientation,
-        );
+            oldFrontLocation,
+            endCell,
+            route,
+        });
 
         const newHulls = this.hulls?.map((h) => mergician({}, h)) as IHull[];
-        const frontHull = this.getFrontHull();
-        const oldFrontLocation = frontHull.location;
 
         // TODO: to inject movement behaviour calculator
         // TODO: barely serviceable implementation for 2-tile ships
         newHulls.forEach((h) => {
-            h.location = h.front ? endCell : oldFrontLocation;
-            h.orientation = segments.reduce((sum, curr) => {
-                return sum + curr.rotateDegrees;
-            }, startingOrientation);
+            h.location = h.front ? endCell : backLocation;
+            h.orientation = finalOrientation;
         });
 
         return newHulls;
+    }
+
+    private computeRouteOutcome(args: {
+        segmentBuilder: SegmentBuilder;
+        startingOrientation: number;
+        oldFrontLocation: ICellLoc;
+        endCell: ICellLoc;
+        route?: ICellLoc[];
+    }): { finalOrientation: number; backLocation: ICellLoc } {
+        const { segmentBuilder, startingOrientation, oldFrontLocation, endCell, route } = args;
+
+        if (route && route.length >= 2) {
+            let orientation = startingOrientation;
+            for (let i = 1; i < route.length; i++) {
+                orientation += segmentBuilder.rotationToFace(route[i - 1], route[i], orientation);
+            }
+            return { finalOrientation: orientation, backLocation: route[route.length - 2] };
+        }
+
+        const segments = segmentBuilder.buildSegments(oldFrontLocation, endCell, startingOrientation);
+        const finalOrientation = segments.reduce(
+            (sum, curr) => sum + curr.rotateDegrees,
+            startingOrientation,
+        );
+        return { finalOrientation, backLocation: oldFrontLocation };
     }
 }
