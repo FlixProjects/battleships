@@ -4,16 +4,22 @@ import { appConfig } from "../config/app-config";
 type HttpMethod = "GET" | "POST" | "PUT";
 type StringEncoding = "ascii" | "utf8" | "utf16le" | "ucs2" | "base64" | "latin1" | "binary" | "hex";
 
-interface TAddHeaderBase {
-    addHeader: TAddHeaderBase;
-}
-
-interface TAddHeaderPost extends TAddHeaderBase {
+interface TAddHeaderPost {
+    addHeader: (key: string, value: string) => TAddHeaderPost;
     addBody: (payload: string) => void;
 }
 
-interface TAddHeaderGet extends TAddHeaderBase {
+interface TAddHeaderGet {
+    addHeader: (key: string, value: string) => TAddHeaderGet;
     build: () => void;
+}
+
+interface TAddURIPost {
+    addHeader: (key: string, value: string) => TAddHeaderPost;
+}
+
+interface TAddURIGet {
+    addHeader: (key: string, value: string) => TAddHeaderGet;
 }
 
 export class CryptoHelper {
@@ -29,23 +35,21 @@ export class CryptoHelper {
         return this.getSignature(signingKey, stringToSign);
     }
 
-    addMethod(method: HttpMethod) {
+    addMethod(method: "GET"): { addURI: (uri: string) => TAddURIGet };
+    addMethod(method: "POST" | "PUT"): { addURI: (uri: string) => TAddURIPost };
+    addMethod(method: HttpMethod): { addURI: (uri: string) => TAddURIGet | TAddURIPost } {
         this.method = method;
         this.request += method;
         this.request += "\n";
 
-        return {
-            addURI: this.addURI.bind(this),
-        };
+        if (method === "GET") {
+            return { addURI: (uri: string) => this.addGetURI(uri) };
+        }
+        return { addURI: (uri: string) => this.addPostURI(uri) };
     }
 
-    addURI(uri: string): TAddHeaderBase {
-        this.request += uri;
-        this.request += "\n";
-
-        return {
-            addHeader: this.addHeader.bind(this),
-        };
+    addURI(uri: string): TAddURIGet | TAddURIPost {
+        return this.method === "GET" ? this.addGetURI(uri) : this.addPostURI(uri);
     }
 
     addBody(payload: string) {
@@ -57,21 +61,37 @@ export class CryptoHelper {
     }
 
     addHeader(key: string, value: string): TAddHeaderPost | TAddHeaderGet {
+        return this.method === "GET" ? this.addGetHeader(key, value) : this.addPostHeader(key, value);
+    }
+
+    private addGetURI(uri: string): TAddURIGet {
+        this.request += uri;
+        this.request += "\n";
+        return { addHeader: (key, value) => this.addGetHeader(key, value) };
+    }
+
+    private addPostURI(uri: string): TAddURIPost {
+        this.request += uri;
+        this.request += "\n";
+        return { addHeader: (key, value) => this.addPostHeader(key, value) };
+    }
+
+    private addGetHeader(key: string, value: string): TAddHeaderGet {
         this.headers.push([key.toLowerCase(), value.trim()]);
-
-        if (this.method === "POST" || this.method === "PUT") {
-            return {
-                addHeader: this.addHeader.bind(this),
-                addBody: (payload: string) => {
-                    return this.buildHeaders().addBody(payload);
-                },
-            };
-        }
-
         return {
-            addHeader: this.addHeader.bind(this),
+            addHeader: (k, v) => this.addGetHeader(k, v),
             build: () => {
                 return this.buildHeaders().addBody("").build();
+            },
+        };
+    }
+
+    private addPostHeader(key: string, value: string): TAddHeaderPost {
+        this.headers.push([key.toLowerCase(), value.trim()]);
+        return {
+            addHeader: (k, v) => this.addPostHeader(k, v),
+            addBody: (payload: string) => {
+                return this.buildHeaders().addBody(payload);
             },
         };
     }
@@ -92,7 +112,7 @@ export class CryptoHelper {
         return createHash("sha256").update(toHash).digest("hex");
     }
 
-    hmacHash(key: Uint8Array | string | Buffer<ArrayBufferLike>, payload?: string) {
+    hmacHash(key: Uint8Array | string | Buffer<ArrayBufferLike>, payload: string) {
         return createHmac("sha256", key).update(this.toUint8Array(payload)).digest();
     }
 
