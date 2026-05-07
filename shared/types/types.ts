@@ -1,3 +1,4 @@
+import type { TFaction } from "../factions";
 import type { GameState, Hull, Ship } from "../models";
 import { ICommand } from "../models/commands/types";
 import { IDeployAction, IMoveAction, IPlayerAction, IShipAttackAction } from "./action-types";
@@ -58,6 +59,8 @@ export interface IGameState {
     players: IPlayer[];
     ships: IShip[];
     hulls?: IHull[];
+    cards: ICard[];
+    decks: IDeck[];
     actions?: IPlayerAction[];
     board?: Board;
     winners: string[];
@@ -73,6 +76,9 @@ export interface IPlayer {
     pendingActions?: IPlayerAction[];
     maxCommandPoints: number;
     commandPoints: number;
+    faction: TFaction;
+    hand: string[]; // Card IDs currently in this player's hand
+    deck: string; // Deck ID
 }
 
 export interface IShip extends IShipTemplate {
@@ -92,6 +98,30 @@ export interface IHull extends IHullTemplate {
     remainingArmor: number;
     destroyed: boolean;
 }
+
+export const CardKind = {
+    Ship: "Ship",
+} as const;
+
+export type TCardKind = (typeof CardKind)[keyof typeof CardKind];
+
+export interface ICard {
+    id: string;
+    deckId: string; // FK → IDeck.id
+    instanceId: string; // FK → underlying entity (today: IShip.id)
+    kind: TCardKind;
+    refNo: string; // e.g. TShipRefNo — display hint without dereferencing
+}
+
+export interface IDeck {
+    id: string;
+    playerId: string; // FK → IPlayer.id
+    faction: TFaction;
+    cards: ICard[]; // domain shape; randomized order, shrinks as cards are drawn
+}
+
+export type IPlainCard = ICard;
+export type IPlainDeck = Omit<IDeck, "cards"> & { cards: string[] };
 
 export const AppStatus = {
     NewGame: "NewGame",
@@ -131,6 +161,8 @@ export interface IPlainGameState {
     players: IPlainPlayer[];
     ships: IPlainShip[];
     hulls?: IHull[];
+    cards: IPlainCard[];
+    decks: IPlainDeck[];
     actions?: IPlainAction[];
     board?: Board;
     winners: string[];

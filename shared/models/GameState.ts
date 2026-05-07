@@ -1,7 +1,9 @@
 import clone from "lodash.clonedeep";
-import { Board, IGameState, IHull, IPlayer, IPlayerAction, IShip } from "../types";
+import { Board, ICard, IDeck, IGameState, IHull, IPlayer, IPlayerAction, IShip } from "../types";
 import { mergeSets } from "../utils";
 import { Action } from "./actions";
+import { Card } from "./Card";
+import { Deck } from "./Deck";
 import { Entity } from "./entities";
 import { Hull } from "./Hull";
 import { Player } from "./Player";
@@ -14,6 +16,8 @@ export class GameState implements IGameState {
     players: Player[];
     ships: Ship[];
     hulls: Hull[];
+    cards: Card[];
+    decks: Deck[];
     board?: Board;
     winners: string[];
     isOver: boolean;
@@ -21,7 +25,8 @@ export class GameState implements IGameState {
 
     // FIXME: there is issue when GameState is being passes in as a class already
     constructor(props: Readonly<IGameState>) {
-        const { code, initiative, players, board, winners, isOver, ships, hulls, currentRound, actions } = props;
+        const { code, initiative, players, board, winners, isOver, ships, hulls, cards, decks, currentRound, actions } =
+            props;
         this.code = code;
         this.initiative = initiative;
         this.board = board;
@@ -46,6 +51,16 @@ export class GameState implements IGameState {
 
             return new Ship(ship);
         });
+
+        this.cards =
+            cards?.map((card) => (card instanceof Card ? card : new Card(card as ICard))) ?? [];
+
+        this.decks =
+            decks?.map((deck) => {
+                if (deck instanceof Deck) return deck;
+                const deckCards = this.cards.filter((c) => c.deckId === deck.id);
+                return new Deck({ ...(deck as IDeck), cards: deckCards });
+            }) ?? [];
 
         this.actions =
             actions?.map((action) => {

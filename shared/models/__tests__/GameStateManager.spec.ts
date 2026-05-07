@@ -47,6 +47,8 @@ describe("GameStateManager", () => {
                     location: [1, 1],
                 }),
             ],
+            cards: [],
+            decks: [],
             winners: [],
             isOver: false,
         };
@@ -81,6 +83,8 @@ describe("GameStateManager", () => {
                     location: [2, 2],
                 }),
             ],
+            cards: [],
+            decks: [],
             winners: [],
             isOver: false,
         };
@@ -111,6 +115,8 @@ describe("GameStateManager", () => {
                     location: [2, 2],
                 }),
             ],
+            cards: [],
+            decks: [],
             winners: [],
             isOver: false,
         };

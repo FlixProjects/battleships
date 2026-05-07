@@ -126,6 +126,8 @@ describe("ActionResolver", () => {
                 players: [player1, player2],
                 ships: [player1Ship, player2Ship],
                 hulls: [player1Hull, player2Hull],
+                cards: [],
+                decks: [],
                 winners: [],
                 isOver: false,
             });
@@ -190,6 +192,8 @@ describe("ActionResolver", () => {
                 players: [player1, player2],
                 ships: [],
                 hulls: [],
+                cards: [],
+                decks: [],
                 winners: [],
                 isOver: false,
             });
@@ -235,6 +239,8 @@ describe("ActionResolver", () => {
                 players: [player1, player2],
                 ships: [],
                 hulls: [],
+                cards: [],
+                decks: [],
                 winners: [],
                 isOver: false,
             });

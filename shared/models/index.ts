@@ -1,3 +1,5 @@
+export * from "./Card";
+export * from "./Deck";
 export * from "./GameEngine";
 export * from "./GameStateManager";
 export * from "./GameState";

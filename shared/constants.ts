@@ -16,6 +16,8 @@ export const INITIAL_GAME_STATE: IGameState = {
     players: [],
     ships: [],
     hulls: [],
+    cards: [],
+    decks: [],
     board: { grid: [] },
     winners: [],
     isOver: false,

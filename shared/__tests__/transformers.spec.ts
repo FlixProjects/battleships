@@ -3,9 +3,11 @@ import { PlayerBuilder } from "../factories/player-builder";
 import { ShipBuilder } from "../factories/ship-builder";
 import {
     transformAppStateToPlain,
+    transformDeckToPlain,
     transformGameStateToPlain,
     transformObjectToPlain,
     transformPlainAppStateToDomain,
+    transformPlainDeckToDomain,
     transformPlainGameStateToDomain,
     transformPlainShipToDomain,
     transformPlayerToPlain,
@@ -138,6 +140,8 @@ describe("transformGameStateToPlain", () => {
             ],
             ships: [{ id: "ship1", hulls: [{ id: "hull1" } as IHull] } as IShip],
             hulls: [{ id: "hull1" } as IHull],
+            cards: [],
+            decks: [],
             winners: [],
             isOver: false,
         };
@@ -159,6 +163,8 @@ describe("transformAppStateToPlain", () => {
                 currentRound: 1,
                 players: [],
                 ships: [],
+                cards: [],
+                decks: [],
                 winners: [],
                 isOver: false,
             },
@@ -177,6 +183,8 @@ describe("transformPlainGameStateToDomain", () => {
             players: [{ id: "player1", name: "Player 1", ships: ["ship1"], pendingActions: [] } as IPlainPlayer],
             ships: [{ id: "ship1", playerId: "player1", hulls: ["hull1"] } as any],
             hulls: [{ id: "hull1", shipId: "ship1" } as IHull],
+            cards: [],
+            decks: [],
             actions: [],
             winners: [],
             isOver: false,
@@ -201,6 +209,8 @@ describe("transformPlainAppStateToDomain", () => {
                 players: [],
                 ships: [],
                 hulls: [],
+                cards: [],
+                decks: [],
                 winners: [],
                 isOver: false,
             },
@@ -233,5 +243,41 @@ describe("transformPlainShipToDomain", () => {
         expect(result.hulls).toHaveLength(2);
         expect(result.hulls[0].id).toBe("hull1");
         expect(result.hulls[1].id).toBe("hull2");
+    });
+});
+
+describe("transformDeckToPlain", () => {
+    it("flattens deck.cards to ID array", () => {
+        const deck = {
+            id: "deck-1",
+            playerId: "p1",
+            faction: "THE_UNITED_FLEET" as const,
+            cards: [
+                { id: "card-1", deckId: "deck-1", instanceId: "ship-1", kind: "Ship" as const, refNo: "frigate0" },
+                { id: "card-2", deckId: "deck-1", instanceId: "ship-2", kind: "Ship" as const, refNo: "flagship0" },
+            ],
+        };
+        const result = transformDeckToPlain(deck);
+        expect(result.cards).toEqual(["card-1", "card-2"]);
+        expect(result.id).toBe("deck-1");
+    });
+});
+
+describe("transformPlainDeckToDomain", () => {
+    it("rehydrates deck.cards from the flat cards list via deckId FK", () => {
+        const plainDeck = {
+            id: "deck-1",
+            playerId: "p1",
+            faction: "THE_UNITED_FLEET" as const,
+            cards: ["card-1", "card-2"],
+        };
+        const allCards = [
+            { id: "card-1", deckId: "deck-1", instanceId: "ship-1", kind: "Ship" as const, refNo: "frigate0" },
+            { id: "card-2", deckId: "deck-1", instanceId: "ship-2", kind: "Ship" as const, refNo: "flagship0" },
+            { id: "card-3", deckId: "deck-other", instanceId: "ship-3", kind: "Ship" as const, refNo: "frigate0" },
+        ];
+        const result = transformPlainDeckToDomain(plainDeck, allCards);
+        expect(result.cards).toHaveLength(2);
+        expect(result.cards.map((c) => c.id)).toEqual(["card-1", "card-2"]);
     });
 });

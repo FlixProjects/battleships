@@ -2,8 +2,8 @@ import { Z_INDEX } from "@shared/constants";
 import { IAppState } from "@shared/types";
 import { gameManager } from "../..";
 import { BaseComponent } from "../BaseComponent";
+import { Hand } from "../hand/Hand";
 import { InitiativeDisplay } from "./InitiativeDisplay";
-import { ShipSelector } from "./ShipSelector";
 import { SubmitMoveButton } from "./SubmitMoveButton";
 
 export class ActionPanel extends BaseComponent {
@@ -41,15 +41,15 @@ export class ActionPanel extends BaseComponent {
     }
 
     renderOptions() {
-        this.renderShipSelector();
+        this.renderHand();
     }
 
-    renderShipSelector() {
+    renderHand() {
         const player = gameManager.getPlayer();
         const isGameOver = !!gameManager.state.gameState.isOver;
-        const shipSelector = new ShipSelector({ player, isGameOver });
-        this.addChild(shipSelector);
-        this.ref.appendChild(shipSelector.build());
+        const hand = new Hand({ player, isGameOver });
+        this.addChild(hand);
+        this.ref.appendChild(hand.build());
     }
 
     private renderSubmitButton() {

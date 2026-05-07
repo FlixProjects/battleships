@@ -49,6 +49,21 @@ export class GameStateManager implements IGameStateManager {
         return this.gameState.getShipHulls(shipId);
     }
 
+    getCard(cardId: string) {
+        return this.gameState.cards.find((c) => c.id === cardId);
+    }
+
+    getDeck(deckId: string) {
+        return this.gameState.decks.find((d) => d.id === deckId);
+    }
+
+    getPlayerHand(playerId: string) {
+        const player = this.gameState.getPlayer(playerId);
+        return player.hand
+            .map((cardId) => this.getCard(cardId))
+            .filter((c): c is NonNullable<typeof c> => c !== undefined);
+    }
+
     updatePlayer(player: Partial<IPlayer>) {
         this._gameState = this.gameState.updatePlayer(player);
         return this;

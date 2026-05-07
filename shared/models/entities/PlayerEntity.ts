@@ -1,3 +1,4 @@
+import type { TFaction } from "../../factions";
 import { IPlayer, IPlayerAction, IShip } from "../../types";
 import { Action } from "../actions/Action";
 import { Ship } from "../Ship";
@@ -13,16 +14,34 @@ export class PlayerEntity extends Entity<PlayerEntity> implements IPlayer {
     pendingActions: IPlayerAction[];
     maxCommandPoints: number;
     commandPoints: number;
+    faction: TFaction;
+    hand: string[];
+    deck: string;
 
     constructor(props: IPlayer) {
         super();
-        const { id, name, order, ready, ships, maxCommandPoints, commandPoints, pendingActions } = props;
+        const {
+            id,
+            name,
+            order,
+            ready,
+            ships,
+            maxCommandPoints,
+            commandPoints,
+            pendingActions,
+            faction,
+            hand,
+            deck,
+        } = props;
         this.id = id;
         this.name = name;
         this.order = order;
         this.ready = ready;
         this.commandPoints = commandPoints;
         this.maxCommandPoints = maxCommandPoints;
+        this.faction = faction;
+        this.hand = hand ?? [];
+        this.deck = deck;
         this.pendingActions =
             pendingActions?.map((action) => {
                 if (action instanceof Action) {

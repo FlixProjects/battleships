@@ -1,6 +1,12 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import { getNewShipsForPlayer, initialiseNewPlayer, IPlainGameState } from "../../shared";
+import {
+    applyStartingStateToPlayer,
+    buildPlayerStartingState,
+    Faction,
+    initialiseNewPlayer,
+    IPlainGameState,
+} from "../../shared";
 
 interface JoinGameResponse {
     statusCode: number;
@@ -69,10 +75,12 @@ export const handler = async (event: any) => {
 
         const playerId = randomUUID();
         const newPlayer = initialiseNewPlayer({ id: playerId, name: playerName, order: gameState.players.length });
-        const { shipIds, ships } = getNewShipsForPlayer(playerId);
-        newPlayer.ships = shipIds;
+        const starting = buildPlayerStartingState(playerId, Faction.THE_UNITED_FLEET);
+        applyStartingStateToPlayer(newPlayer, starting);
 
-        gameState.ships.push(...ships);
+        gameState.ships.push(...starting.ships);
+        gameState.cards.push(...starting.cards);
+        gameState.decks.push(starting.deck);
         gameState.players.push(newPlayer);
         gameState.currentRound++;
 

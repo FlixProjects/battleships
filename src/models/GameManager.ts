@@ -93,11 +93,8 @@ export class GameManager {
     }
 
     public getCurrentPlayerId(): string {
-        const currentPlayerId = sessionStorage.getItem(FP_CURRENT_PLAYER);
-        if (!currentPlayerId) {
-            throw new Error("No player id found in session storage");
-        }
-        return currentPlayerId;
+        const currentPlayerId = sessionStorage.getItem(FP_CURRENT_PLAYER);        
+        return currentPlayerId ?? "";
     }
 
     private getCurrentPlayerState() {

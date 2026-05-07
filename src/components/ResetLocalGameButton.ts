@@ -1,6 +1,13 @@
 import { FP_GAME_STATE } from "@shared/constants";
+import { Faction } from "@shared/factions";
 import { AppStatus, IPlainGameState } from "@shared/types";
-import { createNewGameState, generateGameCode, getNewShipsForPlayer, initialiseNewPlayer } from "@shared/utils";
+import {
+    applyStartingStateToPlayer,
+    buildPlayerStartingState,
+    createNewGameState,
+    generateGameCode,
+    initialiseNewPlayer,
+} from "@shared/utils";
 import { v7 as uuidv7 } from "uuid";
 import { gameManager } from "..";
 import { isLocal } from "../config/app-config";
@@ -70,10 +77,12 @@ export class ResetLocalGameButton extends HTMLButton {
         gameManager.savePlainAppState({ status: AppStatus.Initialised, loading: false, gameState: initialGameState });
 
         const player2 = initialiseNewPlayer({ id: player2Id, name: player2Name, order: 1 });
-        const { shipIds, ships } = getNewShipsForPlayer(player2Id);
-        player2.ships = shipIds;
+        const player2Starting = buildPlayerStartingState(player2Id, Faction.THE_UNITED_FLEET);
+        applyStartingStateToPlayer(player2, player2Starting);
 
-        initialGameState.ships.push(...ships);
+        initialGameState.ships.push(...player2Starting.ships);
+        initialGameState.cards.push(...player2Starting.cards);
+        initialGameState.decks.push(player2Starting.deck);
         initialGameState.players.push(player2);
         initialGameState.currentRound++;
 
