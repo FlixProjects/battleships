@@ -39,7 +39,7 @@ export class FEMoveShipCommand extends FECommand {
 
         const player = gsm.getPlayer(playerId);
 
-        const newHullLocations = ship.getNewHullLocations(keyToLocation(tileId));
+        const newHullLocations = ship.getNewHullLocations(keyToLocation(tileId), route);
 
         const moveAction = new MoveShipActionCreator(player, gsm.getCurrentRound()).create({
             shipId,
