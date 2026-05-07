@@ -9,8 +9,9 @@
         "allowJs": true,
         "moduleResolution": "bundler",
         "skipLibCheck": true,
+        "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
-        "types": ["jest"],
+        "types": ["jest","node"],
         "paths": {
             "@shared/*": ["./shared/*"]
         },
