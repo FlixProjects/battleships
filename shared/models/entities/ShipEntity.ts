@@ -7,8 +7,8 @@ export class ShipEntity extends Entity<ShipEntity> implements IShip {
     playerId: string;
     refNo: string;
     name: string;
-    hullIds?: string[];
-    hulls?: Hull[];
+    hulls: Hull[] = [];
+    hullIds: string[] = [];
     dimensions: [number, number];
     deployed: boolean;
     commandPointCost: number;
@@ -29,7 +29,8 @@ export class ShipEntity extends Entity<ShipEntity> implements IShip {
     constructor(props: Readonly<IShip>) {
         super();
         Object.assign(this, props);
-        if (this.hulls) {
+
+        if (props.hulls && props.hulls.length > 0) {
             this.hulls = props.hulls.map((hull) => {
                 if (hull instanceof Hull) {
                     return hull;
@@ -37,7 +38,16 @@ export class ShipEntity extends Entity<ShipEntity> implements IShip {
                 return new Hull(hull);
             });
         }
+        this.hullIds = this.hulls.map((h) => h.id);
     }
+
+    public getHulls() {
+        return this.hulls ?? [];
+    }
+
+    public getHull(hullId: string) {
+        return this.getHulls().find((h) => h.id === hullId);
+    };
 
     public updateHull(hull: Partial<IHull>) {
         if (!hull.id) return this;

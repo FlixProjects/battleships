@@ -1,0 +1,272 @@
+import { BOARD_COLUMNS, BOARD_ROWS, CELL_SEPARATOR } from "@shared/constants";
+import { Movement } from "@shared/models/Movement";
+import { mergician } from "mergician";
+
+interface ITravellerProps {
+    current?: PathNode;
+    route?: string[];
+    movement: Movement;
+    onStopCb?: () => void;
+}
+
+interface IPathFinderProps {
+    xLowerBound: number;
+    yLowerBound: number;
+    xUpperBound: number;
+    yUpperBound: number;
+}
+
+const DEFAULT_BOUNDS = {
+    xLowerBound: 0,
+    yLowerBound: 0,
+    xUpperBound: BOARD_COLUMNS - 1,
+    yUpperBound: BOARD_ROWS - 1,
+};
+
+export class PathFinder {
+    private nodes: Map<string, PathNode> = new Map();
+    private xLowerBound = DEFAULT_BOUNDS.xLowerBound;
+    private yLowerBound = DEFAULT_BOUNDS.yLowerBound;
+    private xUpperBound = DEFAULT_BOUNDS.xUpperBound;
+    private yUpperBound = DEFAULT_BOUNDS.yUpperBound;
+    private travellers: Traveller[] = [];
+    private routes: Map<string, string[][]> = new Map();
+
+    constructor(props: Partial<IPathFinderProps>) {
+        Object.assign(this, props);
+    }
+
+    public getNode(nodeId: string) {
+        return this.nodes.get(nodeId);
+    }
+
+    public getPathToNode(travellerProps: ITravellerProps, endNodeId: string) {
+        this.sendTraveller(travellerProps);
+        this.registerRoutesFromTravellers();
+        // TODO: have a Route class
+        const routes = this.routes.get(endNodeId) ?? [];
+        // this.reset();
+        return routes;
+    }
+
+    public initialiseNodes() {
+        this.createAndLoadIdForNodes();
+        this.loadNextNodesForNodes();
+    }
+
+    private reset() {
+        this.travellers = [];
+        this.routes.clear();
+    }
+
+    private createAndLoadIdForNodes() {
+        for (let x = this.xLowerBound; x <= this.xUpperBound; x++) {
+            for (let y = this.yLowerBound; y <= this.yUpperBound; y++) {
+                const id = `${x}${CELL_SEPARATOR}${y}`;
+                this.nodes.set(id, new PathNode(id));
+            }
+        }
+    }
+
+    private loadNextNodesForNodes() {
+        this.nodes.forEach((node) => {
+            this.loadNextNodesForNode(node);
+        });
+    }
+
+    private loadNextNodesForNode(node: PathNode) {
+        const [xStr, yStr] = node.id.split(CELL_SEPARATOR);
+        const x = Number(xStr);
+        const y = Number(yStr);
+
+        const nextTo: PathNode[] = [];
+
+        if (x > this.xLowerBound) {
+            this.pushIfExists(nextTo, this.nodes.get(`${x - 1}${CELL_SEPARATOR}${y}`));
+        }
+        if (x < this.xUpperBound) {
+            this.pushIfExists(nextTo, this.nodes.get(`${x + 1}${CELL_SEPARATOR}${y}`));
+        }
+        if (y > this.yLowerBound) {
+             this.pushIfExists(nextTo, this.nodes.get(`${x}${CELL_SEPARATOR}${y - 1}`));
+        }
+        if (y < this.yUpperBound) {
+             this.pushIfExists(nextTo, this.nodes.get(`${x}${CELL_SEPARATOR}${y + 1}`));
+        }
+        node.nextTo = nextTo;
+    }
+
+    private sendTraveller(travellerProps: ITravellerProps) {
+        const { current: startNode, movement, onStopCb } = travellerProps;
+        const traveller = new Traveller(
+            {
+                current: startNode,
+                movement: movement ?? new Movement(),
+                onStopCb,
+            },
+            (tvlr) => {
+                this.travellers.push(tvlr);
+            },
+        );
+
+        traveller.start();
+        return traveller;
+    }
+
+    private registerRoutesFromTravellers() {
+        this.travellers.forEach((traveller) => {
+            const destination = traveller.route[traveller.route.length - 1];
+            const existingRoute = this.routes.get(destination);
+            if (!existingRoute) {
+                this.routes.set(destination, [traveller.route]);
+            } else {
+                existingRoute.push(traveller.route);
+            }
+        });
+    }
+
+    private pushIfExists<T>(arr: T[], ele?: T) {
+        if (ele !== undefined) {
+            arr.push(ele);
+        }
+    }
+
+    public get _testExports() {
+        return {
+            nodes: this.nodes,
+            travellers: this.travellers,
+            routes: this.routes,
+        };
+    }
+}
+
+export class PathNode {
+    constructor(
+        public id: string,
+        public nextTo: PathNode[] = [],
+    ) {}
+
+    public canBeEntered(traveller: Traveller): boolean {
+        return true;
+    }
+
+    public receive(traveller: Traveller) {
+        this.onEnter(traveller);
+        this.sendToNextNodes(traveller);
+    }
+
+    public sendToNextNodes(traveller: Traveller) {
+        let canStillMoveToNextNode = false;
+        this.nextTo.forEach((nextNode) => {
+            if (traveller.canEnterNextNode(nextNode) && nextNode.canBeEntered(traveller)) {
+                canStillMoveToNextNode = true;
+                traveller.copy().enter(nextNode);
+            }
+        });
+        if (!canStillMoveToNextNode) {
+            traveller.stop();
+        }
+    }
+
+    public onEnter(traveller: Traveller) {
+        traveller.onEnterNextNode(this);
+        traveller.recordRoute(this);
+        traveller.updateCurrent(this);
+    }
+}
+
+class Traveller {
+    private isStopped: boolean = false;
+    public current?: PathNode;
+    public route: string[];
+    public onStopCb?: () => void;
+    public reportBackIn: (traveller: Traveller) => void;
+
+    public movement: Movement;
+
+    constructor(props: ITravellerProps, reportBackIn: (traveller: Traveller) => void) {
+        this.current = props.current;
+        this.route = props.route ?? [];
+        this.movement = props.movement;
+        this.onStopCb = props.onStopCb;
+        this.reportBackIn = reportBackIn;
+    }
+
+    public start() {
+        if (!this.current) return;
+        this.route = [this.current.id];
+        this.current.sendToNextNodes(this);
+    }
+
+    public enter(node: PathNode) {
+        node.receive(this);
+    }
+
+    public recordRoute(node: PathNode) {
+        this.route.push(node.id);
+        this.reportBackIn(this);
+    }
+
+    public updateCurrent(node: PathNode) {
+        this.current = node;
+    }
+
+    public stop() {
+        this.isStopped = true;
+
+        this.onStop();
+    }
+
+    // TODO: use node eventually
+    public canEnterNextNode(node: PathNode): boolean {
+        // minus movement cost, check if node has special effects, etc.
+        if (this.isStopped) {
+            return false;
+        }
+
+        const hasStepsLeft = this.movement.stillPossible;
+
+        if (!hasStepsLeft) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public onEnterNextNode(node: PathNode) {
+        this.resolveMovement();
+    }
+
+    private resolveMovement(resolveEffects?: (traveller: Traveller) => void) {
+        resolveEffects?.(this);
+        this.movement.resolve();
+    }
+
+    public loadMovement(movement: Movement = new Movement()) {
+        this.movement = movement;
+    }
+
+    private onStop() {
+        this.onStopCb?.();
+    }
+
+    // TODO: implement better copy
+    public copy() {
+        const _movement = new Movement(mergician({}, this.movement));
+
+        return new Traveller(
+            {
+                ...mergician(
+                    {},
+                    {
+                        current: this.current,
+                        route: [...this.route],
+                        onStopCb: this.onStopCb,
+                        movement: _movement,
+                    },
+                ),
+            } as ITravellerProps,
+            this.reportBackIn,
+        );
+    }
+}

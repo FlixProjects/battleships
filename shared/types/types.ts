@@ -166,7 +166,6 @@ export type Grid = Array<ICell>;
 export interface ICell {
     loc: ICellLoc;
     selectable: boolean;
-    items?: any[];
     hidden: boolean;
     visibleTo?: string[];
 }

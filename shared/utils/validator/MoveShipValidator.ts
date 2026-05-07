@@ -21,7 +21,7 @@ export class MoveShipValidator extends Validator {
             this.validateWithinMovementRange();
 
             return { type: ResultType.SUCCESS, playerId: this.moveAction.playerId };
-        } catch (error: any) {
+        } catch (error) {
             return error as IErrorResult;
         }
     }
@@ -29,7 +29,7 @@ export class MoveShipValidator extends Validator {
     private validateShipExists() {
         const { shipId } = this.moveAction;
         const ship = this.gameState.ships.find((s) => s.id === shipId);
-        const shipHulls = this.gameState.hulls.filter((h) => h.shipId === shipId);
+        const shipHulls = this.gameState.hulls?.filter((h) => h.shipId === shipId);
 
         if (!ship?.deployed || !shipHulls?.[0]) {
             throw {
@@ -60,7 +60,10 @@ export class MoveShipValidator extends Validator {
     private validateWithinMovementRange() {
         const { shipId, hullLocations: newLocations } = this.moveAction;
         const _ship = this.gameState.ships.find((s) => s.id === shipId);
-        const ship = new Ship(_ship!);
+        if (!_ship) {
+            throw { type: ResultType.ERROR, errorCode: ERROR_CODE.SYS_NOT_FOUND, message: "[validateWithinMovementRange] Ship not found" };
+        }
+        const ship = new Ship(_ship);
         const currentLoc = ship.getFrontHull().location;
         const movementRange = ship.movementRange || 0;
 
@@ -95,7 +98,7 @@ export class MoveShipValidator extends Validator {
         const { shipId, hullLocations: newLocations } = this.moveAction;
         const players = this.gameState.players.map((p) => ({
             ...p,
-            ships: p.ships.map((s) => (s.id === shipId ? { ...s, hulls: [] } : s)),
+            ships: p.ships?.map((s) => (s.id === shipId ? { ...s, hulls: [] } : s)) ?? [],
         }));
         const locationHelper = new LocationHelper(players);
 

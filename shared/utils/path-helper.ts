@@ -2,14 +2,23 @@ import { BOARD_COLUMNS, BOARD_ROWS, CELL_SEPARATOR } from "../constants";
 import { ICellLoc, IGOWithVisibility, IPlayer } from "../types";
 import { locationToKey } from "./helpers";
 
-export interface IGetCellPathsOptions {
-    max?: number;
-    min?: number;
-    origin?: ICellLoc;
+export interface IGetCellPathsOptionals {
     xUpperBound?: number;
     xLowerBound?: number;
     yUpperBound?: number;
     yLowerBound?: number;
+}
+
+export interface IGetCellPathsOptions extends IGetCellPathsOptionals {
+    max: number;
+    min: number;
+    origin: ICellLoc;
+}
+
+export interface IGetCellPathsParamOptions extends IGetCellPathsOptionals {
+    max?: number;
+    min?: number;
+    origin?: ICellLoc;
 }
 
 interface IReachableCellOptions {
@@ -19,7 +28,7 @@ interface IReachableCellOptions {
     filterFn?: (cellLoc: ICellLoc) => boolean;
 }
 
-const DEFAULT_OPTIONS: Partial<IGetCellPathsOptions> = {
+const DEFAULT_OPTIONS: IGetCellPathsOptions = {
     max: 0,
     min: 0,
     origin: [0, 0],
@@ -27,8 +36,8 @@ const DEFAULT_OPTIONS: Partial<IGetCellPathsOptions> = {
 
 export class PathHelper {
     public reachableCellsSet = new Set<string>();
-    public getCellPaths(_options: IGetCellPathsOptions) {
-        const options = { ...DEFAULT_OPTIONS, ..._options };
+    public getCellPaths(_options: IGetCellPathsParamOptions) {
+        const options: IGetCellPathsOptions = { ...DEFAULT_OPTIONS, ..._options };
         const { origin, max, xLowerBound, yLowerBound, xUpperBound, yUpperBound } = options;
 
         const [originX, originY] = origin;
@@ -64,7 +73,7 @@ export class PathHelper {
 
     // Note: not sure why we need this but its an interesting
     // mathematical pattern for calculating the no. of tiles
-    private calculateTotalUniqueTiles(_options: IGetCellPathsOptions) {
+    private calculateTotalUniqueTiles(_options: IGetCellPathsParamOptions) {
         const { origin, xLowerBound, yLowerBound, min, max } = { ...DEFAULT_OPTIONS, ..._options };
 
         if (min > max) {
@@ -81,7 +90,7 @@ export class PathHelper {
         return totalUniqueTiles;
     }
 
-    private isValidCell(currCell: [number, number], _options: IGetCellPathsOptions): boolean {
+    private isValidCell(currCell: [number, number], _options: IGetCellPathsParamOptions): boolean {
         const {
             origin,
             min: _min,
@@ -125,7 +134,9 @@ export class PathHelper {
         const visited: Set<string> = new Set();
 
         while (queue.length > 0) {
-            const { loc, steps } = queue.shift()!;
+            const item = queue.shift();
+            if (!item) break;
+            const { loc, steps } = item;
             const key = `${loc[0]},${loc[1]}`;
 
             if (visited.has(key) || steps > range) continue;
@@ -162,7 +173,7 @@ export class PathHelper {
         const visible = new Set<string>();
 
         player.ships
-            .filter((s) => s.deployed && !s.destroyed)
+            ?.filter((s) => s.deployed && !s.destroyed)
             .forEach((ship) => {
                 const visionRange = 2; // TEMP: tiles around each ship
 
@@ -186,6 +197,7 @@ export class PathHelper {
         const visible = new Set<string>();
 
         visibilityObjects?.forEach((vo) => {
+            if(!vo.location) return;
             visible.add(locationToKey(vo.location));
             const cells = new PathHelper().getReachableCells({
                 start: vo.location,

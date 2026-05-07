@@ -9,8 +9,8 @@ import { queueCommand } from "../../../src/utils/game-helper";
 import { FEEntity } from "./FEEntity";
 
 export class FEShipEntity extends FEEntity<Ship> {
-    protected gameBoard!: IGameBoard;
-    private shipWrapper!: Selectable;
+    protected gameBoard: IGameBoard;
+    private shipWrapper: Selectable;
 
     public render(gameBoard: IGameBoard) {
         this.gameBoard = gameBoard;

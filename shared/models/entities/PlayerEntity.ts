@@ -9,7 +9,7 @@ export class PlayerEntity extends Entity<PlayerEntity> implements IPlayer {
     order: number;
     ready: boolean;
     shipIds: string[];
-    ships?: Ship[];
+    ships: Ship[];
     pendingActions: IPlayerAction[];
     maxCommandPoints: number;
     commandPoints: number;
@@ -41,7 +41,11 @@ export class PlayerEntity extends Entity<PlayerEntity> implements IPlayer {
     }
 
     public getShip(shipId: string) {
-        return new Ship(this.ships.find((ship) => ship.id === shipId));
+        const ship = this.ships.find((s) => s.id === shipId);
+        if (!ship) {
+            throw new Error(`Ship with id ${shipId} not found for player ${this.id}`);
+        }
+        return new Ship(ship);
     }
 
     public updateShip(ship: Partial<IShip>) {

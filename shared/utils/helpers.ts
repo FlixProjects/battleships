@@ -53,7 +53,6 @@ export const getNewCell = (cellLoc: ICellLoc): Cell =>
     new Cell({
         loc: cellLoc,
         selectable: false,
-        items: [],
         hidden: true,
         visibleTo: [],
     });
