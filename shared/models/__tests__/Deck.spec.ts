@@ -1,5 +1,6 @@
 import { Faction } from "../../factions";
 import { CardKind, ICard } from "../../types";
+import { Card } from "../Card";
 import { Deck } from "../Deck";
 
 const makeCard = (id: string, refNo: string, deckId = "deck-1"): ICard => ({
@@ -10,11 +11,12 @@ const makeCard = (id: string, refNo: string, deckId = "deck-1"): ICard => ({
     refNo,
 });
 
-const baseProps = (cards: ICard[]) => ({
+const baseProps = (cards: ICard[], played: ICard[] = []) => ({
     id: "deck-1",
     playerId: "p1",
     faction: Faction.THE_UNITED_FLEET,
     cards,
+    played,
 });
 
 describe("Deck", () => {
@@ -79,6 +81,29 @@ describe("Deck", () => {
             const deckA = Deck.create({ ...baseProps(cards), rng: seeded([0.1, 0.5, 0.9]) });
             const deckB = Deck.create({ ...baseProps(cards), rng: seeded([0.1, 0.5, 0.9]) });
             expect(deckA.cards.map((c) => c.id)).toEqual(deckB.cards.map((c) => c.id));
+        });
+    });
+
+    describe("addToPlayed", () => {
+        it("appends the card to the played pile", () => {
+            const c1 = makeCard("c1", "frigate0");
+            const c2 = makeCard("c2", "frigate0");
+            const deck = new Deck(baseProps([c1, c2]));
+
+            deck.addToPlayed(new Card(c1));
+
+            expect(deck.played.map((c) => c.id)).toEqual(["c1"]);
+        });
+
+        it("preserves play order", () => {
+            const c1 = makeCard("c1", "frigate0");
+            const c2 = makeCard("c2", "frigate0");
+            const deck = new Deck(baseProps([]));
+
+            deck.addToPlayed(new Card(c2));
+            deck.addToPlayed(new Card(c1));
+
+            expect(deck.played.map((c) => c.id)).toEqual(["c2", "c1"]);
         });
     });
 

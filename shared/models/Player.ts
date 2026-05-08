@@ -1,9 +1,17 @@
 import { IPlayer } from "../types";
+import { Card } from "./Card";
 import { PlayerEntity } from "./entities/PlayerEntity";
 
 export class Player extends PlayerEntity {
     constructor(props: IPlayer) {
         super(props);
+    }
+
+    public playCard(card: Card): this {
+        if (!this.hand.includes(card.id)) return this;
+        this.hand = this.hand.filter((id) => id !== card.id);
+        card.onPlay();
+        return this;
     }
 
     public getVisibilityFromShips() {

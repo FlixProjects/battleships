@@ -58,9 +58,21 @@ export class GameState implements IGameState {
         this.decks =
             decks?.map((deck) => {
                 if (deck instanceof Deck) return deck;
-                const deckCards = this.cards.filter((c) => c.deckId === deck.id);
-                return new Deck({ ...(deck as IDeck), cards: deckCards });
+                // Honor the deck's own `cards` / `played` lists rather than
+                // filtering by deckId — drawn cards retain their deckId but
+                // sit in the player's hand, so deckId alone can't distinguish
+                // in-deck / in-hand / played.
+                const cardsById = new Map(this.cards.map((c) => [c.id, c]));
+                const hydrate = (ids: string[]) =>
+                    ids.map((id) => cardsById.get(id)).filter((c): c is Card => c !== undefined);
+                return new Deck({
+                    ...(deck as IDeck),
+                    cards: hydrate(this.extractDeckCardIds(deck.cards)),
+                    played: hydrate(this.extractDeckCardIds(deck.played)),
+                });
             }) ?? [];
+
+        this.bindCardsToDecks();
 
         this.actions =
             actions?.map((action) => {
@@ -102,6 +114,51 @@ export class GameState implements IGameState {
         if (index === -1) return this;
         collection[index] = new EntityClass({ ...collection[index], ...entity } as P);
         return this;
+    }
+
+    /**
+     * Draws cards from the player's deck into their hand until the hand is at
+     * `maxHandSize` (or the deck runs out). Mutates the deck and the player.
+     */
+    public refillPlayerHand(playerId: string, maxHandSize: number): this {
+        const player = this.players.find((p) => p.id === playerId);
+        if (!player) return this;
+
+        const deck = this.decks.find((d) => d.id === player.deck);
+        if (!deck) return this;
+
+        const cardsNeeded = Math.max(0, maxHandSize - player.hand.length);
+        if (cardsNeeded === 0) return this;
+
+        const drawn = deck.draw(cardsNeeded);
+        player.hand = [...player.hand, ...drawn.map((c) => c.id)];
+        return this;
+    }
+
+    public playCard(playerId: string, cardId: string): this {
+        const player = this.players.find((p) => p.id === playerId);
+        if (!player) return this;
+
+        const card = this.cards.find((c) => c.id === cardId);
+        if (!card) return this;
+
+        if (!card.hasDeckBound()) return this;
+
+        player.playCard(card);
+        return this;
+    }
+
+    private extractDeckCardIds(cards: ICard[] | string[]): string[] {
+        if (cards.length === 0) return [];
+        return typeof cards[0] === "string" ? (cards as string[]) : (cards as ICard[]).map((c) => c.id);
+    }
+
+    private bindCardsToDecks(): void {
+        const decksById = new Map(this.decks.map((d) => [d.id, d]));
+        this.cards.forEach((card) => {
+            const deck = decksById.get(card.deckId);
+            if (deck) card.bindDeck(deck);
+        });
     }
 
     updatePlayer(player: Partial<IPlayer>) {

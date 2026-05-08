@@ -116,7 +116,7 @@ export class GameEngine {
         }
         player.commandPoints -= commandPointCost;
 
-        this.removeCardFromHandByInstanceId(player, shipId);
+        this.playCardByInstanceId(playerId, shipId);
 
         return {
             type: ResultType.SUCCESS,
@@ -127,10 +127,10 @@ export class GameEngine {
         };
     }
 
-    private removeCardFromHandByInstanceId(player: IPlayer, instanceId: string) {
+    private playCardByInstanceId(playerId: string, instanceId: string) {
         const card = this.gsm.gameState.cards.find((c) => c.instanceId === instanceId);
         if (!card) return;
-        player.hand = player.hand.filter((cardId) => cardId !== card.id);
+        this.gsm.gameState.playCard(playerId, card.id);
     }
 
     public validateDeployShip(deployAction: IDeployAction): IResult {

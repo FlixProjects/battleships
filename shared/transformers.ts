@@ -47,7 +47,7 @@ export const transformPlayersToPlain = (players: IPlayer[]): IPlainPlayer[] => {
 };
 
 export const transformDeckToPlain = (deck: IDeck): IPlainDeck => {
-    return transformObjectToPlain(deck, ["cards"]);
+    return transformObjectToPlain(deck, ["cards", "played"]);
 };
 
 export const transformDecksToPlain = (decks: IDeck[]): IPlainDeck[] => {
@@ -96,8 +96,14 @@ export const transformPlainAppStateToDomain = (appState: Partial<IPlainAppState>
 };
 
 export const transformPlainDeckToDomain = (deck: IPlainDeck, cards: ICard[]): IDeck => {
-    const deckCards = cards.filter((c) => c.deckId === deck.id);
-    return { ...deck, cards: deckCards };
+    const cardsById = new Map(cards.map((c) => [c.id, c]));
+    // The plain deck's `cards` and `played` are ordered lists of IDs.
+    // Drawn cards retain their deckId but are no longer in either list while
+    // they sit in the player's hand — a filter-by-deckId would lose that
+    // distinction.
+    const hydrate = (ids: string[]) =>
+        ids.map((id) => cardsById.get(id)).filter((c): c is ICard => c !== undefined);
+    return { ...deck, cards: hydrate(deck.cards), played: hydrate(deck.played) };
 };
 
 export const transformPlainGameStateToDomain = (_gameState: IPlainGameState): IGameState => {

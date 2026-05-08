@@ -247,7 +247,7 @@ describe("transformPlainShipToDomain", () => {
 });
 
 describe("transformDeckToPlain", () => {
-    it("flattens deck.cards to ID array", () => {
+    it("flattens deck.cards and deck.played to ID arrays", () => {
         const deck = {
             id: "deck-1",
             playerId: "p1",
@@ -256,28 +256,34 @@ describe("transformDeckToPlain", () => {
                 { id: "card-1", deckId: "deck-1", instanceId: "ship-1", kind: "Ship" as const, refNo: "frigate0" },
                 { id: "card-2", deckId: "deck-1", instanceId: "ship-2", kind: "Ship" as const, refNo: "flagship0" },
             ],
+            played: [
+                { id: "card-3", deckId: "deck-1", instanceId: "ship-3", kind: "Ship" as const, refNo: "frigate0" },
+            ],
         };
         const result = transformDeckToPlain(deck);
         expect(result.cards).toEqual(["card-1", "card-2"]);
+        expect(result.played).toEqual(["card-3"]);
         expect(result.id).toBe("deck-1");
     });
 });
 
 describe("transformPlainDeckToDomain", () => {
-    it("rehydrates deck.cards from the flat cards list via deckId FK", () => {
+    it("rehydrates deck.cards and deck.played from the flat cards list", () => {
         const plainDeck = {
             id: "deck-1",
             playerId: "p1",
             faction: "THE_UNITED_FLEET" as const,
             cards: ["card-1", "card-2"],
+            played: ["card-3"],
         };
         const allCards = [
             { id: "card-1", deckId: "deck-1", instanceId: "ship-1", kind: "Ship" as const, refNo: "frigate0" },
             { id: "card-2", deckId: "deck-1", instanceId: "ship-2", kind: "Ship" as const, refNo: "flagship0" },
-            { id: "card-3", deckId: "deck-other", instanceId: "ship-3", kind: "Ship" as const, refNo: "frigate0" },
+            { id: "card-3", deckId: "deck-1", instanceId: "ship-3", kind: "Ship" as const, refNo: "frigate0" },
+            { id: "card-4", deckId: "deck-other", instanceId: "ship-4", kind: "Ship" as const, refNo: "frigate0" },
         ];
         const result = transformPlainDeckToDomain(plainDeck, allCards);
-        expect(result.cards).toHaveLength(2);
         expect(result.cards.map((c) => c.id)).toEqual(["card-1", "card-2"]);
+        expect(result.played.map((c) => c.id)).toEqual(["card-3"]);
     });
 });

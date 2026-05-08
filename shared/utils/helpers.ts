@@ -144,6 +144,7 @@ export const buildPlayerStartingState = (playerId: string, faction: TFaction): I
         playerId,
         faction,
         cards: deckDomain.cards.map((c) => c.id),
+        played: [],
     };
 
     return {

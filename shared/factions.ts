@@ -18,6 +18,6 @@ export type DeckTemplate = IDeckTemplateEntry[];
 export const FACTION_CONFIG: Record<TFaction, DeckTemplate> = {
     [Faction.THE_UNITED_FLEET]: [
         { refNo: "flagship0", count: 1 },
-        { refNo: "frigate0", count: 3 },
+        { refNo: "frigate0", count: 4 },
     ],
 };

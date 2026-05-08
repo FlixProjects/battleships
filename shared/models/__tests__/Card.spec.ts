@@ -1,5 +1,5 @@
 import { CardKind } from "../../types";
-import { Card } from "../Card";
+import { Card, ICardPlaySink } from "../Card";
 
 describe("Card", () => {
     const baseProps = {
@@ -36,5 +36,40 @@ describe("Card", () => {
         const card = new Card(baseProps);
         card.update({ id: "card-1", refNo: "flagship0" });
         expect(card.refNo).toBe("flagship0");
+    });
+
+    describe("onPlay", () => {
+        const makeSink = (): ICardPlaySink & { received: Card[] } => {
+            const received: Card[] = [];
+            return {
+                received,
+                addToPlayed(card: Card) {
+                    received.push(card);
+                },
+            };
+        };
+
+        it("hasDeckBound is false until bindDeck is called", () => {
+            const card = new Card(baseProps);
+            expect(card.hasDeckBound()).toBe(false);
+            card.bindDeck(makeSink());
+            expect(card.hasDeckBound()).toBe(true);
+        });
+
+        it("routes itself to the bound sink on play", () => {
+            const card = new Card(baseProps);
+            const sink = makeSink();
+            card.bindDeck(sink);
+
+            card.onPlay();
+
+            expect(sink.received).toHaveLength(1);
+            expect(sink.received[0]).toBe(card);
+        });
+
+        it("throws when played without a bound deck", () => {
+            const card = new Card(baseProps);
+            expect(() => card.onPlay()).toThrow(/no deck bound/);
+        });
     });
 });

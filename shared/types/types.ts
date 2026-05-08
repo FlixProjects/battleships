@@ -118,10 +118,11 @@ export interface IDeck {
     playerId: string; // FK → IPlayer.id
     faction: TFaction;
     cards: ICard[]; // domain shape; randomized order, shrinks as cards are drawn
+    played: ICard[]; // discard pile — cards that have been used out of the hand
 }
 
 export type IPlainCard = ICard;
-export type IPlainDeck = Omit<IDeck, "cards"> & { cards: string[] };
+export type IPlainDeck = Omit<IDeck, "cards" | "played"> & { cards: string[]; played: string[] };
 
 export const AppStatus = {
     NewGame: "NewGame",

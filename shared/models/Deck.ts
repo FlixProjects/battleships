@@ -40,6 +40,7 @@ export class Deck extends DeckEntity {
             playerId: props.playerId,
             faction: props.faction,
             cards: props.cards,
+            played: [],
         });
         deck.shuffleOnce(props.pinnedRefNo, props.rng ?? Math.random);
         return deck;
@@ -50,6 +51,11 @@ export class Deck extends DeckEntity {
         const drawn = this.cards.slice(0, count);
         this.cards = this.cards.slice(count);
         return drawn;
+    }
+
+    public addToPlayed(card: Card): this {
+        this.played.push(card);
+        return this;
     }
 
     public get size(): number {

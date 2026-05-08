@@ -8,12 +8,18 @@ export class DeckEntity extends Entity<DeckEntity> implements IDeck {
     playerId: string;
     faction: TFaction;
     cards: Card[];
+    played: Card[];
 
     constructor(props: Readonly<IDeck>) {
         super();
         this.id = props.id;
         this.playerId = props.playerId;
         this.faction = props.faction;
-        this.cards = (props.cards ?? []).map((c) => (c instanceof Card ? c : new Card(c as ICard)));
+        this.cards = this.toCards(props.cards);
+        this.played = this.toCards(props.played);
+    }
+
+    private toCards(cards: ICard[] | undefined): Card[] {
+        return (cards ?? []).map((c) => (c instanceof Card ? c : new Card(c as ICard)));
     }
 }

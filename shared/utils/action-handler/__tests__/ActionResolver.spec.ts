@@ -1,8 +1,9 @@
+import { Faction, MAX_HAND_SIZE } from "../../../factions";
 import { HullBuilder } from "../../../factories/hull-builder";
 import { PlayerBuilder } from "../../../factories/player-builder";
 import { ShipBuilder } from "../../../factories/ship-builder";
 import { GameState } from "../../../models";
-import { IMoveAction, IPlayer, IShipAttackAction } from "../../../types";
+import { CardKind, ICard, IDeck, IMoveAction, IPlayer, IShipAttackAction } from "../../../types";
 import { ActionTypes } from "../../../types/action-types";
 import { ActionResolver } from "../ActionResolver";
 
@@ -251,6 +252,99 @@ describe("ActionResolver", () => {
             const [first, second] = resolver["resolveIntiative"](moveAction1, moveAction2, "player2");
             expect(first?.playerId).toBe("player2");
             expect(second?.playerId).toBe("player1");
+        });
+    });
+
+    describe("hand refill on round resolution", () => {
+        const makeCard = (id: string, deckId: string): ICard => ({
+            id,
+            deckId,
+            instanceId: `${id}-instance`,
+            kind: CardKind.Ship,
+            refNo: "frigate0",
+        });
+
+        it("refills both players' hands to MAX_HAND_SIZE when resolve completes", () => {
+            const p1Cards = ["p1-c1", "p1-c2", "p1-c3", "p1-c4", "p1-c5"].map((id) => makeCard(id, "deck-1"));
+            const p2Cards = ["p2-c1", "p2-c2"].map((id) => makeCard(id, "deck-2"));
+
+            const p1Deck: IDeck = {
+                id: "deck-1",
+                playerId: "player1",
+                faction: Faction.THE_UNITED_FLEET,
+                cards: p1Cards,
+                played: [],
+            };
+            const p2Deck: IDeck = {
+                id: "deck-2",
+                playerId: "player2",
+                faction: Faction.THE_UNITED_FLEET,
+                cards: p2Cards,
+                played: [],
+            };
+
+            const player1 = buildPlayer1({ deck: "deck-1", hand: [] });
+            const player2 = buildPlayer2({ deck: "deck-2", hand: [] });
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [],
+                hulls: [],
+                cards: [...p1Cards, ...p2Cards],
+                decks: [p1Deck, p2Deck],
+                winners: [],
+                isOver: false,
+            });
+
+            const { gameState: resolved } = new ActionResolver("player1", gameState).resolve();
+
+            const refilledP1 = resolved.players.find((p) => p.id === "player1");
+            const refilledP2 = resolved.players.find((p) => p.id === "player2");
+            expect(refilledP1?.hand).toEqual(["p1-c1", "p1-c2", "p1-c3", "p1-c4"]);
+            // p2 deck only has 2 cards — draws what's available, no error
+            expect(refilledP2?.hand).toEqual(["p2-c1", "p2-c2"]);
+            expect(refilledP1?.hand.length).toBe(MAX_HAND_SIZE);
+
+            const refilledP1Deck = resolved.decks.find((d) => d.id === "deck-1");
+            expect(refilledP1Deck?.cards.map((c) => c.id)).toEqual(["p1-c5"]);
+            const refilledP2Deck = resolved.decks.find((d) => d.id === "deck-2");
+            expect(refilledP2Deck?.cards).toEqual([]);
+        });
+
+        it("does not refill when the game is over", () => {
+            const cards = ["c1", "c2"].map((id) => makeCard(id, "deck-1"));
+            const deck: IDeck = {
+                id: "deck-1",
+                playerId: "player1",
+                faction: Faction.THE_UNITED_FLEET,
+                cards,
+                played: [],
+            };
+
+            const player1 = buildPlayer1({ deck: "deck-1", hand: [] });
+            const player2 = buildPlayer2({ deck: "", hand: [] });
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [],
+                hulls: [],
+                cards,
+                decks: [deck],
+                winners: ["player2"],
+                isOver: true,
+            });
+
+            new ActionResolver("player1", gameState).resolveHandRefill();
+
+            const p1 = gameState.players.find((p) => p.id === "player1");
+            expect(p1?.hand).toEqual([]);
+            expect(gameState.decks[0].cards.map((c) => c.id)).toEqual(["c1", "c2"]);
         });
     });
 });

@@ -1,4 +1,5 @@
 import { ERROR_CODE } from "../../constants";
+import { MAX_HAND_SIZE } from "../../factions";
 import { GameEngine, GameStateManager } from "../../models";
 import {
     ActionTypes,
@@ -34,9 +35,19 @@ export class ActionResolver {
 
         this.resolveRotationOfInitiative();
         this.resolvePostSubmissionCommandPointRemoval();
+        this.resolveHandRefill();
         const { obscuredGameState } = this.resolveVisibility();
 
         return { gameState: this.gameState, obscuredGameState, results: this.results };
+    }
+
+    public resolveHandRefill() {
+        if (this.gameState.isOver) return;
+        const gsm = new GameStateManager(this.gameState);
+        gsm.gameState.players.forEach((player) => {
+            gsm.gameState.refillPlayerHand(player.id, MAX_HAND_SIZE);
+        });
+        this.gameState = gsm.gameState;
     }
 
     public resolveTurn() {
