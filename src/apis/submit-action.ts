@@ -1,4 +1,5 @@
 import { FP_GAME_STATE } from "@shared/constants";
+import { Action } from "@shared/models";
 import { IAction, IPlainGameState, SubmitActionRequest, SubmitActionResponse } from "@shared/types";
 import { appConfig, isLocal } from "../config/app-config";
 import { CryptoHelper } from "../utils/crypto-helper";
@@ -15,7 +16,9 @@ export const submitAction = async (actions: IAction[]) => {
         const path = `submit`;
         const url = isLocal ? `/api/${path}` : `${appConfig.apiBaseUrl}/${path}`;
 
-        const reqBody: SubmitActionRequest = { gameCode, actions };
+        const plainActions = actions.map((a) => (a instanceof Action ? a.toPlain() : a));
+
+        const reqBody: SubmitActionRequest = { gameCode, actions: plainActions };
 
         const config: RequestInit = {
             method: "POST",

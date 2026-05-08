@@ -1,5 +1,5 @@
 import type { TFaction } from "../factions";
-import { ICard, IDeck } from "../types";
+import { ICard, IDeck, IGameState, IPlainDeck } from "../types";
 import { Card } from "./Card";
 import { DeckEntity } from "./entities/DeckEntity";
 
@@ -77,5 +77,41 @@ export class Deck extends DeckEntity {
         }
 
         this.cards = [...pinned, ...rest];
+    }
+
+    /** Flattens cards/played to ID arrays. */
+    public toPlain(): IPlainDeck {
+        return {
+            id: this.id,
+            playerId: this.playerId,
+            faction: this.faction,
+            cards: this.cards.map((c) => c.id),
+            played: this.played.map((c) => c.id),
+        };
+    }
+
+    /**
+     * Rehydrates a Deck by joining card IDs against `state.cards`. Caller
+     * must have hydrated cards first (the registry order owns this).
+     */
+    public static toDomain(plain: IPlainDeck | IDeck, state: IGameState): Deck {
+        if (plain instanceof Deck) return plain;
+        const cardsById = new Map<string, Card>(
+            (state.cards ?? []).filter((c): c is Card => c instanceof Card).map((c) => [c.id, c]),
+        );
+        // refs arrive either as `string[]` (IPlainDeck) or `ICard[]` (IDeck);
+        // normalise each element to its id, then resolve via the registry.
+        const hydrate = (refs: ICard[] | string[]): Card[] =>
+            refs
+                .map((r: string | ICard) => (typeof r === "string" ? r : r.id))
+                .map((id) => cardsById.get(id))
+                .filter((c): c is Card => c !== undefined);
+        return new Deck({
+            id: plain.id,
+            playerId: plain.playerId,
+            faction: plain.faction,
+            cards: hydrate(plain.cards as ICard[] | string[]),
+            played: hydrate(plain.played as ICard[] | string[]),
+        });
     }
 }

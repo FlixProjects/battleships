@@ -51,7 +51,7 @@ export class FEMoveShipCommand extends FECommand {
 
         const newGameState = resolver.resolveMove(moveAction);
 
-        db.saveCurrentPlayerStateV2({ gameState: newGameState }, { skipResolve: true });
+        db.saveAppState({ gameState: newGameState.toPlain() });
 
         // Note: do not use the above GSM, use the new game state
         newGameState.getShipHulls(shipId).forEach((h) => {

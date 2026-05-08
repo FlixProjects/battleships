@@ -60,7 +60,7 @@ export class FEDeployShipCommand extends FECommand {
 
         const newGameState = resolver.resolvePlayCard(playCardAction);
 
-        db.saveCurrentPlayerStateV2({ gameState: newGameState }, { skipResolve: true });
+        db.saveAppState({ gameState: newGameState.toPlain() });
 
         locationElement.runOnSelects();
         onSuccessCb?.();

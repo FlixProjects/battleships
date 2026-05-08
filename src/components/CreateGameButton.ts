@@ -41,6 +41,7 @@ export class CreateGameButton extends HTMLButton {
             const { gameCode, gameState, playerId } = response;
 
             if (isLocal) {
+                // DO NOT DELETE: this item simulates Object in S3
                 sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameState));
             }
 
@@ -54,8 +55,7 @@ export class CreateGameButton extends HTMLButton {
             };
 
             if (playerId) {
-                // DO NOT DELETE: this item simulates Object in S3
-                gameManager.savePlainAppState(newState);
+                gameManager.saveAppState(newState);
             }
 
             updateComponents();

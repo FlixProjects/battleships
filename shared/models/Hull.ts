@@ -19,4 +19,13 @@ export class Hull extends HullEntity {
             this.remainingHealth = 0;
         }
     }
+
+    /** IHull is its own plain shape — no children to flatten. */
+    public toPlain(): IHull {
+        return { ...this };
+    }
+
+    public static toDomain(plain: IHull): Hull {
+        return plain instanceof Hull ? plain : new Hull(plain);
+    }
 }

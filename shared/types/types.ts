@@ -19,14 +19,7 @@ export interface IActionResolver {
 export interface IGameManager {
     state: IAppState;
     getCurrentPlayerId: () => string;
-    saveCurrentPlayerStateV2: (
-        state: Partial<IAppState>,
-        _options?: {
-            skipResolve?: boolean;
-            saveWithMerge?: boolean;
-        },
-    ) => void;
-    savePlainAppState: (
+    saveAppState: (
         state: Partial<IPlainAppState>,
         _options?: {
             saveWithMerge?: boolean;

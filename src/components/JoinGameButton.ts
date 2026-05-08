@@ -49,7 +49,7 @@ export class JoinGameButton extends HTMLButton {
             gameManager.setCurrentPlayer(playerId);
 
             setGameCode(gameCode);
-            gameManager.savePlainAppState(newState);
+            gameManager.saveAppState(newState);
 
             updateComponents();
         } catch (error) {

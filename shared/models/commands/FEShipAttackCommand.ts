@@ -45,7 +45,7 @@ export class FEShipAttackCommand extends FECommand {
             }
         });
 
-        db.saveCurrentPlayerStateV2({ gameState: newGameState }, { skipResolve: true });
+        db.saveAppState({ gameState: newGameState.toPlain() });
 
         await queueCommand(
             new FEShipAttackAnimationCommand({

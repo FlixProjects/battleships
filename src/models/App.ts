@@ -1,5 +1,5 @@
 import { DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_GAME_CODE } from "@shared/constants";
-import { transformPlainAppStateToDomain } from "@shared/transformers";
+import { GameStateManager } from "@shared/models";
 import { AppStatus, IAppState } from "@shared/types";
 import { gameManager } from "..";
 import { getGame } from "../apis/get-game";
@@ -40,18 +40,29 @@ export class App {
         try {
             const response = await getGame(getGameCode());
             console.log("Existing game found:", response);
-            const newState = transformPlainAppStateToDomain({
-                status: response?.gameState.isOver
-                    ? AppStatus.GameOver
-                    : isWaitingForOtherPlayer(gameManager.state.gameState)
-                      ? AppStatus.WaitingForOtherPlayer
-                      : AppStatus.ReadyToSubmit,
-                loading: false,
-                gameState: response?.gameState,
-            });
 
-            gameManager.saveCurrentPlayerStateV2(newState, { saveWithMerge: false });
-            gameManager.setCurrentPlayer(getCookie(FP_AUTH_TOKEN));
+            if (!response?.gameState) {
+                throw new Error("Get-game returned no game state");
+            }
+
+            const currentPlayerId = getCookie(FP_AUTH_TOKEN);
+            const gsm = new GameStateManager(response.gameState);
+            // Server speaks plain. Run local re-resolution (only fires if player has already submitted)
+            gsm.resolveLocalActionsForPlayer(currentPlayerId);
+
+            gameManager.saveAppState(
+                {
+                    status: response.gameState.isOver
+                        ? AppStatus.GameOver
+                        : isWaitingForOtherPlayer(gameManager.state.gameState)
+                          ? AppStatus.WaitingForOtherPlayer
+                          : AppStatus.ReadyToSubmit,
+                    loading: false,
+                    gameState: gsm.gameState.toPlain(),
+                },
+                { saveWithMerge: false },
+            );
+            gameManager.setCurrentPlayer(currentPlayerId);
 
             updateComponents();
         } catch (error) {

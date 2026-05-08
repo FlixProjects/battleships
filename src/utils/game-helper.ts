@@ -54,7 +54,7 @@ export const refresh = async () => {
             currentPlayer,
         };
 
-        gameManager.savePlainAppState(newState);
+        gameManager.saveAppState(newState);
         updateComponents();
     } catch (error) {
         updateComponents({ status: AppStatus.Error });

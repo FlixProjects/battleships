@@ -1,4 +1,4 @@
-import { ICellLoc, IHull, IShip } from "@shared/types";
+import { ICellLoc, IGameState, IHull, IPlainShip, IShip } from "@shared/types";
 import { PathHelper } from "@shared/utils";
 import { SegmentBuilder } from "@shared/utils/segment-builder";
 import { mergician } from "mergician";
@@ -103,5 +103,23 @@ export class Ship extends ShipEntity {
             startingOrientation,
         );
         return { finalOrientation, backLocation: oldFrontLocation };
+    }
+
+    /** Flattens hulls (IHull[]) → string[] of hull IDs. */
+    public toPlain(): IPlainShip {
+        return {
+            ...this,
+            hulls: this.hulls?.map((h) => h.id) ?? [],
+        };
+    }
+
+    /**
+     * Rebuilds a Ship from its plain shape, joining hulls from `state.hulls`
+     * by FK (`hull.shipId === plain.id`). Caller must hydrate hulls first.
+     */
+    public static toDomain(plain: IPlainShip | IShip, state: IGameState): Ship {
+        if (plain instanceof Ship) return plain;
+        const hulls: IHull[] = state.hulls?.filter((h) => h.shipId === plain.id) ?? [];
+        return new Ship({ ...plain, hulls });
     }
 }

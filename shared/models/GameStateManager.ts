@@ -1,16 +1,17 @@
 import clone from "lodash.clonedeep";
-import { IGameState, IGameStateManager, IHull, IPlainAction, IPlayer, IShip } from "../types";
+import { IGameState, IGameStateManager, IHull, IPlainAction, IPlainGameState, IPlayer, IShip } from "../types";
+import { ActionResolver } from "../utils/action-handler/ActionResolver";
 import { GameState } from "./GameState";
 
 export class GameStateManager implements IGameStateManager {
     private _gameState: GameState;
-    constructor(_gameState: IGameState) {
+    constructor(_gameState: IGameState | IPlainGameState) {
         // each time we instantiate we deep clone the gameState
         const plain = clone(_gameState);
         this._gameState = this.transformToDomain(plain);
     }
 
-    private transformToDomain(_gameState: IGameState) {
+    private transformToDomain(_gameState: IGameState | IPlainGameState) {
         if (_gameState instanceof GameState) {
             return _gameState;
         }
@@ -21,8 +22,26 @@ export class GameStateManager implements IGameStateManager {
         return this._gameState;
     }
 
-    setGameState(_gameState: IGameState) {
+    setGameState(_gameState: IGameState | IPlainGameState) {
         this._gameState = this.transformToDomain(_gameState);
+    }
+
+    /**
+     * If the player has already submitted (`ready === true`), runs
+     * `ActionResolver` over the current state so the local view shows the
+     * resolved outcome while we wait for the opponent. Server's stored state
+     * is unaffected — this is a client-only optimistic projection.
+     *
+     * Returns `this` for chaining; no-op when the player isn't ready.
+     */
+    public resolveLocalActionsForPlayer(playerId: string): this {
+        const player = this._gameState.getPlayer(playerId);
+        if (!player.ready) return this;
+
+        const resolver = new ActionResolver(playerId, this._gameState);
+        const { gameState: resolved } = resolver.resolve();
+        this.setGameState(resolved);
+        return this;
     }
 
     getCurrentRound() {

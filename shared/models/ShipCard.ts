@@ -4,6 +4,7 @@ import {
     ICard,
     IDeployAction,
     IMEventType,
+    IPlainCard,
     IShipCardPayload,
     TActionMeta,
     TPlayCardPayload,
@@ -40,5 +41,10 @@ export class ShipCard extends Card {
             shipId: this.instanceId,
             ...handlers,
         };
+    }
+
+    /** Concrete-subclass hydration. Inherits toPlain from Card. */
+    public static toDomain(plain: IPlainCard | ShipCard): ShipCard {
+        return plain instanceof ShipCard ? plain : new ShipCard(plain);
     }
 }

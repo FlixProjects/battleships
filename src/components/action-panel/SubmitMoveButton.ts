@@ -1,5 +1,5 @@
 import { FP_GAME_STATE } from "@shared/constants";
-import { transformPlainAppStateToDomain } from "@shared/transformers";
+import { GameStateManager } from "@shared/models";
 import { AppStatus } from "@shared/types";
 import { gameManager } from "../..";
 import { submitAction } from "../../apis/submit-action";
@@ -51,18 +51,26 @@ export class SubmitMoveButton extends HTMLButton {
             this.setDisabled(true);
             const { gameState, gameStateForLocal } = await submitAction(gameManager.getPlayer().pendingActions);
 
-            const newState = transformPlainAppStateToDomain({
-                status: isWaitingForOtherPlayer(gameState) ? AppStatus.WaitingForOtherPlayer : AppStatus.ReadyToSubmit,
-                loading: false,
-                gameState,
-            });
+            // Re-resolve locally so the player sees the resolved board while
+            // they wait for the opponent. Server's stored state stays raw.
+            const gsm = new GameStateManager(gameState);
+            gsm.resolveLocalActionsForPlayer(gameManager.getCurrentPlayerId());
 
             if (isLocal && !!gameState) {
                 // DO NOT DELETE: this item simulates Object in S3
                 sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameStateForLocal));
             }
 
-            gameManager.saveCurrentPlayerStateV2(newState, { saveWithMerge: false });
+            gameManager.saveAppState(
+                {
+                    status: isWaitingForOtherPlayer(gameState)
+                        ? AppStatus.WaitingForOtherPlayer
+                        : AppStatus.ReadyToSubmit,
+                    loading: false,
+                    gameState: gsm.gameState.toPlain(),
+                },
+                { saveWithMerge: false },
+            );
 
             updateComponents();
         } catch (error) {

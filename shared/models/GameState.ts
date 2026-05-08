@@ -1,5 +1,5 @@
 import clone from "lodash.clonedeep";
-import { Board, ICard, IDeck, IGameState, IHull, IPlayer, IPlayerAction, IShip } from "../types";
+import { Board, IDeck, IGameState, IHull, IPlainGameState, IPlayer, IPlayerAction, IShip } from "../types";
 import { mergeSets } from "../utils";
 import { createCard } from "../utils/card-helper";
 import { Action } from "./actions";
@@ -24,76 +24,62 @@ export class GameState implements IGameState {
     isOver: boolean;
     actions: Action[] = [];
 
-    // FIXME: there is issue when GameState is being passes in as a class already
-    constructor(props: Readonly<IGameState>) {
-        const { code, initiative, players, board, winners, isOver, ships, hulls, cards, decks, currentRound, actions } =
-            props;
-        this.code = code;
-        this.initiative = initiative;
-        this.board = board;
-        this.winners = winners;
-        this.isOver = isOver;
-        this.currentRound = currentRound;
+    /**
+     * Constructs a domain GameState from either plain or already-domain props.
+     * The hydration sequence is: copy primitives, then walk each child
+     * collection through its own `toDomain` in dependency order, then run
+     * cross-ref linking. Adding a new model only requires (a) the model's
+     * own `toPlain`/`toDomain` and (b) adding it to one of the phases below.
+     */
+    constructor(props: Readonly<IGameState | IPlainGameState>) {
+        this.code = props.code;
+        this.initiative = props.initiative;
+        this.board = props.board;
+        this.winners = props.winners;
+        this.isOver = props.isOver;
+        this.currentRound = props.currentRound;
 
-        this.hulls =
-            hulls?.map((hull) => {
-                if (hull instanceof Hull) {
-                    return hull;
-                }
-                return new Hull(hull);
-            }) ?? [];
+        // Phase 1 — independent collections (no cross-refs needed).
+        this.hulls = (props.hulls ?? []).map((h) => Hull.toDomain(h));
+        this.cards = (props.cards ?? []).map((c) => createCard(c));
+        this.actions = (props.actions ?? []).map((a) => Action.toDomain(a));
 
-        this.ships = ships.map((ship: IShip) => {
-            if (ship instanceof Ship) {
-                return ship;
-            }
+        // Phase 2 — depends on Phase 1.
+        this.ships = (props.ships ?? []).map((s) => Ship.toDomain(s as IShip, this));
+        this.decks = (props.decks ?? []).map((d) => Deck.toDomain(d as IDeck, this));
 
-            ship.hulls = this.hulls?.filter((h) => h.shipId === ship.id);
+        // Phase 3 — depends on Phase 2.
+        this.players = (props.players ?? []).map((p) => Player.toDomain(p as IPlayer, this));
 
-            return new Ship(ship);
-        });
-
-        this.cards = cards?.map((card) => createCard(card)) ?? [];
-
-        this.decks =
-            decks?.map((deck) => {
-                if (deck instanceof Deck) return deck;
-                // Honor the deck's own `cards` / `played` lists rather than
-                // filtering by deckId — drawn cards retain their deckId but
-                // sit in the player's hand, so deckId alone can't distinguish
-                // in-deck / in-hand / played.
-                const cardsById = new Map(this.cards.map((c) => [c.id, c]));
-                const hydrate = (ids: string[]) =>
-                    ids.map((id) => cardsById.get(id)).filter((c): c is Card => c !== undefined);
-                return new Deck({
-                    ...(deck as IDeck),
-                    cards: hydrate(this.extractDeckCardIds(deck.cards)),
-                    played: hydrate(this.extractDeckCardIds(deck.played)),
-                });
-            }) ?? [];
-
+        // Phase 4 — wire runtime back-references (Card → Deck).
         this.bindCardsToDecks();
+    }
 
-        this.actions =
-            actions?.map((action) => {
-                if (action instanceof Action) {
-                    return action;
-                }
-                return new Action(action);
-            }) ?? [];
+    /**
+     * Recursive projection to a fully-flat plain shape. Each child collection
+     * delegates to its own entity's `toPlain` — adding a new model means
+     * adding `toPlain` on that model, nothing here needs to change.
+     */
+    public toPlain(): IPlainGameState {
+        return {
+            code: this.code,
+            currentRound: this.currentRound,
+            initiative: this.initiative,
+            board: this.board,
+            winners: this.winners,
+            isOver: this.isOver,
+            hulls: this.hulls.map((h) => h.toPlain()),
+            ships: this.ships.map((s) => s.toPlain()),
+            actions: this.actions.map((a) => a.toPlain()),
+            cards: this.cards.map((c) => c.toPlain()),
+            decks: this.decks.map((d) => d.toPlain()),
+            players: this.players.map((p) => p.toPlain()),
+        };
+    }
 
-        this.players = players.map((player: IPlayer) => {
-            if (player instanceof Player) {
-                return player;
-            }
-
-            player.ships = this.ships?.filter((s) => s.playerId === player.id);
-            // NOTE: there's a weird bug on browser that show pendingActions to be [] when there are actually elements
-            player.pendingActions =
-                this.actions?.filter((a) => a.playerId === player.id && a.round === this.currentRound) ?? [];
-
-            return new Player(player);
-        });
+    /** Static counterpart — equivalent to `new GameState(plain)`. */
+    public static toDomain(plain: IPlainGameState | IGameState): GameState {
+        return plain instanceof GameState ? plain : new GameState(plain);
     }
 
     update(_gameState: Partial<IGameState>) {
@@ -146,11 +132,6 @@ export class GameState implements IGameState {
 
         player.playCard(card);
         return this;
-    }
-
-    private extractDeckCardIds(cards: ICard[] | string[]): string[] {
-        if (cards.length === 0) return [];
-        return typeof cards[0] === "string" ? (cards as string[]) : (cards as ICard[]).map((c) => c.id);
     }
 
     private bindCardsToDecks(): void {
