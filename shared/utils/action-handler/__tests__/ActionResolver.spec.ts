@@ -3,7 +3,7 @@ import { HullBuilder } from "../../../factories/hull-builder";
 import { PlayerBuilder } from "../../../factories/player-builder";
 import { ShipBuilder } from "../../../factories/ship-builder";
 import { GameState } from "../../../models";
-import { CardKind, ICard, IDeck, IMoveAction, IPlayer, IShipAttackAction } from "../../../types";
+import { CardKind, ICard, IDeck, IMoveAction, IPlayCardAction, IPlayer, IShipAttackAction } from "../../../types";
 import { ActionTypes } from "../../../types/action-types";
 import { ActionResolver } from "../ActionResolver";
 
@@ -345,6 +345,126 @@ describe("ActionResolver", () => {
             const p1 = gameState.players.find((p) => p.id === "player1");
             expect(p1?.hand).toEqual([]);
             expect(gameState.decks[0].cards.map((c) => c.id)).toEqual(["c1", "c2"]);
+        });
+    });
+
+    describe("resolvePlayCard (Ship card → Deploy)", () => {
+        const buildPlayCardAction = (overrides: Partial<IPlayCardAction> = {}): IPlayCardAction => ({
+            id: "play-action-1",
+            type: ActionTypes.PLAY_CARD,
+            playerId: "player1",
+            round: 1,
+            order: 0,
+            commandPointCost: 1,
+            cardId: "card-ship",
+            payload: {
+                kind: "Ship",
+                hullLocations: [],
+            },
+            ...overrides,
+        });
+
+        const buildShipCardEntities = () => {
+            const card: ICard = {
+                id: "card-ship",
+                deckId: "deck-1",
+                instanceId: "ship1",
+                kind: CardKind.Ship,
+                refNo: "frigate0",
+            };
+            const deck: IDeck = {
+                id: "deck-1",
+                playerId: "player1",
+                faction: Faction.THE_UNITED_FLEET,
+                cards: [],
+                played: [],
+            };
+            // Undeployed ship — no hulls yet. Deploy supplies them via payload.
+            const ship = shipBuilder.build({
+                id: "ship1",
+                playerId: "player1",
+                deployed: false,
+                hulls: [],
+                commandPointCost: 1,
+            });
+            const deployedHull = hullBuilder.build({
+                id: "hull1",
+                shipId: "ship1",
+                location: [1, 0],
+                front: true,
+            });
+            return { card, deck, ship, deployedHull };
+        };
+
+        it("deploys the ship, removes the card from hand, and pushes it onto the deck's played pile", () => {
+            const { card, deck, ship, deployedHull } = buildShipCardEntities();
+            const player1 = buildPlayer1({
+                ships: [ship],
+                hand: ["card-ship"],
+                deck: "deck-1",
+            });
+            const player2 = buildPlayer2();
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [ship],
+                hulls: [],
+                cards: [card],
+                decks: [deck],
+                winners: [],
+                isOver: false,
+            });
+
+            const action = buildPlayCardAction({
+                payload: {
+                    kind: "Ship",
+                    hullLocations: [deployedHull],
+                },
+            });
+
+            const resolver = new ActionResolver("player1", gameState);
+            const next = resolver.resolvePlayCard(action);
+
+            const resolvedShip = next.ships.find((s) => s.id === "ship1");
+            expect(resolvedShip?.deployed).toBe(true);
+            expect(resolvedShip?.hulls?.[0].location).toEqual([1, 0]);
+
+            const resolvedPlayer = next.players.find((p) => p.id === "player1");
+            expect(resolvedPlayer?.hand).toEqual([]);
+            expect(resolvedPlayer?.pendingActions?.map((a) => a.id)).toEqual([action.id]);
+            expect(resolvedPlayer?.pendingActions?.[0].type).toBe(ActionTypes.PLAY_CARD);
+
+            const resolvedDeck = next.decks.find((d) => d.id === "deck-1");
+            expect(resolvedDeck?.played.map((c) => c.id)).toEqual(["card-ship"]);
+
+            // Audit trail keeps the outer PlayCardAction, not the synthesised inner Deploy.
+            expect(next.actions?.map((a) => a.type)).toEqual([ActionTypes.PLAY_CARD]);
+        });
+
+        it("rejects a play of a card that is not in the player's hand", () => {
+            const { card, deck, ship } = buildShipCardEntities();
+            const player1 = buildPlayer1({ ships: [ship], hand: [], deck: "deck-1" });
+            const player2 = buildPlayer2();
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [ship],
+                hulls: [],
+                cards: [card],
+                decks: [deck],
+                winners: [],
+                isOver: false,
+            });
+
+            const action = buildPlayCardAction();
+            const resolver = new ActionResolver("player1", gameState);
+            expect(() => resolver.resolvePlayCard(action)).toThrow(/not in player .* hand/);
         });
     });
 });

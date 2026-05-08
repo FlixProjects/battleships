@@ -5,6 +5,7 @@ import {
     ActionTypes,
     IDeployAction,
     IMoveAction,
+    IPlayCardAction,
     IPlayerAction,
     IShipAttackAction,
     IResult,
@@ -105,6 +106,8 @@ export class ActionResolver {
 
     public resolveAction(action: IPlayerAction) {
         switch (action.type) {
+            case ActionTypes.PLAY_CARD:
+                return this.resolvePlayCard(action as IPlayCardAction) ?? this.gameState;
             case ActionTypes.DEPLOY:
                 return this.resolveDeploy(action as IDeployAction) ?? this.gameState;
             case ActionTypes.MOVE:
@@ -116,7 +119,58 @@ export class ActionResolver {
         }
     }
 
+    public resolvePlayCard(action: IPlayCardAction) {
+        const gsm = new GameStateManager(this.gameState);
+        const player = gsm.getPlayer(action.playerId);
+        const card = gsm.getCard(action.cardId);
+
+        if (!card) {
+            throw new Error(`Cannot play card ${action.cardId}: card not found`);
+        }
+        if (!player.hand.includes(action.cardId)) {
+            throw new Error(`Cannot play card ${action.cardId}: not in player ${action.playerId}'s hand`);
+        }
+
+        const innerAction = card.buildAction(
+            {
+                id: action.id,
+                order: action.order,
+                round: action.round,
+                playerId: action.playerId,
+                commandPointCost: action.commandPointCost,
+            },
+            action.payload,
+        );
+
+        this.applyInnerAction(innerAction);
+
+        // Card hand → deck.played; PlayCardAction is the audit-trail entry.
+        const next = new GameStateManager(this.gameState);
+        next.gameState.playCard(action.playerId, action.cardId);
+        this.trackAction(next, action);
+        this.gameState = next.gameState;
+        return next.gameState;
+    }
+
+    private applyInnerAction(action: IPlayerAction) {
+        switch (action.type) {
+            case ActionTypes.DEPLOY:
+                this.applyDeploy(action as IDeployAction);
+                return;
+            default:
+                throw new Error(`Unsupported inner action type: ${action.type}`);
+        }
+    }
+
     public resolveDeploy(action: IDeployAction) {
+        this.applyDeploy(action);
+        const gsm = new GameStateManager(this.gameState);
+        this.trackAction(gsm, action);
+        this.gameState = gsm.gameState;
+        return gsm.gameState;
+    }
+
+    private applyDeploy(action: IDeployAction) {
         const gsm = new GameStateManager(this.gameState);
         const gameEngine = new GameEngine(this.gameState);
         const result = gameEngine.commit.deployShip(action);
@@ -126,8 +180,17 @@ export class ActionResolver {
         }
 
         const { player, ship, hulls } = result;
-        const newState = gsm.addHulls(hulls).updateShip(ship).updatePlayer(player).addAction(action).gameState;
-        return newState;
+        this.gameState = gsm.addHulls(hulls).updateShip(ship).updatePlayer(player).gameState;
+    }
+
+    private trackAction(gsm: GameStateManager, action: IPlayerAction) {
+        gsm.addAction(action);
+        const player = gsm.gameState.getPlayer(action.playerId);
+        const alreadyTracked = player.pendingActions.some((a) => a.id === action.id);
+        if (!alreadyTracked) {
+            player.pendingActions = [...player.pendingActions, action];
+            gsm.updatePlayer(player);
+        }
     }
 
     public resolveMove(action: IMoveAction) {

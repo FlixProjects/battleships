@@ -1,5 +1,6 @@
 export * from "./Card";
 export * from "./Deck";
+export * from "./ShipCard";
 export * from "./GameEngine";
 export * from "./GameStateManager";
 export * from "./GameState";

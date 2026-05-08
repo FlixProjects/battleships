@@ -95,8 +95,11 @@ export class GameEngine {
         };
     }
 
-    // commit should be after validation, we modify the local state
-    // and prepare player action to be sent to server
+    // commit should be after validation, we modify the local state.
+    // Action-level concerns (pushing to pendingActions, playing the card from
+    // hand, recording the action in gameState.actions) live one layer up in
+    // the ActionResolver — this method only applies the deploy *effect* on
+    // ships/hulls/players.
     private commitDeployShip(action: IDeployAction): IDeployResult {
         const { shipId, playerId, hullLocations } = action;
 
@@ -107,16 +110,7 @@ export class GameEngine {
         shipToDeploy.deployed = true;
         shipToDeploy.addHullLocations(hullLocations);
 
-        // FIXME: when trying to return only Partial player with necessary fields
-        // ship does not deploy properly
-        if (!player.pendingActions.map((a) => a.id).includes(action.id)) {
-            // PATCH: do not append again when resolving locally
-            // FIXME: there should be a better way handle local resolution
-            player.pendingActions.push(action);
-        }
         player.commandPoints -= commandPointCost;
-
-        this.playCardByInstanceId(playerId, shipId);
 
         return {
             type: ResultType.SUCCESS,
@@ -125,12 +119,6 @@ export class GameEngine {
             ship: shipToDeploy,
             hulls: hullLocations,
         };
-    }
-
-    private playCardByInstanceId(playerId: string, instanceId: string) {
-        const card = this.gsm.gameState.cards.find((c) => c.instanceId === instanceId);
-        if (!card) return;
-        this.gsm.gameState.playCard(playerId, card.id);
     }
 
     public validateDeployShip(deployAction: IDeployAction): IResult {

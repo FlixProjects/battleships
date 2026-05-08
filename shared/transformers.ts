@@ -55,7 +55,13 @@ export const transformDecksToPlain = (decks: IDeck[]): IPlainDeck[] => {
 };
 
 export const transformCardToPlain = (card: ICard): IPlainCard => {
-    return { ...card };
+    return {
+        id: card.id,
+        deckId: card.deckId,
+        instanceId: card.instanceId,
+        kind: card.kind,
+        refNo: card.refNo,
+    };
 };
 
 export const transformCardsToPlain = (cards: ICard[]): IPlainCard[] => {
@@ -107,7 +113,7 @@ export const transformPlainDeckToDomain = (deck: IPlainDeck, cards: ICard[]): ID
 };
 
 export const transformPlainGameStateToDomain = (_gameState: IPlainGameState): IGameState => {
-    const { players, ships, hulls, cards, decks, actions, currentRound } = _gameState;
+    const { players, ships, hulls, cards, decks, actions } = _gameState;
 
     const linkedShips = ships?.map((_ship): IShip => {
         const shipHulls = hulls?.filter((hull) => hull?.shipId === _ship?.id);
@@ -122,7 +128,7 @@ export const transformPlainGameStateToDomain = (_gameState: IPlainGameState): IG
 
     const linkedPlayers = players?.map((_player) => {
         const playerShips = linkedShips?.filter((ship) => ship.playerId === _player.id);
-        const pendingActions = actions?.filter((action) => _player.pendingActions?.includes(action.id));
+        const pendingActions = actions?.filter((action) => _player.pendingActions?.includes(action.id)) ?? [];
         const player: IPlayer = {
             ..._player,
             ships: playerShips,

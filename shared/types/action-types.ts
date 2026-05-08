@@ -2,6 +2,7 @@ import { ICellLoc, IHull } from "./types";
 
 export const ActionTypes = {
     // player actions
+    PLAY_CARD: "play_card",
     DEPLOY: "deploy",
     ATTACK: "attack",
     SELECT_FLEET: "select_fleet",
@@ -46,6 +47,31 @@ export interface IShipAttackAction extends IPlayerAction {
     shipId: string;
     attackLocations: ICellLoc[];
 }
+
+// ================= Play-Card Action =================
+//
+// PlayCardAction is the top-level submission; the inner action it triggers is
+// determined by the Card's class (ShipCard → IDeployAction, etc). The server
+// can replay history from a stream of Actions alone.
+
+export interface IShipCardPayload {
+    kind: "Ship";
+    hullLocations: IHull[];
+}
+
+export type TPlayCardPayload = IShipCardPayload;
+
+export interface IPlayCardAction extends IPlayerAction {
+    type?: typeof ActionTypes.PLAY_CARD;
+    cardId: string;
+    payload: TPlayCardPayload;
+}
+
+/**
+ * Common metadata Card.buildAction needs to assemble a typed inner action
+ * (id/order/round/playerId/cost). Mirrors IPlayerAction minus `type`.
+ */
+export type TActionMeta = Pick<IPlayerAction, "id" | "order" | "round" | "playerId" | "commandPointCost">;
 
 // ================= Server Actions =================
 

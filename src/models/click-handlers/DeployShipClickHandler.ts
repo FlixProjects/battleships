@@ -1,5 +1,5 @@
-import { FEDeployShipCommand } from "@shared/models/commands/FEDeployShipCommand";
 import { FEHighlightLocationsCommand } from "@shared/models/commands/FEHighlightLocationsCommand";
+import { FEPlayCardCommand } from "@shared/models/commands/FEPlayCardCommand";
 import { GameEngine } from "@shared/models/GameEngine";
 import { ICellLoc, ResultType } from "@shared/types";
 import { locationToKey } from "@shared/utils/helpers";
@@ -64,13 +64,22 @@ export class DeployShipClickHandler extends ClickHandler {
         if (!playerId) {
             throw new Error("[Error] Player ID not found");
         }
-        
+
+        // The handler is ship-deploy-specific in name, but it goes through the
+        // generic FEPlayCardCommand so card→effect dispatch lives in one place.
+        const card = gameManager.state.gameState.cards.find((c) => c.instanceId === shipId);
+        if (!card) {
+            throw new Error(`[Error] No card backs ship ${shipId}; cannot play`);
+        }
+
         queueCommand(
-            new FEDeployShipCommand({
-                tileId,
-                shipId,
+            new FEPlayCardCommand({
+                cardId: card.id,
                 playerId,
-                locationElement: tile,
+                deploy: {
+                    tileId,
+                    locationElement: tile,
+                },
                 onSuccessCb,
             }),
         );

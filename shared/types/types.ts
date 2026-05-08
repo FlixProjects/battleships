@@ -1,7 +1,7 @@
 import type { TFaction } from "../factions";
 import type { GameState, Hull, Ship } from "../models";
 import { ICommand } from "../models/commands/types";
-import { IDeployAction, IMoveAction, IPlayerAction, IShipAttackAction } from "./action-types";
+import { IDeployAction, IMoveAction, IPlayCardAction, IPlayerAction, IShipAttackAction } from "./action-types";
 
 export interface IGame {
     queueCommand(command: ICommand): void;
@@ -10,6 +10,7 @@ export interface IGame {
 }
 
 export interface IActionResolver {
+    resolvePlayCard(action: IPlayCardAction): GameState;
     resolveDeploy(action: IDeployAction): GameState;
     resolveMove(action: IMoveAction): GameState;
     resolveAttack(action: IShipAttackAction): GameState;
@@ -73,7 +74,7 @@ export interface IPlayer {
     order: number;
     ready: boolean;
     ships?: IShip[];
-    pendingActions?: IPlayerAction[];
+    pendingActions: IPlayerAction[];
     maxCommandPoints: number;
     commandPoints: number;
     faction: TFaction;

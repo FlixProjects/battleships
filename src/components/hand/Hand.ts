@@ -1,7 +1,6 @@
 import { GameStateManager } from "@shared/models";
 import { ICard, IPlayer } from "@shared/types";
 import { gameManager, interactionManager } from "../..";
-import { IMEventType } from "../../models/interaction-manager/types";
 import { BaseComponent } from "../BaseComponent";
 import { getComponents } from "../component-helper";
 import { Toast } from "../Toast";
@@ -14,10 +13,9 @@ interface Props {
 
 /**
  * Renders the player's hand and dispatches the appropriate interaction event
- * when a card is selected. The kind discriminator on Card lets us cleanly
- * branch per card type without leaking type-specific concerns into the
- * components themselves (Open/Closed: new card kinds add a case here, no
- * existing branches change).
+ * when a card is selected. Each Card subclass owns its own
+ * `getSelectionEvent()` mapping, so adding a new card kind doesn't require a
+ * change here — Hand just asks the card what event it produces.
  */
 export class Hand extends BaseComponent {
     private selectedCardId?: string;
@@ -101,22 +99,14 @@ export class Hand extends BaseComponent {
         this.selectedCardId = cardId;
         this.cardRows.forEach((row) => row.setSelected(row.props.cardId === cardId));
 
-        if (card.kind === "Ship") {
-            this.dispatchShipDeploy(card.instanceId);
-        }
-    }
+        const onGlobalDeselect = this.shouldAutoSelectFlagship()
+            ? () => {
+                  this.autoSelectFlagshipCard();
+                  this.clearSelection();
+              }
+            : () => this.clearSelection();
 
-    private dispatchShipDeploy(shipId: string) {
-        interactionManager.handleEvent({
-            type: IMEventType.DEPLOYING_SHIP,
-            shipId,
-            onGlobalDeselect: this.shouldAutoSelectFlagship()
-                ? () => {
-                      this.autoSelectFlagshipCard();
-                      this.clearSelection();
-                  }
-                : () => this.clearSelection(),
-        });
+        interactionManager.handleEvent(card.getSelectionEvent({ onGlobalDeselect }));
     }
 
     private shouldAutoSelectFlagship(): boolean {

@@ -1,6 +1,7 @@
 import clone from "lodash.clonedeep";
 import { Board, ICard, IDeck, IGameState, IHull, IPlayer, IPlayerAction, IShip } from "../types";
 import { mergeSets } from "../utils";
+import { createCard } from "../utils/card-helper";
 import { Action } from "./actions";
 import { Card } from "./Card";
 import { Deck } from "./Deck";
@@ -52,8 +53,7 @@ export class GameState implements IGameState {
             return new Ship(ship);
         });
 
-        this.cards =
-            cards?.map((card) => (card instanceof Card ? card : new Card(card as ICard))) ?? [];
+        this.cards = cards?.map((card) => createCard(card)) ?? [];
 
         this.decks =
             decks?.map((deck) => {

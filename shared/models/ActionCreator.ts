@@ -4,11 +4,13 @@ import {
     ActionTypes,
     IDeployAction,
     IMoveAction,
+    IPlayCardAction,
     IPlayerAction,
     IShipAttackAction,
     TCommitAttackShipParams,
     TCommitDeployShipParams,
     TCommitMoveShipParams,
+    TPlayCardPayload,
 } from "../types/action-types";
 
 class ActionCreator {
@@ -64,6 +66,18 @@ export class ShipAttackActionCreator extends ActionCreator {
             shipId,
             attackLocations,
             commandPointCost,
+        };
+    }
+}
+
+export class PlayCardActionCreator extends ActionCreator {
+    public create(props: { cardId: string; commandPointCost: number; payload: TPlayCardPayload }): IPlayCardAction {
+        return {
+            ...super._create(),
+            type: ActionTypes.PLAY_CARD,
+            cardId: props.cardId,
+            commandPointCost: props.commandPointCost,
+            payload: props.payload,
         };
     }
 }
