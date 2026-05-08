@@ -12,6 +12,6 @@ export class Action extends ActionEntity {
     }
 
     public static toDomain(plain: IPlainAction): Action {
-        return plain instanceof Action ? plain : new Action(plain);
+        return new Action(plain);
     }
 }

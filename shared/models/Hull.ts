@@ -26,6 +26,6 @@ export class Hull extends HullEntity {
     }
 
     public static toDomain(plain: IHull): Hull {
-        return plain instanceof Hull ? plain : new Hull(plain);
+        return new Hull(plain);
     }
 }

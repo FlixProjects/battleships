@@ -1,4 +1,4 @@
-import { IGameState, IPlainPlayer, IPlayer, IPlayerAction } from "../types";
+import { IGameState, IPlainPlayer, IPlayer } from "../types";
 import { Card } from "./Card";
 import { PlayerEntity } from "./entities/PlayerEntity";
 
@@ -50,20 +50,9 @@ export class Player extends PlayerEntity {
         };
     }
 
-    /**
-     *  Caller must have hydrated ships and actions first.
-     */
-    public static toDomain(plain: IPlainPlayer | IPlayer, state: IGameState): Player {
-        if (plain instanceof Player) return plain;
-
+    public static toDomain(plain: IPlainPlayer, state: IGameState): Player {
         const ships = state.ships?.filter((s) => s.playerId === plain.id) ?? [];
-
-        const pendingActionIds = plain.pendingActions.map((a: string | IPlayerAction) =>
-            typeof a === "string" ? a : a.id,
-        );
-
-        const pendingActions = (state.actions ?? []).filter((a) => pendingActionIds.includes(a.id));
-
+        const pendingActions = (state.actions ?? []).filter((a) => plain.pendingActions.includes(a.id));
         return new Player({ ...plain, ships, pendingActions } as IPlayer);
     }
 }

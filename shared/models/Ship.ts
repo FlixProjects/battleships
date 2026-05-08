@@ -98,10 +98,7 @@ export class Ship extends ShipEntity {
         }
 
         const segments = segmentBuilder.buildSegments(oldFrontLocation, endCell, startingOrientation);
-        const finalOrientation = segments.reduce(
-            (sum, curr) => sum + curr.rotateDegrees,
-            startingOrientation,
-        );
+        const finalOrientation = segments.reduce((sum, curr) => sum + curr.rotateDegrees, startingOrientation);
         return { finalOrientation, backLocation: oldFrontLocation };
     }
 
@@ -113,12 +110,7 @@ export class Ship extends ShipEntity {
         };
     }
 
-    /**
-     * Rebuilds a Ship from its plain shape, joining hulls from `state.hulls`
-     * by FK (`hull.shipId === plain.id`). Caller must hydrate hulls first.
-     */
-    public static toDomain(plain: IPlainShip | IShip, state: IGameState): Ship {
-        if (plain instanceof Ship) return plain;
+    public static toDomain(plain: IPlainShip, state: IGameState): Ship {
         const hulls: IHull[] = state.hulls?.filter((h) => h.shipId === plain.id) ?? [];
         return new Ship({ ...plain, hulls });
     }

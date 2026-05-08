@@ -90,28 +90,18 @@ export class Deck extends DeckEntity {
         };
     }
 
-    /**
-     * Rehydrates a Deck by joining card IDs against `state.cards`. Caller
-     * must have hydrated cards first (the registry order owns this).
-     */
-    public static toDomain(plain: IPlainDeck | IDeck, state: IGameState): Deck {
-        if (plain instanceof Deck) return plain;
+    public static toDomain(plain: IPlainDeck, state: IGameState): Deck {
         const cardsById = new Map<string, Card>(
             (state.cards ?? []).filter((c): c is Card => c instanceof Card).map((c) => [c.id, c]),
         );
-        // refs arrive either as `string[]` (IPlainDeck) or `ICard[]` (IDeck);
-        // normalise each element to its id, then resolve via the registry.
-        const hydrate = (refs: ICard[] | string[]): Card[] =>
-            refs
-                .map((r: string | ICard) => (typeof r === "string" ? r : r.id))
-                .map((id) => cardsById.get(id))
-                .filter((c): c is Card => c !== undefined);
+        const hydrate = (ids: string[]): Card[] =>
+            ids.map((id) => cardsById.get(id)).filter((c): c is Card => c !== undefined);
         return new Deck({
             id: plain.id,
             playerId: plain.playerId,
             faction: plain.faction,
-            cards: hydrate(plain.cards as ICard[] | string[]),
-            played: hydrate(plain.played as ICard[] | string[]),
+            cards: hydrate(plain.cards),
+            played: hydrate(plain.played),
         });
     }
 }

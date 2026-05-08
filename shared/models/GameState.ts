@@ -1,5 +1,18 @@
 import clone from "lodash.clonedeep";
-import { Board, IDeck, IGameState, IHull, IPlainGameState, IPlayer, IPlayerAction, IShip } from "../types";
+import {
+    Board,
+    ICard,
+    IDeck,
+    IGameState,
+    IHull,
+    IPlainDeck,
+    IPlainGameState,
+    IPlainPlayer,
+    IPlainShip,
+    IPlayer,
+    IPlayerAction,
+    IShip,
+} from "../types";
 import { mergeSets } from "../utils";
 import { createCard } from "../utils/card-helper";
 import { Action } from "./actions";
@@ -24,13 +37,6 @@ export class GameState implements IGameState {
     isOver: boolean;
     actions: Action[] = [];
 
-    /**
-     * Constructs a domain GameState from either plain or already-domain props.
-     * The hydration sequence is: copy primitives, then walk each child
-     * collection through its own `toDomain` in dependency order, then run
-     * cross-ref linking. Adding a new model only requires (a) the model's
-     * own `toPlain`/`toDomain` and (b) adding it to one of the phases below.
-     */
     constructor(props: Readonly<IGameState | IPlainGameState>) {
         this.code = props.code;
         this.initiative = props.initiative;
@@ -40,26 +46,59 @@ export class GameState implements IGameState {
         this.currentRound = props.currentRound;
 
         // Phase 1 — independent collections (no cross-refs needed).
-        this.hulls = (props.hulls ?? []).map((h) => Hull.toDomain(h));
+        this.hulls = (props.hulls ?? []).map((h) => (h instanceof Hull ? h : Hull.toDomain(h)));
         this.cards = (props.cards ?? []).map((c) => createCard(c));
-        this.actions = (props.actions ?? []).map((a) => Action.toDomain(a));
+        this.actions = (props.actions ?? []).map((a) => (a instanceof Action ? a : Action.toDomain(a)));
 
         // Phase 2 — depends on Phase 1.
-        this.ships = (props.ships ?? []).map((s) => Ship.toDomain(s as IShip, this));
-        this.decks = (props.decks ?? []).map((d) => Deck.toDomain(d as IDeck, this));
+        this.ships = (props.ships ?? []).map((s) => {
+            if (s instanceof Ship) return s;
+            return Ship.toDomain(GameState.toPlainShip(s), this);
+        });
+        this.decks = (props.decks ?? []).map((d) => {
+            if (d instanceof Deck) return d;
+            return Deck.toDomain(GameState.toPlainDeck(d), this);
+        });
 
         // Phase 3 — depends on Phase 2.
-        this.players = (props.players ?? []).map((p) => Player.toDomain(p as IPlayer, this));
+        this.players = (props.players ?? []).map((p) => {
+            if (p instanceof Player) return p;
+            return Player.toDomain(GameState.toPlainPlayer(p), this);
+        });
 
         // Phase 4 — wire runtime back-references (Card → Deck).
         this.bindCardsToDecks();
     }
 
     /**
-     * Recursive projection to a fully-flat plain shape. Each child collection
-     * delegates to its own entity's `toPlain` — adding a new model means
-     * adding `toPlain` on that model, nothing here needs to change.
+     * The next three helpers normalise an `IShip | IPlainShip` (etc.) input
+     * to its strict plain shape — `string[]` for any FK-array field. Used
+     * only by the constructor, so the entity `toDomain`s can stay strict.
      */
+    private static idOf<T extends { id: string }>(ref: string | T): string {
+        return typeof ref === "string" ? ref : ref.id;
+    }
+
+    private static toPlainShip(s: IShip | IPlainShip): IPlainShip {
+        return { ...s, hulls: (s.hulls ?? []).map((h: string | IHull) => GameState.idOf(h)) } as IPlainShip;
+    }
+
+    private static toPlainDeck(d: IDeck | IPlainDeck): IPlainDeck {
+        return {
+            ...d,
+            cards: (d.cards ?? []).map((c: string | ICard) => GameState.idOf(c)),
+            played: (d.played ?? []).map((c: string | ICard) => GameState.idOf(c)),
+        } as IPlainDeck;
+    }
+
+    private static toPlainPlayer(p: IPlayer | IPlainPlayer): IPlainPlayer {
+        return {
+            ...p,
+            ships: (p.ships ?? []).map((s: string | IShip) => GameState.idOf(s)),
+            pendingActions: (p.pendingActions ?? []).map((a: string | IPlayerAction) => GameState.idOf(a)),
+        } as IPlainPlayer;
+    }
+
     public toPlain(): IPlainGameState {
         return {
             code: this.code,

@@ -44,7 +44,7 @@ export class ShipCard extends Card {
     }
 
     /** Concrete-subclass hydration. Inherits toPlain from Card. */
-    public static toDomain(plain: IPlainCard | ShipCard): ShipCard {
-        return plain instanceof ShipCard ? plain : new ShipCard(plain);
+    public static toDomain(plain: IPlainCard): ShipCard {
+        return new ShipCard(plain);
     }
 }
