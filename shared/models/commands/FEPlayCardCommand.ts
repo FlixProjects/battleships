@@ -18,7 +18,7 @@ export interface IFEPlayCardCommandProps {
         locationElement: ISelectable;
     };
     support?: {
-        targetTile?: ICellLoc;
+        targetCell?: ICellLoc;
         locationElement?: ISelectable;
     };
     onSuccessCb?: () => void;
@@ -76,7 +76,7 @@ export class FEPlayCardCommand extends FECommand {
         const subCommand = new FEPlaySupportCommand({
             cardId: this.props.cardId,
             playerId: this.props.playerId,
-            targetTile: this.props.support?.targetTile,
+            targetCell: this.props.support?.targetCell,
             locationElement: this.props.support?.locationElement,
             onSuccessCb: this.props.onSuccessCb,
         });

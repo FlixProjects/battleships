@@ -1,4 +1,4 @@
-import { AppStatus, EffectAnchor, EffectKind, IHullTemplate, IPlainAppState, IPlainGameState, ISupportConfig, IShipTemplate } from "./types";
+import { AppStatus, EffectAnchor, EffectKind, IEffectConfig, IHullTemplate, IPlainAppState, IPlainGameState, ISupportConfig, IShipTemplate } from "./types";
 
 export const FP_AUTH_TOKEN = "fp-auth-token";
 export const FP_USER_ID = "fp-user-id";
@@ -138,27 +138,32 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
     },
 };
 
+export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectConfig> = {
+    [EFFECT_REF_NO.flare]: {
+        refNo: EFFECT_REF_NO.flare,
+        kind: EffectKind.Vision,
+        anchor: EffectAnchor.AnyTile,
+        range: 2,
+        duration: 0,
+    },
+    [EFFECT_REF_NO.flarePersistent]: {
+        refNo: EFFECT_REF_NO.flarePersistent,
+        kind: EffectKind.Vision,
+        anchor: EffectAnchor.AnyTile,
+        range: 2,
+        // Duration of 2 means: granted on action resolve, plus persists
+        // through the next round's tick (expiresAfterRound = createdOnRound + 1).
+        duration: 2,
+    },
+};
+
 export const SUPPORTS_CONFIG: Record<TSupportRefNo, ISupportConfig> = {
     [SUPPORT_REF_NO.flare]: {
         refNo: SUPPORT_REF_NO.flare,
         name: "Flare",
         commandPointCost: 1,
-        effects: [
-            {
-                refNo: EFFECT_REF_NO.flarePersistent,
-                anchor: EffectAnchor.AnyTile,
-                range: 2,
-                // Duration of 2 means: granted on action resolve, plus persists
-                // through the next round's tick (expiresAfterRound = createdOnRound + 2).
-                duration: 2,
-            },
-        ],
+        effects: [EFFECT_REF_NO.flarePersistent],
     },
-};
-
-export const EFFECT_KIND_BY_REF_NO: Record<TEffectRefNo, typeof EffectKind[keyof typeof EffectKind]> = {
-    [EFFECT_REF_NO.flare]: EffectKind.Vision,
-    [EFFECT_REF_NO.flarePersistent]: EffectKind.Vision,
 };
 
 export const COLOR = {

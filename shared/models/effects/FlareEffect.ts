@@ -1,7 +1,7 @@
 import { EFFECT_REF_NO } from "../../constants";
 import { IEffect, IGameStateManager } from "../../types";
 import { registerEffect } from "../../utils/effect-helper";
-import { Effect } from "../Effect";
+import { Effect } from "./Effect";
 
 /**
  * Persistent vision Effect. The grant of visibility itself is data-driven —

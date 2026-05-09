@@ -1,4 +1,4 @@
-import { Effect } from "../models/Effect";
+import { Effect } from "../models/effects/Effect";
 import { IEffect } from "../types";
 
 type EffectConstructor = new (props: Readonly<IEffect>) => Effect;

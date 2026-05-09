@@ -1,27 +1,43 @@
-import { SUPPORTS_CONFIG, TSupportRefNo } from "../constants";
+import { EFFECTS_CONFIG, SUPPORTS_CONFIG, TEffectRefNo, TSupportRefNo } from "../constants";
 import {
     ActionTypes,
     ICard,
+    IEffectConfig,
     IMEvent,
     IMEventType,
     IPlainCard,
     IPlaySupportAction,
     ISupportCardPayload,
     PlaySupportConfirmIMEvent,
-    PlaySupportTargetIMEvent as PlaySupportTargetIMEvent,
+    PlaySupportTargetIMEvent,
     TActionMeta,
     TPlayCardPayload,
 } from "../types";
 import { Card, ICardSelectionHandlers } from "./Card";
 
-/**
- * Card that triggers an `IPlaySupportAction`. The `refNo` keys into
- * `SUPPORTS_CONFIG`; the first Effect's `range` decides whether the player
- * needs to pick a target tile or just confirm.
- */
 export class SupportCard extends Card {
+    public readonly name: string;
+    public readonly commandPointCost: number;
+    public readonly effects: IEffectConfig[];
+
     constructor(props: Readonly<ICard>) {
         super(props);
+        const supportConfig = SUPPORTS_CONFIG[props.refNo as TSupportRefNo];
+        if (!supportConfig) {
+            throw new Error(`SupportCard ${props.id} has unknown refNo '${props.refNo}'`);
+        }
+        this.name = supportConfig.name;
+        this.commandPointCost = supportConfig.commandPointCost;
+        this.effects = supportConfig.effects.map((effectRefNo) => {
+            const effectConfig = EFFECTS_CONFIG[effectRefNo as TEffectRefNo];
+            if (!effectConfig) {
+                throw new Error(`SupportCard ${props.id} references unknown Effect refNo '${effectRefNo}'`);
+            }
+            return effectConfig;
+        });
+        if (this.effects.length === 0) {
+            throw new Error(`SupportCard ${props.id} has no Effects configured`);
+        }
     }
 
     public buildAction(meta: TActionMeta, payload: TPlayCardPayload): IPlaySupportAction {
@@ -41,14 +57,7 @@ export class SupportCard extends Card {
     }
 
     public getSelectionEvent(handlers: ICardSelectionHandlers): IMEvent {
-        const config = SUPPORTS_CONFIG[this.refNo as TSupportRefNo];
-        if (!config) {
-            throw new Error(`SupportCard ${this.id} has unknown refNo '${this.refNo}'`);
-        }
-        const firstEffect = config.effects[0];
-        if (!firstEffect) {
-            throw new Error(`SupportCard ${this.id} has no Effects configured`);
-        }
+        const firstEffect = this.effects[0];
 
         if (firstEffect.range > 0) {
             const event: PlaySupportTargetIMEvent = {

@@ -1,10 +1,10 @@
-import { SUPPORTS_CONFIG, TSupportRefNo } from "@shared/constants";
 import { FEPlayCardCommand } from "@shared/models/commands/FEPlayCardCommand";
+import { SupportCard } from "@shared/models";
 import { PlaySupportConfirmIMEvent } from "@shared/types";
 import { gameManager, interactionManager } from "../..";
 import { Toast } from "../../components/Toast";
 import { queueCommand } from "../../utils/game-helper";
-import { buildFEEffects } from "../effects";
+import { FEEffect } from "../effects";
 import { ClickHandler } from "./ClickHandler";
 
 /**
@@ -20,9 +20,8 @@ export class ConfirmEffectClickHandler extends ClickHandler {
     }
 
     public handleEvent() {
-        const card = gameManager.state.gameState.cards.find((c) => c.id === this.event.cardId);
-        const supportConfig = card ? SUPPORTS_CONFIG[card.refNo as TSupportRefNo] : undefined;
-        const name = supportConfig?.name ?? "Support";
+        const card = this.getCard();
+        const name = card?.name ?? "Support";
         Toast.show({ message: `Click to confirm: play ${name}`, type: "info", permanent: true }, this.toastId);
 
         return { nextClickhandler: async (e: MouseEvent) => await this.handler(e) };
@@ -55,21 +54,25 @@ export class ConfirmEffectClickHandler extends ClickHandler {
         );
     }
 
-    private hasMoreEffects(): boolean {
+    private getCard(): SupportCard | undefined {
         const card = gameManager.state.gameState.cards.find((c) => c.id === this.event.cardId);
+        return card instanceof SupportCard ? card : undefined;
+    }
+
+    private hasMoreEffects(): boolean {
+        const card = this.getCard();
         if (!card) return false;
-        const supportConfig = SUPPORTS_CONFIG[card.refNo as TSupportRefNo];
-        return !!supportConfig && this.event.effectIndex + 1 < supportConfig.effects.length;
+        return this.event.effectIndex + 1 < card.effects.length;
     }
 
     private dispatchNextEffect() {
-        const nextIndex = this.event.effectIndex + 1;
-        const card = gameManager.state.gameState.cards.find((c) => c.id === this.event.cardId);
+        const card = this.getCard();
         if (!card) return;
-        const feEffects = buildFEEffects(card.id, card.refNo);
-        const nextFEEffect = feEffects[nextIndex];
-        if (!nextFEEffect) return;
+        const nextIndex = this.event.effectIndex + 1;
+        const nextEffectConfig = card.effects[nextIndex];
+        if (!nextEffectConfig) return;
 
+        const nextFEEffect = new FEEffect(card.id, nextIndex, nextEffectConfig);
         interactionManager.handleEvent(
             nextFEEffect.getSelectionEvent({
                 onGlobalDeselect: this.event.onGlobalDeselect,

@@ -25,7 +25,7 @@ import { PathHelper } from "../utils/path-helper";
 import { Action } from "./actions";
 import { Card } from "./Card";
 import { Deck } from "./Deck";
-import { Effect } from "./Effect";
+import { Effect } from "./effects/Effect";
 import { Entity } from "./entities";
 import { Hull } from "./Hull";
 import { Player } from "./Player";

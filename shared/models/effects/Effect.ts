@@ -1,5 +1,5 @@
-import { IEffect, IGameStateManager, IPlainEffect } from "../types";
-import { EffectEntity } from "./entities/EffectEntity";
+import { IEffect, IGameStateManager, IPlainEffect } from "../../types";
+import { EffectEntity } from "../entities/EffectEntity";
 
 /**
  * Concrete subclasses implement `resolve(gsm)` for the immediate, on-action effect

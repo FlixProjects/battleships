@@ -1,4 +1,4 @@
-import { SUPPORTS_CONFIG, TSupportRefNo } from "@shared/constants";
+import { SupportCard } from "@shared/models";
 import { FEEffect } from "./FEEffect";
 
 export { FEEffect };
@@ -8,10 +8,6 @@ export { FEEffect };
  * step through its Effects sequentially. Multi-effect Supports walk the
  * chain via `onSuccessfulSelect`.
  */
-export const buildFEEffects = (cardId: string, supportRefNo: string): FEEffect[] => {
-    const supportConfig = SUPPORTS_CONFIG[supportRefNo as TSupportRefNo];
-    if (!supportConfig) {
-        throw new Error(`buildFEEffects: no SupportConfig for refNo '${supportRefNo}'`);
-    }
-    return supportConfig.effects.map((cfg, idx) => new FEEffect(cardId, idx, cfg));
+export const buildFEEffects = (card: SupportCard): FEEffect[] => {
+    return card.effects.map((cfg, idx) => new FEEffect(card.id, idx, cfg));
 };

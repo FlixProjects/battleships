@@ -3,7 +3,7 @@ import { v7 as uuidv7 } from "uuid";
 import {
     BOARD_COLUMNS,
     BOARD_ROWS,
-    EFFECT_KIND_BY_REF_NO,
+    EFFECTS_CONFIG,
     SUPPORTS_CONFIG,
     TEffectRefNo,
     TSupportRefNo,
@@ -362,7 +362,8 @@ export class GameEngine {
         if (!supportConfig) {
             throw new Error(`primePlaySupport: no SupportConfig for refNo '${card.refNo}'`);
         }
-        const effectConfig = supportConfig.effects[effectIndex];
+        const effectRefNo = supportConfig.effects[effectIndex];
+        const effectConfig = effectRefNo ? EFFECTS_CONFIG[effectRefNo as TEffectRefNo] : undefined;
         if (!effectConfig) {
             throw new Error(`primePlaySupport: effectIndex ${effectIndex} out of range for ${card.refNo}`);
         }
@@ -376,7 +377,7 @@ export class GameEngine {
     }
 
     private commitPlaySupport(action: IPlaySupportAction): IPlaySupportResult | IErrorResult {
-        const { playerId, supportRefNo, cardId, targetCell: targetTile, commandPointCost } = action;
+        const { playerId, supportRefNo, cardId, targetCell, commandPointCost } = action;
 
         const supportConfig = SUPPORTS_CONFIG[supportRefNo as TSupportRefNo];
         if (!supportConfig) {
@@ -387,12 +388,16 @@ export class GameEngine {
         const effectsToAdd: IEffect[] = [];
         const currentRound = this.gsm.gameState.currentRound;
 
-        supportConfig.effects.forEach((effectConfig) => {
+        supportConfig.effects.forEach((effectRefNo) => {
+            const effectConfig = EFFECTS_CONFIG[effectRefNo as TEffectRefNo];
+            if (!effectConfig) {
+                throw new Error(`commitPlaySupport: no EffectConfig for refNo '${effectRefNo}'`);
+            }
             const effect = this.buildEffect({
                 effectConfig,
                 playerId,
                 cardId,
-                targetTile,
+                targetCell,
                 currentRound,
             });
 
@@ -470,26 +475,21 @@ export class GameEngine {
         effectConfig: IEffectConfig;
         playerId: string;
         cardId: string;
-        targetTile?: ICellLoc;
+        targetCell?: ICellLoc;
         currentRound: number;
     }) {
-        const { effectConfig, playerId, cardId, targetTile, currentRound } = args;
-        const kind = EFFECT_KIND_BY_REF_NO[effectConfig.refNo as TEffectRefNo];
-        if (!kind) {
-            throw new Error(`No EffectKind registered for refNo '${effectConfig.refNo}'`);
-        }
-
+        const { effectConfig, playerId, cardId, targetCell, currentRound } = args;
         const expiresAfterRound = effectConfig.duration > 0 ? currentRound + (effectConfig.duration - 1) : undefined;
 
         const payload =
-            kind === EffectKind.Vision
-                ? this.buildVisionPayload(effectConfig, targetTile)
+            effectConfig.kind === EffectKind.Vision
+                ? this.buildVisionPayload(effectConfig, targetCell)
                 : ({ kind: EffectKind.CommandPoint, amount: 0 } as const);
 
         const plain: IEffect = {
             id: uuidv7(),
             refNo: effectConfig.refNo,
-            kind,
+            kind: effectConfig.kind,
             sourceCardId: cardId,
             playerId,
             createdOnRound: currentRound,
@@ -499,13 +499,13 @@ export class GameEngine {
         return createEffect(plain);
     }
 
-    private buildVisionPayload(effectConfig: IEffectConfig, targetTile?: ICellLoc): IVisionEffectPayload {
-        if (!targetTile) {
-            throw new Error(`Vision Effect '${effectConfig.refNo}' requires a targetTile`);
+    private buildVisionPayload(effectConfig: IEffectConfig, targetCell?: ICellLoc): IVisionEffectPayload {
+        if (!targetCell) {
+            throw new Error(`Vision Effect '${effectConfig.refNo}' requires a targetCell`);
         }
         return {
             kind: EffectKind.Vision,
-            center: targetTile,
+            center: targetCell,
             range: effectConfig.range,
         };
     }

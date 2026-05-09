@@ -193,11 +193,12 @@ export type IPlainEffect = IEffect;
 
 export interface IEffectConfig {
     refNo: string;
+    kind: TEffectKind;
     anchor: TEffectAnchor;
     /** 0 = no targeting needed (untargeted / confirm-only). */
     range: number;
     /** 0 = one-shot; otherwise rounds the effect persists for after creation
-     *  (expiresAfterRound = createdOnRound + duration). */
+     *  (expiresAfterRound = createdOnRound + duration - 1). */
     duration: number;
 }
 
@@ -205,7 +206,9 @@ export interface ISupportConfig {
     refNo: string;
     name: string;
     commandPointCost: number;
-    effects: IEffectConfig[];
+    /** Effect refNos this Support produces, in selection order. Each refNo
+     *  must exist in `EFFECTS_CONFIG`. */
+    effects: string[];
 }
 
 export interface ICard {

@@ -1,5 +1,4 @@
-import { SUPPORTS_CONFIG, TSupportRefNo } from "@shared/constants";
-import { GameStateManager } from "@shared/models";
+import { GameStateManager, SupportCard } from "@shared/models";
 import { CardKind, ICard, IPlayer } from "@shared/types";
 import { gameManager, interactionManager } from "../..";
 import { BaseComponent } from "../BaseComponent";
@@ -82,8 +81,7 @@ export class Hand extends BaseComponent {
             return !!ship && this.props.player.commandPoints >= ship.commandPointCost;
         }
         if (card.kind === CardKind.Support) {
-            const supportConfig = SUPPORTS_CONFIG[card.refNo as TSupportRefNo];
-            return !!supportConfig && this.props.player.commandPoints >= supportConfig.commandPointCost;
+            return this.props.player.commandPoints >= (card as SupportCard).commandPointCost;
         }
         return true;
     }

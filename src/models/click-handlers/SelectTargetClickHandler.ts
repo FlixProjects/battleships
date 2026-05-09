@@ -1,14 +1,14 @@
-import { SUPPORTS_CONFIG, TSupportRefNo } from "@shared/constants";
 import { FEHighlightLocationsCommand } from "@shared/models/commands/FEHighlightLocationsCommand";
 import { FEPlayCardCommand } from "@shared/models/commands/FEPlayCardCommand";
 import { GameEngine } from "@shared/models/GameEngine";
+import { SupportCard } from "@shared/models";
 import { ICellLoc, PlaySupportTargetIMEvent, ResultType } from "@shared/types";
-import { locationToKey } from "@shared/utils/helpers";
+import { keyToLocation, locationToKey } from "@shared/utils/helpers";
 import { gameManager, interactionManager } from "../..";
 import { getComponents } from "../../components/component-helper";
 import { Toast } from "../../components/Toast";
 import { queueCommand } from "../../utils/game-helper";
-import { buildFEEffects } from "../effects";
+import { FEEffect } from "../effects";
 import { ClickHandler } from "./ClickHandler";
 
 /**
@@ -16,18 +16,15 @@ import { ClickHandler } from "./ClickHandler";
  * future single-tile damage cards, etc.). Highlights the Effect's anchored
  * range and, on a valid click, either chains to the next FEEffect (multi-
  * effect cards) or dispatches FEPlayCardCommand.
+ *
+ * The click is resolved against the closest `.tile` element so a click that
+ * lands on a hull image inside a tile still selects the underlying tile.
  */
-export class SelectTileClickHandler extends ClickHandler {
+export class SelectTargetClickHandler extends ClickHandler {
     private validCells: ICellLoc[] = [];
-    /** Targets chosen so far across the chained Effects (one per FEEffect). */
-    private chosenTargets: (ICellLoc | undefined)[] = [];
 
-    constructor(
-        protected event: PlaySupportTargetIMEvent,
-        private chosenTargetsSoFar: (ICellLoc | undefined)[] = [],
-    ) {
+    constructor(protected event: PlaySupportTargetIMEvent) {
         super();
-        this.chosenTargets = [...chosenTargetsSoFar];
     }
 
     public handleEvent() {
@@ -50,22 +47,29 @@ export class SelectTileClickHandler extends ClickHandler {
     protected async handler(e: MouseEvent) {
         const { onGlobalDeselect, onSuccessfulSelect } = this.event;
         const target = e.target as HTMLElement;
-        const id = this.addGetIdOfClick(e);
+
+        // Resolve the underlying tile id even when the user clicks through a
+        // child element (e.g. a hull image). A primed Support target takes
+        // precedence over hull/ship handlers — the tile underneath wins.
+        const tileId = target.closest(".tile")?.id ?? "";
+        const clickedCardRow = target.closest(".card-row");
         const validCellIndices = this.validCells.map((cell) => locationToKey(cell));
 
-        const clickedCardRow = target.closest(".card-row");
-        if (!clickedCardRow && !validCellIndices.includes(id)) {
+        if (!tileId && !clickedCardRow) {
             return this.handleInvalidClick(onGlobalDeselect);
         }
-
-        if (!validCellIndices.includes(id)) return;
+        if (clickedCardRow && !validCellIndices.includes(tileId)) {
+            return this.handleInvalidClick(onGlobalDeselect);
+        }
+        if (!validCellIndices.includes(tileId)) {
+            return this.handleInvalidClick(onGlobalDeselect);
+        }
 
         this.clearPriorOnSelects(validCellIndices);
         this.loadOnSelects(validCellIndices, onGlobalDeselect);
 
-        const tile = this.selectables[id];
-        const targetTile = this.cellLocFromId(id);
-        this.chosenTargets[this.event.effectIndex] = targetTile;
+        const tile = this.selectables[tileId];
+        const targetCell = keyToLocation(tileId);
 
         if (this.hasMoreEffects()) {
             this.dispatchNextEffect();
@@ -77,32 +81,31 @@ export class SelectTileClickHandler extends ClickHandler {
             new FEPlayCardCommand({
                 cardId: this.event.cardId,
                 playerId,
-                support: { targetTile, locationElement: tile },
+                support: { targetCell, locationElement: tile },
                 onSuccessCb: onSuccessfulSelect,
             }),
         );
     }
 
-    private cellLocFromId(id: string): ICellLoc {
-        const [x, y] = id.split("/").map(Number);
-        return [x, y] as ICellLoc;
+    private getCard(): SupportCard | undefined {
+        const card = gameManager.state.gameState.cards.find((c) => c.id === this.event.cardId);
+        return card instanceof SupportCard ? card : undefined;
     }
 
     private hasMoreEffects(): boolean {
-        const card = gameManager.state.gameState.cards.find((c) => c.id === this.event.cardId);
+        const card = this.getCard();
         if (!card) return false;
-        const supportConfig = SUPPORTS_CONFIG[card.refNo as TSupportRefNo];
-        return !!supportConfig && this.event.effectIndex + 1 < supportConfig.effects.length;
+        return this.event.effectIndex + 1 < card.effects.length;
     }
 
     private dispatchNextEffect() {
-        const nextIndex = this.event.effectIndex + 1;
-        const card = gameManager.state.gameState.cards.find((c) => c.id === this.event.cardId);
+        const card = this.getCard();
         if (!card) return;
-        const feEffects = buildFEEffects(card.id, card.refNo);
-        const nextFEEffect = feEffects[nextIndex];
-        if (!nextFEEffect) return;
+        const nextIndex = this.event.effectIndex + 1;
+        const nextEffectConfig = card.effects[nextIndex];
+        if (!nextEffectConfig) return;
 
+        const nextFEEffect = new FEEffect(card.id, nextIndex, nextEffectConfig);
         interactionManager.handleEvent(
             nextFEEffect.getSelectionEvent({
                 onGlobalDeselect: this.event.onGlobalDeselect,
@@ -112,14 +115,12 @@ export class SelectTileClickHandler extends ClickHandler {
     }
 
     private announceCurrentEffect() {
-        const card = gameManager.state.gameState.cards.find((c) => c.id === this.event.cardId);
-        if (!card) return;
-        const supportConfig = SUPPORTS_CONFIG[card.refNo as TSupportRefNo];
-        if (!supportConfig || supportConfig.effects.length <= 1) return;
-        const effectConfig = supportConfig.effects[this.event.effectIndex];
+        const card = this.getCard();
+        if (!card || card.effects.length <= 1) return;
+        const effectConfig = card.effects[this.event.effectIndex];
         if (!effectConfig) return;
         Toast.show({
-            message: `${supportConfig.name}: pick a tile for "${effectConfig.refNo}"`,
+            message: `${card.name}: pick a tile for "${effectConfig.refNo}"`,
             type: "info",
             duration: 2500,
         });
