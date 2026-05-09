@@ -110,8 +110,14 @@ export class Ship extends ShipEntity {
         };
     }
 
+    /**
+     * Caller must hydrate hulls before ships.
+     */
     public static toDomain(plain: IPlainShip, state: IGameState): Ship {
-        const hulls: IHull[] = state.hulls?.filter((h) => h.shipId === plain.id) ?? [];
+        const hullsById = new Map<string, IHull>((state.hulls ?? []).map((h) => [h.id, h]));
+        const hulls = plain.hulls
+            .map((id) => hullsById.get(id))
+            .filter((h): h is IHull => h !== undefined);
         return new Ship({ ...plain, hulls });
     }
 }

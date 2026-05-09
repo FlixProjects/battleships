@@ -1,7 +1,7 @@
 import { HullBuilder } from "../../factories/hull-builder";
 import { PlayerBuilder } from "../../factories/player-builder";
 import { ShipBuilder } from "../../factories/ship-builder";
-import { IGameState } from "../../types";
+import { IGameStateData } from "../../types";
 import { GameStateManager } from "../GameStateManager";
 
 const buildPlayer1 = () =>
@@ -30,7 +30,7 @@ const hullBuilder = new HullBuilder({
 
 describe("GameStateManager", () => {
     it("should get visible tiles for player with deployed ship", () => {
-        const gameState: IGameState = {
+        const gameState: IGameStateData = {
             code: "TEST",
             currentRound: 1,
             players: [buildPlayer1()],
@@ -66,7 +66,7 @@ describe("GameStateManager", () => {
     });
 
     it("should remove invisible ships from player view", () => {
-        const gameState: IGameState = {
+        const gameState: IGameStateData = {
             code: "TEST",
             currentRound: 1,
             players: [buildPlayer1(), buildPlayer2()],
@@ -98,7 +98,7 @@ describe("GameStateManager", () => {
     });
 
     it("should keep visible ships in player view", () => {
-        const gameState: IGameState = {
+        const gameState: IGameStateData = {
             code: "TEST",
             currentRound: 1,
             players: [buildPlayer1(), buildPlayer2()],

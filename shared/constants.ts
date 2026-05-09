@@ -1,4 +1,4 @@
-import { AppStatus, IAppState, IGameState, IHullTemplate, IShipTemplate } from "./types";
+import { AppStatus, IHullTemplate, IPlainAppState, IPlainGameState, IShipTemplate } from "./types";
 
 export const FP_AUTH_TOKEN = "fp-auth-token";
 export const FP_USER_ID = "fp-user-id";
@@ -11,7 +11,10 @@ export const FP_PLAYER_STATES = "fp-player-states";
 
 export const LOCAL_TEMP_PLAYER_ID = "temp-id";
 
-export const INITIAL_GAME_STATE: IGameState = {
+// Plain (data-only) defaults. Consumers that want a hydrated `IAppState` /
+// `GameState` wrap with `transformPlainAppStateToDomain(DEFAULT_APP_STATE)` —
+// keeps this module free of any class import / construction-at-load cycle.
+export const INITIAL_GAME_STATE: IPlainGameState = {
     code: "",
     players: [],
     ships: [],
@@ -24,7 +27,7 @@ export const INITIAL_GAME_STATE: IGameState = {
     currentRound: 0,
 };
 
-export const DEFAULT_APP_STATE: IAppState = {
+export const DEFAULT_APP_STATE: IPlainAppState = {
     status: AppStatus.NewGame,
     loading: true,
     gameState: INITIAL_GAME_STATE,

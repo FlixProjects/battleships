@@ -1,10 +1,10 @@
 import { HullCalculator } from "../hull-helper";
-import { IGameStateManager, ICellLoc, IGameState } from "@shared/types";
+import { IGameStateManager, ICellLoc, IGameStateData } from "@shared/types";
 import { BOARD_COLUMNS, BOARD_ROWS } from "@shared/constants";
 
 describe("HullCalculator", () => {
     let mockGSM: IGameStateManager;
-    let mockGameState: IGameState;
+    let mockGameState: IGameStateData;
 
     beforeEach(() => {
         mockGameState = {

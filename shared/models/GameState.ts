@@ -4,6 +4,7 @@ import {
     ICard,
     IDeck,
     IGameState,
+    IGameStateData,
     IHull,
     IPlainDeck,
     IPlainGameState,
@@ -37,7 +38,7 @@ export class GameState implements IGameState {
     isOver: boolean;
     actions: Action[] = [];
 
-    constructor(props: Readonly<IGameState | IPlainGameState>) {
+    constructor(props: Readonly<IGameStateData | IPlainGameState>) {
         this.code = props.code;
         this.initiative = props.initiative;
         this.board = props.board;
@@ -45,26 +46,21 @@ export class GameState implements IGameState {
         this.isOver = props.isOver;
         this.currentRound = props.currentRound;
 
+        // Construction is always rehydration: the input is plain or
+        // domain-shaped data, never an already-built class instance. The
+        // from FK arrays) before delegating to each entity's strict toDomain.
+
         // Phase 1 — independent collections (no cross-refs needed).
-        this.hulls = (props.hulls ?? []).map((h) => (h instanceof Hull ? h : Hull.toDomain(h)));
+        this.hulls = (props.hulls ?? []).map((h) => Hull.toDomain(h));
         this.cards = (props.cards ?? []).map((c) => createCard(c));
-        this.actions = (props.actions ?? []).map((a) => (a instanceof Action ? a : Action.toDomain(a)));
+        this.actions = (props.actions ?? []).map((a) => Action.toDomain(a));
 
         // Phase 2 — depends on Phase 1.
-        this.ships = (props.ships ?? []).map((s) => {
-            if (s instanceof Ship) return s;
-            return Ship.toDomain(GameState.toPlainShip(s), this);
-        });
-        this.decks = (props.decks ?? []).map((d) => {
-            if (d instanceof Deck) return d;
-            return Deck.toDomain(GameState.toPlainDeck(d), this);
-        });
+        this.ships = (props.ships ?? []).map((s) => Ship.toDomain(GameState.toPlainShip(s), this));
+        this.decks = (props.decks ?? []).map((d) => Deck.toDomain(GameState.toPlainDeck(d), this));
 
         // Phase 3 — depends on Phase 2.
-        this.players = (props.players ?? []).map((p) => {
-            if (p instanceof Player) return p;
-            return Player.toDomain(GameState.toPlainPlayer(p), this);
-        });
+        this.players = (props.players ?? []).map((p) => Player.toDomain(GameState.toPlainPlayer(p), this));
 
         // Phase 4 — wire runtime back-references (Card → Deck).
         this.bindCardsToDecks();
@@ -117,8 +113,8 @@ export class GameState implements IGameState {
     }
 
     /** Static counterpart — equivalent to `new GameState(plain)`. */
-    public static toDomain(plain: IPlainGameState | IGameState): GameState {
-        return plain instanceof GameState ? plain : new GameState(plain);
+    public static toDomain(plain: IPlainGameState | IGameStateData): GameState {
+        return new GameState(plain);
     }
 
     update(_gameState: Partial<IGameState>) {

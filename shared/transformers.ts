@@ -1,8 +1,8 @@
 import { GameState } from "./models/GameState";
-import { IAppState, IGameState, IPlainAppState, IPlainGameState } from "./types/types";
+import { IAppState, IGameState, IGameStateData, IPlainAppState, IPlainGameState } from "./types/types";
 
 
-export const transformGameStateToPlain = (gameState: IGameState): IPlainGameState => {
+export const transformGameStateToPlain = (gameState: IGameState | IGameStateData): IPlainGameState => {
     return gameState instanceof GameState ? gameState.toPlain() : new GameState(gameState).toPlain();
 };
 

@@ -9,7 +9,7 @@ import {
     transformPlainAppStateToDomain,
     transformPlainGameStateToDomain,
 } from "../transformers";
-import { AppStatus, CardKind, IAppState, IGameState, IHull, IPlainAppState, IPlainGameState, IShip } from "../types/types";
+import { AppStatus, CardKind, IAppState, IGameStateData, IHull, IPlainAppState, IPlainGameState, IShip } from "../types/types";
 
 const playerBuilder = new PlayerBuilder({
     id: "player1",
@@ -29,7 +29,7 @@ const hullBuilder = new HullBuilder();
 
 describe("transformGameStateToPlain", () => {
     it("flattens players, ships, hulls and decks via each entity's toPlain", () => {
-        const gameState: IGameState = {
+        const gameState: IGameStateData = {
             code: "GAME123",
             currentRound: 1,
             players: [
@@ -89,7 +89,7 @@ describe("transformAppStateToPlain", () => {
             status: AppStatus.Initialised,
             loading: false,
             currentPlayer: "player1",
-            gameState: {
+            gameState: new GameState({
                 code: "GAME123",
                 currentRound: 1,
                 players: [],
@@ -98,7 +98,7 @@ describe("transformAppStateToPlain", () => {
                 decks: [],
                 winners: [],
                 isOver: false,
-            },
+            }),
         };
         const result = transformAppStateToPlain(appState);
         expect(result.status).toBe(AppStatus.Initialised);

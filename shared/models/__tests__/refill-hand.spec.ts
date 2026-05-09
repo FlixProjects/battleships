@@ -1,5 +1,5 @@
 import { Faction, MAX_HAND_SIZE } from "../../factions";
-import { CardKind, ICard, IDeck, IGameState, IPlayer, IPlayerAction, IShip } from "../../types";
+import { CardKind, ICard, IDeck, IGameStateData, IPlayer, IPlayerAction, IShip } from "../../types";
 import { GameState } from "../GameState";
 
 const makeCard = (id: string, deckId: string, refNo = "frigate0"): ICard => ({
@@ -10,7 +10,7 @@ const makeCard = (id: string, deckId: string, refNo = "frigate0"): ICard => ({
     refNo,
 });
 
-const buildState = (overrides: Partial<IGameState>): IGameState => ({
+const buildState = (overrides: Partial<IGameStateData>): IGameStateData => ({
     code: "TEST",
     currentRound: 0,
     players: [],

@@ -119,7 +119,8 @@ describe("ActionResolver", () => {
             });
             const player2 = buildPlayer2({ ships: [player2Ship], pendingActions: [player2MoveAction] });
 
-            // Setup: Create game state with player1 having initiative
+            // Setup: Create game state with player1 having initiative.
+            // Just after resolution, GameState will have both pendingActions and actions
             const gameState = new GameState({
                 code: "TEST",
                 currentRound: 1,
@@ -129,6 +130,7 @@ describe("ActionResolver", () => {
                 hulls: [player1Hull, player2Hull],
                 cards: [],
                 decks: [],
+                actions: [player1MoveAction, player1AttackAction, player2MoveAction],
                 winners: [],
                 isOver: false,
             });
@@ -195,6 +197,7 @@ describe("ActionResolver", () => {
                 hulls: [],
                 cards: [],
                 decks: [],
+                actions: [moveAction1, moveAction2],
                 winners: [],
                 isOver: false,
             });
@@ -242,6 +245,7 @@ describe("ActionResolver", () => {
                 hulls: [],
                 cards: [],
                 decks: [],
+                actions: [moveAction1, moveAction2],
                 winners: [],
                 isOver: false,
             });

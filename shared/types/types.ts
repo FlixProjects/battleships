@@ -1,5 +1,5 @@
 import type { TFaction } from "../factions";
-import type { GameState, Hull, Ship } from "../models";
+import type { GameState, Hull, Player, Ship } from "../models";
 import { ICommand } from "../models/commands/types";
 import { IDeployAction, IMoveAction, IPlayCardAction, IPlayerAction, IShipAttackAction } from "./action-types";
 
@@ -46,7 +46,7 @@ export interface IGameStateManager {
     addAction(action: IPlainAction): this;
 }
 
-export interface IGameState {
+export interface IGameStateData {
     code: string;
     currentRound: number;
     initiative?: string;
@@ -59,6 +59,36 @@ export interface IGameState {
     board?: Board;
     winners: string[];
     isOver: boolean;
+}
+
+export interface IGameState extends IGameStateData {
+    toPlain(): IPlainGameState;
+
+    update(props: Partial<IGameStateData>): this;
+
+    getPlayer(playerId: string): Player;
+    getPlayers(): Player[];
+    getShip(shipId: string): Ship;
+    getHull(hullId: string): Hull;
+    getShipHulls(shipId: string): Hull[];
+
+    getFirstPlayerId(): string | undefined;
+    isFirstPlayer(playerId: string): boolean;
+
+    updatePlayer(player: Partial<IPlayer>): this;
+    updateShip(ship: Partial<IShip>): this;
+    updateHull(hull: Partial<IHull>): this;
+    updateAction(action: Partial<IPlayerAction>): this;
+    addHull(hull: IHull): this;
+    addAction(action: IPlayerAction): this;
+
+    refillPlayerHand(playerId: string, maxHandSize: number): this;
+    playCard(playerId: string, cardId: string): this;
+
+    getVisibleTilesforPlayer(playerId: string): Set<string>;
+    removeInvisibleFromPlayer(visibleTiles: Set<string>, playerId: string): IGameState;
+    linkPlayerShips(options?: { reverse?: boolean }): this;
+    linkShipHulls(options?: { reverse?: boolean }): this;
 }
 
 export interface IPlayer {
@@ -164,7 +194,19 @@ export interface IPlainGameState {
     isOver: boolean;
 }
 
-export type IPlainPlayer = Omit<IPlayer, "ships" | "pendingActions"> & { ships: string[]; pendingActions: string[] };
+export interface IPlainPlayer {
+    id: string;
+    name: string;
+    order: number;
+    ready: boolean;
+    ships: string[];
+    pendingActions: string[];
+    maxCommandPoints: number;
+    commandPoints: number;
+    faction: TFaction;
+    hand: string[];
+    deck: string;
+}
 export type IPlainShip = Omit<IShip, "hulls"> & { hulls: string[] };
 export type IPlainAction = IPlayerAction;
 

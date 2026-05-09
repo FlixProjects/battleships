@@ -1,4 +1,4 @@
-import { IGameState, IPlainPlayer, IPlayer } from "../types";
+import { IGameState, IPlainPlayer, IPlayer, IPlayerAction, IShip } from "../types";
 import { Card } from "./Card";
 import { PlayerEntity } from "./entities/PlayerEntity";
 
@@ -51,8 +51,16 @@ export class Player extends PlayerEntity {
     }
 
     public static toDomain(plain: IPlainPlayer, state: IGameState): Player {
-        const ships = state.ships?.filter((s) => s.playerId === plain.id) ?? [];
-        const pendingActions = (state.actions ?? []).filter((a) => plain.pendingActions.includes(a.id));
+        const shipsById = new Map<string, IShip>((state.ships ?? []).map((s) => [s.id, s]));
+        const ships = plain.ships
+            .map((id) => shipsById.get(id))
+            .filter((s): s is IShip => s !== undefined);
+
+        const actionsById = new Map<string, IPlayerAction>((state.actions ?? []).map((a) => [a.id, a]));
+        const pendingActions = plain.pendingActions
+            .map((id) => actionsById.get(id))
+            .filter((a): a is IPlayerAction => a !== undefined);
+
         return new Player({ ...plain, ships, pendingActions } as IPlayer);
     }
 }

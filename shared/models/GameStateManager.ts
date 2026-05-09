@@ -1,20 +1,28 @@
 import clone from "lodash.clonedeep";
-import { IGameState, IGameStateManager, IHull, IPlainAction, IPlainGameState, IPlayer, IShip } from "../types";
+import {
+    IGameState,
+    IGameStateData,
+    IGameStateManager,
+    IHull,
+    IPlainAction,
+    IPlainGameState,
+    IPlayer,
+    IShip,
+} from "../types";
 import { ActionResolver } from "../utils/action-handler/ActionResolver";
 import { GameState } from "./GameState";
 
+type GameStateInput = IGameState | IGameStateData | IPlainGameState;
+
 export class GameStateManager implements IGameStateManager {
     private _gameState: GameState;
-    constructor(_gameState: IGameState | IPlainGameState) {
+    constructor(_gameState: GameStateInput) {
         // each time we instantiate we deep clone the gameState
         const plain = clone(_gameState);
         this._gameState = this.transformToDomain(plain);
     }
 
-    private transformToDomain(_gameState: IGameState | IPlainGameState) {
-        if (_gameState instanceof GameState) {
-            return _gameState;
-        }
+    private transformToDomain(_gameState: GameStateInput) {
         return new GameState(_gameState);
     }
 

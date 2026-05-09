@@ -13,13 +13,7 @@ const cardConstructors: Record<TCardKind, CardConstructor> = {
     [CardKind.Ship]: ShipCard,
 };
 
-/**
- * Single entry point for instantiating cards from `ICard` plain data, used by
- * `DeckEntity` and `GameState` so we always end up with the right subclass.
- * If a card already arrives as a Card instance, it is returned as-is.
- */
-export const createCard = (props: Readonly<ICard> | Card): Card => {
-    if (props instanceof Card) return props;
+export const createCard = (props: Readonly<ICard>): Card => {
     const Ctor = cardConstructors[props.kind];
     if (!Ctor) {
         throw new Error(`Unknown card kind '${props.kind}' for card ${props.id}`);

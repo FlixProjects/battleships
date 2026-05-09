@@ -243,15 +243,13 @@ export class GameEngine {
 
         const ship = this.gsm.getShip(shipId);
 
-        const locArr =
-            this.gsm.gameState.hulls
-                .filter((h) =>
-                    this.gsm
-                        .getPlayer(playerId)
-                        .ships?.map((s) => s.id)
-                        .includes(h.shipId),
-                )
-                ?.map((h) => locationToKey(h.location)) || [];
+        // Block targeting only on tiles occupied by the player's own *live*
+        // hulls. Destroyed hulls leave the tile effectively empty — they
+        // shouldn't block the attacker from targeting through their wreck.
+        const ownShipIds = this.gsm.getPlayer(playerId).ships?.map((s) => s.id) ?? [];
+        const locArr = this.gsm.gameState.hulls
+            .filter((h) => !h.destroyed && ownShipIds.includes(h.shipId))
+            .map((h) => locationToKey(h.location));
 
         const currentLoc = ship.hulls?.find((h) => h.shipId === shipId && h.front)?.location ?? [0, 0];
         const attackRange = ship.attackRange || 0;

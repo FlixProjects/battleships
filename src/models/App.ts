@@ -1,5 +1,6 @@
 import { DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_GAME_CODE } from "@shared/constants";
 import { GameStateManager } from "@shared/models";
+import { transformPlainAppStateToDomain } from "@shared/transformers";
 import { AppStatus, IAppState } from "@shared/types";
 import { gameManager } from "..";
 import { getGame } from "../apis/get-game";
@@ -8,7 +9,7 @@ import { deleteAuthCookie, getCookie } from "../utils/cookie-helper";
 import { getGameCode, isWaitingForOtherPlayer, removeGameCode } from "../utils/game-helper";
 
 export class App {
-    private _state: IAppState = DEFAULT_APP_STATE;
+    private _state: IAppState = transformPlainAppStateToDomain(DEFAULT_APP_STATE);
 
     public async start() {
         updateComponents(this._state);
