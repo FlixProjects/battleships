@@ -1,7 +1,8 @@
-import { CardKind } from "../../types";
+import { CardKind, ICellLoc } from "../../types";
 import { ISelectable } from "../../types/fe-types";
 import { FECommand } from "./FECommand";
 import { FEDeployShipCommand } from "./FEDeployShipCommand";
+import { FEPlaySupportCommand } from "./FEPlaySupportCommand";
 import { ICommandExecutionParams } from "./types";
 
 /**
@@ -15,6 +16,10 @@ export interface IFEPlayCardCommandProps {
     deploy?: {
         tileId: string;
         locationElement: ISelectable;
+    };
+    support?: {
+        targetTile?: ICellLoc;
+        locationElement?: ISelectable;
     };
     onSuccessCb?: () => void;
 }
@@ -41,6 +46,8 @@ export class FEPlayCardCommand extends FECommand {
         switch (card.kind) {
             case CardKind.Ship:
                 return this.playShipCard(params);
+            case CardKind.Support:
+                return this.playSupportCard(params);
             default:
                 throw new Error(`[FEPlayCardCommand] Unsupported card kind '${card.kind}'`);
         }
@@ -60,6 +67,17 @@ export class FEPlayCardCommand extends FECommand {
             shipId: card.instanceId,
             playerId: this.props.playerId,
             locationElement: this.props.deploy.locationElement,
+            onSuccessCb: this.props.onSuccessCb,
+        });
+        await subCommand.execute(params);
+    }
+
+    private async playSupportCard(params: ICommandExecutionParams): Promise<void> {
+        const subCommand = new FEPlaySupportCommand({
+            cardId: this.props.cardId,
+            playerId: this.props.playerId,
+            targetTile: this.props.support?.targetTile,
+            locationElement: this.props.support?.locationElement,
             onSuccessCb: this.props.onSuccessCb,
         });
         await subCommand.execute(params);

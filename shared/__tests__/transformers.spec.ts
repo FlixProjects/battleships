@@ -133,6 +133,38 @@ describe("transformPlainGameStateToDomain", () => {
         expect(result.ships[0].hulls![0].id).toBe("hull1");
     });
 
+    it("round-trips a vision Effect through plain and domain forms", () => {
+        const plain: IPlainGameState = {
+            code: "GAME123",
+            currentRound: 2,
+            players: [],
+            ships: [],
+            hulls: [],
+            cards: [],
+            decks: [],
+            effects: [
+                {
+                    id: "effect-1",
+                    refNo: "flare_persistent",
+                    kind: "vision",
+                    sourceCardId: "card-flare",
+                    playerId: "player1",
+                    createdOnRound: 1,
+                    expiresAfterRound: 2,
+                    payload: { kind: "vision", center: [1, 1], range: 2 },
+                },
+            ],
+            winners: [],
+            isOver: false,
+        };
+        const domain = transformPlainGameStateToDomain(plain);
+        expect(domain.effects).toHaveLength(1);
+        expect(domain.effects[0].refNo).toBe("flare_persistent");
+
+        const replain = transformGameStateToPlain(domain);
+        expect(replain.effects?.[0]).toEqual(plain.effects?.[0]);
+    });
+
     it("rehydrates deck.cards and deck.played from the flat cards list", () => {
         const cards = [
             { id: "card-1", deckId: "deck-1", instanceId: "ship-1", kind: CardKind.Ship, refNo: "frigate0" },

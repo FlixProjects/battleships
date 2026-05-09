@@ -7,11 +7,13 @@ import { getGame } from "../apis/get-game";
 import { updateComponents } from "../components/component-helper";
 import { deleteAuthCookie, getCookie } from "../utils/cookie-helper";
 import { getGameCode, isWaitingForOtherPlayer, removeGameCode } from "../utils/game-helper";
+import { loadStyles } from "../css-anim-styles";
 
 export class App {
     private _state: IAppState = transformPlainAppStateToDomain(DEFAULT_APP_STATE);
 
     public async start() {
+        loadStyles();
         updateComponents(this._state);
 
         if (!this.hasExistingSession()) {

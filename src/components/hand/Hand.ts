@@ -1,5 +1,6 @@
+import { SUPPORTS_CONFIG, TSupportRefNo } from "@shared/constants";
 import { GameStateManager } from "@shared/models";
-import { ICard, IPlayer } from "@shared/types";
+import { CardKind, ICard, IPlayer } from "@shared/types";
 import { gameManager, interactionManager } from "../..";
 import { BaseComponent } from "../BaseComponent";
 import { getComponents } from "../component-helper";
@@ -76,9 +77,13 @@ export class Hand extends BaseComponent {
         if (this.props.isGameOver) return false;
         if (this.props.player.ready) return false;
 
-        if (card.kind === "Ship") {
+        if (card.kind === CardKind.Ship) {
             const ship = gsm.gameState.ships.find((s) => s.id === card.instanceId);
             return !!ship && this.props.player.commandPoints >= ship.commandPointCost;
+        }
+        if (card.kind === CardKind.Support) {
+            const supportConfig = SUPPORTS_CONFIG[card.refNo as TSupportRefNo];
+            return !!supportConfig && this.props.player.commandPoints >= supportConfig.commandPointCost;
         }
         return true;
     }

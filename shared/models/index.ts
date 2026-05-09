@@ -1,6 +1,8 @@
 export * from "./Card";
 export * from "./Deck";
+export * from "./Effect";
 export * from "./ShipCard";
+export * from "./SupportCard";
 export * from "./GameEngine";
 export * from "./GameStateManager";
 export * from "./GameState";
@@ -8,3 +10,4 @@ export * from "./Player";
 export * from "./Ship";
 export * from "./Hull";
 export * from "./actions";
+export * from "./effects";

@@ -1,5 +1,6 @@
 import clone from "lodash.clonedeep";
 import {
+    IEffect,
     IGameState,
     IGameStateData,
     IGameStateManager,
@@ -144,5 +145,24 @@ export class GameStateManager implements IGameStateManager {
     updateActions(actions: Partial<IPlainAction>[]) {
         actions.forEach((action) => this.updateAction(action));
         return this;
+    }
+
+    addEffect(effect: IEffect) {
+        this._gameState = this.gameState.addEffect(effect);
+        return this;
+    }
+
+    addEffects(effects: IEffect[]) {
+        effects.forEach((effect) => this.addEffect(effect));
+        return this;
+    }
+
+    removeEffect(effectId: string) {
+        this._gameState = this.gameState.removeEffect(effectId);
+        return this;
+    }
+
+    getActiveEffects(playerId?: string) {
+        return this.gameState.getActiveEffects(playerId);
     }
 }

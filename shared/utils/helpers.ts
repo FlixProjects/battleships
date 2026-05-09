@@ -1,6 +1,6 @@
 import { v7 as uuidv7 } from "uuid";
 import { BOARD_COLUMNS, BOARD_ROWS, CELL_SEPARATOR, FP_AUTH_TOKEN, SHIPS_CONFIG, TShipRefNo } from "../constants";
-import { Faction, FACTION_CONFIG, MAX_HAND_SIZE, type TFaction } from "../factions";
+import { Faction, FACTION_CONFIG, IDeckTemplateEntry, MAX_HAND_SIZE, type TFaction } from "../factions";
 import { Cell } from "../models/Cell";
 import { Deck } from "../models/Deck";
 import {
@@ -114,18 +114,38 @@ export interface IPlayerStartingState {
 export const buildPlayerStartingState = (playerId: string, faction: TFaction): IPlayerStartingState => {
     const template = FACTION_CONFIG[faction];
 
-    const ships: IPlainShip[] = template.flatMap((entry) =>
-        Array.from({ length: entry.count }, () => getShip(entry.refNo, playerId)),
+    const shipEntries = template.filter((e) => e.kind === CardKind.Ship);
+    const supportEntries = template.filter((e) => e.kind === CardKind.Support);
+
+    const ships: IPlainShip[] = shipEntries.flatMap((entry: IDeckTemplateEntry) =>
+        Array.from({ length: entry.count }, () => getShip(entry.refNo as TShipRefNo, playerId)),
     );
 
     const deckId = uuidv7();
-    const allCards: IPlainCard[] = ships.map((ship) => ({
+    const shipCards: IPlainCard[] = ships.map((ship) => ({
         id: uuidv7(),
         deckId,
         instanceId: ship.id,
         kind: CardKind.Ship,
         refNo: ship.refNo,
     }));
+
+    const supportCards: IPlainCard[] = supportEntries.flatMap((entry: IDeckTemplateEntry) =>
+        Array.from({ length: entry.count }, () => {
+            const cardId = uuidv7();
+            return {
+                id: cardId,
+                deckId,
+                // Supports have no underlying entity — point instanceId at the
+                // card itself so consumers always get a non-empty value.
+                instanceId: cardId,
+                kind: CardKind.Support,
+                refNo: entry.refNo,
+            };
+        }),
+    );
+
+    const allCards: IPlainCard[] = [...shipCards, ...supportCards];
 
     // Build a transient Deck domain object to leverage the one-time shuffle
     // and the draw mechanic — the result is then projected back to plain.
@@ -155,8 +175,12 @@ export const buildPlayerStartingState = (playerId: string, faction: TFaction): I
     };
 };
 
-const findFlagshipRefNo = (template: { refNo: TShipRefNo; count: number }[]): TShipRefNo | undefined => {
-    return template.find((entry) => SHIPS_CONFIG[entry.refNo].isFlagship)?.refNo;
+const findFlagshipRefNo = (template: IDeckTemplateEntry[]): TShipRefNo | undefined => {
+    return template.find((entry) => {
+        if (entry.kind !== CardKind.Ship) return false;
+        const shipConfig = SHIPS_CONFIG[entry.refNo as TShipRefNo];
+        return !!shipConfig?.isFlagship;
+    })?.refNo as TShipRefNo | undefined;
 };
 
 export const applyStartingStateToPlayer = (player: IPlainPlayer, starting: IPlayerStartingState): IPlainPlayer => {

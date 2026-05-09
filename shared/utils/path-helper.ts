@@ -34,6 +34,9 @@ const DEFAULT_OPTIONS: IGetCellPathsOptions = {
     origin: [0, 0],
 };
 
+/**
+ * TO BE DEPRECATED: use PathFinder instead
+ */
 export class PathHelper {
     public reachableCellsSet = new Set<string>();
     public getCellPaths(_options: IGetCellPathsParamOptions) {

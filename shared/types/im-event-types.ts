@@ -10,6 +10,8 @@ export const IMEventType = {
     MOVING_SHIP: "Moving_Ship",
     SELECT_SHIP: "Select_Ship",
     SHIP_ATTACK: "Ship_Attack",
+    PLAY_SUPPORT_TARGET: "Play_Support_Target",
+    PLAY_SUPPORT_CONFIRM: "Play_Support_Confirm",
 } as const;
 
 export type TIMEventType = (typeof IMEventType)[keyof typeof IMEventType];
@@ -41,4 +43,17 @@ export interface SelectShipActionIMEvent extends IMEvent {
 export interface ShipAttackActionIMEvent extends IMEvent {
     type: typeof IMEventType.SHIP_ATTACK;
     shipId: string;
+}
+
+export interface PlaySupportTargetIMEvent extends IMEvent {
+    type: typeof IMEventType.PLAY_SUPPORT_TARGET;
+    cardId: string;
+    /** Index of the Effect in the SupportConfig that needs targeting. */
+    effectIndex: number;
+}
+
+export interface PlaySupportConfirmIMEvent extends IMEvent {
+    type: typeof IMEventType.PLAY_SUPPORT_CONFIRM;
+    cardId: string;
+    effectIndex: number;
 }

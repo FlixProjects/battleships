@@ -1,4 +1,4 @@
-import { AppStatus, IHullTemplate, IPlainAppState, IPlainGameState, IShipTemplate } from "./types";
+import { AppStatus, EffectAnchor, EffectKind, IHullTemplate, IPlainAppState, IPlainGameState, ISupportConfig, IShipTemplate } from "./types";
 
 export const FP_AUTH_TOKEN = "fp-auth-token";
 export const FP_USER_ID = "fp-user-id";
@@ -54,6 +54,21 @@ export const SHIP_REF_NO = {
 } as const;
 
 export type TShipRefNo = (typeof SHIP_REF_NO)[keyof typeof SHIP_REF_NO];
+
+export const SUPPORT_REF_NO = {
+    flare: "flare",
+} as const;
+
+export type TSupportRefNo = (typeof SUPPORT_REF_NO)[keyof typeof SUPPORT_REF_NO];
+
+export const EFFECT_REF_NO = {
+    flare: "flare",
+    flarePersistent: "flare_persistent",
+} as const;
+
+export type TEffectRefNo = (typeof EFFECT_REF_NO)[keyof typeof EFFECT_REF_NO];
+
+export type TCardRefNo = TShipRefNo | TSupportRefNo;
 
 export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
     [SHIP_REF_NO.frigate0]: [
@@ -121,6 +136,29 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
         hullTemplates: HULLS_CONFIG[SHIP_REF_NO.flagship0],
         isFlagship: true,
     },
+};
+
+export const SUPPORTS_CONFIG: Record<TSupportRefNo, ISupportConfig> = {
+    [SUPPORT_REF_NO.flare]: {
+        refNo: SUPPORT_REF_NO.flare,
+        name: "Flare",
+        commandPointCost: 1,
+        effects: [
+            {
+                refNo: EFFECT_REF_NO.flarePersistent,
+                anchor: EffectAnchor.AnyTile,
+                range: 2,
+                // Duration of 2 means: granted on action resolve, plus persists
+                // through the next round's tick (expiresAfterRound = createdOnRound + 2).
+                duration: 2,
+            },
+        ],
+    },
+};
+
+export const EFFECT_KIND_BY_REF_NO: Record<TEffectRefNo, typeof EffectKind[keyof typeof EffectKind]> = {
+    [EFFECT_REF_NO.flare]: EffectKind.Vision,
+    [EFFECT_REF_NO.flarePersistent]: EffectKind.Vision,
 };
 
 export const COLOR = {

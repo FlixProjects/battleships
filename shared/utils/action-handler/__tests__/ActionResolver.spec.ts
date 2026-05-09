@@ -471,4 +471,144 @@ describe("ActionResolver", () => {
             expect(() => resolver.resolvePlayCard(action)).toThrow(/not in player .* hand/);
         });
     });
+
+    describe("resolvePlayCard (Support card → Flare)", () => {
+        const buildFlareCardEntities = () => {
+            const card: ICard = {
+                id: "card-flare",
+                deckId: "deck-1",
+                instanceId: "card-flare",
+                kind: CardKind.Support,
+                refNo: "flare",
+            };
+            const deck: IDeck = {
+                id: "deck-1",
+                playerId: "player1",
+                faction: Faction.THE_UNITED_FLEET,
+                cards: [],
+                played: [],
+            };
+            return { card, deck };
+        };
+
+        it("plays Flare, persists a vision Effect, deducts CP, and reveals the target tile to the playing player", () => {
+            const { card, deck } = buildFlareCardEntities();
+            // Place an opponent hull at [1,1] so we can verify visibility leakage
+            // through the persisted Flare Effect.
+            const opponentHull = hullBuilder.build({
+                id: "opp-hull",
+                shipId: "opp-ship",
+                location: [1, 1],
+                front: true,
+            });
+            const opponentShip = shipBuilder.build({
+                id: "opp-ship",
+                playerId: "player2",
+                deployed: true,
+                hulls: [opponentHull],
+            });
+            const player1 = buildPlayer1({
+                hand: ["card-flare"],
+                deck: "deck-1",
+                commandPoints: 2,
+                maxCommandPoints: 2,
+            });
+            const player2 = buildPlayer2({ ships: [opponentShip] });
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [opponentShip],
+                hulls: [opponentHull],
+                cards: [card],
+                decks: [deck],
+                winners: [],
+                isOver: false,
+            });
+
+            const action: IPlayCardAction = {
+                id: "play-flare-1",
+                type: ActionTypes.PLAY_CARD,
+                playerId: "player1",
+                round: 1,
+                order: 0,
+                commandPointCost: 1,
+                cardId: "card-flare",
+                payload: {
+                    kind: "Support",
+                    targetCell: [1, 1],
+                },
+            };
+
+            const resolver = new ActionResolver("player1", gameState);
+            const next = resolver.resolvePlayCard(action);
+
+            // Effect is persisted with the right ownership, kind, and lifetime.
+            expect(next.effects).toHaveLength(1);
+            const effect = next.effects[0];
+            expect(effect.refNo).toBe("flare_persistent");
+            expect(effect.playerId).toBe("player1");
+            expect(effect.kind).toBe("vision");
+            expect(effect.createdOnRound).toBe(1);
+            expect(effect.expiresAfterRound).toBe(2); // duration 2 → currentRound + (duration-1)
+
+            // CP deducted, card moved hand → played.
+            const resolvedPlayer = next.players.find((p) => p.id === "player1");
+            expect(resolvedPlayer?.commandPoints).toBe(1);
+            expect(resolvedPlayer?.hand).toEqual([]);
+            const resolvedDeck = next.decks.find((d) => d.id === "deck-1");
+            expect(resolvedDeck?.played.map((c) => c.id)).toEqual(["card-flare"]);
+
+            // Player1 sees the centered tile via the Flare Effect.
+            const visibleTiles = next.getVisibleTilesforPlayer("player1");
+            expect(visibleTiles.has("1/1")).toBe(true);
+        });
+
+        it("expires the persistent Flare Effect after its lifetime is up", () => {
+            const { card, deck } = buildFlareCardEntities();
+            const player1 = buildPlayer1({
+                hand: ["card-flare"],
+                deck: "deck-1",
+                commandPoints: 2,
+                maxCommandPoints: 2,
+            });
+            const player2 = buildPlayer2();
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [],
+                hulls: [],
+                cards: [card],
+                decks: [deck],
+                winners: [],
+                isOver: false,
+            });
+
+            const action: IPlayCardAction = {
+                id: "play-flare-1",
+                type: ActionTypes.PLAY_CARD,
+                playerId: "player1",
+                round: 1,
+                order: 0,
+                commandPointCost: 1,
+                cardId: "card-flare",
+                payload: { kind: "Support", targetCell: [0, 0] },
+            };
+
+            const resolver = new ActionResolver("player1", gameState);
+            resolver.resolvePlayCard(action);
+            expect(resolver.gameState.effects).toHaveLength(1);
+
+            // Simulate the round advancing past expiry.
+            resolver.gameState.update({});
+            resolver.gameState.currentRound = 3;
+            resolver.resolveExpiredEffects();
+            expect(resolver.gameState.effects).toHaveLength(0);
+        });
+    });
 });

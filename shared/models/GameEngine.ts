@@ -1,11 +1,23 @@
 import { HullCalculator as _HullCalculator } from "@shared/utils/hull-helper";
-import { BOARD_COLUMNS, BOARD_ROWS } from "../constants";
+import { v7 as uuidv7 } from "uuid";
+import {
+    BOARD_COLUMNS,
+    BOARD_ROWS,
+    EFFECT_KIND_BY_REF_NO,
+    SUPPORTS_CONFIG,
+    TEffectRefNo,
+    TSupportRefNo,
+} from "../constants";
 import { GameStateManager } from "../models";
 import {
+    EffectAnchor,
+    EffectKind,
     IAttackResult,
     ICellLoc,
     IDeployAction,
     IDeployResult,
+    IEffect,
+    IEffectConfig,
     IErrorResult,
     IGameState,
     IGetValidAttackCellsAction,
@@ -13,15 +25,21 @@ import {
     IGetValidDeployCellsResult,
     IGetValidMoveCellsAction,
     IGetValidMoveCellsResult,
+    IGetValidSupportCellsAction,
+    IGetValidSupportCellsResult,
     IMoveAction,
     IMoveResult,
+    IPlaySupportAction,
+    IPlaySupportResult,
     IPlayer,
     IResult,
     IShipAttackAction,
+    IVisionEffectPayload,
     ResultType,
     THullCalculatorConstructor,
 } from "../types";
-import { LocationHelper, locationToKey, PathHelper } from "../utils";
+import { keyToLocation, LocationHelper, locationToKey, PathHelper } from "../utils";
+import { createEffect } from "../utils/effect-helper";
 import { cellLocToNodeId, nodeIdToCellLoc, PathFinder, routeToCellLocs } from "../utils/path-finder";
 import { MoveShipValidator } from "../utils/validator";
 import { Movement } from "./Movement";
@@ -45,6 +63,7 @@ export class GameEngine {
             moveShipRoutes: (action: IGetValidMoveCellsAction, destinationTileId: string) =>
                 this.primeMoveShipRoutes(action, destinationTileId),
             shipAttack: (action: IGetValidAttackCellsAction) => this.primeAttack(action),
+            playSupport: (action: IGetValidSupportCellsAction) => this.primePlaySupport(action),
         };
     }
 
@@ -67,6 +86,9 @@ export class GameEngine {
             shipAttack: (action: IShipAttackAction): IAttackResult | IErrorResult => {
                 // TODO: validate
                 return this.commitAttack(action);
+            },
+            playSupport: (action: IPlaySupportAction): IPlaySupportResult | IErrorResult => {
+                return this.commitPlaySupport(action);
             },
         };
     }
@@ -327,6 +349,164 @@ export class GameEngine {
             ships,
             players,
             shipsHit,
+        };
+    }
+
+    private primePlaySupport(action: IGetValidSupportCellsAction): IGetValidSupportCellsResult {
+        const { playerId, cardId, effectIndex } = action;
+        const card = this.gsm.gameState.cards.find((c) => c.id === cardId);
+        if (!card) {
+            throw new Error(`primePlaySupport: card ${cardId} not found`);
+        }
+        const supportConfig = SUPPORTS_CONFIG[card.refNo as TSupportRefNo];
+        if (!supportConfig) {
+            throw new Error(`primePlaySupport: no SupportConfig for refNo '${card.refNo}'`);
+        }
+        const effectConfig = supportConfig.effects[effectIndex];
+        if (!effectConfig) {
+            throw new Error(`primePlaySupport: effectIndex ${effectIndex} out of range for ${card.refNo}`);
+        }
+
+        if (effectConfig.range === 0) {
+            return { type: ResultType.SUCCESS, playerId, validCells: [], requiresTarget: false };
+        }
+
+        const validCells = this.computeAnchoredCells(playerId, effectConfig);
+        return { type: ResultType.SUCCESS, playerId, validCells, requiresTarget: true };
+    }
+
+    private commitPlaySupport(action: IPlaySupportAction): IPlaySupportResult | IErrorResult {
+        const { playerId, supportRefNo, cardId, targetCell: targetTile, commandPointCost } = action;
+
+        const supportConfig = SUPPORTS_CONFIG[supportRefNo as TSupportRefNo];
+        if (!supportConfig) {
+            return { type: ResultType.ERROR, playerId, message: `Unknown SupportCard refNo '${supportRefNo}'` };
+        }
+
+        const player = this.gsm.getPlayer(playerId);
+        const effectsToAdd: IEffect[] = [];
+        const currentRound = this.gsm.gameState.currentRound;
+
+        supportConfig.effects.forEach((effectConfig) => {
+            const effect = this.buildEffect({
+                effectConfig,
+                playerId,
+                cardId,
+                targetTile,
+                currentRound,
+            });
+
+            // resolve once on the action turn (no-op for passive vision Effects)
+            effect.resolve(this.gsm);
+
+            if (effectConfig.duration > 0) {
+                this.gsm.addEffect(effect);
+                effectsToAdd.push(effect);
+            }
+        });
+
+        player.commandPoints -= commandPointCost;
+
+        return {
+            type: ResultType.SUCCESS,
+            playerId,
+            player,
+            effectsToAdd,
+        };
+    }
+
+    /**
+     * Manhattan-distance reachable cells from the configured anchor. For
+     * `any_tile` we treat the whole board as the seed set (no anchor cell).
+     */
+    private computeAnchoredCells(playerId: string, effectConfig: IEffectConfig): ICellLoc[] {
+        if (effectConfig.anchor === EffectAnchor.AnyTile) {
+            const all: ICellLoc[] = [];
+            for (let x = 0; x < BOARD_COLUMNS; x++) {
+                for (let y = 0; y < BOARD_ROWS; y++) {
+                    all.push([x, y]);
+                }
+            }
+            return all;
+        }
+
+        const anchorCells = this.getAnchorCells(playerId, effectConfig.anchor);
+        const pathHelper = new PathHelper();
+        const reached = new Set<string>();
+        anchorCells.forEach((origin) => {
+            reached.add(locationToKey(origin));
+            pathHelper
+                .getReachableCells({ start: origin, range: effectConfig.range })
+                .forEach((cell) => reached.add(locationToKey(cell)));
+        });
+
+        return Array.from(reached).map((key) => keyToLocation(key));
+    }
+
+    private getAnchorCells(playerId: string, anchor: IEffectConfig["anchor"]): ICellLoc[] {
+        if (anchor === EffectAnchor.Flagship) {
+            const ownShips = this.gsm.getPlayerShips(playerId);
+            const flagship = ownShips.find((s) => s.isFlagship && s.deployed && !s.destroyed);
+            if (!flagship) return [];
+            return (flagship.hulls ?? []).map((h) => h.location);
+        }
+        if (anchor === EffectAnchor.AnyFriendlyHull) {
+            return this.gsm.gameState.hulls
+                .filter((h) => !h.destroyed)
+                .filter((h) => this.gsm.gameState.ships.find((s) => s.id === h.shipId)?.playerId === playerId)
+                .map((h) => h.location);
+        }
+        if (anchor === EffectAnchor.DeploymentRow) {
+            const isFirstPlayer = this.gsm.gameState.isFirstPlayer(playerId);
+            const row = isFirstPlayer ? 0 : BOARD_ROWS - 1;
+            const cells: ICellLoc[] = [];
+            for (let x = 0; x < BOARD_COLUMNS; x++) cells.push([x, row]);
+            return cells;
+        }
+        return [];
+    }
+
+    private buildEffect(args: {
+        effectConfig: IEffectConfig;
+        playerId: string;
+        cardId: string;
+        targetTile?: ICellLoc;
+        currentRound: number;
+    }) {
+        const { effectConfig, playerId, cardId, targetTile, currentRound } = args;
+        const kind = EFFECT_KIND_BY_REF_NO[effectConfig.refNo as TEffectRefNo];
+        if (!kind) {
+            throw new Error(`No EffectKind registered for refNo '${effectConfig.refNo}'`);
+        }
+
+        const expiresAfterRound = effectConfig.duration > 0 ? currentRound + (effectConfig.duration - 1) : undefined;
+
+        const payload =
+            kind === EffectKind.Vision
+                ? this.buildVisionPayload(effectConfig, targetTile)
+                : ({ kind: EffectKind.CommandPoint, amount: 0 } as const);
+
+        const plain: IEffect = {
+            id: uuidv7(),
+            refNo: effectConfig.refNo,
+            kind,
+            sourceCardId: cardId,
+            playerId,
+            createdOnRound: currentRound,
+            expiresAfterRound,
+            payload,
+        };
+        return createEffect(plain);
+    }
+
+    private buildVisionPayload(effectConfig: IEffectConfig, targetTile?: ICellLoc): IVisionEffectPayload {
+        if (!targetTile) {
+            throw new Error(`Vision Effect '${effectConfig.refNo}' requires a targetTile`);
+        }
+        return {
+            kind: EffectKind.Vision,
+            center: targetTile,
+            range: effectConfig.range,
         };
     }
 

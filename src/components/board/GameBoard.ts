@@ -17,6 +17,7 @@ import { locationToKey } from "@shared/utils";
 import { gameManager } from "../..";
 import { queueCommand } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
+import { EffectSprite } from "./EffectSprite";
 import { Tile } from "./Tile";
 
 export class GameBoard extends BaseComponent {
@@ -60,6 +61,7 @@ export class GameBoard extends BaseComponent {
         this.renderStaticLayer();
 
         this.renderPlayersShips();
+        this.renderEffects();
         this.applyVisibility();
 
         this.gameBoardContainer.appendChild(this.ref);
@@ -160,5 +162,14 @@ export class GameBoard extends BaseComponent {
             return;
         }
         await queueCommand(new FERenderShipCommand(ship.id));
+    }
+
+    private renderEffects() {
+        const gameState = new GameStateManager(gameManager.state.gameState).gameState;
+        gameState.getActiveEffects().forEach((effect) => {
+            const sprite = new EffectSprite({ effect });
+            this.addChild(sprite);
+            this.ref.appendChild(sprite.build());
+        });
     }
 }
