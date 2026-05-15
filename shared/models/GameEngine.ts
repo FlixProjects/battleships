@@ -31,7 +31,7 @@ import {
     ResultType,
     TEffectRefNo,
     THullCalculatorConstructor,
-    TSupportRefNo
+    TSupportRefNo,
 } from "../types";
 import { keyToLocation, LocationHelper, locationToKey, PathHelper } from "../utils";
 import { createEffect } from "../utils/effect-helper";
@@ -474,7 +474,7 @@ export class GameEngine {
         currentRound: number;
     }) {
         const { effectConfig, playerId, cardId, targetCell, currentRound } = args;
-        const expiresAfterRound = effectConfig.duration > 0 ? currentRound + (effectConfig.duration - 1) : undefined;
+        const expiresAfterRound = effectConfig.duration > 0 ? currentRound + effectConfig.duration : undefined;
 
         const payload =
             effectConfig.kind === EffectKind.Vision
