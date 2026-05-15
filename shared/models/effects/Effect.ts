@@ -1,3 +1,4 @@
+import { locationToKey } from "@shared/utils";
 import { IEffect, IGameStateManager, IPlainEffect } from "../../types";
 import { EffectEntity } from "../entities/EffectEntity";
 
@@ -25,6 +26,18 @@ export class Effect extends EffectEntity {
         return this.expiresAfterRound !== undefined && currentRound > this.expiresAfterRound;
     }
 
+    public updateVisibility(visibleTiles: Set<string>) {
+        if (!this.existsOnBoard || !this.location) {
+            this.isVisible = false;
+            return this;
+        }
+
+        if (visibleTiles.has(locationToKey(this.location))) {
+            this.isVisible = true;
+        }
+        return this;
+    }
+
     public toPlain(): IPlainEffect {
         return {
             id: this.id,
@@ -35,6 +48,8 @@ export class Effect extends EffectEntity {
             createdOnRound: this.createdOnRound,
             expiresAfterRound: this.expiresAfterRound,
             payload: this.payload,
+            existsOnBoard: this.existsOnBoard,
+            location: this.location,
         };
     }
 }

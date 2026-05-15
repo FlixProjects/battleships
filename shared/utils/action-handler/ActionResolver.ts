@@ -192,7 +192,6 @@ export class ActionResolver {
         }
 
         gsm.updatePlayer(result.player);
-        console.log(">>>", result.effectsToAdd[0]);
         gsm.addEffects(result.effectsToAdd);
         this.gameState = gsm.gameState;
     }

@@ -294,9 +294,16 @@ export class GameState implements IGameState {
         // TODO: we should be able to achieve this without linking.
         this.linkShipHulls().linkPlayerShips();
         this.players = this.players.map((p) => (p.id !== playerId ? p.updateVisibility(visibleTiles) : p));
+        this.effects = this.effects.map((e) => e.updateVisibility(visibleTiles));
+        this.removeInvisibleEffects();
 
         this.linkPlayerShips({ reverse: true }).linkShipHulls({ reverse: true });
         return clone(this);
+    }
+
+    removeInvisibleEffects() {
+        this.effects = this.effects.filter((e) => e.isVisible);
+        return this;
     }
 
     getVisibleTilesforPlayer(playerId: string) {
