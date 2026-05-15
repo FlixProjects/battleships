@@ -1,4 +1,5 @@
-import { AppStatus, EffectAnchor, EffectKind, IEffectConfig, IHullTemplate, IPlainAppState, IPlainGameState, ISupportConfig, IShipTemplate } from "./types";
+import { AppStatus } from "./config/constants";
+import { IPlainAppState, IPlainGameState } from "./types";
 
 export const FP_AUTH_TOKEN = "fp-auth-token";
 export const FP_USER_ID = "fp-user-id";
@@ -33,8 +34,9 @@ export const DEFAULT_APP_STATE: IPlainAppState = {
     gameState: INITIAL_GAME_STATE,
 };
 
-export const BOARD_ROWS = 10;
-export const BOARD_COLUMNS = 7;
+// TODO: move row and column to GameConfig
+export const BOARD_ROWS = 6;
+export const BOARD_COLUMNS = 5;
 export const CELL_SEPARATOR = "/";
 export const TILE_SIZE_PX = 48;
 export const TILE_GAP_PX = 0;
@@ -46,124 +48,6 @@ export const Z_INDEX = {
     PROJECTILE: "100",
     ACTION_MENU: "1000",
     TARGET_ATTACK_ICON: "10",
-}
-
-export const SHIP_REF_NO = {
-    frigate0: "frigate0",
-    flagship0: "flagship0",
-} as const;
-
-export type TShipRefNo = (typeof SHIP_REF_NO)[keyof typeof SHIP_REF_NO];
-
-export const SUPPORT_REF_NO = {
-    flare: "flare",
-} as const;
-
-export type TSupportRefNo = (typeof SUPPORT_REF_NO)[keyof typeof SUPPORT_REF_NO];
-
-export const EFFECT_REF_NO = {
-    flare: "flare",
-    flarePersistent: "flare_persistent",
-} as const;
-
-export type TEffectRefNo = (typeof EFFECT_REF_NO)[keyof typeof EFFECT_REF_NO];
-
-export type TCardRefNo = TShipRefNo | TSupportRefNo;
-
-export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
-    [SHIP_REF_NO.frigate0]: [
-        {
-            templateLocation: [0, 0],
-            maxHealth: 1,
-            armor: 0,
-            visionRange: 2,
-            imgSrc: "assets/ships/frigate0.png",
-            front: true,
-            orientation: 0,
-        },
-    ],
-    [SHIP_REF_NO.flagship0]: [
-        {
-            templateLocation: [0, 0],
-            maxHealth: 1,
-            armor: 0,
-            visionRange: 2,
-            imgSrc: "assets/ships/flagship-0.png",
-            orientation: 0,
-        },
-        {
-            templateLocation: [0, 1],
-            maxHealth: 1,
-            armor: 0,
-            visionRange: 2,
-            imgSrc: "assets/ships/flagship-1.png",
-            front: true,
-            orientation: 0,
-        },
-    ],
-};
-
-export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
-    [SHIP_REF_NO.frigate0]: {
-        refNo: SHIP_REF_NO.frigate0,
-        name: "Frigate",
-        deployed: false,
-        dimensions: [1, 1],
-        commandPointCost: 1,
-        movementRange: 2,
-        movementCommandPointCost: 1,
-        attackCountMax: 1,
-        attackCommandPointCost: 1,
-        attackRange: 3,
-        attackDamage: 1,
-        attackMinRange: 1,
-        hullTemplates: HULLS_CONFIG[SHIP_REF_NO.frigate0],
-        isFlagship: false,
-    },
-    [SHIP_REF_NO.flagship0]: {
-        refNo: SHIP_REF_NO.flagship0,
-        name: "Flagship",
-        deployed: false,
-        dimensions: [1, 1],
-        commandPointCost: 0,
-        movementRange: 1,
-        movementCommandPointCost: 1,
-        attackCountMax: 1,
-        attackCommandPointCost: 1,
-        attackRange: 5,
-        attackDamage: 1,
-        attackMinRange: 1,
-        hullTemplates: HULLS_CONFIG[SHIP_REF_NO.flagship0],
-        isFlagship: true,
-    },
-};
-
-export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectConfig> = {
-    [EFFECT_REF_NO.flare]: {
-        refNo: EFFECT_REF_NO.flare,
-        kind: EffectKind.Vision,
-        anchor: EffectAnchor.AnyTile,
-        range: 2,
-        duration: 0,
-    },
-    [EFFECT_REF_NO.flarePersistent]: {
-        refNo: EFFECT_REF_NO.flarePersistent,
-        kind: EffectKind.Vision,
-        anchor: EffectAnchor.AnyTile,
-        range: 2,
-        // Duration of 2 means: granted on action resolve, plus persists
-        // through the next round's tick (expiresAfterRound = createdOnRound + 1).
-        duration: 2,
-    },
-};
-
-export const SUPPORTS_CONFIG: Record<TSupportRefNo, ISupportConfig> = {
-    [SUPPORT_REF_NO.flare]: {
-        refNo: SUPPORT_REF_NO.flare,
-        name: "Flare",
-        commandPointCost: 1,
-        effects: [EFFECT_REF_NO.flarePersistent],
-    },
 };
 
 export const COLOR = {

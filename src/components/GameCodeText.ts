@@ -1,4 +1,5 @@
-import { AppStatus, IAppState } from "@shared/types";
+import { GameConfig } from "@shared/index";
+import { IAppState } from "@shared/types";
 import { HTMLSpan } from "./native/Span";
 
 export class GameCodeText extends HTMLSpan {
@@ -48,10 +49,10 @@ export class GameCodeText extends HTMLSpan {
         }
 
         switch (status) {
-            case AppStatus.Initialising:
+            case GameConfig.AppStatus.Initialising:
                 element.innerText = "";
                 break;
-            case AppStatus.Error:
+            case GameConfig.AppStatus.Error:
                 element.innerHTML = "error";
             default:
                 element.innerText = gameState.code;

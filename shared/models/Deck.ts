@@ -1,5 +1,4 @@
-import type { TFaction } from "../factions";
-import { ICard, IDeck, IGameState, IPlainDeck } from "../types";
+import { ICard, IDeck, IGameState, IPlainDeck, TFaction } from "../types";
 import { Card } from "./Card";
 import { DeckEntity } from "./entities/DeckEntity";
 

@@ -1,4 +1,5 @@
-import { CardKind, ICellLoc } from "../../types";
+import { CardKind } from "../../config/constants";
+import { ICellLoc } from "../../types";
 import { ISelectable } from "../../types/fe-types";
 import { FECommand } from "./FECommand";
 import { FEDeployShipCommand } from "./FEDeployShipCommand";

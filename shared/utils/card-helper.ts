@@ -1,7 +1,8 @@
+import { CardKind } from "../config/constants";
 import { Card } from "../models/Card";
 import { ShipCard } from "../models/ShipCard";
 import { SupportCard } from "../models/SupportCard";
-import { CardKind, ICard, TCardKind } from "../types";
+import { ICard, TCardKind } from "../types";
 
 type CardConstructor = new (props: Readonly<ICard>) => Card;
 

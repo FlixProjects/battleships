@@ -1,12 +1,19 @@
+import { BOARD_COLUMNS, BOARD_ROWS, CELL_SEPARATOR, FP_AUTH_TOKEN } from "@shared/constants";
 import { v7 as uuidv7 } from "uuid";
-import { BOARD_COLUMNS, BOARD_ROWS, CELL_SEPARATOR, FP_AUTH_TOKEN, SHIPS_CONFIG, TShipRefNo } from "../constants";
-import { Faction, FACTION_CONFIG, IDeckTemplateEntry, MAX_HAND_SIZE, type TFaction } from "../factions";
+import {
+    CardKind,
+    Faction,
+    FACTION_CONFIG,
+    MAX_HAND_SIZE,
+    SHIPS_CONFIG,
+    SUPPORTS_CONFIG,
+} from "../config/constants";
 import { Cell } from "../models/Cell";
 import { Deck } from "../models/Deck";
 import {
     Board,
-    CardKind,
     ICellLoc,
+    IDeckTemplateEntry,
     IGameState,
     IHull,
     IHullTemplate,
@@ -14,7 +21,10 @@ import {
     IPlainDeck,
     IPlainGameState,
     IPlainPlayer,
-    IPlainShip
+    IPlainShip,
+    ISupportDeckTemplateEntry,
+    TFaction,
+    TShipRefNo,
 } from "../types/types";
 
 export const parseCookies = (cookieStr: string) => {
@@ -130,9 +140,10 @@ export const buildPlayerStartingState = (playerId: string, faction: TFaction): I
         refNo: ship.refNo,
     }));
 
-    const supportCards: IPlainCard[] = supportEntries.flatMap((entry: IDeckTemplateEntry) =>
+    const supportCards: IPlainCard[] = supportEntries.flatMap((entry: ISupportDeckTemplateEntry) =>
         Array.from({ length: entry.count }, () => {
             const cardId = uuidv7();
+            const supportConfig = SUPPORTS_CONFIG[entry.refNo];
             return {
                 id: cardId,
                 deckId,

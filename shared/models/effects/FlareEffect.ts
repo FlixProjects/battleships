@@ -1,6 +1,6 @@
-import { EFFECT_REF_NO } from "../../constants";
 import { IEffect, IGameStateManager } from "../../types";
 import { registerEffect } from "../../utils/effect-helper";
+import { EFFECT_REF_NO } from "../../config/constants";
 import { Effect } from "./Effect";
 
 /**

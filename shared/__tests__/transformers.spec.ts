@@ -1,4 +1,4 @@
-import { Faction } from "../factions";
+import { AppStatus, CardKind, Faction } from "../config/constants";
 import { HullBuilder } from "../factories/hull-builder";
 import { PlayerBuilder } from "../factories/player-builder";
 import { ShipBuilder } from "../factories/ship-builder";
@@ -9,7 +9,7 @@ import {
     transformPlainAppStateToDomain,
     transformPlainGameStateToDomain,
 } from "../transformers";
-import { AppStatus, CardKind, IAppState, IGameStateData, IHull, IPlainAppState, IPlainGameState, IShip } from "../types/types";
+import { IAppState, IGameStateData, IHull, IPlainAppState, IPlainGameState, IShip } from "../types/types";
 
 const playerBuilder = new PlayerBuilder({
     id: "player1",
@@ -152,6 +152,7 @@ describe("transformPlainGameStateToDomain", () => {
                     createdOnRound: 1,
                     expiresAfterRound: 2,
                     payload: { kind: "vision", center: [1, 1], range: 2 },
+                    existsOnBoard: true,
                 },
             ],
             winners: [],

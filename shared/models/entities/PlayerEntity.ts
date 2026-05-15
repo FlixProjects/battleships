@@ -1,5 +1,4 @@
-import type { TFaction } from "../../factions";
-import { IPlayer, IPlayerAction, IShip } from "../../types";
+import { IPlayer, IPlayerAction, IShip, TFaction } from "../../types";
 import { Action } from "../actions/Action";
 import { Ship } from "../Ship";
 import { Entity } from "./Entity";

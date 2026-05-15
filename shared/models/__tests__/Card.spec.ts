@@ -1,5 +1,5 @@
-import { CardKind } from "../../types";
 import { Card, ICardPlaySink } from "../Card";
+import { CardKind } from "../../config/constants";
 
 describe("Card", () => {
     const baseProps = {

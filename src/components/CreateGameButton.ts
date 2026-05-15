@@ -1,5 +1,6 @@
 import { FP_GAME_STATE } from "@shared/constants";
-import { AppStatus, IAppState } from "@shared/types";
+import { GameConfig } from "@shared/index";
+import { IAppState } from "@shared/types";
 import { gameManager } from "../";
 import { createGame } from "../apis/create-game";
 import { isLocal } from "../config/app-config";
@@ -49,7 +50,7 @@ export class CreateGameButton extends HTMLButton {
             setCurrentPlayer(playerId);
 
             const newState = {
-                status: AppStatus.Initialised,
+                status: GameConfig.AppStatus.Initialised,
                 loading: false,
                 gameState,
             };
@@ -61,7 +62,7 @@ export class CreateGameButton extends HTMLButton {
             updateComponents();
         } catch (error) {
             this.setDisabled(false);
-            updateComponents({ status: AppStatus.Error });
+            updateComponents({ status: GameConfig.AppStatus.Error });
         }
     }
 
@@ -69,11 +70,11 @@ export class CreateGameButton extends HTMLButton {
         const { status } = _state;
 
         switch (status) {
-            case AppStatus.NewGame:
+            case GameConfig.AppStatus.NewGame:
                 this.setDisabled(false);
                 break;
-            case AppStatus.Initialised:
-            case AppStatus.Initialising:
+            case GameConfig.AppStatus.Initialised:
+            case GameConfig.AppStatus.Initialising:
                 this.setDisabled(true);
                 break;
         }

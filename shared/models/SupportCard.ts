@@ -1,4 +1,4 @@
-import { EFFECTS_CONFIG, SUPPORTS_CONFIG, TEffectRefNo, TSupportRefNo } from "../constants";
+import { EFFECTS_CONFIG, SUPPORTS_CONFIG } from "../config/constants";
 import {
     ActionTypes,
     ICard,
@@ -11,7 +11,9 @@ import {
     PlaySupportConfirmIMEvent,
     PlaySupportTargetIMEvent,
     TActionMeta,
+    TEffectRefNo,
     TPlayCardPayload,
+    TSupportRefNo,
 } from "../types";
 import { Card, ICardSelectionHandlers } from "./Card";
 
@@ -23,11 +25,14 @@ export class SupportCard extends Card {
     constructor(props: Readonly<ICard>) {
         super(props);
         const supportConfig = SUPPORTS_CONFIG[props.refNo as TSupportRefNo];
+
         if (!supportConfig) {
             throw new Error(`SupportCard ${props.id} has unknown refNo '${props.refNo}'`);
         }
+
         this.name = supportConfig.name;
         this.commandPointCost = supportConfig.commandPointCost;
+
         this.effects = supportConfig.effects.map((effectRefNo) => {
             const effectConfig = EFFECTS_CONFIG[effectRefNo as TEffectRefNo];
             if (!effectConfig) {
@@ -35,6 +40,7 @@ export class SupportCard extends Card {
             }
             return effectConfig;
         });
+
         if (this.effects.length === 0) {
             throw new Error(`SupportCard ${props.id} has no Effects configured`);
         }

@@ -1,13 +1,7 @@
 import { HullCalculator as _HullCalculator } from "@shared/utils/hull-helper";
 import { v7 as uuidv7 } from "uuid";
-import {
-    BOARD_COLUMNS,
-    BOARD_ROWS,
-    EFFECTS_CONFIG,
-    SUPPORTS_CONFIG,
-    TEffectRefNo,
-    TSupportRefNo,
-} from "../constants";
+import { EFFECTS_CONFIG, SUPPORTS_CONFIG } from "../config/constants";
+import { BOARD_COLUMNS, BOARD_ROWS } from "../constants";
 import { GameStateManager } from "../models";
 import {
     EffectAnchor,
@@ -31,12 +25,13 @@ import {
     IMoveResult,
     IPlaySupportAction,
     IPlaySupportResult,
-    IPlayer,
     IResult,
     IShipAttackAction,
     IVisionEffectPayload,
     ResultType,
+    TEffectRefNo,
     THullCalculatorConstructor,
+    TSupportRefNo
 } from "../types";
 import { keyToLocation, LocationHelper, locationToKey, PathHelper } from "../utils";
 import { createEffect } from "../utils/effect-helper";
@@ -494,7 +489,9 @@ export class GameEngine {
             playerId,
             createdOnRound: currentRound,
             expiresAfterRound,
+            existsOnBoard: effectConfig.existsOnBoard,
             payload,
+            location: targetCell,
         };
         return createEffect(plain);
     }

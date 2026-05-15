@@ -1,5 +1,5 @@
+import { MAX_HAND_SIZE } from "../../config/constants";
 import { ERROR_CODE } from "../../constants";
-import { MAX_HAND_SIZE } from "../../factions";
 import { GameEngine, GameStateManager } from "../../models";
 import {
     ActionTypes,
@@ -55,9 +55,7 @@ export class ActionResolver {
     public resolveExpiredEffects() {
         const gsm = new GameStateManager(this.gameState);
         const currentRound = gsm.gameState.currentRound;
-        gsm.gameState.effects
-            .filter((e) => e.hasExpired(currentRound))
-            .forEach((e) => gsm.removeEffect(e.id));
+        gsm.gameState.effects.filter((e) => e.hasExpired(currentRound)).forEach((e) => gsm.removeEffect(e.id));
         this.gameState = gsm.gameState;
     }
 
@@ -194,6 +192,7 @@ export class ActionResolver {
         }
 
         gsm.updatePlayer(result.player);
+        console.log(">>>", result.effectsToAdd[0]);
         gsm.addEffects(result.effectsToAdd);
         this.gameState = gsm.gameState;
     }

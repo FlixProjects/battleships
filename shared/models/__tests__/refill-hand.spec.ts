@@ -1,5 +1,5 @@
-import { Faction, MAX_HAND_SIZE } from "../../factions";
-import { CardKind, ICard, IDeck, IGameStateData, IPlayer, IPlayerAction, IShip } from "../../types";
+import { ICard, IDeck, IGameStateData, IPlayer, IPlayerAction, IShip } from "../../types";
+import { CardKind, Faction, MAX_HAND_SIZE } from "../../config/constants";
 import { GameState } from "../GameState";
 
 const makeCard = (id: string, deckId: string, refNo = "frigate0"): ICard => ({

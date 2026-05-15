@@ -1,4 +1,5 @@
-import { AppStatus, IAppState } from "@shared/types";
+import { GameConfig } from "@shared/index";
+import { IAppState } from "@shared/types";
 import { refresh } from "../utils/game-helper";
 import { HTMLButton } from "./native/Button";
 
@@ -33,10 +34,10 @@ export class RefreshButton extends HTMLButton {
         const { status } = appState;
 
         switch (status) {
-            case AppStatus.Initialised:
-            case AppStatus.WaitingForPlayers:
-            case AppStatus.WaitingForOtherPlayer:
-            case AppStatus.ReadyToSubmit:
+            case GameConfig.AppStatus.Initialised:
+            case GameConfig.AppStatus.WaitingForPlayers:
+            case GameConfig.AppStatus.WaitingForOtherPlayer:
+            case GameConfig.AppStatus.ReadyToSubmit:
                 this.ref.disabled = false;
                 break;
             default:

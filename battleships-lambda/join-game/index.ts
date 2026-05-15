@@ -3,9 +3,9 @@ import { randomUUID } from "crypto";
 import {
     applyStartingStateToPlayer,
     buildPlayerStartingState,
-    Faction,
     initialiseNewPlayer,
     IPlainGameState,
+    GameConfig,
 } from "../../shared";
 
 interface JoinGameResponse {
@@ -75,7 +75,7 @@ export const handler = async (event: any) => {
 
         const playerId = randomUUID();
         const newPlayer = initialiseNewPlayer({ id: playerId, name: playerName, order: gameState.players.length });
-        const starting = buildPlayerStartingState(playerId, Faction.THE_UNITED_FLEET);
+        const starting = buildPlayerStartingState(playerId, GameConfig.Faction.THE_UNITED_FLEET);
         applyStartingStateToPlayer(newPlayer, starting);
 
         gameState.ships.push(...starting.ships);

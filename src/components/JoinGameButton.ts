@@ -1,5 +1,6 @@
 import { FP_GAME_STATE } from "@shared/constants";
-import { AppStatus, IAppState } from "@shared/types";
+import { GameConfig } from "@shared/index";
+import { IAppState } from "@shared/types";
 import { gameManager } from "..";
 import { joinGame } from "../apis/join-game";
 import { appConfig } from "../config/app-config";
@@ -40,7 +41,7 @@ export class JoinGameButton extends HTMLButton {
             }
 
             const { gameCode, gameState, playerId } = response;
-            const newState = { status: AppStatus.Initialised, loading: false, gameState: gameState! };
+            const newState = { status: GameConfig.AppStatus.Initialised, loading: false, gameState: gameState! };
 
             if (isLocal) {
                 // DO NOT DELETE: this item simulates Object in S3
@@ -54,7 +55,7 @@ export class JoinGameButton extends HTMLButton {
             updateComponents();
         } catch (error) {
             this.setDisabled(false);
-            updateComponents({ status: AppStatus.Error });
+            updateComponents({ status: GameConfig.AppStatus.Error });
         }
     }
 
@@ -62,11 +63,11 @@ export class JoinGameButton extends HTMLButton {
         const { status } = _state;
 
         switch (status) {
-            case AppStatus.NewGame:
+            case GameConfig.AppStatus.NewGame:
                 this.setDisabled(false);
                 break;
-            case AppStatus.Initialised:
-            case AppStatus.Initialising:
+            case GameConfig.AppStatus.Initialised:
+            case GameConfig.AppStatus.Initialising:
                 this.setDisabled(true);
                 break;
         }

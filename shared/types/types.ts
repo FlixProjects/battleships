@@ -1,4 +1,4 @@
-import type { TFaction } from "../factions";
+import { AppStatus, CardKind, EFFECT_REF_NO, Faction, SHIP_REF_NO, SUPPORT_REF_NO } from "../config/constants";
 import type { GameState, Hull, Player, Ship } from "../models";
 import { ICommand } from "../models/commands/types";
 import { IDeployAction, IMoveAction, IPlayCardAction, IPlayerAction, IShipAttackAction } from "./action-types";
@@ -132,12 +132,21 @@ export interface IHull extends IHullTemplate {
     destroyed: boolean;
 }
 
-export const CardKind = {
-    Ship: "Ship",
-    Support: "Support",
-} as const;
+export type IDeckTemplateEntry = IShipDeckTemplateEntry | ISupportDeckTemplateEntry;
 
-export type TCardKind = (typeof CardKind)[keyof typeof CardKind];
+export interface IShipDeckTemplateEntry {
+    kind: typeof CardKind.Ship;
+    refNo: TShipRefNo;
+    count: number;
+}
+
+export interface ISupportDeckTemplateEntry {
+    kind: typeof CardKind.Support;
+    refNo: TSupportRefNo;
+    count: number;
+}
+
+export type DeckTemplate = IDeckTemplateEntry[];
 
 // ============================================================================
 // Effects — persistent or one-shot side effects produced by SupportCards (and
@@ -187,6 +196,8 @@ export interface IEffect {
      *  including this round number. Expired effects are dropped at round-end. */
     expiresAfterRound?: number;
     payload: TEffectPayload;
+    existsOnBoard: boolean;
+    location?: ICellLoc;
 }
 
 export type IPlainEffect = IEffect;
@@ -200,6 +211,7 @@ export interface IEffectConfig {
     /** 0 = one-shot; otherwise rounds the effect persists for after creation
      *  (expiresAfterRound = createdOnRound + duration - 1). */
     duration: number;
+    existsOnBoard: boolean;
 }
 
 export interface ISupportConfig {
@@ -219,6 +231,21 @@ export interface ICard {
     refNo: string; // e.g. TShipRefNo — display hint without dereferencing
 }
 
+export type TAppStatus = (typeof AppStatus)[keyof typeof AppStatus];
+export type TShipRefNo = (typeof SHIP_REF_NO)[keyof typeof SHIP_REF_NO];
+
+export type TSupportRefNo = (typeof SUPPORT_REF_NO)[keyof typeof SUPPORT_REF_NO];
+
+export type TEffectRefNo = (typeof EFFECT_REF_NO)[keyof typeof EFFECT_REF_NO];
+
+export type TCardKind = (typeof CardKind)[keyof typeof CardKind];
+
+export type TFaction = (typeof Faction)[keyof typeof Faction];
+
+export type TCardRefNo = TShipRefNo | TSupportRefNo;
+
+export interface ISupportCard extends ICard {}
+
 export interface IDeck {
     id: string;
     playerId: string; // FK → IPlayer.id
@@ -229,19 +256,6 @@ export interface IDeck {
 
 export type IPlainCard = ICard;
 export type IPlainDeck = Omit<IDeck, "cards" | "played"> & { cards: string[]; played: string[] };
-
-export const AppStatus = {
-    NewGame: "NewGame",
-    Initialising: "Initialising",
-    Initialised: "Initialised",
-    Error: "Error",
-    WaitingForPlayers: "WaitingForPlayers",
-    WaitingForOtherPlayer: "WaitingForOtherPlayer",
-    ReadyToSubmit: "ReadyToSubmit",
-    GameOver: "GameOver",
-} as const;
-
-export type TAppStatus = (typeof AppStatus)[keyof typeof AppStatus];
 
 export interface IAppState {
     status: TAppStatus;

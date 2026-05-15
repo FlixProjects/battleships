@@ -1,9 +1,9 @@
-import { Faction, MAX_HAND_SIZE } from "../../../factions";
+import { CardKind, Faction, MAX_HAND_SIZE } from "../../../config/constants";
 import { HullBuilder } from "../../../factories/hull-builder";
 import { PlayerBuilder } from "../../../factories/player-builder";
 import { ShipBuilder } from "../../../factories/ship-builder";
 import { GameState } from "../../../models";
-import { CardKind, ICard, IDeck, IMoveAction, IPlayCardAction, IPlayer, IShipAttackAction } from "../../../types";
+import { ICard, IDeck, IMoveAction, IPlayCardAction, IPlayer, IShipAttackAction } from "../../../types";
 import { ActionTypes } from "../../../types/action-types";
 import { ActionResolver } from "../ActionResolver";
 
