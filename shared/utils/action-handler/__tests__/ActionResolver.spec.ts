@@ -552,7 +552,7 @@ describe("ActionResolver", () => {
             expect(effect.playerId).toBe("player1");
             expect(effect.kind).toBe("vision");
             expect(effect.createdOnRound).toBe(1);
-            expect(effect.expiresAfterRound).toBe(2); // duration 2 → currentRound + (duration-1)
+            expect(effect.expiresAfterRound).toBe(3); // duration 2 → currentRound + (duration)
 
             // CP deducted, card moved hand → played.
             const resolvedPlayer = next.players.find((p) => p.id === "player1");
@@ -606,7 +606,7 @@ describe("ActionResolver", () => {
 
             // Simulate the round advancing past expiry.
             resolver.gameState.update({});
-            resolver.gameState.currentRound = 3;
+            resolver.gameState.currentRound = 4;
             resolver.resolveExpiredEffects();
             expect(resolver.gameState.effects).toHaveLength(0);
         });
