@@ -1,6 +1,7 @@
 import { MAX_HAND_SIZE } from "../../config/constants";
 import { ERROR_CODE } from "../../constants";
 import { GameEngine, GameStateManager } from "../../models";
+import { IResolveStep, createResolvePipeline } from "./steps";
 import {
     ActionTypes,
     IDeployAction,
@@ -19,6 +20,7 @@ export class ActionResolver {
     public results: IResult[] = [];
     public player1Actions: IPlayerAction[];
     public player2Actions: IPlayerAction[];
+    private readonly resolveSteps: IResolveStep[] = createResolvePipeline();
 
     constructor(
         public playerId: string, // for the perspective the ActionResolver is resolving for
@@ -121,19 +123,14 @@ export class ActionResolver {
         this.gameState = gsm.gameState;
     }
 
+    // Fixed, ordered pipeline (C1 / Decision 2): every step runs, each a no-op
+    // unless the action is relevant to it. Replaces the per-type switch.
+    // Action types are mutually exclusive so this is behaviour-identical.
     public resolveAction(action: IPlayerAction) {
-        switch (action.type) {
-            case ActionTypes.PLAY_CARD:
-                return this.resolvePlayCard(action as IPlayCardAction) ?? this.gameState;
-            case ActionTypes.DEPLOY:
-                return this.resolveDeploy(action as IDeployAction) ?? this.gameState;
-            case ActionTypes.MOVE:
-                return this.resolveMove(action as IMoveAction) ?? this.gameState;
-            case ActionTypes.ATTACK:
-                return this.resolveAttack(action as IShipAttackAction) ?? this.gameState;
-            default:
-                return this.gameState;
+        for (const step of this.resolveSteps) {
+            step.resolve(action, this);
         }
+        return this.gameState;
     }
 
     public resolvePlayCard(action: IPlayCardAction) {
