@@ -35,8 +35,8 @@ export const DEFAULT_APP_STATE: IPlainAppState = {
 };
 
 // TODO: move row and column to GameConfig
-export const BOARD_ROWS = 6;
-export const BOARD_COLUMNS = 5;
+export const BOARD_ROWS = 10;
+export const BOARD_COLUMNS = 7;
 export const CELL_SEPARATOR = "/";
 export const TILE_SIZE_PX = 48;
 export const TILE_GAP_PX = 0;
