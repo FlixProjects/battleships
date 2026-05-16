@@ -1,9 +1,11 @@
 import { COLOR } from "@shared/constants";
+import { GameConfig } from "@shared/index";
 import { GameStateManager } from "@shared/models";
 import { IAppState } from "@shared/types";
 import { gameManager } from "../..";
 import { Selectable } from "../Selectable";
 import { ShipIcon } from "../ships/ShipIcon";
+import { SupportIcon } from "../supports/SupportIcon";
 
 interface Props {
     cardId: string;
@@ -52,9 +54,24 @@ export class CardRow extends Selectable {
         const card = gsm.getCard(this.props.cardId);
         if (!card) return;
 
-        if (card.kind === "Ship") {
+        if (card.kind === GameConfig.CardKind.Ship) {
             this.renderShipIcon(card.instanceId, card.refNo, gsm);
+            return;
         }
+        if (card.kind === GameConfig.CardKind.Support) {
+            this.renderSupportIcon(card.id, card.refNo, gsm);
+            return;
+        }
+    }
+
+    private renderSupportIcon(cardId: string, refNo: string, gsm: GameStateManager) {
+        const supportIcon = new SupportIcon({
+            cardId,
+            refNo,
+            color: gsm.gameState.getFirstPlayerId() === gameManager.getCurrentPlayerId() ? COLOR.TEAL : COLOR.ORANGE,
+        });
+        this.addChild(supportIcon);
+        this.ref.appendChild(supportIcon.build());
     }
 
     private renderShipIcon(shipId: string, refNo: string, gsm: GameStateManager) {

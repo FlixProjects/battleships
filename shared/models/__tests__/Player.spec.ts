@@ -1,6 +1,6 @@
-import { Faction } from "../../factions";
-import { CardKind, ICard, IPlayer, IPlayerAction, IShip } from "../../types";
+import { ICard, IPlayer, IPlayerAction, IShip } from "../../types";
 import { Card, ICardPlaySink } from "../Card";
+import { Faction, CardKind } from "../../config/constants";
 import { Player } from "../Player";
 
 const buildPlayer = (overrides: Partial<IPlayer> = {}): IPlayer => ({

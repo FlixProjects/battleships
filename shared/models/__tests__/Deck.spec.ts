@@ -1,6 +1,6 @@
-import { Faction } from "../../factions";
-import { CardKind, ICard } from "../../types";
+import { ICard } from "../../types";
 import { Card } from "../Card";
+import { CardKind, Faction } from "../../config/constants";
 import { Deck } from "../Deck";
 
 const makeCard = (id: string, refNo: string, deckId = "deck-1"): ICard => ({
@@ -22,11 +22,7 @@ const baseProps = (cards: ICard[], played: ICard[] = []) => ({
 describe("Deck", () => {
     describe("constructor (rehydration)", () => {
         it("preserves the order of cards as given — no shuffling", () => {
-            const cards = [
-                makeCard("c1", "frigate0"),
-                makeCard("c2", "flagship0"),
-                makeCard("c3", "frigate0"),
-            ];
+            const cards = [makeCard("c1", "frigate0"), makeCard("c2", "flagship0"), makeCard("c3", "frigate0")];
             const deck = new Deck(baseProps(cards));
             expect(deck.cards.map((c) => c.id)).toEqual(["c1", "c2", "c3"]);
         });

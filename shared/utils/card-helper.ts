@@ -1,6 +1,8 @@
+import { CardKind } from "../config/constants";
 import { Card } from "../models/Card";
 import { ShipCard } from "../models/ShipCard";
-import { CardKind, ICard, TCardKind } from "../types";
+import { SupportCard } from "../models/SupportCard";
+import { ICard, TCardKind } from "../types";
 
 type CardConstructor = new (props: Readonly<ICard>) => Card;
 
@@ -11,6 +13,7 @@ type CardConstructor = new (props: Readonly<ICard>) => Card;
  */
 const cardConstructors: Record<TCardKind, CardConstructor> = {
     [CardKind.Ship]: ShipCard,
+    [CardKind.Support]: SupportCard,
 };
 
 export const createCard = (props: Readonly<ICard>): Card => {

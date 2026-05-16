@@ -1,8 +1,10 @@
 import { IMEvent, IMEventType, TIMEventType } from "../interaction-manager/types";
 import type { ClickHandler } from "./ClickHandler";
+import { ConfirmEffectClickHandler } from "./ConfirmEffectClickHandler";
 import { DeployShipClickHandler } from "./DeployShipClickHandler";
 import { MoveShipClickHandler } from "./MoveShipClickHandler";
 import { SelectShipClickHandler } from "./SelectShipClickHandler";
+import { SelectTargetClickHandler } from "./SelectTargetClickHandler";
 import { ShipAttackClickHandler } from "./ShipAttackClickHandler";
 
 const clickHandlerMap: Record<TIMEventType, new (event: IMEvent) => ClickHandler> = {
@@ -10,6 +12,8 @@ const clickHandlerMap: Record<TIMEventType, new (event: IMEvent) => ClickHandler
     [IMEventType.MOVING_SHIP]: MoveShipClickHandler,
     [IMEventType.SELECT_SHIP]: SelectShipClickHandler,
     [IMEventType.SHIP_ATTACK]: ShipAttackClickHandler,
+    [IMEventType.PLAY_SUPPORT_TARGET]: SelectTargetClickHandler,
+    [IMEventType.PLAY_SUPPORT_CONFIRM]: ConfirmEffectClickHandler,
 };
 export const getClickHandler = (event: IMEvent) => {
     const HandlerClass = clickHandlerMap[event.type];

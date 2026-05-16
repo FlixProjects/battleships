@@ -1,6 +1,6 @@
 import { FP_GAME_STATE } from "@shared/constants";
+import { GameConfig } from "@shared/index";
 import { GameStateManager } from "@shared/models";
-import { AppStatus } from "@shared/types";
 import { gameManager } from "../..";
 import { submitAction } from "../../apis/submit-action";
 import { isLocal } from "../../config/app-config";
@@ -64,8 +64,8 @@ export class SubmitMoveButton extends HTMLButton {
             gameManager.saveAppState(
                 {
                     status: isWaitingForOtherPlayer(gameState)
-                        ? AppStatus.WaitingForOtherPlayer
-                        : AppStatus.ReadyToSubmit,
+                        ? GameConfig.AppStatus.WaitingForOtherPlayer
+                        : GameConfig.AppStatus.ReadyToSubmit,
                     loading: false,
                     gameState: gsm.gameState.toPlain(),
                 },
@@ -76,7 +76,7 @@ export class SubmitMoveButton extends HTMLButton {
         } catch (error) {
             console.log("[Error] Submission failed", error);
             this.setDisabled(false);
-            updateComponents({ status: AppStatus.Error });
+            updateComponents({ status: GameConfig.AppStatus.Error });
         }
     }
 }

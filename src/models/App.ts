@@ -1,10 +1,12 @@
 import { DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_GAME_CODE } from "@shared/constants";
+import { GameConfig } from "@shared/index";
 import { GameStateManager } from "@shared/models";
 import { transformPlainAppStateToDomain } from "@shared/transformers";
-import { AppStatus, IAppState } from "@shared/types";
+import { IAppState } from "@shared/types";
 import { gameManager } from "..";
 import { getGame } from "../apis/get-game";
 import { updateComponents } from "../components/component-helper";
+import { loadStyles } from "../css-anim-styles";
 import { deleteAuthCookie, getCookie } from "../utils/cookie-helper";
 import { getGameCode, isWaitingForOtherPlayer, removeGameCode } from "../utils/game-helper";
 
@@ -12,6 +14,7 @@ export class App {
     private _state: IAppState = transformPlainAppStateToDomain(DEFAULT_APP_STATE);
 
     public async start() {
+        loadStyles();
         updateComponents(this._state);
 
         if (!this.hasExistingSession()) {
@@ -36,7 +39,7 @@ export class App {
     }
 
     private async fetchExistingSession() {
-        updateComponents({ status: AppStatus.Initialising, loading: true });
+        updateComponents({ status: GameConfig.AppStatus.Initialising, loading: true });
 
         try {
             const response = await getGame(getGameCode());
@@ -54,10 +57,10 @@ export class App {
             gameManager.saveAppState(
                 {
                     status: response.gameState.isOver
-                        ? AppStatus.GameOver
+                        ? GameConfig.AppStatus.GameOver
                         : isWaitingForOtherPlayer(gameManager.state.gameState)
-                          ? AppStatus.WaitingForOtherPlayer
-                          : AppStatus.ReadyToSubmit,
+                          ? GameConfig.AppStatus.WaitingForOtherPlayer
+                          : GameConfig.AppStatus.ReadyToSubmit,
                     loading: false,
                     gameState: gsm.gameState.toPlain(),
                 },
@@ -77,7 +80,7 @@ export class App {
                 sessionStorage.removeItem(FP_GAME_CODE);
             }
 
-            updateComponents({ status: AppStatus.NewGame, loading: false });
+            updateComponents({ status: GameConfig.AppStatus.NewGame, loading: false });
         }
     }
 }

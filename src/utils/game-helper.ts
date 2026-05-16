@@ -1,12 +1,12 @@
 import { COLOR, COLOR_FILTER, COMPONENT_ID, FP_CURRENT_PLAYER, FP_GAME_CODE, TColor, TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
+import { GameConfig } from "@shared/index";
 import { FECommand } from "@shared/models/commands/FECommand";
-import { AppStatus, ICellLoc } from "@shared/types";
+import { ICellLoc } from "@shared/types";
 import { game, gameManager } from "..";
 import { getGame } from "../apis/get-game";
 import { getComponents, updateComponents } from "../components/component-helper";
 
 // client functions
-
 export const getGameCode = () => {
     return sessionStorage.getItem(FP_GAME_CODE);
 };
@@ -57,7 +57,7 @@ export const refresh = async () => {
         gameManager.saveAppState(newState);
         updateComponents();
     } catch (error) {
-        updateComponents({ status: AppStatus.Error });
+        updateComponents({ status: GameConfig.AppStatus.Error });
     }
 };
 

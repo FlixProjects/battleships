@@ -1,5 +1,4 @@
-import type { TFaction } from "../../factions";
-import { ICard, IDeck } from "../../types";
+import { ICard, IDeck, TFaction } from "../../types";
 import { createCard } from "../../utils/card-helper";
 import { Card } from "../Card";
 import { Entity } from "./Entity";

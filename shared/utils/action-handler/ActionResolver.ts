@@ -1,11 +1,12 @@
+import { MAX_HAND_SIZE } from "../../config/constants";
 import { ERROR_CODE } from "../../constants";
-import { MAX_HAND_SIZE } from "../../factions";
 import { GameEngine, GameStateManager } from "../../models";
 import {
     ActionTypes,
     IDeployAction,
     IMoveAction,
     IPlayCardAction,
+    IPlaySupportAction,
     IPlayerAction,
     IShipAttackAction,
     IResult,
@@ -28,6 +29,8 @@ export class ActionResolver {
     }
 
     public resolve() {
+        this.resolvePersistentEffectsTick();
+
         do {
             this.resolveTurn();
             this.resolveWinner();
@@ -36,10 +39,24 @@ export class ActionResolver {
 
         this.resolveRotationOfInitiative();
         this.resolvePostSubmissionCommandPointRemoval();
+        this.resolveExpiredEffects();
         this.resolveHandRefill();
         const { obscuredGameState } = this.resolveVisibility();
 
         return { gameState: this.gameState, obscuredGameState, results: this.results };
+    }
+
+    public resolvePersistentEffectsTick() {
+        const gsm = new GameStateManager(this.gameState);
+        gsm.gameState.getActiveEffects().forEach((effect) => effect.resolveTick(gsm));
+        this.gameState = gsm.gameState;
+    }
+
+    public resolveExpiredEffects() {
+        const gsm = new GameStateManager(this.gameState);
+        const currentRound = gsm.gameState.currentRound;
+        gsm.gameState.effects.filter((e) => e.hasExpired(currentRound)).forEach((e) => gsm.removeEffect(e.id));
+        this.gameState = gsm.gameState;
     }
 
     public resolveHandRefill() {
@@ -157,9 +174,26 @@ export class ActionResolver {
             case ActionTypes.DEPLOY:
                 this.applyDeploy(action as IDeployAction);
                 return;
+            case ActionTypes.SUPPORT:
+                this.applySupport(action as IPlaySupportAction);
+                return;
             default:
                 throw new Error(`Unsupported inner action type: ${action.type}`);
         }
+    }
+
+    private applySupport(action: IPlaySupportAction) {
+        const gsm = new GameStateManager(this.gameState);
+        const gameEngine = new GameEngine(this.gameState);
+        const result = gameEngine.commit.playSupport(action);
+
+        if (result.type === ResultType.ERROR) {
+            throw new Error(result.message || "An error occurred while playing the support card");
+        }
+
+        gsm.updatePlayer(result.player);
+        gsm.addEffects(result.effectsToAdd);
+        this.gameState = gsm.gameState;
     }
 
     public resolveDeploy(action: IDeployAction) {

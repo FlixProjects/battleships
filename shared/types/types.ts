@@ -1,4 +1,4 @@
-import type { TFaction } from "../factions";
+import { AppStatus, CardKind, EFFECT_REF_NO, Faction, SHIP_REF_NO, SUPPORT_REF_NO } from "../config/constants";
 import type { GameState, Hull, Player, Ship } from "../models";
 import { ICommand } from "../models/commands/types";
 import { IDeployAction, IMoveAction, IPlayCardAction, IPlayerAction, IShipAttackAction } from "./action-types";
@@ -44,6 +44,10 @@ export interface IGameStateManager {
     updateActions(actions: Partial<IPlainAction>[]): this;
     updateAction(action: Partial<IPlainAction>): this;
     addAction(action: IPlainAction): this;
+    addEffect(effect: IEffect): this;
+    addEffects(effects: IEffect[]): this;
+    removeEffect(effectId: string): this;
+    getActiveEffects(playerId?: string): IEffect[];
 }
 
 export interface IGameStateData {
@@ -55,6 +59,7 @@ export interface IGameStateData {
     hulls?: IHull[];
     cards: ICard[];
     decks: IDeck[];
+    effects?: IEffect[];
     actions?: IPlayerAction[];
     board?: Board;
     winners: string[];
@@ -62,6 +67,7 @@ export interface IGameStateData {
 }
 
 export interface IGameState extends IGameStateData {
+    effects: IEffect[];
     toPlain(): IPlainGameState;
 
     update(props: Partial<IGameStateData>): this;
@@ -81,6 +87,9 @@ export interface IGameState extends IGameStateData {
     updateAction(action: Partial<IPlayerAction>): this;
     addHull(hull: IHull): this;
     addAction(action: IPlayerAction): this;
+    addEffect(effect: IEffect): this;
+    removeEffect(effectId: string): this;
+    getActiveEffects(playerId?: string): IEffect[];
 
     refillPlayerHand(playerId: string, maxHandSize: number): this;
     playCard(playerId: string, cardId: string): this;
@@ -123,11 +132,96 @@ export interface IHull extends IHullTemplate {
     destroyed: boolean;
 }
 
-export const CardKind = {
-    Ship: "Ship",
+export type IDeckTemplateEntry = IShipDeckTemplateEntry | ISupportDeckTemplateEntry;
+
+export interface IShipDeckTemplateEntry {
+    kind: typeof CardKind.Ship;
+    refNo: TShipRefNo;
+    count: number;
+}
+
+export interface ISupportDeckTemplateEntry {
+    kind: typeof CardKind.Support;
+    refNo: TSupportRefNo;
+    count: number;
+}
+
+export type DeckTemplate = IDeckTemplateEntry[];
+
+// ============================================================================
+// Effects — persistent or one-shot side effects produced by SupportCards (and
+// in the future, Ships). One Card may register >1 Effect; each Effect is keyed
+// by `refNo` into the Effect ctor registry (see shared/utils/effect-helper.ts).
+// ============================================================================
+
+export const EffectKind = {
+    Vision: "vision",
+    CommandPoint: "command_point",
+    Damage: "damage",
+    MovementBuff: "movement_buff",
 } as const;
 
-export type TCardKind = (typeof CardKind)[keyof typeof CardKind];
+export type TEffectKind = (typeof EffectKind)[keyof typeof EffectKind];
+
+export const EffectAnchor = {
+    Flagship: "flagship",
+    DeploymentRow: "deployment_row",
+    AnyFriendlyHull: "any_friendly_hull",
+    AnyTile: "any_tile",
+} as const;
+
+export type TEffectAnchor = (typeof EffectAnchor)[keyof typeof EffectAnchor];
+
+export interface IVisionEffectPayload {
+    kind: typeof EffectKind.Vision;
+    center: ICellLoc;
+    range: number;
+}
+
+export interface ICommandPointEffectPayload {
+    kind: typeof EffectKind.CommandPoint;
+    amount: number;
+}
+
+export type TEffectPayload = IVisionEffectPayload | ICommandPointEffectPayload;
+
+export interface IEffect {
+    id: string;
+    refNo: string;
+    kind: TEffectKind;
+    sourceCardId: string;
+    playerId: string;
+    createdOnRound: number;
+    /** undefined = one-shot (never persisted); otherwise persists through and
+     *  including this round number. Expired effects are dropped at round-end. */
+    expiresAfterRound?: number;
+    payload: TEffectPayload;
+    existsOnBoard: boolean;
+    location?: ICellLoc;
+}
+
+export type IPlainEffect = IEffect;
+
+export interface IEffectConfig {
+    refNo: string;
+    kind: TEffectKind;
+    anchor: TEffectAnchor;
+    /** 0 = no targeting needed (untargeted / confirm-only). */
+    range: number;
+    /** 0 = one-shot; otherwise rounds the effect persists for after creation
+     *  (expiresAfterRound = createdOnRound + duration - 1). */
+    duration: number;
+    existsOnBoard: boolean;
+}
+
+export interface ISupportConfig {
+    refNo: string;
+    name: string;
+    commandPointCost: number;
+    /** Effect refNos this Support produces, in selection order. Each refNo
+     *  must exist in `EFFECTS_CONFIG`. */
+    effects: string[];
+}
 
 export interface ICard {
     id: string;
@@ -136,6 +230,21 @@ export interface ICard {
     kind: TCardKind;
     refNo: string; // e.g. TShipRefNo — display hint without dereferencing
 }
+
+export type TAppStatus = (typeof AppStatus)[keyof typeof AppStatus];
+export type TShipRefNo = (typeof SHIP_REF_NO)[keyof typeof SHIP_REF_NO];
+
+export type TSupportRefNo = (typeof SUPPORT_REF_NO)[keyof typeof SUPPORT_REF_NO];
+
+export type TEffectRefNo = (typeof EFFECT_REF_NO)[keyof typeof EFFECT_REF_NO];
+
+export type TCardKind = (typeof CardKind)[keyof typeof CardKind];
+
+export type TFaction = (typeof Faction)[keyof typeof Faction];
+
+export type TCardRefNo = TShipRefNo | TSupportRefNo;
+
+export interface ISupportCard extends ICard {}
 
 export interface IDeck {
     id: string;
@@ -147,19 +256,6 @@ export interface IDeck {
 
 export type IPlainCard = ICard;
 export type IPlainDeck = Omit<IDeck, "cards" | "played"> & { cards: string[]; played: string[] };
-
-export const AppStatus = {
-    NewGame: "NewGame",
-    Initialising: "Initialising",
-    Initialised: "Initialised",
-    Error: "Error",
-    WaitingForPlayers: "WaitingForPlayers",
-    WaitingForOtherPlayer: "WaitingForOtherPlayer",
-    ReadyToSubmit: "ReadyToSubmit",
-    GameOver: "GameOver",
-} as const;
-
-export type TAppStatus = (typeof AppStatus)[keyof typeof AppStatus];
 
 export interface IAppState {
     status: TAppStatus;
@@ -188,6 +284,7 @@ export interface IPlainGameState {
     hulls?: IHull[];
     cards: IPlainCard[];
     decks: IPlainDeck[];
+    effects?: IPlainEffect[];
     actions?: IPlainAction[];
     board?: Board;
     winners: string[];

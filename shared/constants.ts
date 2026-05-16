@@ -1,4 +1,5 @@
-import { AppStatus, IHullTemplate, IPlainAppState, IPlainGameState, IShipTemplate } from "./types";
+import { AppStatus } from "./config/constants";
+import { IPlainAppState, IPlainGameState } from "./types";
 
 export const FP_AUTH_TOKEN = "fp-auth-token";
 export const FP_USER_ID = "fp-user-id";
@@ -33,6 +34,7 @@ export const DEFAULT_APP_STATE: IPlainAppState = {
     gameState: INITIAL_GAME_STATE,
 };
 
+// TODO: move row and column to GameConfig
 export const BOARD_ROWS = 10;
 export const BOARD_COLUMNS = 7;
 export const CELL_SEPARATOR = "/";
@@ -46,81 +48,6 @@ export const Z_INDEX = {
     PROJECTILE: "100",
     ACTION_MENU: "1000",
     TARGET_ATTACK_ICON: "10",
-}
-
-export const SHIP_REF_NO = {
-    frigate0: "frigate0",
-    flagship0: "flagship0",
-} as const;
-
-export type TShipRefNo = (typeof SHIP_REF_NO)[keyof typeof SHIP_REF_NO];
-
-export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
-    [SHIP_REF_NO.frigate0]: [
-        {
-            templateLocation: [0, 0],
-            maxHealth: 1,
-            armor: 0,
-            visionRange: 2,
-            imgSrc: "assets/ships/frigate0.png",
-            front: true,
-            orientation: 0,
-        },
-    ],
-    [SHIP_REF_NO.flagship0]: [
-        {
-            templateLocation: [0, 0],
-            maxHealth: 1,
-            armor: 0,
-            visionRange: 2,
-            imgSrc: "assets/ships/flagship-0.png",
-            orientation: 0,
-        },
-        {
-            templateLocation: [0, 1],
-            maxHealth: 1,
-            armor: 0,
-            visionRange: 2,
-            imgSrc: "assets/ships/flagship-1.png",
-            front: true,
-            orientation: 0,
-        },
-    ],
-};
-
-export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
-    [SHIP_REF_NO.frigate0]: {
-        refNo: SHIP_REF_NO.frigate0,
-        name: "Frigate",
-        deployed: false,
-        dimensions: [1, 1],
-        commandPointCost: 1,
-        movementRange: 2,
-        movementCommandPointCost: 1,
-        attackCountMax: 1,
-        attackCommandPointCost: 1,
-        attackRange: 3,
-        attackDamage: 1,
-        attackMinRange: 1,
-        hullTemplates: HULLS_CONFIG[SHIP_REF_NO.frigate0],
-        isFlagship: false,
-    },
-    [SHIP_REF_NO.flagship0]: {
-        refNo: SHIP_REF_NO.flagship0,
-        name: "Flagship",
-        deployed: false,
-        dimensions: [1, 1],
-        commandPointCost: 0,
-        movementRange: 1,
-        movementCommandPointCost: 1,
-        attackCountMax: 1,
-        attackCommandPointCost: 1,
-        attackRange: 5,
-        attackDamage: 1,
-        attackMinRange: 1,
-        hullTemplates: HULLS_CONFIG[SHIP_REF_NO.flagship0],
-        isFlagship: true,
-    },
 };
 
 export const COLOR = {

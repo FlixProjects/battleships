@@ -1,8 +1,10 @@
 import clone from "lodash.clonedeep";
 import {
     Board,
+    EffectKind,
     ICard,
     IDeck,
+    IEffect,
     IGameState,
     IGameStateData,
     IHull,
@@ -13,12 +15,17 @@ import {
     IPlayer,
     IPlayerAction,
     IShip,
+    IVisionEffectPayload,
 } from "../types";
 import { mergeSets } from "../utils";
 import { createCard } from "../utils/card-helper";
+import { createEffect } from "../utils/effect-helper";
+import { locationToKey } from "../utils/helpers";
+import { PathHelper } from "../utils/path-helper";
 import { Action } from "./actions";
 import { Card } from "./Card";
 import { Deck } from "./Deck";
+import { Effect } from "./effects/Effect";
 import { Entity } from "./entities";
 import { Hull } from "./Hull";
 import { Player } from "./Player";
@@ -33,6 +40,7 @@ export class GameState implements IGameState {
     hulls: Hull[];
     cards: Card[];
     decks: Deck[];
+    effects: Effect[];
     board?: Board;
     winners: string[];
     isOver: boolean;
@@ -54,6 +62,7 @@ export class GameState implements IGameState {
         this.hulls = (props.hulls ?? []).map((h) => Hull.toDomain(h));
         this.cards = (props.cards ?? []).map((c) => createCard(c));
         this.actions = (props.actions ?? []).map((a) => Action.toDomain(a));
+        this.effects = (props.effects ?? []).map((e) => createEffect(e));
 
         // Phase 2 — depends on Phase 1.
         this.ships = (props.ships ?? []).map((s) => Ship.toDomain(GameState.toPlainShip(s), this));
@@ -108,6 +117,7 @@ export class GameState implements IGameState {
             actions: this.actions.map((a) => a.toPlain()),
             cards: this.cards.map((c) => c.toPlain()),
             decks: this.decks.map((d) => d.toPlain()),
+            effects: this.effects.map((e) => e.toPlain()),
             players: this.players.map((p) => p.toPlain()),
         };
     }
@@ -251,13 +261,49 @@ export class GameState implements IGameState {
         return this.updateEntity(action, this.actions, Action);
     }
 
+    addEffect(effect: IEffect) {
+        if (!effect.id) return this;
+        const existingIndex = this.effects.findIndex((e) => e.id === effect.id);
+        if (existingIndex !== -1) {
+            this.effects[existingIndex] = effect instanceof Effect ? effect : createEffect(effect);
+            return this;
+        }
+        this.effects.push(effect instanceof Effect ? effect : createEffect(effect));
+        return this;
+    }
+
+    removeEffect(effectId: string) {
+        this.effects = this.effects.filter((e) => e.id !== effectId);
+        return this;
+    }
+
+    /**
+     * Returns Effects that are still alive on the current round, optionally
+     * filtered by owner. Effects without `expiresAfterRound` (one-shots) are
+     * never persisted in `effects` so this is a simple round-window filter.
+     */
+    getActiveEffects(playerId?: string): Effect[] {
+        return this.effects.filter((e) => {
+            if (e.hasExpired(this.currentRound)) return false;
+            if (playerId !== undefined && e.playerId !== playerId) return false;
+            return true;
+        });
+    }
+
     removeInvisibleFromPlayer(visibleTiles: Set<string>, playerId: string) {
         // TODO: we should be able to achieve this without linking.
         this.linkShipHulls().linkPlayerShips();
         this.players = this.players.map((p) => (p.id !== playerId ? p.updateVisibility(visibleTiles) : p));
+        this.effects = this.effects.map((e) => e.updateVisibility(visibleTiles));
+        this.removeInvisibleEffects();
 
         this.linkPlayerShips({ reverse: true }).linkShipHulls({ reverse: true });
         return clone(this);
+    }
+
+    removeInvisibleEffects() {
+        this.effects = this.effects.filter((e) => e.isVisible);
+        return this;
     }
 
     getVisibleTilesforPlayer(playerId: string) {
@@ -265,10 +311,26 @@ export class GameState implements IGameState {
         const visibilityFromShips = mergeSets(
             this.ships.filter((s) => s.playerId === playerId).map((s) => s.getVisibleTiles()),
         );
-        // TEMP: only Ships give visibility for now
-        const visibleTilesForPlayer = mergeSets([visibilityFromShips]);
+        const visibilityFromEffects = this.getVisionFromEffectsForPlayer(playerId);
 
-        return visibleTilesForPlayer;
+        return mergeSets([visibilityFromShips, visibilityFromEffects]);
+    }
+
+    private getVisionFromEffectsForPlayer(playerId: string): Set<string> {
+        const tiles = new Set<string>();
+        const pathHelper = new PathHelper();
+
+        this.getActiveEffects(playerId)
+            .filter((e) => e.kind === EffectKind.Vision)
+            .forEach((e) => {
+                const payload = e.payload as IVisionEffectPayload;
+                tiles.add(locationToKey(payload.center));
+                pathHelper
+                    .getReachableCells({ start: payload.center, range: payload.range })
+                    .forEach((cell) => tiles.add(locationToKey(cell)));
+            });
+
+        return tiles;
     }
 
     linkPlayerShips(options: { reverse?: boolean } = {}) {

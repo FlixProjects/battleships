@@ -7,11 +7,13 @@ export const ActionTypes = {
     ATTACK: "attack",
     SELECT_FLEET: "select_fleet",
     MOVE: "move",
+    SUPPORT: "support",
 
     // server actions
     GET_VALID_DEPLOY_CELLS: "get_valid_deploy_cells",
     GET_VALID_MOVE_CELLS: "get_valid_move_cells",
     GET_VALID_ATTACK_CELLS: "get_valid_attack_cells",
+    GET_VALID_SUPPORT_CELLS: "get_valid_support_cells",
 } as const;
 
 export type TActionTypes = (typeof ActionTypes)[keyof typeof ActionTypes];
@@ -48,6 +50,13 @@ export interface IShipAttackAction extends IPlayerAction {
     attackLocations: ICellLoc[];
 }
 
+export interface IPlaySupportAction extends IPlayerAction {
+    type?: typeof ActionTypes.SUPPORT;
+    cardId: string;
+    supportRefNo: string;
+    targetCell?: ICellLoc;
+}
+
 // ================= Play-Card Action =================
 //
 // PlayCardAction is the top-level submission; the inner action it triggers is
@@ -59,7 +68,12 @@ export interface IShipCardPayload {
     hullLocations: IHull[];
 }
 
-export type TPlayCardPayload = IShipCardPayload;
+export interface ISupportCardPayload {
+    kind: "Support";
+    targetCell?: ICellLoc;
+}
+
+export type TPlayCardPayload = IShipCardPayload | ISupportCardPayload;
 
 export interface IPlayCardAction extends IPlayerAction {
     type?: typeof ActionTypes.PLAY_CARD;
@@ -91,6 +105,15 @@ export interface IGetValidAttackCellsAction {
     type?: typeof ActionTypes.GET_VALID_ATTACK_CELLS;
     playerId: string;
     shipId: string;
+}
+
+export interface IGetValidSupportCellsAction {
+    type?: typeof ActionTypes.GET_VALID_SUPPORT_CELLS;
+    playerId: string;
+    cardId: string;
+    /** Index of the Effect in the SupportConfig.effects array. Multi-effect
+     *  cards step through one Effect at a time. */
+    effectIndex: number;
 }
 
 export type TCommitDeployShipParams = Pick<IDeployAction, "shipId" | "hullLocations" | "commandPointCost">;

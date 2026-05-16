@@ -1,4 +1,4 @@
-import { Faction } from "../factions";
+import { AppStatus, CardKind, Faction } from "../config/constants";
 import { HullBuilder } from "../factories/hull-builder";
 import { PlayerBuilder } from "../factories/player-builder";
 import { ShipBuilder } from "../factories/ship-builder";
@@ -9,7 +9,7 @@ import {
     transformPlainAppStateToDomain,
     transformPlainGameStateToDomain,
 } from "../transformers";
-import { AppStatus, CardKind, IAppState, IGameStateData, IHull, IPlainAppState, IPlainGameState, IShip } from "../types/types";
+import { IAppState, IGameStateData, IHull, IPlainAppState, IPlainGameState, IShip } from "../types/types";
 
 const playerBuilder = new PlayerBuilder({
     id: "player1",
@@ -131,6 +131,39 @@ describe("transformPlainGameStateToDomain", () => {
         expect(result.players[0].ships![0].id).toBe("ship1");
         expect(result.ships[0].hulls).toHaveLength(1);
         expect(result.ships[0].hulls![0].id).toBe("hull1");
+    });
+
+    it("round-trips a vision Effect through plain and domain forms", () => {
+        const plain: IPlainGameState = {
+            code: "GAME123",
+            currentRound: 2,
+            players: [],
+            ships: [],
+            hulls: [],
+            cards: [],
+            decks: [],
+            effects: [
+                {
+                    id: "effect-1",
+                    refNo: "flare_persistent",
+                    kind: "vision",
+                    sourceCardId: "card-flare",
+                    playerId: "player1",
+                    createdOnRound: 1,
+                    expiresAfterRound: 2,
+                    payload: { kind: "vision", center: [1, 1], range: 2 },
+                    existsOnBoard: true,
+                },
+            ],
+            winners: [],
+            isOver: false,
+        };
+        const domain = transformPlainGameStateToDomain(plain);
+        expect(domain.effects).toHaveLength(1);
+        expect(domain.effects[0].refNo).toBe("flare_persistent");
+
+        const replain = transformGameStateToPlain(domain);
+        expect(replain.effects?.[0]).toEqual(plain.effects?.[0]);
     });
 
     it("rehydrates deck.cards and deck.played from the flat cards list", () => {
