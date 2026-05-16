@@ -42,7 +42,7 @@ export class CommandHistory implements ICommandHistory {
             return this;
         }
         this.currentStep++;
-        this.game.run(this.history[this.currentStep]);
+        this.game.runCommandTree(this.history[this.currentStep]);
         return this;
     }
 

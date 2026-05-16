@@ -1,11 +1,11 @@
-import { queueCommand } from "../../../src/utils/game-helper";
 import { ICellLoc } from "../../types";
 import { ISelectable } from "../../types/fe-types";
 import { keyToLocation } from "../../utils/helpers";
 import { MoveShipActionCreator } from "../ActionCreator";
 import { FECommand } from "./FECommand";
+import { FEFinalizeSelectionCommand } from "./FEFinalizeSelectionCommand";
 import { FEMoveShipAnimationCommand } from "./FEMoveShipAnimationCommand";
-import { ICommandExecutionParams } from "./types";
+import { ICommand, ICommandExecutionParams } from "./types";
 
 export class FEMoveShipCommand extends FECommand {
     constructor(
@@ -21,7 +21,7 @@ export class FEMoveShipCommand extends FECommand {
         super();
     }
 
-    public async execute(params: ICommandExecutionParams): Promise<void> {
+    public async execute(params: ICommandExecutionParams): Promise<ICommand[]> {
         const { tileId, shipId, playerId, locationElement, onSuccessCb, route } = this.props;
         const { gsm, db, resolver } = params;
         const ship = gsm.getShip(shipId);
@@ -60,7 +60,7 @@ export class FEMoveShipCommand extends FECommand {
             hullMap.set(h.id, mappedVal);
         });
 
-        await queueCommand(
+        return [
             new FEMoveShipAnimationCommand({
                 shipId,
                 playerId,
@@ -68,11 +68,8 @@ export class FEMoveShipCommand extends FECommand {
                 startingOrientation,
                 route,
             }),
-        );
-
-        locationElement.runOnSelects();
-        onSuccessCb?.();
-        return;
+            new FEFinalizeSelectionCommand({ locationElement, onSuccessCb }),
+        ];
     }
 
     public async undo(params: ICommandExecutionParams): Promise<void> {

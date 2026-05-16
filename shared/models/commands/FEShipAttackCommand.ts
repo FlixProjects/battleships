@@ -1,11 +1,11 @@
-import { queueCommand } from "../../../src/utils/game-helper";
 import { ICellLoc } from "../../types";
 import { ISelectable } from "../../types/fe-types";
 import { keyToLocation, locationToKey } from "../../utils/helpers";
 import { ShipAttackActionCreator } from "../ActionCreator";
 import { FECommand } from "./FECommand";
+import { FEFinalizeSelectionCommand } from "./FEFinalizeSelectionCommand";
 import { FEShipAttackAnimationCommand } from "./FEShipAttackAnimationCommand";
-import { ICommandExecutionParams } from "./types";
+import { ICommand, ICommandExecutionParams } from "./types";
 
 export class FEShipAttackCommand extends FECommand {
     constructor(
@@ -21,7 +21,7 @@ export class FEShipAttackCommand extends FECommand {
         super();
     }
 
-    async execute(params: ICommandExecutionParams): Promise<void> {
+    async execute(params: ICommandExecutionParams): Promise<ICommand[]> {
         const { tileId, shipId, playerId, locationElement, attackOrigin, onSuccessCb } = this.props;
         const { gsm, db, resolver } = params;
         const attackingShip = gsm.getShip(shipId);
@@ -47,21 +47,17 @@ export class FEShipAttackCommand extends FECommand {
 
         db.saveAppState({ gameState: newGameState.toPlain() });
 
-        await queueCommand(
+        return [
             new FEShipAttackAnimationCommand({
                 attackOrigin,
                 attackTileId: tileId,
                 shipsHit,
             }),
-        );
-
-        locationElement.runOnSelects();
-        onSuccessCb?.();
-        return;
+            new FEFinalizeSelectionCommand({ locationElement, onSuccessCb }),
+        ];
     }
 
-    undo(params: ICommandExecutionParams): Promise<void> {
-        // TODO
-        return;
+    async undo(_params: ICommandExecutionParams): Promise<ICommand[] | void> {
+        // TODO: implement undo for ship attack
     }
 }

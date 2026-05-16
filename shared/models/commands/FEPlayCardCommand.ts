@@ -4,7 +4,7 @@ import { ISelectable } from "../../types/fe-types";
 import { FECommand } from "./FECommand";
 import { FEDeployShipCommand } from "./FEDeployShipCommand";
 import { FEPlaySupportCommand } from "./FEPlaySupportCommand";
-import { ICommandExecutionParams } from "./types";
+import { ICommand, ICommandExecutionParams } from "./types";
 
 /**
  * Per-card-kind options that the generic FEPlayCardCommand routes through to
@@ -37,7 +37,7 @@ export class FEPlayCardCommand extends FECommand {
         super();
     }
 
-    public async execute(params: ICommandExecutionParams): Promise<void> {
+    public async execute(params: ICommandExecutionParams): Promise<ICommand[]> {
         const { gsm } = params;
         const card = gsm.gameState.cards.find((c) => c.id === this.props.cardId);
         if (!card) {
@@ -48,44 +48,45 @@ export class FEPlayCardCommand extends FECommand {
             case CardKind.Ship:
                 return this.playShipCard(params);
             case CardKind.Support:
-                return this.playSupportCard(params);
+                return this.playSupportCard();
             default:
                 throw new Error(`[FEPlayCardCommand] Unsupported card kind '${card.kind}'`);
         }
     }
 
-    private async playShipCard(params: ICommandExecutionParams): Promise<void> {
+    private playShipCard(params: ICommandExecutionParams): ICommand[] {
         if (!this.props.deploy) {
             throw new Error(`[FEPlayCardCommand] Ship card requires deploy options (tileId, locationElement)`);
         }
 
         const { gsm } = params;
         const card = gsm.gameState.cards.find((c) => c.id === this.props.cardId);
-        if (!card) return;
+        if (!card) return [];
 
-        const subCommand = new FEDeployShipCommand({
-            tileId: this.props.deploy.tileId,
-            shipId: card.instanceId,
-            playerId: this.props.playerId,
-            locationElement: this.props.deploy.locationElement,
-            onSuccessCb: this.props.onSuccessCb,
-        });
-        await subCommand.execute(params);
+        return [
+            new FEDeployShipCommand({
+                tileId: this.props.deploy.tileId,
+                shipId: card.instanceId,
+                playerId: this.props.playerId,
+                locationElement: this.props.deploy.locationElement,
+                onSuccessCb: this.props.onSuccessCb,
+            }),
+        ];
     }
 
-    private async playSupportCard(params: ICommandExecutionParams): Promise<void> {
-        const subCommand = new FEPlaySupportCommand({
-            cardId: this.props.cardId,
-            playerId: this.props.playerId,
-            targetCell: this.props.support?.targetCell,
-            locationElement: this.props.support?.locationElement,
-            onSuccessCb: this.props.onSuccessCb,
-        });
-        await subCommand.execute(params);
+    private playSupportCard(): ICommand[] {
+        return [
+            new FEPlaySupportCommand({
+                cardId: this.props.cardId,
+                playerId: this.props.playerId,
+                targetCell: this.props.support?.targetCell,
+                locationElement: this.props.support?.locationElement,
+                onSuccessCb: this.props.onSuccessCb,
+            }),
+        ];
     }
 
-    public async undo(_params: ICommandExecutionParams): Promise<void> {
+    public async undo(_params: ICommandExecutionParams): Promise<ICommand[] | void> {
         // TODO: undo via the dispatched sub-command once each FE*Command supports undo.
-        return;
     }
 }

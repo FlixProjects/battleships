@@ -1,66 +1,49 @@
 import { IActionResolver, IGameManager, IGameState, IGameStateManager } from "../types";
-import { ICommand } from "./commands/types";
-
-interface IQueueCommand {
-    command: ICommand;
-    executeNext(): Promise<void>;
-}
+import { ICommand, ICommandExecutionParams } from "./commands/types";
 
 export class Game {
-    private commandQueue: IQueueCommand[] = [];
-
     constructor(
         private db: IGameManager,
         private GSM: new (_gameState: IGameState) => IGameStateManager,
         private Resolver: new (playerId: string, gameState: IGameState) => IActionResolver,
     ) {}
 
-    // for now, runs the command immediately if the queue is empty, otherwise queues it
+    /**
+     * Public entry point for callers (click handlers, helpers). Runs the
+     * command and, depth-first, every child command it returns. `Game` is the
+     * ONLY place a command is ever run — commands never run each other.
+     */
     public async queueCommand(command: ICommand): Promise<void> {
-        // Implementation for queuing commands
-        this.commandQueue.push({
-            command,
-            executeNext: async () => await this.runNextCommandInQueue(),
-        });
-        if (this.commandQueue.length === 1) {
-            await this.runNextCommandInQueue();
+        await this.runCommandTree(command);
+    }
+
+    public async runCommandTree(command: ICommand): Promise<void> {
+        const children = await this.run(command);
+        for (const child of children) {
+            await this.runCommandTree(child);
         }
     }
 
-    public async run(command: ICommand) {
-        const currentPlayerId = this.db.getCurrentPlayerId();
-        const gameState = this.db.state.gameState;
-        const gsm = new this.GSM(gameState);
-        const resolver = new this.Resolver(currentPlayerId, gameState);
-        await command.execute({
-            currentPlayerId,
-            gsm,
-            game: this,
-            db: this.db,
-            resolver,
-        });
+    public async run(command: ICommand): Promise<ICommand[]> {
+        const children = await command.execute(this.buildParams());
+        return Array.isArray(children) ? children : [];
     }
 
-    public async undo(command: ICommand) {
-        const currentPlayerId = this.db.getCurrentPlayerId();
-        const gameState = this.db.state.gameState;
-        const gsm = new this.GSM(gameState);
-        const resolver = new this.Resolver(currentPlayerId, gameState);
-        await command.undo({
-            currentPlayerId,
-            gsm,
-            game: this,
-            db: this.db,
-            resolver,
-        });
-    }
-
-    private async runNextCommandInQueue() {
-        // Implementation for running the next command in the queue
-        const queuedCommand = this.commandQueue.shift();
-        if (queuedCommand) {
-            await this.run(queuedCommand.command);
-            await queuedCommand.executeNext();
+    public async undo(command: ICommand): Promise<void> {
+        const children = await command.undo(this.buildParams());
+        for (const child of Array.isArray(children) ? children : []) {
+            await this.runCommandTree(child);
         }
+    }
+
+    private buildParams(): ICommandExecutionParams {
+        const currentPlayerId = this.db.getCurrentPlayerId();
+        const gameState = this.db.state.gameState;
+        return {
+            currentPlayerId,
+            gsm: new this.GSM(gameState),
+            db: this.db,
+            resolver: new this.Resolver(currentPlayerId, gameState),
+        };
     }
 }
