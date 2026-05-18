@@ -1,5 +1,5 @@
 import { CardKind } from "../../config/constants";
-import { ICellLoc } from "../../types";
+import { ICard, ICellLoc, TCardKind } from "../../types";
 import { ISelectable } from "../../types/fe-types";
 import { FECommand } from "./FECommand";
 import { FEDeployShipCommand } from "./FEDeployShipCommand";
@@ -8,8 +8,8 @@ import { ICommand, ICommandExecutionParams } from "./types";
 
 /**
  * Per-card-kind options that the generic FEPlayCardCommand routes through to
- * the kind-specific sub-command. Adding a new card kind means adding a new
- * branch in `execute()` and (optionally) extending this options shape.
+ * the kind-specific entry command. A new card kind = a new entry in
+ * `CARD_KIND_FACTORIES` — never an edit to `execute()` (C1, OCP).
  */
 export interface IFEPlayCardCommandProps {
     cardId: string;
@@ -25,12 +25,38 @@ export interface IFEPlayCardCommandProps {
     onSuccessCb?: () => void;
 }
 
+type CardCommandFactory = (args: { card: ICard; props: IFEPlayCardCommandProps }) => ICommand[];
+
+const CARD_KIND_FACTORIES: Partial<Record<TCardKind, CardCommandFactory>> = {
+    [CardKind.Ship]: ({ card, props }) => {
+        if (!props.deploy) {
+            throw new Error(`[FEPlayCardCommand] Ship card requires deploy options (tileId, locationElement)`);
+        }
+        return [
+            new FEDeployShipCommand({
+                tileId: props.deploy.tileId,
+                shipId: card.instanceId,
+                playerId: props.playerId,
+                locationElement: props.deploy.locationElement,
+                onSuccessCb: props.onSuccessCb,
+            }),
+        ];
+    },
+    [CardKind.Support]: ({ props }) => [
+        new FEPlaySupportCommand({
+            cardId: props.cardId,
+            playerId: props.playerId,
+            targetCell: props.support?.targetCell,
+            locationElement: props.support?.locationElement,
+            onSuccessCb: props.onSuccessCb,
+        }),
+    ],
+};
+
 /**
- * Generic top-level FE command for playing a card. Looks the card up, then
- * dispatches by `card.kind` to the FE command that knows how to compute the
- * card's effect (e.g. `FEDeployShipCommand` for Ship cards). The click
- * handlers depend on this generic command, not on the kind-specific ones —
- * that keeps the card→effect coupling in one place.
+ * Generic top-level command for playing a card. Looks the card up, then
+ * dispatches by `card.kind` via the factory map to the kind-specific entry
+ * command (which in turn returns its `[Server*Command, …FE siblings]`).
  */
 export class FEPlayCardCommand extends FECommand {
     constructor(private props: IFEPlayCardCommandProps) {
@@ -44,49 +70,15 @@ export class FEPlayCardCommand extends FECommand {
             throw new Error(`[FEPlayCardCommand] Card ${this.props.cardId} not found`);
         }
 
-        switch (card.kind) {
-            case CardKind.Ship:
-                return this.playShipCard(params);
-            case CardKind.Support:
-                return this.playSupportCard();
-            default:
-                throw new Error(`[FEPlayCardCommand] Unsupported card kind '${card.kind}'`);
-        }
-    }
-
-    private playShipCard(params: ICommandExecutionParams): ICommand[] {
-        if (!this.props.deploy) {
-            throw new Error(`[FEPlayCardCommand] Ship card requires deploy options (tileId, locationElement)`);
+        const factory = CARD_KIND_FACTORIES[card.kind];
+        if (!factory) {
+            throw new Error(`[FEPlayCardCommand] Unsupported card kind '${card.kind}'`);
         }
 
-        const { gsm } = params;
-        const card = gsm.gameState.cards.find((c) => c.id === this.props.cardId);
-        if (!card) return [];
-
-        return [
-            new FEDeployShipCommand({
-                tileId: this.props.deploy.tileId,
-                shipId: card.instanceId,
-                playerId: this.props.playerId,
-                locationElement: this.props.deploy.locationElement,
-                onSuccessCb: this.props.onSuccessCb,
-            }),
-        ];
+        return factory({ card, props: this.props });
     }
 
-    private playSupportCard(): ICommand[] {
-        return [
-            new FEPlaySupportCommand({
-                cardId: this.props.cardId,
-                playerId: this.props.playerId,
-                targetCell: this.props.support?.targetCell,
-                locationElement: this.props.support?.locationElement,
-                onSuccessCb: this.props.onSuccessCb,
-            }),
-        ];
-    }
-
-    public async undo(_params: ICommandExecutionParams): Promise<ICommand[] | void> {
-        // TODO: undo via the dispatched sub-command once each FE*Command supports undo.
+    public async undo(params: ICommandExecutionParams): Promise<ICommand[] | void> {
+        // TODO: undo via the dispatched sub-command once each command supports undo.
     }
 }

@@ -5,7 +5,7 @@ import { StillAnimation } from "../../../src/models/animations/StillAnimation";
 import { getElementsFromIds } from "../../../src/utils/game-helper";
 import { ANIMATION_LAYER_ID } from "../../constants";
 import { ICellLoc } from "../../types/types";
-import { keyToLocation } from "../../utils";
+import { keyToLocation, locationToKey } from "../../utils";
 import { FEAnimationCommand } from "./FEAnimationCommand";
 import { ICommandExecutionParams } from "./types";
 
@@ -14,15 +14,26 @@ export class FEShipAttackAnimationCommand extends FEAnimationCommand {
         private props: {
             attackOrigin: ICellLoc;
             attackTileId: string;
-            shipsHit: Record<string, string[]>;
         },
     ) {
         super();
     }
 
     public async execute(params: ICommandExecutionParams): Promise<void> {
-        const { attackOrigin, attackTileId, shipsHit } = this.props;
+        const { attackOrigin, attackTileId } = this.props;
         const { gsm } = params;
+
+        // Derive which hulls were hit from post-save state (the
+        // ServerAttackCommand sibling already resolved + persisted) — the same
+        // computation that used to live in FEShipAttackCommand, relocated here.
+        const attackLocationKey = locationToKey(keyToLocation(attackTileId));
+        const shipsHit: Record<string, string[]> = {};
+        gsm.gameState.hulls.forEach((hull) => {
+            if (locationToKey(hull.location) === attackLocationKey) {
+                shipsHit[hull.shipId] = shipsHit[hull.shipId] || [];
+                shipsHit[hull.shipId].push(hull.id);
+            }
+        });
 
         const destroyedShips = gsm.gameState.ships.filter((s) => s.destroyed);
         const destroyedShipHullIds = destroyedShips.flatMap((s) => s.getHulls()).map((h) => h.id);

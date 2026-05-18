@@ -31,6 +31,9 @@ class FakeCtx implements IResolveStepContext {
         this.calls.push("attack");
         return tag("attack");
     }
+    resolvePendingSupportEffects(): void {
+        this.calls.push("pendingSupportEffects");
+    }
 }
 
 describe("resolve steps (isolation)", () => {
@@ -59,12 +62,14 @@ describe("resolve steps (isolation)", () => {
         }
     });
 
-    it("ResolveEffectsStep is a no-op for every action type (Step 8 fills it)", () => {
+    it("ResolveEffectsStep drains pending support effects for every action type (Step 8)", () => {
         const effects = new ResolveEffectsStep();
         for (const { type } of cases) {
             const ctx = new FakeCtx();
             effects.resolve(actionOf(type), ctx);
-            expect(ctx.calls).toEqual([]);
+            // Drains regardless of action type — pending queue is empty when
+            // there are no PlayCard(Support) inner-actions, so calling is safe.
+            expect(ctx.calls).toEqual(["pendingSupportEffects"]);
             expect(ctx.gameState).toEqual(tag("initial"));
         }
     });
@@ -81,12 +86,14 @@ describe("createResolvePipeline", () => {
         ]);
     });
 
-    it("running the whole pipeline invokes exactly the matching resolver once", () => {
+    it("running the whole pipeline invokes the matching resolver once + drains support effects", () => {
         const ctx = new FakeCtx();
         for (const step of createResolvePipeline()) {
             step.resolve(actionOf(ActionTypes.MOVE), ctx);
         }
-        expect(ctx.calls).toEqual(["move"]);
+        // ResolveEffectsStep always drains the pending-support queue (no-op
+        // when empty) — so the final call is always pendingSupportEffects.
+        expect(ctx.calls).toEqual(["move", "pendingSupportEffects"]);
         expect(ctx.gameState).toEqual(tag("move"));
     });
 });

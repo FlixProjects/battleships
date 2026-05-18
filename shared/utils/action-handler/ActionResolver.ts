@@ -1,4 +1,4 @@
-import { MAX_HAND_SIZE } from "../../config/constants";
+import { EFFECTS_CONFIG, MAX_HAND_SIZE, SUPPORTS_CONFIG } from "../../config/constants";
 import { ERROR_CODE } from "../../constants";
 import { GameEngine, GameStateManager } from "../../models";
 import { IResolveStep, createResolvePipeline } from "./steps";
@@ -13,6 +13,8 @@ import {
     IResult,
     IGameState,
     ResultType,
+    TEffectRefNo,
+    TSupportRefNo,
 } from "../../types";
 
 export class ActionResolver {
@@ -20,6 +22,9 @@ export class ActionResolver {
     public results: IResult[] = [];
     public player1Actions: IPlayerAction[];
     public player2Actions: IPlayerAction[];
+    // Support inner-actions queued by ResolvePlayCardStep, drained by
+    // ResolveEffectsStep within the same resolveAction() pass
+    public pendingSupportActions: IPlaySupportAction[] = [];
     private readonly resolveSteps: IResolveStep[] = createResolvePipeline();
 
     constructor(
@@ -172,24 +177,51 @@ export class ActionResolver {
                 this.applyDeploy(action as IDeployAction);
                 return;
             case ActionTypes.SUPPORT:
-                this.applySupport(action as IPlaySupportAction);
+                this.pendingSupportActions.push(action as IPlaySupportAction);
                 return;
             default:
                 throw new Error(`Unsupported inner action type: ${action.type}`);
         }
     }
 
-    private applySupport(action: IPlaySupportAction) {
-        const gsm = new GameStateManager(this.gameState);
-        const gameEngine = new GameEngine(this.gameState);
-        const result = gameEngine.commit.playSupport(action);
+    public resolvePendingSupportEffects() {
+        for (const action of this.pendingSupportActions) {
+            this.applySupportAction(action);
+        }
+        this.pendingSupportActions = [];
+    }
 
-        if (result.type === ResultType.ERROR) {
-            throw new Error(result.message || "An error occurred while playing the support card");
+    private applySupportAction(action: IPlaySupportAction) {
+        const { playerId, supportRefNo, cardId, targetCell, commandPointCost } = action;
+
+        const supportConfig = SUPPORTS_CONFIG[supportRefNo as TSupportRefNo];
+        if (!supportConfig) {
+            throw new Error(`applySupportAction: unknown SupportCard refNo '${supportRefNo}'`);
         }
 
-        gsm.updatePlayer(result.player);
-        gsm.addEffects(result.effectsToAdd);
+        const gsm = new GameStateManager(this.gameState);
+        const gameEngine = new GameEngine(this.gameState);
+        const player = gsm.getPlayer(playerId);
+        const currentRound = gsm.gameState.currentRound;
+
+        supportConfig.effects.forEach((effectRefNo) => {
+            const effectConfig = EFFECTS_CONFIG[effectRefNo as TEffectRefNo];
+            if (!effectConfig) {
+                throw new Error(`applySupportAction: no EffectConfig for refNo '${effectRefNo}'`);
+            }
+            const effect = gameEngine.buildEffect({ effectConfig, playerId, cardId, targetCell, currentRound });
+
+            // Resolve once on the action turn — a no-op for passive vision effects;
+            // matters for one-shot effects (e.g. damage / instant CP grants).
+            effect.resolve(gsm);
+
+            if (effectConfig.duration > 0) {
+                gsm.addEffect(effect);
+            }
+        });
+
+        player.commandPoints -= commandPointCost;
+        gsm.updatePlayer(player);
         this.gameState = gsm.gameState;
     }
 

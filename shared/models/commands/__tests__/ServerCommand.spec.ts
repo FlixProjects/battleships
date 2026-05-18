@@ -1,20 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
 import { IActionResolver, IGameManager, IGameState, IGameStateManager, IPlayerAction } from "../../../types";
-import { IServerCommandEventConsumer, NoopEventConsumer } from "../ServerCommand";
 import { ServerMoveCommand } from "../ServerMoveCommand";
 import { ServerPlayCardCommand } from "../ServerPlayCardCommand";
-import { ICommand, ICommandExecutionParams } from "../types";
-
-const marker: ICommand = { commandType: "Client", execute: async () => {}, undo: async () => {} };
-
-class SpyConsumer implements IServerCommandEventConsumer {
-    public received: unknown;
-    toCommands(events: unknown): ICommand[] {
-        this.received = events;
-        return [marker];
-    }
-}
+import { ICommandExecutionParams } from "../types";
 
 const buildParams = () => {
     const plain = { code: "g1" };
@@ -39,11 +28,10 @@ const buildParams = () => {
     return { params, plain, saved, getResolvedAction: () => resolvedAction };
 };
 
-describe("ServerCommand.execute orchestration", () => {
-    it("builds the action, runs the pipeline, persists once, returns consumer output", async () => {
+describe("ServerCommand (game-logic only)", () => {
+    it("builds the action, runs the pipeline, persists once, returns no children", async () => {
         const { params, plain, saved, getResolvedAction } = buildParams();
-        const consumer = new SpyConsumer();
-        const cmd = new ServerMoveCommand(consumer, {
+        const cmd = new ServerMoveCommand({
             playerId: "p1",
             shipId: "s1",
             hullLocations: [],
@@ -54,23 +42,21 @@ describe("ServerCommand.execute orchestration", () => {
 
         expect(getResolvedAction()).toMatchObject({ type: "move", shipId: "s1", playerId: "p1", commandPointCost: 2 });
         expect(saved).toEqual([{ gameState: plain }]); // persisted exactly once, via IGameManager
-        expect(children).toEqual([marker]); // returns the consumer's follow-up commands
-        expect(consumer.received).toEqual([]); // events empty until Step 9
+        expect(children).toBeUndefined(); // logic-only: no FE follow-ups (those are sibling FE*Commands)
     });
 
     it("ServerPlayCardCommand builds a play_card action with its payload", async () => {
         const { params, getResolvedAction } = buildParams();
-        const cmd = new ServerPlayCardCommand(new NoopEventConsumer(), {
+        const cmd = new ServerPlayCardCommand({
             playerId: "p1",
             cardId: "c1",
             commandPointCost: 1,
             payload: { kind: "Ship", hullLocations: [] },
         });
 
-        const children = await cmd.execute(params);
+        await cmd.execute(params);
 
         expect(getResolvedAction()).toMatchObject({ type: "play_card", cardId: "c1", playerId: "p1" });
-        expect(children).toEqual([]); // NoopEventConsumer → no follow-ups
     });
 });
 
@@ -80,10 +66,7 @@ describe("ServerCommand dependency guard (Decision 5)", () => {
     it("no ServerCommand file imports src/ or touches browser globals", () => {
         for (const file of files) {
             const src = fs.readFileSync(path.join(__dirname, "..", file), "utf-8");
-            // no import from anything under src/
             expect(src).not.toMatch(/from\s+["'][^"']*\/src\//);
-            // no browser-global *usage* (member access / indexing) — prose
-            // mentions in doc comments are fine, actual access is not
             expect(src).not.toMatch(/\b(window|document|sessionStorage|localStorage)\s*[.[]/);
         }
     });

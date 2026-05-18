@@ -1,14 +1,11 @@
 import { IPlayerAction, TCommitMoveShipParams } from "../../types";
 import { MoveShipActionCreator } from "../ActionCreator";
-import { IServerCommandEventConsumer, ServerCommand } from "./ServerCommand";
+import { ServerCommand } from "./ServerCommand";
 import { ICommandExecutionParams } from "./types";
 
 export class ServerMoveCommand extends ServerCommand {
-    constructor(
-        consumer: IServerCommandEventConsumer,
-        private props: { playerId: string } & TCommitMoveShipParams,
-    ) {
-        super(consumer);
+    constructor(private props: { playerId: string } & TCommitMoveShipParams) {
+        super();
     }
 
     protected createAction(params: ICommandExecutionParams): IPlayerAction {

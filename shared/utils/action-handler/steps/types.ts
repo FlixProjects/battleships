@@ -12,6 +12,8 @@ export interface IResolveStepContext {
     resolveDeploy(action: IDeployAction): IGameState;
     resolveMove(action: IMoveAction): IGameState;
     resolveAttack(action: IShipAttackAction): IGameState;
+    // Drains + resolves support inner-actions queued by ResolvePlayCardStep
+    resolvePendingSupportEffects(): void;
 }
 
 /**

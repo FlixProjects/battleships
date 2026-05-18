@@ -1,14 +1,13 @@
 import { IPlayerAction, TPlayCardPayload } from "../../types";
 import { PlayCardActionCreator } from "../ActionCreator";
-import { IServerCommandEventConsumer, ServerCommand } from "./ServerCommand";
+import { ServerCommand } from "./ServerCommand";
 import { ICommandExecutionParams } from "./types";
 
 export class ServerPlayCardCommand extends ServerCommand {
     constructor(
-        consumer: IServerCommandEventConsumer,
         private props: { playerId: string; cardId: string; commandPointCost: number; payload: TPlayCardPayload },
     ) {
-        super(consumer);
+        super();
     }
 
     protected createAction(params: ICommandExecutionParams): IPlayerAction {

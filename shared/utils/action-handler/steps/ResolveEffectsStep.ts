@@ -2,15 +2,21 @@ import { IPlayerAction } from "../../../types";
 import { IResolveStep, IResolveStepContext } from "./types";
 
 /**
- * Pipeline slot for effect resolution. Support-card effect resolution and the
- * `onEnter`/`onMove`/`onExit` tile hook points are migrated here in Step 8
- * (gated, its own commit — C2). Until then this is a documented no-op so the
- * pipeline shape is in place with zero behaviour change.
+ *
+ * - Support-card effects: `ResolvePlayCardStep` queues the support inner-action;
+ *   this step drains + applies them end-to-end. The engine no longer has its
+ *   own apply-support path — it just exposes `GameEngine.buildEffect` as the
+ *   effect-builder helper the resolver calls.
+ * - Tile-effect hooks: `onEnter` / `onMove` / `onExit` would fire here when a
+ *   hull enters / moves within / leaves a tile. No concrete tile effects exist
+ *   yet, so there is intentionally nothing to invoke (documented hook point).
  */
 export class ResolveEffectsStep implements IResolveStep {
     public readonly name = "ResolveEffects";
 
-    resolve(_action: IPlayerAction, _ctx: IResolveStepContext): void {
-        // no-op until Step 8
+    resolve(_action: IPlayerAction, ctx: IResolveStepContext): void {
+        ctx.resolvePendingSupportEffects();
+        // onEnter / onMove / onExit tile-effect hook points — no-op until tile
+        // effects are introduced
     }
 }

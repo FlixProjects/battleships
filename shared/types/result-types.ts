@@ -1,4 +1,4 @@
-import { ICellLoc, IEffect, IHull, IPlayer, IShip, TErrorCode } from "..";
+import { ICellLoc, IHull, IPlayer, IShip, TErrorCode } from "..";
 
 export const ResultType = {
     SUCCESS: "SUCCESS",
@@ -46,13 +46,6 @@ export interface IAttackResult extends IResult {
     players: IPlayer[];
     ships: IShip[];
     hulls: IHull[];
-}
-
-export interface IPlaySupportResult extends IResult {
-    type: typeof ResultType.SUCCESS;
-    player: Partial<IPlayer>;
-    /** Effects to be persisted in `gameState.effects` (one-shots are excluded). */
-    effectsToAdd: IEffect[];
 }
 
 export interface IGetValidSupportCellsResult extends IResult {

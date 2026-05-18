@@ -18,6 +18,16 @@ export class FEMoveShipAnimationCommand extends FEAnimationCommand {
         const ship = gsm.getShip(shipId);
         const shipHulls = gsm.getShipHulls(shipId);
 
+        // Fill newLoc from post-save state (the ServerMoveCommand sibling has
+        // already resolved + persisted). Reads the *actual* outcome, so a
+        // silently-failed move animates old==new (no spurious movement).
+        shipHulls.forEach((h) => {
+            const mapped = hullMap.get(h.id);
+            if (mapped) {
+                mapped.newLoc = h.location;
+            }
+        });
+
         const moveShipAnimation = new MoveShipAnimation({
             shipId,
             startingOrientation,
