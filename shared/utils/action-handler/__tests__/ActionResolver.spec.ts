@@ -543,7 +543,7 @@ describe("ActionResolver", () => {
             };
 
             const resolver = new ActionResolver("player1", gameState);
-            const next = resolver.resolvePlayCard(action);
+            const next = resolver.resolveAction(action);
 
             // Effect is persisted with the right ownership, kind, and lifetime.
             expect(next.effects).toHaveLength(1);
@@ -601,7 +601,7 @@ describe("ActionResolver", () => {
             };
 
             const resolver = new ActionResolver("player1", gameState);
-            resolver.resolvePlayCard(action);
+            resolver.resolveAction(action);
             expect(resolver.gameState.effects).toHaveLength(1);
 
             // Simulate the round advancing past expiry.

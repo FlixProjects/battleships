@@ -4,12 +4,14 @@ import { ICommand } from "../models/commands/types";
 import { IDeployAction, IMoveAction, IPlayCardAction, IPlayerAction, IShipAttackAction } from "./action-types";
 
 export interface IGame {
-    queueCommand(command: ICommand): void;
-    run(command: ICommand): Promise<void>;
+    queueCommand(command: ICommand): Promise<void>;
+    runCommandTree(command: ICommand): Promise<void>;
+    run(command: ICommand): Promise<ICommand[]>;
     undo(command: ICommand): Promise<void>;
 }
 
 export interface IActionResolver {
+    resolveAction(action: IPlayerAction): IGameState;
     resolvePlayCard(action: IPlayCardAction): GameState;
     resolveDeploy(action: IDeployAction): GameState;
     resolveMove(action: IMoveAction): GameState;

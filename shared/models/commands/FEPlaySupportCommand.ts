@@ -1,13 +1,15 @@
 import { ICellLoc } from "../../types";
 import { ISelectable } from "../../types/fe-types";
-import { PlayCardActionCreator } from "../ActionCreator";
 import { SupportCard } from "../SupportCard";
 import { FECommand } from "./FECommand";
-import { ICommandExecutionParams } from "./types";
+import { FEFinalizeSelectionCommand } from "./FEFinalizeSelectionCommand";
+import { ServerPlayCardCommand } from "./ServerPlayCardCommand";
+import { ICommand, ICommandExecutionParams } from "./types";
 
 /**
- * Mirrors `FEDeployShipCommand` — builds
- * a `PlayCardAction` with a Support payload
+ * Presentation + dispatch only (decoupling model). Validates the card, then
+ * returns the game-logic sibling (`ServerPlayCardCommand` with a Support
+ * payload) + UI cleanup. No resolve/persist here.
  */
 export class FEPlaySupportCommand extends FECommand {
     constructor(
@@ -22,9 +24,9 @@ export class FEPlaySupportCommand extends FECommand {
         super();
     }
 
-    public async execute(params: ICommandExecutionParams): Promise<void> {
+    public async execute(params: ICommandExecutionParams): Promise<ICommand[]> {
         const { cardId, playerId, targetCell, locationElement, onSuccessCb } = this.props;
-        const { gsm, db, resolver } = params;
+        const { gsm } = params;
 
         const card = gsm.gameState.cards.find((c) => c.id === cardId);
         if (!card) {
@@ -34,26 +36,18 @@ export class FEPlaySupportCommand extends FECommand {
             throw new Error(`[FEPlaySupportCommand] Card ${cardId} is not a SupportCard`);
         }
 
-        const player = gsm.getPlayer(playerId);
-
-        const playCardAction = new PlayCardActionCreator(player, gsm.getCurrentRound()).create({
-            cardId: card.id,
-            commandPointCost: card.commandPointCost,
-            payload: {
-                kind: "Support",
-                targetCell,
-            },
-        });
-
-        const newGameState = resolver.resolvePlayCard(playCardAction);
-
-        db.saveAppState({ gameState: newGameState.toPlain() });
-
-        locationElement?.runOnSelects();
-        onSuccessCb?.();
+        return [
+            new ServerPlayCardCommand({
+                playerId,
+                cardId: card.id,
+                commandPointCost: card.commandPointCost,
+                payload: { kind: "Support", targetCell },
+            }),
+            new FEFinalizeSelectionCommand({ locationElement, onSuccessCb }),
+        ];
     }
 
-    public async undo(_params: ICommandExecutionParams): Promise<void> {
+    public async undo(params: ICommandExecutionParams): Promise<ICommand[] | void> {
         return;
     }
 }

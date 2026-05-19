@@ -1,12 +1,17 @@
-import { queueCommand } from "../../../src/utils/game-helper";
 import { ICellLoc } from "../../types";
 import { ISelectable } from "../../types/fe-types";
-import { keyToLocation, locationToKey } from "../../utils/helpers";
-import { ShipAttackActionCreator } from "../ActionCreator";
+import { keyToLocation } from "../../utils/helpers";
 import { FECommand } from "./FECommand";
+import { FEFinalizeSelectionCommand } from "./FEFinalizeSelectionCommand";
 import { FEShipAttackAnimationCommand } from "./FEShipAttackAnimationCommand";
-import { ICommandExecutionParams } from "./types";
+import { ServerAttackCommand } from "./ServerAttackCommand";
+import { ICommand, ICommandExecutionParams } from "./types";
 
+/**
+ * Presentation + dispatch only (decoupling model). Returns the game-logic
+ * sibling (`ServerAttackCommand`) plus the attack animation (which derives
+ * `shipsHit` from post-save state) and the UI-cleanup command.
+ */
 export class FEShipAttackCommand extends FECommand {
     constructor(
         private props: {
@@ -21,47 +26,25 @@ export class FEShipAttackCommand extends FECommand {
         super();
     }
 
-    async execute(params: ICommandExecutionParams): Promise<void> {
+    async execute(params: ICommandExecutionParams): Promise<ICommand[]> {
         const { tileId, shipId, playerId, locationElement, attackOrigin, onSuccessCb } = this.props;
-        const { gsm, db, resolver } = params;
+        const { gsm } = params;
         const attackingShip = gsm.getShip(shipId);
-
-        const player = gsm.getPlayer(playerId);
         const attackLocation = keyToLocation(tileId);
 
-        const action = new ShipAttackActionCreator(player, db.state.gameState.currentRound).create({
-            shipId,
-            attackLocations: [attackLocation], // FIXME: only single location for now
-            commandPointCost: attackingShip.commandPointCost,
-        });
-
-        const newGameState = resolver.resolveAttack(action);
-
-        const shipsHit: Record<string, string[]> = {};
-        newGameState.hulls.forEach((hull) => {
-            if ([attackLocation].some((loc) => locationToKey(loc) === locationToKey(hull.location))) {
-                shipsHit[hull.shipId] = shipsHit[hull.shipId] || [];
-                shipsHit[hull.shipId].push(hull.id);
-            }
-        });
-
-        db.saveAppState({ gameState: newGameState.toPlain() });
-
-        await queueCommand(
-            new FEShipAttackAnimationCommand({
-                attackOrigin,
-                attackTileId: tileId,
-                shipsHit,
+        return [
+            new ServerAttackCommand({
+                playerId,
+                shipId,
+                attackLocations: [attackLocation], // FIXME: only single location for now
+                commandPointCost: attackingShip.commandPointCost,
             }),
-        );
-
-        locationElement.runOnSelects();
-        onSuccessCb?.();
-        return;
+            new FEShipAttackAnimationCommand({ attackOrigin, attackTileId: tileId }),
+            new FEFinalizeSelectionCommand({ locationElement, onSuccessCb }),
+        ];
     }
 
-    undo(params: ICommandExecutionParams): Promise<void> {
-        // TODO
-        return;
+    async undo(params: ICommandExecutionParams): Promise<ICommand[] | void> {
+        // TODO: implement undo for ship attack
     }
 }

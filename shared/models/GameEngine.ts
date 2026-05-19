@@ -23,8 +23,6 @@ import {
     IGetValidSupportCellsResult,
     IMoveAction,
     IMoveResult,
-    IPlaySupportAction,
-    IPlaySupportResult,
     IResult,
     IShipAttackAction,
     IVisionEffectPayload,
@@ -81,9 +79,6 @@ export class GameEngine {
             shipAttack: (action: IShipAttackAction): IAttackResult | IErrorResult => {
                 // TODO: validate
                 return this.commitAttack(action);
-            },
-            playSupport: (action: IPlaySupportAction): IPlaySupportResult | IErrorResult => {
-                return this.commitPlaySupport(action);
             },
         };
     }
@@ -371,50 +366,6 @@ export class GameEngine {
         return { type: ResultType.SUCCESS, playerId, validCells, requiresTarget: true };
     }
 
-    private commitPlaySupport(action: IPlaySupportAction): IPlaySupportResult | IErrorResult {
-        const { playerId, supportRefNo, cardId, targetCell, commandPointCost } = action;
-
-        const supportConfig = SUPPORTS_CONFIG[supportRefNo as TSupportRefNo];
-        if (!supportConfig) {
-            return { type: ResultType.ERROR, playerId, message: `Unknown SupportCard refNo '${supportRefNo}'` };
-        }
-
-        const player = this.gsm.getPlayer(playerId);
-        const effectsToAdd: IEffect[] = [];
-        const currentRound = this.gsm.gameState.currentRound;
-
-        supportConfig.effects.forEach((effectRefNo) => {
-            const effectConfig = EFFECTS_CONFIG[effectRefNo as TEffectRefNo];
-            if (!effectConfig) {
-                throw new Error(`commitPlaySupport: no EffectConfig for refNo '${effectRefNo}'`);
-            }
-            const effect = this.buildEffect({
-                effectConfig,
-                playerId,
-                cardId,
-                targetCell,
-                currentRound,
-            });
-
-            // resolve once on the action turn (no-op for passive vision Effects)
-            effect.resolve(this.gsm);
-
-            if (effectConfig.duration > 0) {
-                this.gsm.addEffect(effect);
-                effectsToAdd.push(effect);
-            }
-        });
-
-        player.commandPoints -= commandPointCost;
-
-        return {
-            type: ResultType.SUCCESS,
-            playerId,
-            player,
-            effectsToAdd,
-        };
-    }
-
     /**
      * Manhattan-distance reachable cells from the configured anchor. For
      * `any_tile` we treat the whole board as the seed set (no anchor cell).
@@ -466,7 +417,7 @@ export class GameEngine {
         return [];
     }
 
-    private buildEffect(args: {
+    public buildEffect(args: {
         effectConfig: IEffectConfig;
         playerId: string;
         cardId: string;
