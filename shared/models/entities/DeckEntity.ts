@@ -1,9 +1,9 @@
 import { ICard, IDeck, TFaction } from "../../types";
 import { createCard } from "../../utils/card-helper";
 import { Card } from "../Card";
-import { Entity } from "./Entity";
+import { GameObjectEntity } from "./GameObjectEntity";
 
-export class DeckEntity extends Entity<DeckEntity> implements IDeck {
+export class DeckEntity extends GameObjectEntity<DeckEntity> implements IDeck {
     id: string;
     playerId: string;
     faction: TFaction;

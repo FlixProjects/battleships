@@ -1,8 +1,8 @@
 import { IHull, IHullTemplate, IShip } from "../../types";
 import { Hull } from "../Hull";
-import { Entity } from "./Entity";
+import { GameObjectEntity } from "./GameObjectEntity";
 
-export class ShipEntity extends Entity<ShipEntity> implements IShip {
+export class ShipEntity extends GameObjectEntity<ShipEntity> implements IShip {
     id: string;
     playerId: string;
     refNo: string;
@@ -47,7 +47,7 @@ export class ShipEntity extends Entity<ShipEntity> implements IShip {
 
     public getHull(hullId: string) {
         return this.getHulls().find((h) => h.id === hullId);
-    };
+    }
 
     public updateHull(hull: Partial<IHull>) {
         if (!hull.id) return this;

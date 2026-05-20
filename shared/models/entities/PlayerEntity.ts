@@ -1,9 +1,9 @@
 import { IPlayer, IPlayerAction, IShip, TFaction } from "../../types";
 import { Action } from "../actions/Action";
 import { Ship } from "../Ship";
-import { Entity } from "./Entity";
+import { GameObjectEntity } from "./GameObjectEntity";
 
-export class PlayerEntity extends Entity<PlayerEntity> implements IPlayer {
+export class PlayerEntity extends GameObjectEntity<PlayerEntity> implements IPlayer {
     id: string;
     name: string;
     order: number;
@@ -19,19 +19,8 @@ export class PlayerEntity extends Entity<PlayerEntity> implements IPlayer {
 
     constructor(props: IPlayer) {
         super();
-        const {
-            id,
-            name,
-            order,
-            ready,
-            ships,
-            maxCommandPoints,
-            commandPoints,
-            pendingActions,
-            faction,
-            hand,
-            deck,
-        } = props;
+        const { id, name, order, ready, ships, maxCommandPoints, commandPoints, pendingActions, faction, hand, deck } =
+            props;
         this.id = id;
         this.name = name;
         this.order = order;

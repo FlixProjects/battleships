@@ -26,7 +26,7 @@ import { Action } from "./actions";
 import { Card } from "./Card";
 import { Deck } from "./Deck";
 import { Effect } from "./effects/Effect";
-import { Entity } from "./entities";
+import { GameObjectEntity } from "./entities/GameObjectEntity";
 import { Hull } from "./Hull";
 import { Player } from "./Player";
 import { Ship } from "./Ship";
@@ -139,7 +139,11 @@ export class GameState implements IGameState {
         return this;
     }
 
-    updateEntity<T extends Entity<T>, P>(entity: Partial<T>, collection: T[], EntityClass: new (props: P) => T): this {
+    updateEntity<T extends GameObjectEntity<T>, P>(
+        entity: Partial<T>,
+        collection: T[],
+        EntityClass: new (props: P) => T,
+    ): this {
         if (!entity.id) return this;
         const index = collection.findIndex((e) => e.id === entity.id);
         if (index === -1) return this;

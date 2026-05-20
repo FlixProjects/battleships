@@ -1,7 +1,7 @@
 import { ICellLoc, IHull } from "../../types";
-import { Entity } from "./Entity";
+import { GameObjectEntity } from "./GameObjectEntity";
 
-export class HullEntity extends Entity<HullEntity> implements IHull {
+export class HullEntity extends GameObjectEntity<HullEntity> implements IHull {
     id: string;
     shipId: string; // ties the hull to the ship
     location: ICellLoc;

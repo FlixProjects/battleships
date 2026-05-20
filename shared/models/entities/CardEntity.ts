@@ -1,7 +1,7 @@
 import { ICard, TCardKind } from "../../types";
-import { Entity } from "./Entity";
+import { GameObjectEntity } from "./GameObjectEntity";
 
-export class CardEntity extends Entity<CardEntity> implements ICard {
+export class CardEntity extends GameObjectEntity<CardEntity> implements ICard {
     id: string;
     deckId: string;
     instanceId: string;

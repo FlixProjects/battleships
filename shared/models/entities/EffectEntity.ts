@@ -1,7 +1,7 @@
 import { ICellLoc, IEffect, TEffectKind, TEffectPayload } from "../../types";
-import { Entity } from "./Entity";
+import { GameObjectEntity } from "./GameObjectEntity";
 
-export class EffectEntity extends Entity<EffectEntity> implements IEffect {
+export class EffectEntity extends GameObjectEntity<EffectEntity> implements IEffect {
     id: string;
     refNo: string;
     kind: TEffectKind;
