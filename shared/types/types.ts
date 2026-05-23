@@ -1,3 +1,4 @@
+import { ISignal } from "@shared/models/signals/types";
 import { AppStatus, CardKind, EFFECT_REF_NO, Faction, SHIP_REF_NO, SUPPORT_REF_NO } from "../config/constants";
 import type { GameState, Hull, Player, Ship } from "../models";
 import { ICommand } from "../models/commands/types";
@@ -132,6 +133,12 @@ export interface IHull extends IHullTemplate {
     remainingHealth: number;
     remainingArmor: number;
     destroyed: boolean;
+}
+
+export interface IGameObjectEntity {
+    id: string;
+    update(entity: Partial<IGameObjectEntity>): void;
+    receiveSignal(signal: ISignal, ctx: ISignalHandleCtx): void;
 }
 
 export type IDeckTemplateEntry = IShipDeckTemplateEntry | ISupportDeckTemplateEntry;
@@ -385,4 +392,15 @@ export interface IHullCalculator {
 export interface INewOldHullLocMap {
     oldLoc: ICellLoc;
     newLoc: ICellLoc;
+}
+
+export interface IGameObjectSignalHandlerOptions {
+    onMove?: (signal: ISignal, gsm: IGameStateManager) => void;
+    onAttack?: (signal: ISignal, gsm: IGameStateManager) => void;
+    onDeploy?: (signal: ISignal, gsm: IGameStateManager) => void;
+}
+
+export interface ISignalHandleCtx {
+    gsm: IGameStateManager;
+    emitter: (signals: ISignal[], originId: string) => void;
 }
