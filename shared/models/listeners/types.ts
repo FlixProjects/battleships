@@ -9,3 +9,15 @@ export interface IListener {
 }
 
 export type TListenerCallback = (signal: ISignal, ctx: ISignalHandleCtx) => void;
+export type TListenerId = string;
+export interface IListenerOptions {
+    removeOnSignalHandled?: boolean;
+}
+
+export interface IListenerManager {
+    listeners: Map<TListenerId, { listener: IListener; options: IListenerOptions }>;
+    addListener(listener: IListener, options?: IListenerOptions): this;
+    removeListener(listenerId: TListenerId): this;
+    overrideSignalListener(signalType: SignalType, newCallback: TListenerCallback): this;
+    overrideListener(listenerId: TListenerId, newCallback: TListenerCallback): this;
+}
