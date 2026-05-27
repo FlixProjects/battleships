@@ -19,7 +19,7 @@ export class ListenerManager implements IListenerManager {
         return this;
     }
 
-    public overrideSignalListener(signalType: SignalType, newCallback: TListenerCallback) {
+    public overrideSignalListener<T extends SignalType>(signalType: T, newCallback: TListenerCallback<T>) {
         const listenerIds = this.signalToListenerMap.get(signalType);
         if (listenerIds) {
             listenerIds.forEach((id) => this.overrideListener(id, newCallback));
@@ -29,10 +29,10 @@ export class ListenerManager implements IListenerManager {
         return this;
     }
 
-    public overrideListener(listenerId: string, newCallback: TListenerCallback) {
+    public overrideListener<T extends SignalType>(listenerId: string, newCallback: TListenerCallback<T>) {
         const listenerEntry = this._listeners.get(listenerId);
         if (listenerEntry) {
-            listenerEntry.listener.overrideCallback(newCallback);
+            (listenerEntry.listener as IListener<T>).overrideCallback(newCallback);
         } else {
             console.warn(`Listener with id ${listenerId} not found for override.`);
         }

@@ -1,9 +1,4 @@
-import {
-    IBasicShipAttackSignalHandleCtx,
-    IGameObjectEntity,
-    IReceiveShipAttackSignalHandleCtx,
-    ISignalHandleCtx,
-} from "@shared/types/types";
+import { IGameObjectEntity, ISignalHandleCtx } from "@shared/types/types";
 import { Listener } from "../listeners/Listener";
 import { ListenerManager } from "../listeners/ListenerManager";
 import { IListenerManager } from "../listeners/types";
@@ -36,13 +31,13 @@ export class GameObjectEntity<T>
     // Ship.attack should override callback if its a special attack
     protected createBasicShipAttackListener() {
         return new Listener([SignalType.BasicShipAttack], (ctx) => {
-            new BasicShipAttackSignalHandler().handle(ctx as IBasicShipAttackSignalHandleCtx);
+            new BasicShipAttackSignalHandler().handle(ctx);
         });
     }
 
     protected createReceiveShipAttackListener() {
         return new Listener([SignalType.ReceiveShipAttack], (ctx) => {
-            new ReceiveShipAttackSignalHandler().handle(ctx as IReceiveShipAttackSignalHandleCtx);
+            new ReceiveShipAttackSignalHandler().handle(ctx);
         });
     }
 }

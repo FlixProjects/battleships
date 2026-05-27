@@ -1,13 +1,13 @@
 import { v7 as uuidv7 } from "uuid";
-import { ISignal, SignalType } from "../signals/types";
-import { IListener } from "./types";
 import { ISignalHandleCtx } from "@shared/types";
+import { SignalType } from "../signals/types";
+import { IListener, SignalCtxMap, TListenerCallback } from "./types";
 
-export class Listener implements IListener {
+export class Listener<T extends SignalType = SignalType> implements IListener<T> {
     public id: string = uuidv7();
     constructor(
-        private validSignalTypes: SignalType[],
-        private callback: (ctx: ISignalHandleCtx) => void,
+        private validSignalTypes: T[],
+        private callback: TListenerCallback<T>,
     ) {}
 
     get signalTypes() {
@@ -15,12 +15,12 @@ export class Listener implements IListener {
     }
 
     public handleSignal(ctx: ISignalHandleCtx) {
-        if (this.validSignalTypes.includes(ctx.signal.type)) {
-            this.callback(ctx);
+        if (this.validSignalTypes.includes(ctx.signal.type as T)) {
+            this.callback(ctx as SignalCtxMap[T]);
         }
     }
 
-    public overrideCallback(fn: (ctx: ISignalHandleCtx) => void) {
+    public overrideCallback(fn: TListenerCallback<T>) {
         this.callback = fn;
     }
 }

@@ -1,14 +1,24 @@
-import { ISignalHandleCtx } from "@shared/types/types";
-import { ISignal, SignalType } from "../signals/types";
+import {
+    IBasicShipAttackSignalHandleCtx,
+    IReceiveShipAttackSignalHandleCtx,
+    ISignalHandleCtx,
+} from "@shared/types/types";
+import { SignalType } from "../signals/types";
 
-export interface IListener {
+export type SignalCtxMap = {
+    [SignalType.BasicShipAttack]: IBasicShipAttackSignalHandleCtx;
+    [SignalType.ReceiveShipAttack]: IReceiveShipAttackSignalHandleCtx;
+};
+
+export type TListenerCallback<T extends SignalType = SignalType> = (ctx: SignalCtxMap[T]) => void;
+
+export interface IListener<T extends SignalType = SignalType> {
     id: string;
-    signalTypes: SignalType[];
-    handleSignal: TListenerCallback;
-    overrideCallback(fn: TListenerCallback): void;
+    signalTypes: T[];
+    handleSignal(ctx: ISignalHandleCtx): void;
+    overrideCallback(fn: TListenerCallback<T>): void;
 }
 
-export type TListenerCallback = (ctx: ISignalHandleCtx) => void;
 export type TListenerId = string;
 export interface IListenerOptions {
     removeOnSignalHandled?: boolean;
@@ -18,6 +28,6 @@ export interface IListenerManager {
     listeners: Map<TListenerId, { listener: IListener; options: IListenerOptions }>;
     addListener(listener: IListener, options?: IListenerOptions): this;
     removeListener(listenerId: TListenerId): this;
-    overrideSignalListener(signalType: SignalType, newCallback: TListenerCallback): this;
-    overrideListener(listenerId: TListenerId, newCallback: TListenerCallback): this;
+    overrideSignalListener<T extends SignalType>(signalType: T, newCallback: TListenerCallback<T>): this;
+    overrideListener<T extends SignalType>(listenerId: TListenerId, newCallback: TListenerCallback<T>): this;
 }
