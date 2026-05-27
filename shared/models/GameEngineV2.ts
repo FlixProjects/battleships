@@ -1,13 +1,6 @@
 import { ActionSignalCreator } from "@shared/models/signal-creators/ActionSignalCreator";
 import { BasicShipAttackActionSignalCreator } from "@shared/models/signal-creators/BasicShipAttackActionSignalCreator";
-import {
-    Action,
-    IGameManager,
-    IGameObjectEntity,
-    IGameState,
-    IGameStateManager,
-    ISignalHandleCtx
-} from "..";
+import { Action, IGameObjectEntity, IGameState, IGameStateManager, ISignalHandleCtx } from "..";
 import { BasicShipAttackSignalHandler } from "./signal-handlers/BasicShipAttackSignalHandler";
 import { SignalHandler } from "./signal-handlers/SignalHandler";
 import { Signal } from "./signals/Signal";
@@ -22,7 +15,7 @@ export class GameEngine {
     ]);
 
     constructor(
-        private db: IGameManager,
+        private gameState: IGameState,
         private GSM: new (_gameState: IGameState) => IGameStateManager,
     ) {}
 
@@ -43,7 +36,7 @@ export class GameEngine {
 
     private sendSignalToGameObjects(signal: Signal) {
         this.gameObjects.forEach((obj) => {
-            obj.receiveSignal(signal, this.getSignalContext());
+            obj.receiveSignal(this.getSignalContext(signal));
         });
     }
 
@@ -69,9 +62,13 @@ export class GameEngine {
         });
     }
 
-    private getSignalContext(): ISignalHandleCtx {
+    private getSignalContext(signal: ISignal): ISignalHandleCtx {
         return {
-            gsm: new this.GSM(this.db.state.gameState),
+            signal,
+            gsm: new this.GSM(this.gameState),
+            saveNewState: (newState: IGameState) => {
+                this.gameState = newState;
+            },
             emitter: (signals: ISignal[], originId: string) => {
                 signals.forEach((s) => this.emit(s, originId));
             },

@@ -1,12 +1,11 @@
-import type { Action } from "@shared/models/actions/Action";
 import { BasicShipAttackSignal } from "@shared/models/signals/BasicShipAttackSignal";
-import { ActionTypes } from "@shared/types/action-types";
+import { ActionTypes, IShipAttackAction } from "@shared/types/action-types";
 import { ActionSignalCreator } from "./ActionSignalCreator";
 
 export class BasicShipAttackActionSignalCreator extends ActionSignalCreator {
-    createIfValid(action: Action) {
+    createIfValid(action: IShipAttackAction) {
         if (action.type === ActionTypes.ATTACK) {
-            return [new BasicShipAttackSignal()];
+            return [new BasicShipAttackSignal({ senderId: action.shipId, attackLocations: action.attackLocations })];
         }
         return [];
     }

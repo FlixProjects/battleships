@@ -8,7 +8,7 @@ export interface IListener {
     overrideCallback(fn: TListenerCallback): void;
 }
 
-export type TListenerCallback = (signal: ISignal, ctx: ISignalHandleCtx) => void;
+export type TListenerCallback = (ctx: ISignalHandleCtx) => void;
 export type TListenerId = string;
 export interface IListenerOptions {
     removeOnSignalHandled?: boolean;

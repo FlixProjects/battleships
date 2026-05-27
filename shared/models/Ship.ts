@@ -1,8 +1,19 @@
-import { ICellLoc, IGameState, IHull, IPlainShip, IShip } from "@shared/types";
+import {
+    IBasicShipAttackSignalHandleCtx,
+    ICellLoc,
+    IGameState,
+    IHull,
+    IPlainShip,
+    IShip,
+    ISignalHandleCtx,
+} from "@shared/types";
 import { PathHelper } from "@shared/utils";
 import { SegmentBuilder } from "@shared/utils/segment-builder";
 import { mergician } from "mergician";
 import { ShipEntity } from "./entities/ShipEntity";
+import { Resolver } from "./resolvers/Resolver";
+import { ReceiveShipAttackSignal } from "./signals/ReceiveShipAttackSignal";
+import { IShipReceiveAttackSignalPayload } from "./signals/types";
 
 export class Ship extends ShipEntity {
     constructor(props: Readonly<IShip>) {
@@ -102,6 +113,76 @@ export class Ship extends ShipEntity {
         return { finalOrientation, backLocation: oldFrontLocation };
     }
 
+    // ===============================================================================
+    // signal functions
+    // ===============================================================================
+
+    attack(ctx: IBasicShipAttackSignalHandleCtx) {
+        // called upon receiving BasicShipAttack signal
+        const { gsm, signal, emitter } = ctx;
+
+        const resolver = new Resolver(gsm.gameState, () => {
+            this.resolveAttack();
+            const { payload } = signal;
+            const { attackLocations, senderId } = payload;
+
+            const shipsHit: Record<string, string[]> = {};
+
+            gsm.getHulls(attackLocations).forEach((hull) => {
+                shipsHit[hull.shipId] = shipsHit[hull.shipId] || [];
+                shipsHit[hull.shipId].push(hull.id);
+            });
+
+            Object.entries(shipsHit).forEach(([shipId, hullIds]) => {
+                const attackDamage = this.attackDamage;
+                emitter(
+                    [
+                        new ReceiveShipAttackSignal({
+                            senderId,
+                            attacks: hullIds.map((hullId) => ({
+                                shipId,
+                                hullId,
+                                attackDamage,
+                            })),
+                        }),
+                    ],
+                    senderId,
+                );
+            });
+
+            return gsm.gameState;
+        });
+
+        return resolver.resolve();
+    }
+
+    receiveAttack(ctx: ISignalHandleCtx) {
+        const { gsm } = ctx;
+
+        const resolver = new Resolver(gsm.gameState, () => {
+            const { signal } = ctx;
+            const { payload } = signal;
+            const { attacks } = payload as IShipReceiveAttackSignalPayload;
+
+            attacks.forEach(({ hullId, attackDamage }) => {
+                const hull = this.getHull(hullId);
+                if (hull) {
+                    hull.getDamaged(attackDamage);
+                }
+            });
+
+            this.resolveDestroyed();
+
+            return gsm.gameState;
+        });
+
+        return resolver.resolve();
+    }
+
+    // ===============================================================================
+    // transform functions
+    // ===============================================================================
+
     /** Flattens hulls (IHull[]) → string[] of hull IDs. */
     public toPlain(): IPlainShip {
         return {
@@ -115,9 +196,7 @@ export class Ship extends ShipEntity {
      */
     public static toDomain(plain: IPlainShip, state: IGameState): Ship {
         const hullsById = new Map<string, IHull>((state.hulls ?? []).map((h) => [h.id, h]));
-        const hulls = plain.hulls
-            .map((id) => hullsById.get(id))
-            .filter((h): h is IHull => h !== undefined);
+        const hulls = plain.hulls.map((id) => hullsById.get(id)).filter((h): h is IHull => h !== undefined);
         return new Ship({ ...plain, hulls });
     }
 }

@@ -1,9 +1,15 @@
-import { IGameObjectEntity, ISignalHandleCtx } from "@shared/types/types";
+import {
+    IBasicShipAttackSignalHandleCtx,
+    IGameObjectEntity,
+    IReceiveShipAttackSignalHandleCtx,
+    ISignalHandleCtx,
+} from "@shared/types/types";
 import { Listener } from "../listeners/Listener";
 import { ListenerManager } from "../listeners/ListenerManager";
 import { IListenerManager } from "../listeners/types";
 import { BasicShipAttackSignalHandler } from "../signal-handlers/BasicShipAttackSignalHandler";
-import { ISignal, SignalType } from "../signals/types";
+import { ReceiveShipAttackSignalHandler } from "../signal-handlers/ReceiveShipAttackSignalHandler";
+import { SignalType } from "../signals/types";
 import { Entity } from "./Entity";
 
 export class GameObjectEntity<T>
@@ -13,9 +19,9 @@ export class GameObjectEntity<T>
     public id: string;
     protected listenerManager: IListenerManager = new ListenerManager();
 
-    public receiveSignal(signal: ISignal, ctx: ISignalHandleCtx) {
+    public receiveSignal(ctx: ISignalHandleCtx) {
         this.listenerManager.listeners.forEach(({ listener, options }) => {
-            listener.handleSignal(signal, ctx);
+            listener.handleSignal(ctx);
             if (options.removeOnSignalHandled) {
                 this.listenerManager.removeListener(listener.id);
             }
@@ -23,14 +29,20 @@ export class GameObjectEntity<T>
     }
 
     public loadDefaultListeners() {
-        const basicShipAttackListener = this.createBasicShipAttackListener();
-        this.listenerManager.addListener(basicShipAttackListener);
+        const defaultListeners = [this.createBasicShipAttackListener(), this.createReceiveShipAttackListener()];
+        defaultListeners.forEach((listener) => this.listenerManager.addListener(listener));
     }
 
     // Ship.attack should override callback if its a special attack
     protected createBasicShipAttackListener() {
-        return new Listener([SignalType.BasicShipAttack], (signal, ctx) => {
-            new BasicShipAttackSignalHandler().handle(signal, ctx);
+        return new Listener([SignalType.BasicShipAttack], (ctx) => {
+            new BasicShipAttackSignalHandler().handle(ctx as IBasicShipAttackSignalHandleCtx);
+        });
+    }
+
+    protected createReceiveShipAttackListener() {
+        return new Listener([SignalType.ReceiveShipAttack], (ctx) => {
+            new ReceiveShipAttackSignalHandler().handle(ctx as IReceiveShipAttackSignalHandleCtx);
         });
     }
 }

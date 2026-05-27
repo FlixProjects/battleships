@@ -7,20 +7,20 @@ export class Listener implements IListener {
     public id: string = uuidv7();
     constructor(
         private validSignalTypes: SignalType[],
-        private callback: (signal: ISignal, ctx: ISignalHandleCtx) => void,
+        private callback: (ctx: ISignalHandleCtx) => void,
     ) {}
 
     get signalTypes() {
         return this.validSignalTypes;
     }
 
-    public handleSignal(signal: ISignal, ctx: ISignalHandleCtx) {
-        if (this.validSignalTypes.includes(signal.type)) {
-            this.callback(signal, ctx);
+    public handleSignal(ctx: ISignalHandleCtx) {
+        if (this.validSignalTypes.includes(ctx.signal.type)) {
+            this.callback(ctx);
         }
     }
 
-    public overrideCallback(fn: (signal: ISignal, ctx: ISignalHandleCtx) => void) {
+    public overrideCallback(fn: (ctx: ISignalHandleCtx) => void) {
         this.callback = fn;
     }
 }

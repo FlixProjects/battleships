@@ -1,4 +1,4 @@
-import { ISignal } from "@shared/models/signals/types";
+import { IShipAttackSignalPayload, IShipReceiveAttackSignalPayload, ISignal } from "@shared/models/signals/types";
 import { AppStatus, CardKind, EFFECT_REF_NO, Faction, SHIP_REF_NO, SUPPORT_REF_NO } from "../config/constants";
 import type { GameState, Hull, Player, Ship } from "../models";
 import { ICommand } from "../models/commands/types";
@@ -38,11 +38,15 @@ export interface IGameStateManager {
     getPlayerShips(playerId: string): IShip[];
     getShip(shipId: string): Ship;
     getShipHulls(shipId: string): Hull[];
+    getHulls(locations?: ICellLoc[]): Hull[];
+    getPlayerHand(playerId: string): ICard[];
+    getPlayerIndex(playerId: string): number;
     updatePlayer(player: Partial<IPlayer>): this;
     updatePlayers(players: Partial<IPlayer>[]): this;
     updateShip(ship: Partial<IShip>): this;
     updateShips(ships: Partial<IShip>[]): this;
     updateHull(hull: Partial<IHull>): this;
+    updateHulls(hulls: Partial<IHull>[]): this;
     addHull(hull: IHull): this;
     updateActions(actions: Partial<IPlainAction>[]): this;
     updateAction(action: Partial<IPlainAction>): this;
@@ -138,7 +142,7 @@ export interface IHull extends IHullTemplate {
 export interface IGameObjectEntity {
     id: string;
     update(entity: Partial<IGameObjectEntity>): void;
-    receiveSignal(signal: ISignal, ctx: ISignalHandleCtx): void;
+    receiveSignal(ctx: ISignalHandleCtx): void;
 }
 
 export type IDeckTemplateEntry = IShipDeckTemplateEntry | ISupportDeckTemplateEntry;
@@ -401,6 +405,16 @@ export interface IGameObjectSignalHandlerOptions {
 }
 
 export interface ISignalHandleCtx {
+    signal: ISignal;
     gsm: IGameStateManager;
+    saveNewState: (newState: IGameState) => void;
     emitter: (signals: ISignal[], originId: string) => void;
+}
+
+export interface IBasicShipAttackSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IShipAttackSignalPayload };
+}
+
+export interface IReceiveShipAttackSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IShipReceiveAttackSignalPayload };
 }

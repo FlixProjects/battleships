@@ -1,5 +1,6 @@
 import clone from "lodash.clonedeep";
 import {
+    ICellLoc,
     IEffect,
     IGameState,
     IGameStateData,
@@ -77,6 +78,10 @@ export class GameStateManager implements IGameStateManager {
         return this.gameState.getShipHulls(shipId);
     }
 
+    getHulls(locations?: ICellLoc[]) {
+        return locations ? this.gameState.getHullsByLocations(locations) : this.gameState.getHulls();
+    }
+
     getCard(cardId: string) {
         return this.gameState.cards.find((c) => c.id === cardId);
     }
@@ -90,6 +95,10 @@ export class GameStateManager implements IGameStateManager {
         return player.hand
             .map((cardId) => this.getCard(cardId))
             .filter((c): c is NonNullable<typeof c> => c !== undefined);
+    }
+
+    getPlayerIndex(playerId: string) {
+        return this.gameState.getPlayerIndex(playerId);
     }
 
     updatePlayer(player: Partial<IPlayer>) {

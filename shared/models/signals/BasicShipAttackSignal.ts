@@ -1,7 +1,9 @@
 import { Signal } from "./Signal";
-import { SignalType } from "./types";
+import { IShipAttackSignalPayload, SignalType } from "./types";
 
 export class BasicShipAttackSignal extends Signal {
     type: SignalType = SignalType.BasicShipAttack;
+    constructor(public payload: IShipAttackSignalPayload) {
+        super();
+    }
 }
-

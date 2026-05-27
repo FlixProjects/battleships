@@ -3,6 +3,7 @@ import {
     Board,
     EffectKind,
     ICard,
+    ICellLoc,
     IDeck,
     IEffect,
     IGameState,
@@ -26,7 +27,7 @@ import { Action } from "./actions";
 import { Card } from "./Card";
 import { Deck } from "./Deck";
 import { Effect } from "./effects/Effect";
-import { GameObjectEntity } from "./entities/GameObjectEntity";
+import { Entity } from "./entities/Entity";
 import { Hull } from "./Hull";
 import { Player } from "./Player";
 import { Ship } from "./Ship";
@@ -139,11 +140,7 @@ export class GameState implements IGameState {
         return this;
     }
 
-    updateEntity<T extends GameObjectEntity<T>, P>(
-        entity: Partial<T>,
-        collection: T[],
-        EntityClass: new (props: P) => T,
-    ): this {
+    updateEntity<T extends Entity<T>, P>(entity: Partial<T>, collection: T[], EntityClass: new (props: P) => T): this {
         if (!entity.id) return this;
         const index = collection.findIndex((e) => e.id === entity.id);
         if (index === -1) return this;
@@ -237,6 +234,15 @@ export class GameState implements IGameState {
             throw new Error(`Hull with id ${hullId} not found`);
         }
         return hull;
+    }
+
+    getHulls() {
+        return this.hulls;
+    }
+
+    getHullsByLocations(locations: ICellLoc[]) {
+        const hullMap = new Map(this.hulls.map((h) => [locationToKey(h.location), h]));
+        return locations.map((loc) => hullMap.get(locationToKey(loc))).filter((h): h is Hull => h !== undefined);
     }
 
     getShipHulls(shipId: string) {
@@ -359,6 +365,11 @@ export class GameState implements IGameState {
             s.hulls = this.hulls.filter((h) => h.shipId === s.id);
         });
         return this;
+    }
+
+    getPlayerIndex(playerId: string) {
+        const playerIndex = this.players.findIndex((p) => p.id === playerId);
+        return playerIndex;
     }
 
     getFirstPlayerId() {
