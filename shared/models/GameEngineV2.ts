@@ -26,12 +26,31 @@ export class GameEngine {
         this.sendSignals();
     }
 
+    private clearProcessedSignal(originId: string, signalId: string) {
+        const signals = this.signalStacks.get(originId);
+        if (!signals) return;
+
+        this.signalStacks.set(
+            originId,
+            signals.filter((s) => s.id !== signalId),
+        );
+
+        if (this.signalStacks.get(originId)?.length === 0) {
+            this.signalStacks.delete(originId);
+        }
+    }
+
     private sendSignals() {
-        this.signalStacks.forEach((signals) => {
-            signals.forEach((signal) => {
-                this.sendSignalToGameObjects(signal);
-            });
-        });
+        do {
+            const signalStack = Array.from(this.signalStacks.entries())[0];
+            if (!signalStack) break;
+
+            const [originId, signals] = signalStack;
+            const signal = signals[0];
+
+            this.sendSignalToGameObjects(signal);
+            this.clearProcessedSignal(originId, signal.id);
+        } while (this.signalStacks.size > 0);
     }
 
     private sendSignalToGameObjects(signal: Signal) {
