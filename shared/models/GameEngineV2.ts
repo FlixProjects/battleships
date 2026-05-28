@@ -7,6 +7,8 @@ import { Signal } from "./signals/Signal";
 import { ISignal, SignalType } from "./signals/types";
 
 export class GameEngine {
+    private currentAction: Action | null = null;
+    private recordedActions: Set<string> = new Set();
     private gameObjects: Map<string, IGameObjectEntity> = new Map();
     private signalStacks: Map<string, Signal[]> = new Map();
     private signalCreators: ActionSignalCreator[] = [new BasicShipAttackActionSignalCreator()];
@@ -22,6 +24,7 @@ export class GameEngine {
     // process an action
     // an Action represents a decision made by a player
     public run(action: Action) {
+        this.currentAction = action;
         this.loadInitialSignals(action);
         this.sendSignals();
     }
@@ -86,6 +89,13 @@ export class GameEngine {
             gsm: new this.GSM(this.gameState),
             saveNewState: (newState: IGameState) => {
                 this.gameState = newState;
+            },
+            saveAction: () => {
+                if (!this.currentAction || this.recordedActions.has(this.currentAction.id)) return;
+                const gsm = new this.GSM(this.gameState);
+                gsm.addAction(this.currentAction);
+                this.gameState = gsm.gameState;
+                this.recordedActions.add(this.currentAction.id);
             },
             emitter: (signals: ISignal[], originId: string) => {
                 signals.forEach((s) => this.emit(s, originId));

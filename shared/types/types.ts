@@ -407,6 +407,7 @@ export interface IGameObjectSignalHandlerOptions {
 export interface ISignalHandleCtx {
     signal: ISignal;
     gsm: IGameStateManager;
+    saveAction: () => void;
     saveNewState: (newState: IGameState) => void;
     emitter: (signals: ISignal[], originId: string) => void;
 }
