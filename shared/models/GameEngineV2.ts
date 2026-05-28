@@ -42,15 +42,14 @@ export class GameEngine {
 
     private sendSignals() {
         do {
-            const signalStack = Array.from(this.signalStacks.entries())[0];
+            const signalStack = this.signalStacks.entries().next().value;
             if (!signalStack) break;
-
             const [originId, signals] = signalStack;
             const signal = signals[0];
 
             this.sendSignalToGameObjects(signal);
             this.clearProcessedSignal(originId, signal.id);
-        } while (this.signalStacks.size > 0);
+        } while (true);
     }
 
     private sendSignalToGameObjects(signal: Signal) {
