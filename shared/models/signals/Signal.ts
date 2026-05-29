@@ -2,8 +2,9 @@ import { v7 as uuidv7 } from "uuid";
 import { ISignal, ISignalPayload, SignalType } from "./types";
 
 export class Signal implements ISignal {
-    id: string = uuidv7();
-    type: SignalType;
-    payload?: ISignalPayload;
+    public id: string = uuidv7();
+    public type: SignalType;
+    public senderId: string;
+    public targetId?: string;
+    public payload?: ISignalPayload;
 }
-

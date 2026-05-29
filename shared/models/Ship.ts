@@ -4,8 +4,8 @@ import {
     IGameState,
     IHull,
     IPlainShip,
+    IReceiveShipAttackSignalHandleCtx,
     IShip,
-    ISignalHandleCtx,
 } from "@shared/types";
 import { PathHelper } from "@shared/utils";
 import { SegmentBuilder } from "@shared/utils/segment-builder";
@@ -13,7 +13,6 @@ import { mergician } from "mergician";
 import { ShipEntity } from "./entities/ShipEntity";
 import { Resolver } from "./resolvers/Resolver";
 import { ReceiveShipAttackSignal } from "./signals/ReceiveShipAttackSignal";
-import { IShipReceiveAttackSignalPayload } from "./signals/types";
 
 export class Ship extends ShipEntity {
     constructor(props: Readonly<IShip>) {
@@ -123,8 +122,8 @@ export class Ship extends ShipEntity {
 
         const resolver = new Resolver(gsm.gameState, () => {
             this.resolveAttack();
-            const { payload } = signal;
-            const { attackLocations, senderId } = payload;
+            const { payload, senderId } = signal;
+            const { attackLocations } = payload;
 
             // update CP
             const player = gsm.getPlayer(this.playerId);
@@ -141,14 +140,15 @@ export class Ship extends ShipEntity {
                 shipsHit[hull.shipId].push(hull.id);
             });
 
-            Object.entries(shipsHit).forEach(([shipId, hullIds]) => {
+            Object.entries(shipsHit).forEach(([attackedShipId, hullIds]) => {
                 const attackDamage = this.attackDamage;
                 emitter(
                     [
-                        new ReceiveShipAttackSignal({
-                            senderId: shipId,
+                        new ReceiveShipAttackSignal(attackedShipId, {
+                            attackingShipId: this.id,
+                            attackedShipId,
                             attacks: hullIds.map((hullId) => ({
-                                shipId,
+                                shipId: attackedShipId,
                                 hullId,
                                 attackDamage,
                             })),
@@ -164,13 +164,13 @@ export class Ship extends ShipEntity {
         return resolver.resolve();
     }
 
-    receiveAttack(ctx: ISignalHandleCtx) {
+    receiveAttack(ctx: IReceiveShipAttackSignalHandleCtx) {
         const { gsm } = ctx;
 
         const resolver = new Resolver(gsm.gameState, () => {
             const { signal } = ctx;
             const { payload } = signal;
-            const { attacks } = payload as IShipReceiveAttackSignalPayload;
+            const { attacks } = payload;
 
             attacks.forEach(({ hullId, attackDamage }) => {
                 const hull = this.getHull(hullId);

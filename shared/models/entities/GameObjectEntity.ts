@@ -30,14 +30,26 @@ export class GameObjectEntity<T>
 
     // Ship.attack should override callback if its a special attack
     protected createBasicShipAttackListener() {
-        return new Listener([SignalType.BasicShipAttack], (ctx) => {
-            new BasicShipAttackSignalHandler().handle(ctx);
-        });
+        return new Listener(
+            [SignalType.BasicShipAttack],
+            (ctx) => {
+                new BasicShipAttackSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
     }
 
     protected createReceiveShipAttackListener() {
-        return new Listener([SignalType.ReceiveShipAttack], (ctx) => {
-            new ReceiveShipAttackSignalHandler().handle(ctx);
-        });
+        return new Listener(
+            [SignalType.ReceiveShipAttack],
+            (ctx) => {
+                new ReceiveShipAttackSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
     }
+
+    private defaultHandlerShouldHandleSignal = (ctx: ISignalHandleCtx) => {
+        return ctx.signal.targetId === this.id;
+    };
 }

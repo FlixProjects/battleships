@@ -4,6 +4,8 @@ import type { Ship } from "../Ship";
 export interface ISignal {
     id: string;
     type: SignalType;
+    senderId: string;
+    targetId?: string;
     payload?: ISignalPayload;
 }
 
@@ -14,15 +16,16 @@ export const SignalType = {
 
 export type SignalType = (typeof SignalType)[keyof typeof SignalType];
 
-export interface ISignalPayload {
-    senderId: string;
-}
+export interface ISignalPayload {}
 
 export interface IShipAttackSignalPayload extends ISignalPayload {
+    attackingShipId: string;
     attackLocations: ICellLoc[];
 }
 export interface IShipReceiveAttackSignalPayload extends ISignalPayload {
-    attacks: IAttackPayload[];    
+    attackingShipId: string;
+    attackedShipId: string;
+    attacks: IAttackPayload[];
 }
 
 export interface IAttackPayload {
