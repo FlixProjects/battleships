@@ -32,6 +32,7 @@ import { Hull } from "./Hull";
 import { Player } from "./Player";
 import { Ship } from "./Ship";
 
+// GameObjects should not be nested within other GameObjects unless they have their equivalent on this layer
 export class GameState implements IGameState {
     code: string;
     currentRound: number;

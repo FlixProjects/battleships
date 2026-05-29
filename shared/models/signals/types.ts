@@ -6,6 +6,7 @@ export interface ISignal {
     type: SignalType;
     senderId: string;
     targetId?: string;
+    originId: string;
     payload?: ISignalPayload;
 }
 

@@ -1,13 +1,14 @@
 import { ActionSignalCreator } from "@shared/models/signal-creators/ActionSignalCreator";
 import { BasicShipAttackActionSignalCreator } from "@shared/models/signal-creators/BasicShipAttackActionSignalCreator";
-import { Action, IGameObjectEntity, IGameState, IGameStateManager, ISignalHandleCtx } from "..";
+import { IPlayerAction, IGameObjectEntity, IGameState, IGameStateManager, ISignalHandleCtx, GameState } from "..";
 import { BasicShipAttackSignalHandler } from "./signal-handlers/BasicShipAttackSignalHandler";
 import { SignalHandler } from "./signal-handlers/SignalHandler";
 import { Signal } from "./signals/Signal";
 import { ISignal, SignalType } from "./signals/types";
+import { GameObjectEntity } from "./entities/GameObjectEntity";
 
 export class GameEngine {
-    private currentAction: Action | null = null;
+    private currentAction: IPlayerAction | null = null;
     private recordedActions: Set<string> = new Set();
     private gameObjects: Map<string, IGameObjectEntity> = new Map();
     private signalStacks: Map<string, Signal[]> = new Map();
@@ -19,11 +20,13 @@ export class GameEngine {
     constructor(
         private gameState: IGameState,
         private GSM: new (_gameState: IGameState) => IGameStateManager,
-    ) {}
+    ) {
+        this.loadGameObjects();
+    }
 
     // process an action
     // an Action represents a decision made by a player
-    public run(action: Action) {
+    public run(action: IPlayerAction) {
         this.currentAction = action;
         this.loadInitialSignals(action);
         this.sendSignals();
@@ -74,7 +77,7 @@ export class GameEngine {
         signals.forEach((s) => this.emit(s));
     }
 
-    private loadInitialSignals(action: Action) {
+    private loadInitialSignals(action: IPlayerAction) {
         // map AttackSignal, MoveSignal, DeploySignal, etc. to a Signal with appropriate payload
 
         this.signalCreators.forEach((handler) => {
@@ -102,4 +105,49 @@ export class GameEngine {
             },
         };
     }
+
+    private loadGameObjects() {
+        for (let key in this.gameState) {
+            const value = this.gameState[key as TGameStatePropKey];
+            this.registerGameObjects(value);
+        }
+    }
+
+    private registerGameObjects = (value: any): any => {
+        if (Array.isArray(value)) {
+            value.forEach((val) => this.registerGameObjects(val));
+            return;
+        }
+        if (value instanceof GameObjectEntity) {
+            if (this.gameObjects.has(value.id)) return;
+            return value.registerGameObject(this.register);
+        }
+        if (this.isPrimitive(value) || this.isNullOrUndefined(value)) {
+            return;
+        }
+        if (typeof value === "object") {
+            for (let key in value) {
+                this.registerGameObjects(value[key]);
+            }
+            return;
+        }
+    };
+
+    private register = (id: string, go: GameObjectEntity<any>) => {
+        this.gameObjects.set(id, go);
+    };
+
+    private isPrimitive(value: any) {
+        return (
+            typeof value === "string" ||
+            typeof value === "boolean" ||
+            typeof value === "number" ||
+            typeof value === "function"
+        );
+    }
+
+    private isNullOrUndefined(value: any) {
+        return value === null || value === undefined;
+    }
 }
+type TGameStatePropKey = keyof IGameState;

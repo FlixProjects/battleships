@@ -14,6 +14,11 @@ export class GameObjectEntity<T>
     public id: string;
     protected listenerManager: IListenerManager = new ListenerManager();
 
+    constructor(){
+        super()
+        this.loadDefaultListeners();
+    }
+
     public receiveSignal(ctx: ISignalHandleCtx) {
         this.listenerManager.listeners.forEach(({ listener, options }) => {
             listener.handleSignal(ctx);
@@ -52,4 +57,8 @@ export class GameObjectEntity<T>
     private defaultHandlerShouldHandleSignal = (ctx: ISignalHandleCtx) => {
         return ctx.signal.targetId === this.id;
     };
+
+    public registerGameObject(register: (id: string, go: GameObjectEntity<T>) => void) {
+        register(this.id, this);
+    }
 }

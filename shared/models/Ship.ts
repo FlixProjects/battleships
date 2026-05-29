@@ -142,19 +142,25 @@ export class Ship extends ShipEntity {
 
             Object.entries(shipsHit).forEach(([attackedShipId, hullIds]) => {
                 const attackDamage = this.attackDamage;
+                const payload = {
+                    attackingShipId: this.id,
+                    attackedShipId,
+                    attacks: hullIds.map((hullId) => ({
+                        shipId: attackedShipId,
+                        hullId,
+                        attackDamage,
+                    })),
+                };
                 emitter(
                     [
-                        new ReceiveShipAttackSignal(attackedShipId, {
-                            attackingShipId: this.id,
-                            attackedShipId,
-                            attacks: hullIds.map((hullId) => ({
-                                shipId: attackedShipId,
-                                hullId,
-                                attackDamage,
-                            })),
+                        new ReceiveShipAttackSignal({
+                            targetId: attackedShipId,
+                            payload,
+                            senderId: this.id,
+                            originId: signal.id,
                         }),
                     ],
-                    senderId,
+                    signal.id,
                 );
             });
 
