@@ -1,10 +1,6 @@
 import { CELL_SEPARATOR } from "../../constants";
 import { PathHelper } from "../path-helper";
 
-jest.mock("uuid", () => ({
-    v7: () => "uuid",
-}));
-
 const cs = CELL_SEPARATOR;
 
 describe("PathHelper", () => {

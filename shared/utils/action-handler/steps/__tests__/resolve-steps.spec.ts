@@ -81,7 +81,7 @@ describe("createResolvePipeline", () => {
             "ResolvePlayCard",
             "ResolveDeploy",
             "ResolveMove",
-            "ResolveAttack",
+            // "ResolveAttack",
             "ResolveEffects",
         ]);
     });

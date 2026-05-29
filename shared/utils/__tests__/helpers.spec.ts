@@ -1,9 +1,5 @@
 import { mergeSets } from "../helpers";
 
-jest.mock("uuid", () => ({
-    v7: () => "uuid",
-}));
-
 describe("mergeSets", () => {
     it("should merge sets", () => {
         const set1 = new Set([1, 2, 3]);
