@@ -409,7 +409,7 @@ export interface ISignalHandleCtx {
     gsm: IGameStateManager;
     saveAction: () => void;
     saveNewState: (newState: IGameState) => void;
-    emitter: (signals: ISignal[], originId: string) => void;
+    emitter: (signals: ISignal[]) => void;
 }
 
 export interface IBasicShipAttackSignalHandleCtx extends ISignalHandleCtx {

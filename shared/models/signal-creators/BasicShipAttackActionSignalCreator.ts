@@ -8,7 +8,6 @@ export class BasicShipAttackActionSignalCreator extends ActionSignalCreator {
             const payload = { attackingShipId: action.shipId, attackLocations: action.attackLocations };
             return [
                 new BasicShipAttackSignal({
-                    senderId: action.shipId,
                     targetId: action.shipId,
                     payload,
                 }),

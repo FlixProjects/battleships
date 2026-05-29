@@ -122,7 +122,7 @@ export class Ship extends ShipEntity {
 
         const resolver = new Resolver(gsm.gameState, () => {
             this.resolveAttack();
-            const { payload, senderId } = signal;
+            const { payload } = signal;
             const { attackLocations } = payload;
 
             // update CP
@@ -151,17 +151,14 @@ export class Ship extends ShipEntity {
                         attackDamage,
                     })),
                 };
-                emitter(
-                    [
-                        new ReceiveShipAttackSignal({
-                            targetId: attackedShipId,
-                            payload,
-                            senderId: this.id,
-                            originId: signal.id,
-                        }),
-                    ],
-                    signal.id,
-                );
+                emitter([
+                    new ReceiveShipAttackSignal({
+                        targetId: attackedShipId,
+                        payload,
+                        senderId: this.id,
+                        originId: signal.id,
+                    }),
+                ]);
             });
 
             return gsm.gameState;

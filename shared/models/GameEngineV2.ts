@@ -70,11 +70,11 @@ export class GameEngine {
         });
     }
 
-    private emit(signal: Signal, originId?: string) {
-        if (originId) {
-            this.signalStacks.get(originId)?.push(signal);
+    private emit(signal: Signal) {
+        if (this.signalStacks.has(signal.originId)) {
+            this.signalStacks.get(signal.originId)?.push(signal);
         } else {
-            this.signalStacks.set(signal.id, [signal]);
+            this.signalStacks.set(signal.originId, [signal]);
         }
     }
 
@@ -106,8 +106,8 @@ export class GameEngine {
                 this.gameState = gsm.gameState;
                 this.recordedActions.add(this.currentAction.id);
             },
-            emitter: (signals: ISignal[], originId: string) => {
-                signals.forEach((s) => this.emit(s, originId));
+            emitter: (signals: ISignal[]) => {
+                signals.forEach((s) => this.emit(s));
             },
         };
     }
