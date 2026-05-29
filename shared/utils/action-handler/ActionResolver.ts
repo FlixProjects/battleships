@@ -1,6 +1,7 @@
 import { EFFECTS_CONFIG, MAX_HAND_SIZE, SUPPORTS_CONFIG } from "../../config/constants";
 import { ERROR_CODE } from "../../constants";
 import { GameEngine, GameStateManager } from "../../models";
+import { GameEngine as GameEngineV2 } from "../../models/GameEngineV2";
 import { IResolveStep, createResolvePipeline } from "./steps";
 import {
     ActionTypes,
@@ -132,6 +133,10 @@ export class ActionResolver {
     // unless the action is relevant to it. Replaces the per-type switch.
     // Action types are mutually exclusive so this is behaviour-identical.
     public resolveAction(action: IPlayerAction) {
+        const engine = new GameEngineV2(this.gameState, GameStateManager);
+        if(action.type === ActionTypes.ATTACK){
+            engine.run(action)
+        }
         for (const step of this.resolveSteps) {
             step.resolve(action, this);
         }

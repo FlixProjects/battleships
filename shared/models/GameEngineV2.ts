@@ -27,9 +27,15 @@ export class GameEngine {
     // process an action
     // an Action represents a decision made by a player
     public run(action: IPlayerAction) {
+        this.resetRun();
         this.currentAction = action;
         this.loadInitialSignals(action);
         this.sendSignals();
+    }
+
+    private resetRun() {
+        this.recordedActions.clear();
+        this.currentAction = null;
     }
 
     private clearProcessedSignal(originId: string, signalId: string) {
@@ -107,27 +113,31 @@ export class GameEngine {
     }
 
     private loadGameObjects() {
+        const visited = new WeakSet<object>(); // for recognizing objects + prevent cyclical paths
         for (let key in this.gameState) {
             const value = this.gameState[key as TGameStatePropKey];
-            this.registerGameObjects(value);
+            this.registerGameObjects(value, visited);
         }
     }
 
-    private registerGameObjects = (value: any): any => {
+    private registerGameObjects = (value: any, visited: WeakSet<object>): any => {
+        if (this.isPrimitive(value) || this.isNullOrUndefined(value)) {
+            return;
+        }
+        if (visited.has(value)) return;
+        visited.add(value);
+
         if (Array.isArray(value)) {
-            value.forEach((val) => this.registerGameObjects(val));
+            value.forEach((val) => this.registerGameObjects(val, visited));
             return;
         }
         if (value instanceof GameObjectEntity) {
             if (this.gameObjects.has(value.id)) return;
             return value.registerGameObject(this.register);
         }
-        if (this.isPrimitive(value) || this.isNullOrUndefined(value)) {
-            return;
-        }
         if (typeof value === "object") {
             for (let key in value) {
-                this.registerGameObjects(value[key]);
+                this.registerGameObjects(value[key], visited);
             }
             return;
         }

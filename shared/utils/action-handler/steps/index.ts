@@ -20,6 +20,6 @@ export const createResolvePipeline = (): IResolveStep[] => [
     new ResolvePlayCardStep(),
     new ResolveDeployStep(),
     new ResolveMoveStep(),
-    new ResolveAttackStep(),
+    // new ResolveAttackStep(), // temp remove to test GameEngineV2
     new ResolveEffectsStep(),
 ];
