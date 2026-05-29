@@ -134,8 +134,8 @@ export class ActionResolver {
     // Action types are mutually exclusive so this is behaviour-identical.
     public resolveAction(action: IPlayerAction) {
         const engine = new GameEngineV2(this.gameState, GameStateManager);
-        if(action.type === ActionTypes.ATTACK){
-            engine.run(action)
+        if (action.type === ActionTypes.ATTACK) {
+            this.gameState = engine.run(action);
         }
         for (const step of this.resolveSteps) {
             step.resolve(action, this);

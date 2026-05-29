@@ -31,6 +31,7 @@ export class GameEngine {
         this.currentAction = action;
         this.loadInitialSignals(action);
         this.sendSignals();
+        return this.gameState
     }
 
     private resetRun() {
