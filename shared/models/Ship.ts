@@ -118,7 +118,7 @@ export class Ship extends ShipEntity {
 
     attack(ctx: IBasicShipAttackSignalHandleCtx) {
         // called upon receiving BasicShipAttack signal
-        const { gsm, signal, emitter, saveAction } = ctx;
+        const { gsm, signal, emitter } = ctx;
 
         const resolver = new Resolver(gsm.gameState, () => {
             this.resolveAttack();
@@ -129,9 +129,6 @@ export class Ship extends ShipEntity {
             const player = gsm.getPlayer(this.playerId);
             player.commandPoints -= this.attackCommandPointCost;
             gsm.updatePlayer(player);
-
-            // save action
-            saveAction();
 
             const shipsHit: Record<string, string[]> = {};
 

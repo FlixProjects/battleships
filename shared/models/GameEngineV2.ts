@@ -29,9 +29,12 @@ export class GameEngine {
     public run(action: IPlayerAction) {
         this.resetRun();
         this.currentAction = action;
-        this.loadInitialSignals(action);
-        this.sendSignals();
-        return this.gameState
+        if (this.isValidAction()) {
+            this.recordAction();
+            this.loadInitialSignals(action);
+            this.sendSignals();
+        }
+        return this.gameState;
     }
 
     private resetRun() {
@@ -93,19 +96,25 @@ export class GameEngine {
         });
     }
 
+    private recordAction() {
+        if (!this.currentAction) return;
+        const action = this.currentAction;
+        const gsm = new this.GSM(this.gameState);
+        gsm.addPendingAction(action).addAction(action);
+        this.gameState = gsm.gameState;
+    }
+
+    private isValidAction() {
+        if (!this.currentAction) return false;
+        return true; // FIXME: Implement action validators based on type
+    }
+
     private getSignalContext(signal: ISignal): ISignalHandleCtx {
         return {
             signal,
             gsm: new this.GSM(this.gameState),
             saveNewState: (newState: IGameState) => {
                 this.gameState = newState;
-            },
-            saveAction: () => {
-                if (!this.currentAction || this.recordedActions.has(this.currentAction.id)) return;
-                const gsm = new this.GSM(this.gameState);
-                gsm.addAction(this.currentAction);
-                this.gameState = gsm.gameState;
-                this.recordedActions.add(this.currentAction.id);
             },
             emitter: (signals: ISignal[]) => {
                 signals.forEach((s) => this.emit(s));
