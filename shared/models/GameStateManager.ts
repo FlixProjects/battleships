@@ -9,6 +9,7 @@ import {
     IPlainAction,
     IPlainGameState,
     IPlayer,
+    IPlayerAction,
     IShip,
 } from "../types";
 import { ActionResolver } from "../utils/action-handler/ActionResolver";
@@ -143,6 +144,11 @@ export class GameStateManager implements IGameStateManager {
 
     updateAction(action: Partial<IPlainAction>) {
         this._gameState = this.gameState.updateAction(action);
+        return this;
+    }
+
+    addPendingAction(action: IPlayerAction) {
+        this.getPlayer(action.playerId)?.addPendingAction(action);
         return this;
     }
 

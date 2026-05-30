@@ -258,6 +258,11 @@ export class GameState implements IGameState {
         return this.updateEntity(hull, this.hulls, Hull);
     }
 
+    addPendingAction(playerId: string, action: IPlayerAction) {
+        this.getPlayer(playerId)?.addPendingAction(action);
+        return this;
+    }
+
     addAction(action: IPlayerAction) {
         if (!action.id) return this;
         const actionIndex = this.actions.findIndex((a) => a.id === action.id);

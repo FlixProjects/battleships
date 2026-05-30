@@ -50,6 +50,7 @@ export interface IGameStateManager {
     addHull(hull: IHull): this;
     updateActions(actions: Partial<IPlainAction>[]): this;
     updateAction(action: Partial<IPlainAction>): this;
+    addPendingAction(action: IPlayerAction): this;
     addAction(action: IPlainAction): this;
     addEffect(effect: IEffect): this;
     addEffects(effects: IEffect[]): this;

@@ -47,6 +47,14 @@ export class PlayerEntity extends GameObjectEntity<PlayerEntity> implements IPla
             }) ?? [];
     }
 
+    public addPendingAction(action: IPlayerAction) {
+        const isExistingPendingAction = this.pendingActions.some((a) => a.id === action.id);
+        if (!isExistingPendingAction) {
+            this.pendingActions = [...this.pendingActions, action];
+        }
+        return this;
+    }
+
     public getShip(shipId: string) {
         const ship = this.ships.find((s) => s.id === shipId);
         if (!ship) {
