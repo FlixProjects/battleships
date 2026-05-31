@@ -13,6 +13,7 @@ export interface ISignal {
 export const SignalType = {
     BasicShipAttack: "BasicShipAttack",
     ReceiveShipAttack: "ReceiveShipAttack",
+    PlayerSpendCommandPoints: "PlayerSpendCommandPoints",
 } as const;
 
 export type SignalType = (typeof SignalType)[keyof typeof SignalType];
@@ -27,6 +28,11 @@ export interface IShipReceiveAttackSignalPayload extends ISignalPayload {
     attackingShipId: string;
     attackedShipId: string;
     attacks: IAttackPayload[];
+}
+
+export interface IPlayerSpendCommandPointsSignalPayload extends ISignalPayload {
+    playerId: string;
+    amount: number;
 }
 
 export interface IAttackPayload {

@@ -1,5 +1,6 @@
 import {
     IBasicShipAttackSignalHandleCtx,
+    IPlayerSpendCommandPointsSignalHandleCtx,
     IReceiveShipAttackSignalHandleCtx,
     ISignalHandleCtx,
 } from "@shared/types/types";
@@ -8,6 +9,7 @@ import { SignalType } from "../signals/types";
 export type SignalCtxMap = {
     [SignalType.BasicShipAttack]: IBasicShipAttackSignalHandleCtx;
     [SignalType.ReceiveShipAttack]: IReceiveShipAttackSignalHandleCtx;
+    [SignalType.PlayerSpendCommandPoints]: IPlayerSpendCommandPointsSignalHandleCtx;
 };
 
 export type TListenerCallback<T extends SignalType = SignalType> = (ctx: SignalCtxMap[T]) => void;

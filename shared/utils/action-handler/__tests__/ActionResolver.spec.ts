@@ -162,6 +162,52 @@ describe("ActionResolver", () => {
             expect(player1ShipAfter?.destroyed).toBe(false);
         });
 
+        it("deducts the attacker's command points via the PlayerSpendCommandPoints signal", () => {
+            const attackerHull = hullBuilder.build({ id: "hullA", shipId: "shipA", location: [1, 1], front: true });
+            const targetHull = hullBuilder.build({ id: "hullB", shipId: "shipB", location: [0, 0], front: true });
+            const attackerShip = shipBuilder.build({ id: "shipA", playerId: "player1", hulls: [attackerHull] });
+            const targetShip = shipBuilder.build({ id: "shipB", playerId: "player2", hulls: [targetHull] });
+
+            const attackAction: IShipAttackAction = {
+                id: "atk-1",
+                type: ActionTypes.ATTACK,
+                playerId: "player1",
+                shipId: "shipA",
+                round: 1,
+                order: 0,
+                commandPointCost: 1,
+                attackLocations: [[0, 0]],
+            };
+
+            // commandPoints 2, attackCommandPointCost 1 (builder defaults)
+            const player1 = buildPlayer1({ ships: [attackerShip], commandPoints: 2, maxCommandPoints: 2 });
+            const player2 = buildPlayer2({ ships: [targetShip] });
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [attackerShip, targetShip],
+                hulls: [attackerHull, targetHull],
+                cards: [],
+                decks: [],
+                winners: [],
+                isOver: false,
+            });
+
+            const resolver = new ActionResolver("player1", gameState);
+            const next = resolver.resolveAction(attackAction);
+
+            // CP spent through the signal cascade, not by direct mutation in Ship.attack
+            const attackerAfter = next.players.find((p) => p.id === "player1");
+            expect(attackerAfter?.commandPoints).toBe(1);
+
+            // the rest of the cascade still lands: the targeted hull takes damage
+            const targetHullAfter = next.hulls?.find((h) => h.id === "hullB");
+            expect(targetHullAfter?.remainingHealth).toBe(0);
+        });
+
         it("should resolve actions in initiative order within a turn", () => {
             const moveAction1: IMoveAction = {
                 id: "action1",

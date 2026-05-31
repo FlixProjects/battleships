@@ -12,6 +12,7 @@ import { SegmentBuilder } from "@shared/utils/segment-builder";
 import { mergician } from "mergician";
 import { ShipEntity } from "./entities/ShipEntity";
 import { Resolver } from "./resolvers/Resolver";
+import { PlayerSpendCommandPointsSignal } from "./signals/PlayerSpendCommandPointsSignal";
 import { ReceiveShipAttackSignal } from "./signals/ReceiveShipAttackSignal";
 
 export class Ship extends ShipEntity {
@@ -125,10 +126,14 @@ export class Ship extends ShipEntity {
             const { payload } = signal;
             const { attackLocations } = payload;
 
-            // update CP
-            const player = gsm.getPlayer(this.playerId);
-            player.commandPoints -= this.attackCommandPointCost;
-            gsm.updatePlayer(player);
+            emitter([
+                new PlayerSpendCommandPointsSignal({
+                    targetId: this.playerId,
+                    senderId: this.id,
+                    originId: signal.id,
+                    payload: { playerId: this.playerId, amount: this.attackCommandPointCost },
+                }),
+            ]);
 
             const shipsHit: Record<string, string[]> = {};
 

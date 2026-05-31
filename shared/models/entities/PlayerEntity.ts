@@ -1,6 +1,10 @@
 import { IPlayer, IPlayerAction, IShip, TFaction } from "../../types";
 import { Action } from "../actions/Action";
+import { Listener } from "../listeners/Listener";
+import { IListener } from "../listeners/types";
 import { Ship } from "../Ship";
+import { PlayerSpendCommandPointsSignalHandler } from "../signal-handlers/PlayerSpendCommandPointsSignalHandler";
+import { SignalType } from "../signals/types";
 import { GameObjectEntity } from "./GameObjectEntity";
 
 export class PlayerEntity extends GameObjectEntity<PlayerEntity> implements IPlayer {
@@ -45,6 +49,25 @@ export class PlayerEntity extends GameObjectEntity<PlayerEntity> implements IPla
                 }
                 return new Ship(ship);
             }) ?? [];
+    }
+
+    protected getDefaultListeners(): IListener[] {
+        return [this.createPlayerSpendCommandPointsListener()];
+    }
+
+    protected createPlayerSpendCommandPointsListener() {
+        return new Listener(
+            [SignalType.PlayerSpendCommandPoints],
+            (ctx) => {
+                new PlayerSpendCommandPointsSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
+    public spendCommandPoints(amount: number) {
+        this.commandPoints -= amount;
+        return this;
     }
 
     public addPendingAction(action: IPlayerAction) {

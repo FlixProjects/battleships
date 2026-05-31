@@ -1,4 +1,9 @@
-import { IShipAttackSignalPayload, IShipReceiveAttackSignalPayload, ISignal } from "@shared/models/signals/types";
+import {
+    IPlayerSpendCommandPointsSignalPayload,
+    IShipAttackSignalPayload,
+    IShipReceiveAttackSignalPayload,
+    ISignal,
+} from "@shared/models/signals/types";
 import { AppStatus, CardKind, EFFECT_REF_NO, Faction, SHIP_REF_NO, SUPPORT_REF_NO } from "../config/constants";
 import type { GameState, Hull, Player, Ship } from "../models";
 import { ICommand } from "../models/commands/types";
@@ -33,7 +38,7 @@ export interface IGameStateManager {
     get gameState(): GameState;
     setGameState(_gameState: IGameState): void;
     getCurrentRound(): number;
-    getPlayer(playerId: string): IPlayer;
+    getPlayer(playerId: string): Player;
     getPlayers(): IPlayer[];
     getPlayerShips(playerId: string): IShip[];
     getShip(shipId: string): Ship;
@@ -418,4 +423,8 @@ export interface IBasicShipAttackSignalHandleCtx extends ISignalHandleCtx {
 
 export interface IReceiveShipAttackSignalHandleCtx extends ISignalHandleCtx {
     signal: ISignal & { payload: IShipReceiveAttackSignalPayload };
+}
+
+export interface IPlayerSpendCommandPointsSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IPlayerSpendCommandPointsSignalPayload };
 }
