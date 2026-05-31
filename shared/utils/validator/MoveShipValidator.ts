@@ -18,7 +18,7 @@ export class MoveShipValidator extends Validator {
             this.validateShipExists();
             this.validateWithinBoardBounds();
             this.validateDestinationNotOccupied();
-            this.validateWithinMovementRange();
+            // this.validateWithinMovementRange();
 
             return { type: ResultType.SUCCESS, playerId: this.moveAction.playerId };
         } catch (error) {
@@ -57,6 +57,8 @@ export class MoveShipValidator extends Validator {
         }
     }
 
+    // FIXME: Disabled for now, we need to simulate the full resolution to see if the end hullLocations are correct.
+    // since Ships may trigger effects on the path and increase the range
     private validateWithinMovementRange() {
         const { shipId, hullLocations: newLocations } = this.moveAction;
         const _ship = this.gameState.ships.find((s) => s.id === shipId);

@@ -309,6 +309,51 @@ describe("ActionResolver", () => {
             expect(mover?.pendingActions?.map((a) => a.id)).toContain("mv-1");
         });
 
+        it("rejects a move onto an occupied destination via the engine validator (no mutation, no CP spent)", () => {
+            const movingHull = hullBuilder.build({ id: "hullM", shipId: "shipM", location: [0, 1], front: true });
+            const movingShip = shipBuilder.build({ id: "shipM", playerId: "player1", hulls: [movingHull] });
+            // opponent ship sits on the destination tile, so the move must be rejected
+            const blockerHull = hullBuilder.build({ id: "hullX", shipId: "shipX", location: [2, 1], front: true });
+            const blockerShip = shipBuilder.build({ id: "shipX", playerId: "player2", hulls: [blockerHull] });
+
+            const moveAction: IMoveAction = {
+                id: "mv-invalid",
+                type: ActionTypes.MOVE,
+                playerId: "player1",
+                shipId: "shipM",
+                round: 1,
+                order: 0,
+                commandPointCost: 1,
+                hullLocations: [{ ...movingHull, location: [2, 1] }],
+            };
+
+            const player1 = buildPlayer1({ ships: [movingShip], commandPoints: 2, maxCommandPoints: 2 });
+            const player2 = buildPlayer2({ ships: [blockerShip] });
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [movingShip, blockerShip],
+                hulls: [movingHull, blockerHull],
+                cards: [],
+                decks: [],
+                winners: [],
+                isOver: false,
+            });
+
+            const next = new ActionResolver("player1", gameState).resolveAction(moveAction);
+
+            // invalid → engine.run is a no-op: hull stays, movement intact, CP untouched
+            expect(next.hulls?.find((h) => h.id === "hullM")?.location).toEqual([0, 1]);
+            expect(next.ships.find((s) => s.id === "shipM")?.remainingMovement).toBe(3);
+            const mover = next.players.find((p) => p.id === "player1");
+            expect(mover?.commandPoints).toBe(2);
+            // rejected action is not recorded
+            expect(mover?.pendingActions?.map((a) => a.id)).not.toContain("mv-invalid");
+        });
+
         it("should resolve actions in initiative order within a turn", () => {
             const moveAction1: IMoveAction = {
                 id: "action1",

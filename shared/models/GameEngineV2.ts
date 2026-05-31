@@ -1,7 +1,18 @@
 import { ActionSignalCreator } from "@shared/models/signal-creators/ActionSignalCreator";
 import { BasicShipAttackActionSignalCreator } from "@shared/models/signal-creators/BasicShipAttackActionSignalCreator";
 import { BasicShipMoveActionSignalCreator } from "@shared/models/signal-creators/BasicShipMoveActionSignalCreator";
-import { IGameObjectEntity, IGameState, IGameStateManager, IPlayerAction, ISignalHandleCtx } from "..";
+import {
+    ActionTypes,
+    IGameObjectEntity,
+    IGameState,
+    IGameStateManager,
+    IMoveAction,
+    IPlayerAction,
+    ISignalHandleCtx,
+    ResultType,
+} from "..";
+import { MoveShipValidator } from "../utils/validator";
+import { IValidator } from "../utils/validator/types";
 import { GameObjectEntity } from "./entities/GameObjectEntity";
 import { Signal } from "./signals/Signal";
 import { ISignal } from "./signals/types";
@@ -103,7 +114,17 @@ export class GameEngine {
 
     private isValidAction() {
         if (!this.currentAction) return false;
-        return true; // FIXME: Implement action validators based on type
+        const validator = this.getValidator(this.currentAction);
+        // no validator wired for this action type yet → assume valid (validated upstream)
+        if (!validator) return true;
+        return validator.validate().type === ResultType.SUCCESS;
+    }
+
+    private getValidator(action: IPlayerAction): IValidator | null {
+        if (action.type === ActionTypes.MOVE) {
+            return new MoveShipValidator(this.gameState, action as IMoveAction);
+        }
+        return null;
     }
 
     private getSignalContext(signal: ISignal): ISignalHandleCtx {
