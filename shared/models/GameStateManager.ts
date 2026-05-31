@@ -75,6 +75,10 @@ export class GameStateManager implements IGameStateManager {
         return this.gameState.getShip(shipId);
     }
 
+    getHull(hullId: string) {
+        return this.gameState.getHull(hullId);
+    }
+
     getShipHulls(shipId: string) {
         return this.gameState.getShipHulls(shipId);
     }

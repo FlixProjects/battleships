@@ -1,4 +1,10 @@
 import { ICellLoc, IHull } from "../../types";
+import { Listener } from "../listeners/Listener";
+import { IListener } from "../listeners/types";
+import { HullMoveSignalHandler } from "../signal-handlers/HullMoveSignalHandler";
+import { HullReceiveAttackSignalHandler } from "../signal-handlers/HullReceiveAttackSignalHandler";
+import { HullReceiveDamageSignalHandler } from "../signal-handlers/HullReceiveDamageSignalHandler";
+import { SignalType } from "../signals/types";
 import { GameObjectEntity } from "./GameObjectEntity";
 
 export class HullEntity extends GameObjectEntity<HullEntity> implements IHull {
@@ -22,5 +28,43 @@ export class HullEntity extends GameObjectEntity<HullEntity> implements IHull {
     constructor(props: Readonly<IHull>) {
         super();
         Object.assign(this, props);
+    }
+
+    protected getDefaultListeners(): IListener[] {
+        return [
+            this.createHullReceiveAttackListener(),
+            this.createHullReceiveDamageListener(),
+            this.createHullMoveListener(),
+        ];
+    }
+
+    protected createHullReceiveAttackListener() {
+        return new Listener(
+            [SignalType.HullReceiveAttack],
+            (ctx) => {
+                new HullReceiveAttackSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
+    protected createHullReceiveDamageListener() {
+        return new Listener(
+            [SignalType.HullReceiveDamage],
+            (ctx) => {
+                new HullReceiveDamageSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
+    protected createHullMoveListener() {
+        return new Listener(
+            [SignalType.HullMove],
+            (ctx) => {
+                new HullMoveSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
     }
 }

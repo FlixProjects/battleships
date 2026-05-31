@@ -14,6 +14,10 @@ export const SignalType = {
     BasicShipAttack: "BasicShipAttack",
     ReceiveShipAttack: "ReceiveShipAttack",
     BasicShipMove: "BasicShipMove",
+    HullReceiveAttack: "HullReceiveAttack",
+    HullReceiveDamage: "HullReceiveDamage",
+    HullMove: "HullMove",
+    HullDestroyed: "HullDestroyed",
     PlayerSpendCommandPoints: "PlayerSpendCommandPoints",
 } as const;
 
@@ -34,6 +38,27 @@ export interface IShipReceiveAttackSignalPayload extends ISignalPayload {
 export interface IShipMoveSignalPayload extends ISignalPayload {
     shipId: string;
     hullLocations: IHull[];
+}
+
+export interface IHullReceiveAttackSignalPayload extends ISignalPayload {
+    hullId: string;
+    attackDamage: number;
+}
+
+export interface IHullReceiveDamageSignalPayload extends ISignalPayload {
+    hullId: string;
+    amount: number;
+}
+
+export interface IHullMoveSignalPayload extends ISignalPayload {
+    hullId: string;
+    location: ICellLoc;
+    orientation: number;
+}
+
+export interface IHullDestroyedSignalPayload extends ISignalPayload {
+    hullId: string;
+    shipId: string;
 }
 
 export interface IPlayerSpendCommandPointsSignalPayload extends ISignalPayload {

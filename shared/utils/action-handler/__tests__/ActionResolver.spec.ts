@@ -208,6 +208,58 @@ describe("ActionResolver", () => {
             expect(targetHullAfter?.remainingHealth).toBe(0);
         });
 
+        it("applies hull damage via the hull signal cascade without destroying a surviving hull", () => {
+            const attackerHull = hullBuilder.build({ id: "hullA", shipId: "shipA", location: [1, 1], front: true });
+            // 2 HP hull vs default attackDamage 1 → damaged but not destroyed
+            const targetHull = hullBuilder.build({
+                id: "hullB",
+                shipId: "shipB",
+                location: [0, 0],
+                front: true,
+                remainingHealth: 2,
+                maxHealth: 2,
+            });
+            const attackerShip = shipBuilder.build({ id: "shipA", playerId: "player1", hulls: [attackerHull] });
+            const targetShip = shipBuilder.build({ id: "shipB", playerId: "player2", hulls: [targetHull] });
+
+            const attackAction: IShipAttackAction = {
+                id: "atk-survive",
+                type: ActionTypes.ATTACK,
+                playerId: "player1",
+                shipId: "shipA",
+                round: 1,
+                order: 0,
+                commandPointCost: 1,
+                attackLocations: [[0, 0]],
+            };
+
+            const player1 = buildPlayer1({ ships: [attackerShip] });
+            const player2 = buildPlayer2({ ships: [targetShip] });
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [attackerShip, targetShip],
+                hulls: [attackerHull, targetHull],
+                cards: [],
+                decks: [],
+                winners: [],
+                isOver: false,
+            });
+
+            const next = new ActionResolver("player1", gameState).resolveAction(attackAction);
+
+            const hullAfter = next.hulls?.find((h) => h.id === "hullB");
+            expect(hullAfter?.remainingHealth).toBe(1);
+            expect(hullAfter?.destroyed).toBe(false);
+
+            // HullDestroyed never fires → ship's destroyed stays false
+            const shipAfter = next.ships.find((s) => s.id === "shipB");
+            expect(shipAfter?.destroyed).toBe(false);
+        });
+
         it("moves the ship and deducts CP via signals through GameEngineV2", () => {
             const movingHull = hullBuilder.build({ id: "hullM", shipId: "shipM", location: [0, 1], front: true });
             const movingShip = shipBuilder.build({ id: "shipM", playerId: "player1", hulls: [movingHull] });

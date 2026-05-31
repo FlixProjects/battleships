@@ -1,5 +1,6 @@
 import {
     IBasicShipAttackSignalHandleCtx,
+    IBasicShipMoveSignalHandleCtx,
     ICellLoc,
     IGameState,
     IHull,
@@ -12,6 +13,8 @@ import { SegmentBuilder } from "@shared/utils/segment-builder";
 import { mergician } from "mergician";
 import { ShipEntity } from "./entities/ShipEntity";
 import { Resolver } from "./resolvers/Resolver";
+import { HullMoveSignal } from "./signals/HullMoveSignal";
+import { HullReceiveAttackSignal } from "./signals/HullReceiveAttackSignal";
 import { PlayerSpendCommandPointsSignal } from "./signals/PlayerSpendCommandPointsSignal";
 import { ReceiveShipAttackSignal } from "./signals/ReceiveShipAttackSignal";
 
@@ -169,22 +172,57 @@ export class Ship extends ShipEntity {
         return resolver.resolve();
     }
 
-    receiveAttack(ctx: IReceiveShipAttackSignalHandleCtx) {
-        const { gsm } = ctx;
+    move(ctx: IBasicShipMoveSignalHandleCtx) {
+        // called upon receiving BasicShipMove signal
+        const { gsm, signal, emitter } = ctx;
 
         const resolver = new Resolver(gsm.gameState, () => {
-            const { signal } = ctx;
-            const { payload } = signal;
-            const { attacks } = payload;
+            const { hullLocations } = signal.payload;
 
-            attacks.forEach(({ hullId, attackDamage }) => {
-                const hull = this.getHull(hullId);
-                if (hull) {
-                    hull.getDamaged(attackDamage);
-                }
+            this.remainingMovement = 0;
+
+            hullLocations.forEach((newHull) => {
+                emitter([
+                    new HullMoveSignal({
+                        targetId: newHull.id,
+                        senderId: this.id,
+                        originId: signal.id,
+                        payload: { hullId: newHull.id, location: newHull.location, orientation: newHull.orientation },
+                    }),
+                ]);
             });
 
-            this.resolveDestroyed();
+            emitter([
+                new PlayerSpendCommandPointsSignal({
+                    targetId: this.playerId,
+                    senderId: this.id,
+                    originId: signal.id,
+                    payload: { playerId: this.playerId, amount: this.movementCommandPointCost },
+                }),
+            ]);
+
+            return gsm.gameState;
+        });
+
+        return resolver.resolve();
+    }
+
+    receiveAttack(ctx: IReceiveShipAttackSignalHandleCtx) {
+        const { gsm, signal, emitter } = ctx;
+
+        const resolver = new Resolver(gsm.gameState, () => {
+            const { attacks } = signal.payload;
+
+            attacks.forEach(({ hullId, attackDamage }) => {
+                emitter([
+                    new HullReceiveAttackSignal({
+                        targetId: hullId,
+                        senderId: this.id,
+                        originId: signal.id,
+                        payload: { hullId, attackDamage },
+                    }),
+                ]);
+            });
 
             return gsm.gameState;
         });

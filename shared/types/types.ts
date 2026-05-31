@@ -1,4 +1,8 @@
 import {
+    IHullDestroyedSignalPayload,
+    IHullMoveSignalPayload,
+    IHullReceiveAttackSignalPayload,
+    IHullReceiveDamageSignalPayload,
     IPlayerSpendCommandPointsSignalPayload,
     IShipAttackSignalPayload,
     IShipMoveSignalPayload,
@@ -43,6 +47,7 @@ export interface IGameStateManager {
     getPlayers(): IPlayer[];
     getPlayerShips(playerId: string): IShip[];
     getShip(shipId: string): Ship;
+    getHull(hullId: string): Hull;
     getShipHulls(shipId: string): Hull[];
     getHulls(locations?: ICellLoc[]): Hull[];
     getPlayerHand(playerId: string): ICard[];
@@ -428,6 +433,22 @@ export interface IReceiveShipAttackSignalHandleCtx extends ISignalHandleCtx {
 
 export interface IBasicShipMoveSignalHandleCtx extends ISignalHandleCtx {
     signal: ISignal & { payload: IShipMoveSignalPayload };
+}
+
+export interface IHullReceiveAttackSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IHullReceiveAttackSignalPayload };
+}
+
+export interface IHullReceiveDamageSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IHullReceiveDamageSignalPayload };
+}
+
+export interface IHullMoveSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IHullMoveSignalPayload };
+}
+
+export interface IHullDestroyedSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IHullDestroyedSignalPayload };
 }
 
 export interface IPlayerSpendCommandPointsSignalHandleCtx extends ISignalHandleCtx {

@@ -1,6 +1,10 @@
 import {
     IBasicShipAttackSignalHandleCtx,
     IBasicShipMoveSignalHandleCtx,
+    IHullDestroyedSignalHandleCtx,
+    IHullMoveSignalHandleCtx,
+    IHullReceiveAttackSignalHandleCtx,
+    IHullReceiveDamageSignalHandleCtx,
     IPlayerSpendCommandPointsSignalHandleCtx,
     IReceiveShipAttackSignalHandleCtx,
     ISignalHandleCtx,
@@ -11,6 +15,10 @@ export type SignalCtxMap = {
     [SignalType.BasicShipAttack]: IBasicShipAttackSignalHandleCtx;
     [SignalType.ReceiveShipAttack]: IReceiveShipAttackSignalHandleCtx;
     [SignalType.BasicShipMove]: IBasicShipMoveSignalHandleCtx;
+    [SignalType.HullReceiveAttack]: IHullReceiveAttackSignalHandleCtx;
+    [SignalType.HullReceiveDamage]: IHullReceiveDamageSignalHandleCtx;
+    [SignalType.HullMove]: IHullMoveSignalHandleCtx;
+    [SignalType.HullDestroyed]: IHullDestroyedSignalHandleCtx;
     [SignalType.PlayerSpendCommandPoints]: IPlayerSpendCommandPointsSignalHandleCtx;
 };
 
