@@ -79,7 +79,7 @@ describe("createResolvePipeline", () => {
     it("is the fixed ordered set, no win-check step (winner stays turn-level)", () => {
         expect(createResolvePipeline().map((s) => s.name)).toEqual([
             "ResolvePlayCard",
-            "ResolveDeploy",
+            // "ResolveDeploy", // migrated to GameEngineV2
             // "ResolveMove", // migrated to GameEngineV2
             // "ResolveAttack", // migrated to GameEngineV2
             "ResolveEffects",
@@ -89,11 +89,11 @@ describe("createResolvePipeline", () => {
     it("running the whole pipeline invokes the matching resolver once + drains support effects", () => {
         const ctx = new FakeCtx();
         for (const step of createResolvePipeline()) {
-            step.resolve(actionOf(ActionTypes.DEPLOY), ctx);
+            step.resolve(actionOf(ActionTypes.PLAY_CARD), ctx);
         }
         // ResolveEffectsStep always drains the pending-support queue (no-op
         // when empty) — so the final call is always pendingSupportEffects.
-        expect(ctx.calls).toEqual(["deploy", "pendingSupportEffects"]);
-        expect(ctx.gameState).toEqual(tag("deploy"));
+        expect(ctx.calls).toEqual(["playCard", "pendingSupportEffects"]);
+        expect(ctx.gameState).toEqual(tag("playCard"));
     });
 });

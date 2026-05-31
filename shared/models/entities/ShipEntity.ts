@@ -3,6 +3,7 @@ import { Hull } from "../Hull";
 import { Listener } from "../listeners/Listener";
 import { IListener } from "../listeners/types";
 import { BasicShipAttackSignalHandler } from "../signal-handlers/BasicShipAttackSignalHandler";
+import { BasicShipDeploySignalHandler } from "../signal-handlers/BasicShipDeploySignalHandler";
 import { BasicShipMoveSignalHandler } from "../signal-handlers/BasicShipMoveSignalHandler";
 import { HullDestroyedSignalHandler } from "../signal-handlers/HullDestroyedSignalHandler";
 import { ReceiveShipAttackSignalHandler } from "../signal-handlers/ReceiveShipAttackSignalHandler";
@@ -107,6 +108,7 @@ export class ShipEntity extends GameObjectEntity<ShipEntity> implements IShip {
             this.createBasicShipAttackListener(),
             this.createReceiveShipAttackListener(),
             this.createBasicShipMoveListener(),
+            this.createBasicShipDeployListener(),
             this.createHullDestroyedListener(),
         ];
     }
@@ -141,7 +143,16 @@ export class ShipEntity extends GameObjectEntity<ShipEntity> implements IShip {
         );
     }
 
-    // A hull of this ship was destroyed — re-derive the ship's destroyed state.
+    protected createBasicShipDeployListener() {
+        return new Listener(
+            [SignalType.BasicShipDeploy],
+            (ctx) => {
+                new BasicShipDeploySignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
     protected createHullDestroyedListener() {
         return new Listener(
             [SignalType.HullDestroyed],

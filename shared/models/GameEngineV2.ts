@@ -1,5 +1,6 @@
 import { ActionSignalCreator } from "@shared/models/signal-creators/ActionSignalCreator";
 import { BasicShipAttackActionSignalCreator } from "@shared/models/signal-creators/BasicShipAttackActionSignalCreator";
+import { BasicShipDeployActionSignalCreator } from "@shared/models/signal-creators/BasicShipDeployActionSignalCreator";
 import { BasicShipMoveActionSignalCreator } from "@shared/models/signal-creators/BasicShipMoveActionSignalCreator";
 import {
     ActionTypes,
@@ -24,6 +25,7 @@ export class GameEngine {
     private signalCreators: ActionSignalCreator[] = [
         new BasicShipAttackActionSignalCreator(),
         new BasicShipMoveActionSignalCreator(),
+        new BasicShipDeployActionSignalCreator(),
     ];
 
     constructor(

@@ -18,7 +18,7 @@ export { ResolvePlayCardStep, ResolveDeployStep, ResolveMoveStep, ResolveAttackS
  */
 export const createResolvePipeline = (): IResolveStep[] => [
     new ResolvePlayCardStep(),
-    new ResolveDeployStep(),
+    // new ResolveDeployStep(), // migrated to GameEngineV2 (BasicShipDeploy signal) — note: PlayCard→Deploy inner path still uses ActionResolver.applyDeploy
     // new ResolveMoveStep(), // migrated to GameEngineV2 (BasicShipMove signal)
     // new ResolveAttackStep(), // migrated to GameEngineV2 (BasicShipAttack signal)
     new ResolveEffectsStep(),

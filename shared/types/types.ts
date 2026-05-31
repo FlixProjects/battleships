@@ -5,6 +5,7 @@ import {
     IHullReceiveDamageSignalPayload,
     IPlayerSpendCommandPointsSignalPayload,
     IShipAttackSignalPayload,
+    IShipDeploySignalPayload,
     IShipMoveSignalPayload,
     IShipReceiveAttackSignalPayload,
     ISignal,
@@ -59,6 +60,7 @@ export interface IGameStateManager {
     updateHull(hull: Partial<IHull>): this;
     updateHulls(hulls: Partial<IHull>[]): this;
     addHull(hull: IHull): this;
+    addHulls(hulls: IHull[]): this;
     updateActions(actions: Partial<IPlainAction>[]): this;
     updateAction(action: Partial<IPlainAction>): this;
     addPendingAction(action: IPlayerAction): this;
@@ -433,6 +435,10 @@ export interface IReceiveShipAttackSignalHandleCtx extends ISignalHandleCtx {
 
 export interface IBasicShipMoveSignalHandleCtx extends ISignalHandleCtx {
     signal: ISignal & { payload: IShipMoveSignalPayload };
+}
+
+export interface IBasicShipDeploySignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IShipDeploySignalPayload };
 }
 
 export interface IHullReceiveAttackSignalHandleCtx extends ISignalHandleCtx {

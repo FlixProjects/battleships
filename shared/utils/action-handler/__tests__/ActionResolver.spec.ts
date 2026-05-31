@@ -3,7 +3,7 @@ import { HullBuilder } from "../../../factories/hull-builder";
 import { PlayerBuilder } from "../../../factories/player-builder";
 import { ShipBuilder } from "../../../factories/ship-builder";
 import { GameState } from "../../../models";
-import { ICard, IDeck, IMoveAction, IPlayCardAction, IPlayer, IShipAttackAction } from "../../../types";
+import { ICard, IDeck, IDeployAction, IMoveAction, IPlayCardAction, IPlayer, IShipAttackAction } from "../../../types";
 import { ActionTypes } from "../../../types/action-types";
 import { ActionResolver } from "../ActionResolver";
 
@@ -352,6 +352,56 @@ describe("ActionResolver", () => {
             expect(mover?.commandPoints).toBe(2);
             // rejected action is not recorded
             expect(mover?.pendingActions?.map((a) => a.id)).not.toContain("mv-invalid");
+        });
+
+        it("deploys a ship via the engine: hulls materialise, CP spent by signal, action recorded", () => {
+            // undeployed ship with no hulls — deploy supplies them via the action
+            const ship = shipBuilder.build({
+                id: "shipD",
+                playerId: "player1",
+                deployed: false,
+                hulls: [],
+                commandPointCost: 1,
+            });
+            const deployedHull = hullBuilder.build({ id: "hullD", shipId: "shipD", location: [1, 0], front: true });
+
+            const deployAction: IDeployAction = {
+                id: "dep-1",
+                type: ActionTypes.DEPLOY,
+                playerId: "player1",
+                shipId: "shipD",
+                round: 1,
+                order: 0,
+                commandPointCost: 1,
+                hullLocations: [deployedHull],
+            };
+
+            const player1 = buildPlayer1({ ships: [ship], commandPoints: 2, maxCommandPoints: 2 });
+            const player2 = buildPlayer2({ ships: [] });
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [ship],
+                hulls: [],
+                cards: [],
+                decks: [],
+                winners: [],
+                isOver: false,
+            });
+
+            const next = new ActionResolver("player1", gameState).resolveAction(deployAction);
+
+            const deployedShip = next.ships.find((s) => s.id === "shipD");
+            expect(deployedShip?.deployed).toBe(true);
+            // hull materialised into the flat gameState.hulls (serialised source of truth)
+            expect(next.hulls?.find((h) => h.id === "hullD")?.location).toEqual([1, 0]);
+
+            const mover = next.players.find((p) => p.id === "player1");
+            expect(mover?.commandPoints).toBe(1); // 2 - commandPointCost(1) via PlayerSpendCommandPoints
+            expect(mover?.pendingActions?.map((a) => a.id)).toContain("dep-1");
         });
 
         it("should resolve actions in initiative order within a turn", () => {

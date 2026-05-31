@@ -1,5 +1,6 @@
 import {
     IBasicShipAttackSignalHandleCtx,
+    IBasicShipDeploySignalHandleCtx,
     IBasicShipMoveSignalHandleCtx,
     IHullDestroyedSignalHandleCtx,
     IHullMoveSignalHandleCtx,
@@ -15,6 +16,7 @@ export type SignalCtxMap = {
     [SignalType.BasicShipAttack]: IBasicShipAttackSignalHandleCtx;
     [SignalType.ReceiveShipAttack]: IReceiveShipAttackSignalHandleCtx;
     [SignalType.BasicShipMove]: IBasicShipMoveSignalHandleCtx;
+    [SignalType.BasicShipDeploy]: IBasicShipDeploySignalHandleCtx;
     [SignalType.HullReceiveAttack]: IHullReceiveAttackSignalHandleCtx;
     [SignalType.HullReceiveDamage]: IHullReceiveDamageSignalHandleCtx;
     [SignalType.HullMove]: IHullMoveSignalHandleCtx;

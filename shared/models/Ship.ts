@@ -1,5 +1,6 @@
 import {
     IBasicShipAttackSignalHandleCtx,
+    IBasicShipDeploySignalHandleCtx,
     IBasicShipMoveSignalHandleCtx,
     ICellLoc,
     IGameState,
@@ -165,6 +166,33 @@ export class Ship extends ShipEntity {
                     }),
                 ]);
             });
+
+            return gsm.gameState;
+        });
+
+        return resolver.resolve();
+    }
+
+    deploy(ctx: IBasicShipDeploySignalHandleCtx) {
+        // called upon receiving BasicShipDeploy signal
+        const { gsm, signal, emitter } = ctx;
+
+        const resolver = new Resolver(gsm.gameState, () => {
+            const { hullLocations } = signal.payload;
+
+            // TODO: perhap GameState should be a GameObjectEntity with Listeners that can create child Entities
+            this.deployed = true;
+            this.addHullLocations(hullLocations);
+            gsm.addHulls(hullLocations);
+
+            emitter([
+                new PlayerSpendCommandPointsSignal({
+                    targetId: this.playerId,
+                    senderId: this.id,
+                    originId: signal.id,
+                    payload: { playerId: this.playerId, amount: this.commandPointCost },
+                }),
+            ]);
 
             return gsm.gameState;
         });
