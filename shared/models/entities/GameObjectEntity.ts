@@ -30,34 +30,14 @@ export class GameObjectEntity<T extends GameObjectEntity<T>> extends Entity<T> i
         this.getDefaultListeners().forEach((listener) => this.addListener(listener));
     }
 
+    // to override by Entity classes
     protected getDefaultListeners(): IListener[] {
-        return [this.createBasicShipAttackListener(), this.createReceiveShipAttackListener()];
+        return [];
     }
 
     protected addListener(listener: IListener, options?: IListenerOptions) {
         this.#listenerManager.addListener(listener, options);
         return this;
-    }
-
-    // Ship.attack should override callback if its a special attack
-    protected createBasicShipAttackListener() {
-        return new Listener(
-            [SignalType.BasicShipAttack],
-            (ctx) => {
-                new BasicShipAttackSignalHandler().handle(ctx);
-            },
-            this.defaultHandlerShouldHandleSignal,
-        );
-    }
-
-    protected createReceiveShipAttackListener() {
-        return new Listener(
-            [SignalType.ReceiveShipAttack],
-            (ctx) => {
-                new ReceiveShipAttackSignalHandler().handle(ctx);
-            },
-            this.defaultHandlerShouldHandleSignal,
-        );
     }
 
     protected defaultHandlerShouldHandleSignal = (ctx: ISignalHandleCtx) => {
