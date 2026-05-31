@@ -216,9 +216,7 @@ export class GameEngine {
     }
 
     private commitMoveShip(action: IMoveAction): IMoveResult {
-        const { hullLocations: newLocation } = action;
-
-        const { player, ship } = this.calculateMoveShip(action);
+        const { player, ship, hulls } = this.calculateMoveShip(action);
 
         player.pendingActions = [...player.pendingActions, action];
 
@@ -227,7 +225,7 @@ export class GameEngine {
             playerId: player.id,
             player,
             ship,
-            hulls: newLocation,
+            hulls,
         };
     }
 
@@ -241,16 +239,17 @@ export class GameEngine {
     }
 
     public calculateMoveShip(action: IMoveAction) {
-        const { shipId, playerId, hullLocations: newLocation, commandPointCost } = action;
+        const { shipId, playerId, targetCell, route, commandPointCost } = action;
         const player = this.gsm.getPlayer(playerId);
 
         const ship = this.gsm.getShip(shipId);
+        const newLocation = ship.getNewHullLocations(targetCell, route);
         ship.update({ id: shipId, remainingMovement: 0 }).updateHullLocations(newLocation);
 
         player.updateShip(ship);
         player.update({ commandPoints: player.commandPoints - commandPointCost });
 
-        return { player, ship };
+        return { player, ship, hulls: newLocation };
     }
 
     public validateMoveShip(moveAction: IMoveAction): IResult {

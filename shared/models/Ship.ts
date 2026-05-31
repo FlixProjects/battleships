@@ -223,11 +223,11 @@ export class Ship extends ShipEntity {
         const { gsm, signal, emitter } = ctx;
 
         const resolver = new Resolver(gsm.gameState, () => {
-            const { hullLocations } = signal.payload;
+            const { targetCell, route } = signal.payload;
 
             this.remainingMovement = 0;
 
-            hullLocations.forEach((newHull) => {
+            this.getNewHullLocations(targetCell, route).forEach((newHull) => {
                 emitter([
                     new HullMoveSignal({
                         targetId: newHull.id,

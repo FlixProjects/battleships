@@ -34,7 +34,7 @@ describe("ServerCommand (game-logic only)", () => {
         const cmd = new ServerMoveCommand({
             playerId: "p1",
             shipId: "s1",
-            hullLocations: [],
+            targetCell: [0, 0],
             commandPointCost: 2,
         });
 

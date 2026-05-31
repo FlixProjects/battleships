@@ -39,7 +39,8 @@ export interface IShipReceiveAttackSignalPayload extends ISignalPayload {
 
 export interface IShipMoveSignalPayload extends ISignalPayload {
     shipId: string;
-    hullLocations: IHull[];
+    targetCell: ICellLoc;
+    route?: ICellLoc[];
 }
 
 export interface IShipDeploySignalPayload extends ISignalPayload {

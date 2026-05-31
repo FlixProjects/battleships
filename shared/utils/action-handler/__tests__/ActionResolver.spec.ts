@@ -91,13 +91,7 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [
-                    {
-                        ...player1Hull,
-                        location: [2, 1],
-                        front: true,
-                    },
-                ],
+                targetCell: [2, 1],
             };
 
             // Setup: Create player1's attack action (fire at [0, 0])
@@ -121,13 +115,7 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [
-                    {
-                        ...player2Hull,
-                        location: [0, 0],
-                        front: true,
-                    },
-                ],
+                targetCell: [0, 0],
             };
 
             // Setup: Create players
@@ -290,7 +278,7 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [{ ...movingHull, location: [2, 1] }],
+                targetCell: [2, 1],
             };
 
             // commandPoints 2, movementCommandPointCost 1 (builder defaults)
@@ -342,7 +330,7 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [{ ...movingHull, location: [2, 1] }],
+                targetCell: [2, 1],
             };
 
             const player1 = buildPlayer1({ ships: [movingShip], commandPoints: 2, maxCommandPoints: 2 });
@@ -435,7 +423,7 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [],
+                targetCell: [0, 0],
             };
 
             const moveAction2: IMoveAction = {
@@ -446,7 +434,7 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [],
+                targetCell: [0, 0],
             };
 
             const player1 = buildPlayer1({ ships: [], pendingActions: [moveAction1] });
@@ -483,7 +471,7 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [],
+                targetCell: [0, 0],
             };
 
             const moveAction2: IMoveAction = {
@@ -494,7 +482,7 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [],
+                targetCell: [0, 0],
             };
 
             const player1 = buildPlayer1({ ships: [], pendingActions: [moveAction1, moveAction2] });

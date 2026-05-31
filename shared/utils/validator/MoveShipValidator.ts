@@ -1,6 +1,6 @@
 import { BOARD_COLUMNS, BOARD_ROWS, ERROR_CODE } from "../../constants";
 import { Ship } from "../../models/Ship";
-import { IErrorResult, IGameState, IMoveAction, ResultType } from "../../types";
+import { IErrorResult, IGameState, IHull, IMoveAction, ResultType } from "../../types";
 import { LocationHelper, locationToKey, PathHelper } from "../../utils";
 import { Validator } from "./Validator";
 
@@ -26,6 +26,15 @@ export class MoveShipValidator extends Validator {
         }
     }
 
+    private computeNewHullLocations(): IHull[] {
+        const { shipId, targetCell, route } = this.moveAction;
+        const _ship = this.gameState.ships.find((s) => s.id === shipId);
+        if (!_ship) {
+            throw { type: ResultType.ERROR, errorCode: ERROR_CODE.SYS_NOT_FOUND, message: "Ship not found" };
+        }
+        return new Ship(_ship).getNewHullLocations(targetCell, route);
+    }
+
     private validateShipExists() {
         const { shipId } = this.moveAction;
         const ship = this.gameState.ships.find((s) => s.id === shipId);
@@ -41,7 +50,7 @@ export class MoveShipValidator extends Validator {
     }
 
     private validateWithinBoardBounds() {
-        const { hullLocations: newLocation } = this.moveAction;
+        const newLocation = this.computeNewHullLocations();
 
         const isWithinBounds = newLocation.every((hullLoc) => {
             const [x, y] = hullLoc.location;
@@ -60,7 +69,8 @@ export class MoveShipValidator extends Validator {
     // FIXME: Disabled for now, we need to simulate the full resolution to see if the end hullLocations are correct.
     // since Ships may trigger effects on the path and increase the range
     private validateWithinMovementRange() {
-        const { shipId, hullLocations: newLocations } = this.moveAction;
+        const { shipId } = this.moveAction;
+        const newLocations = this.computeNewHullLocations();
         const _ship = this.gameState.ships.find((s) => s.id === shipId);
         if (!_ship) {
             throw { type: ResultType.ERROR, errorCode: ERROR_CODE.SYS_NOT_FOUND, message: "[validateWithinMovementRange] Ship not found" };
@@ -97,7 +107,8 @@ export class MoveShipValidator extends Validator {
     }
 
     private validateDestinationNotOccupied() {
-        const { shipId, hullLocations: newLocations } = this.moveAction;
+        const { shipId } = this.moveAction;
+        const newLocations = this.computeNewHullLocations();
         const players = this.gameState.players.map((p) => ({
             ...p,
             ships: p.ships?.map((s) => (s.id === shipId ? { ...s, hulls: [] } : s)) ?? [],

@@ -41,7 +41,8 @@ export interface IDeployAction extends IPlayerAction {
 export interface IMoveAction extends IPlayerAction {
     type?: typeof ActionTypes.MOVE;
     shipId: string;
-    hullLocations: IHull[];
+    targetCell: ICellLoc; // destination of the front hull; the domain derives the layout
+    route?: ICellLoc[];
 }
 
 export interface IShipAttackAction extends IPlayerAction {
@@ -117,5 +118,5 @@ export interface IGetValidSupportCellsAction {
 }
 
 export type TCommitDeployShipParams = Pick<IDeployAction, "shipId" | "location" | "commandPointCost">;
-export type TCommitMoveShipParams = Pick<IMoveAction, "shipId" | "hullLocations" | "commandPointCost">;
+export type TCommitMoveShipParams = Pick<IMoveAction, "shipId" | "targetCell" | "route" | "commandPointCost">;
 export type TCommitAttackShipParams = Pick<IShipAttackAction, "shipId" | "commandPointCost" | "attackLocations">;
