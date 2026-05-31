@@ -9,7 +9,6 @@ import { GameObjectEntity } from "./entities/GameObjectEntity";
 
 export class GameEngine {
     private currentAction: IPlayerAction | null = null;
-    private recordedActions: Set<string> = new Set();
     private gameObjects: Map<string, IGameObjectEntity> = new Map();
     private signalStacks: Map<string, Signal[]> = new Map();
     private signalCreators: ActionSignalCreator[] = [new BasicShipAttackActionSignalCreator()];
@@ -38,7 +37,6 @@ export class GameEngine {
     }
 
     private resetRun() {
-        this.recordedActions.clear();
         this.currentAction = null;
     }
 
