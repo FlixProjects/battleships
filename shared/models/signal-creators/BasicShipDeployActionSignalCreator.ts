@@ -5,7 +5,7 @@ import { ActionSignalCreator } from "./ActionSignalCreator";
 export class BasicShipDeployActionSignalCreator extends ActionSignalCreator {
     createIfValid(action: IDeployAction) {
         if (action.type === ActionTypes.DEPLOY) {
-            const payload = { shipId: action.shipId, hullLocations: action.hullLocations };
+            const payload = { shipId: action.shipId, location: action.location };
             return [
                 new BasicShipDeploySignal({
                     targetId: action.shipId,

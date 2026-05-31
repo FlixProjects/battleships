@@ -1,4 +1,4 @@
-import { HullCalculator as _HullCalculator } from "@shared/utils/hull-helper";
+import { computeDeployedHullLocation, HullCalculator as _HullCalculator } from "@shared/utils/hull-helper";
 import { v7 as uuidv7 } from "uuid";
 import { EFFECTS_CONFIG, SUPPORTS_CONFIG } from "../config/constants";
 import { BOARD_COLUMNS, BOARD_ROWS } from "../constants";
@@ -113,11 +113,14 @@ export class GameEngine {
     // the ActionResolver — this method only applies the deploy *effect* on
     // ships/hulls/players.
     private commitDeployShip(action: IDeployAction): IDeployResult {
-        const { shipId, playerId, hullLocations } = action;
+        const { shipId, playerId, location } = action;
 
         const player = this.gsm.getPlayer(playerId);
         const shipToDeploy = this.gsm.getShip(shipId);
         const commandPointCost = shipToDeploy?.commandPointCost ? shipToDeploy.commandPointCost : 0;
+
+        // hull placement is derived from the ship's own templates + side
+        const hullLocations = shipToDeploy.getDeployHullLocations(location, this.isFirstPlayer(playerId));
 
         shipToDeploy.deployed = true;
         shipToDeploy.addHullLocations(hullLocations);
@@ -134,12 +137,16 @@ export class GameEngine {
     }
 
     public validateDeployShip(deployAction: IDeployAction): IResult {
-        const { playerId, hullLocations: newHullLocations } = deployAction;
-        const newState = { ...this.gameState };
+        const { playerId, shipId, location } = deployAction;
 
-        const locationHelper = new LocationHelper(newState.players);
+        const ship = this.gsm.getShip(shipId);
+        const cells = ship.hullTemplates.map((ht) =>
+            computeDeployedHullLocation(location, ht.templateLocation, this.isFirstPlayer(playerId)),
+        );
 
-        if (!locationHelper.hasSpaceForShip(newHullLocations.map((h) => h.location))) {
+        const locationHelper = new LocationHelper(this.gameState.players);
+
+        if (!locationHelper.hasSpaceForShip(cells)) {
             return {
                 type: ResultType.ERROR,
                 playerId,

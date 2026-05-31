@@ -51,7 +51,7 @@ describe("ServerCommand (game-logic only)", () => {
             playerId: "p1",
             cardId: "c1",
             commandPointCost: 1,
-            payload: { kind: "Ship", hullLocations: [] },
+            payload: { kind: "Ship", location: [0, 0] },
         });
 
         await cmd.execute(params);

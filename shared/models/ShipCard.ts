@@ -31,7 +31,7 @@ export class ShipCard extends Card {
             ...meta,
             type: ActionTypes.DEPLOY,
             shipId: this.instanceId,
-            hullLocations: shipPayload.hullLocations,
+            location: shipPayload.location,
         };
     }
 

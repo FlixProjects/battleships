@@ -33,12 +33,12 @@ class ActionCreator {
 
 export class DeployShipActionCreator extends ActionCreator {
     public create(props: TCommitDeployShipParams): IDeployAction {
-        const { shipId, commandPointCost, hullLocations } = props;
+        const { shipId, commandPointCost, location } = props;
         return {
             ...super._create(),
             type: ActionTypes.DEPLOY,
             shipId,
-            hullLocations,
+            location,
             commandPointCost,
         };
     }

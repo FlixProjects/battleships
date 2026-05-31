@@ -10,6 +10,8 @@ import {
     IShip,
 } from "@shared/types";
 import { PathHelper } from "@shared/utils";
+import { computeDeployedHullLocation } from "@shared/utils/hull-helper";
+import { getHull } from "@shared/utils/helpers";
 import { SegmentBuilder } from "@shared/utils/segment-builder";
 import { mergician } from "mergician";
 import { ShipEntity } from "./entities/ShipEntity";
@@ -96,6 +98,13 @@ export class Ship extends ShipEntity {
         return newHulls;
     }
 
+    getDeployHullLocations(anchorCell: ICellLoc, isFirstPlayer: boolean): IHull[] {
+        return this.hullTemplates.map((ht) => {
+            const location = computeDeployedHullLocation(anchorCell, ht.templateLocation, isFirstPlayer);
+            return getHull({ shipId: this.id, hullTemplate: ht, location, isFirstPlayer });
+        });
+    }
+
     private computeRouteOutcome(args: {
         segmentBuilder: SegmentBuilder;
         startingOrientation: number;
@@ -179,11 +188,12 @@ export class Ship extends ShipEntity {
         const { gsm, signal, emitter } = ctx;
 
         const resolver = new Resolver(gsm.gameState, () => {
-            const { hullLocations } = signal.payload;
+            const { location } = signal.payload;
 
             this.deployed = true;
 
-            hullLocations.forEach((hull) => {
+            const isFirstPlayer = gsm.gameState.isFirstPlayer(this.playerId);
+            this.getDeployHullLocations(location, isFirstPlayer).forEach((hull) => {
                 emitter([
                     new GameStateCreateHullSignal({
                         senderId: this.id,

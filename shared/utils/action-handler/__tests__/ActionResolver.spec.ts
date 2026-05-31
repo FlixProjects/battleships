@@ -3,7 +3,16 @@ import { HullBuilder } from "../../../factories/hull-builder";
 import { PlayerBuilder } from "../../../factories/player-builder";
 import { ShipBuilder } from "../../../factories/ship-builder";
 import { GameState } from "../../../models";
-import { ICard, IDeck, IDeployAction, IMoveAction, IPlayCardAction, IPlayer, IShipAttackAction } from "../../../types";
+import {
+    ICard,
+    IDeck,
+    IDeployAction,
+    IHullTemplate,
+    IMoveAction,
+    IPlayCardAction,
+    IPlayer,
+    IShipAttackAction,
+} from "../../../types";
 import { ActionTypes } from "../../../types/action-types";
 import { ActionResolver } from "../ActionResolver";
 
@@ -32,6 +41,15 @@ const hullBuilder = new HullBuilder({
     maxHealth: 1,
     templateLocation: [0, 0],
 });
+
+const frigateTemplate: IHullTemplate = {
+    templateLocation: [0, 0],
+    maxHealth: 1,
+    armor: 0,
+    visionRange: 2,
+    orientation: 0,
+    front: true,
+};
 
 describe("ActionResolver", () => {
     describe("initiative and action resolution order", () => {
@@ -362,8 +380,8 @@ describe("ActionResolver", () => {
                 deployed: false,
                 hulls: [],
                 commandPointCost: 1,
+                hullTemplates: [frigateTemplate],
             });
-            const deployedHull = hullBuilder.build({ id: "hullD", shipId: "shipD", location: [1, 0], front: true });
 
             const deployAction: IDeployAction = {
                 id: "dep-1",
@@ -373,7 +391,7 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [deployedHull],
+                location: [1, 0],
             };
 
             const player1 = buildPlayer1({ ships: [ship], commandPoints: 2, maxCommandPoints: 2 });
@@ -396,10 +414,12 @@ describe("ActionResolver", () => {
 
             const deployedShip = next.ships.find((s) => s.id === "shipD");
             expect(deployedShip?.deployed).toBe(true);
-            // hull materialised into the flat gameState.hulls (serialised source of truth)
-            expect(next.hulls?.find((h) => h.id === "hullD")?.location).toEqual([1, 0]);
-            // …and GameState.createHull linked that hull to the ship
-            expect(deployedShip?.hulls?.some((h) => h.id === "hullD")).toBe(true);
+            // hull derived from the ship's template (anchor [1,0] + template [0,0]) and
+            // materialised into the flat gameState.hulls (serialised source of truth)
+            const createdHull = next.hulls?.find((h) => h.shipId === "shipD");
+            expect(createdHull?.location).toEqual([1, 0]);
+            // …and GameState.createHull linked that same hull to the ship
+            expect(deployedShip?.hulls?.some((h) => h.id === createdHull?.id)).toBe(true);
 
             const mover = next.players.find((p) => p.id === "player1");
             expect(mover?.commandPoints).toBe(1); // 2 - commandPointCost(1) via PlayerSpendCommandPoints
@@ -607,7 +627,7 @@ describe("ActionResolver", () => {
             cardId: "card-ship",
             payload: {
                 kind: "Ship",
-                hullLocations: [],
+                location: [1, 0],
             },
             ...overrides,
         });
@@ -627,25 +647,20 @@ describe("ActionResolver", () => {
                 cards: [],
                 played: [],
             };
-            // Undeployed ship — no hulls yet. Deploy supplies them via payload.
+            // Undeployed ship — no hulls yet. Deploy derives them from the template.
             const ship = shipBuilder.build({
                 id: "ship1",
                 playerId: "player1",
                 deployed: false,
                 hulls: [],
                 commandPointCost: 1,
+                hullTemplates: [frigateTemplate],
             });
-            const deployedHull = hullBuilder.build({
-                id: "hull1",
-                shipId: "ship1",
-                location: [1, 0],
-                front: true,
-            });
-            return { card, deck, ship, deployedHull };
+            return { card, deck, ship };
         };
 
         it("deploys the ship, removes the card from hand, and pushes it onto the deck's played pile", () => {
-            const { card, deck, ship, deployedHull } = buildShipCardEntities();
+            const { card, deck, ship } = buildShipCardEntities();
             const player1 = buildPlayer1({
                 ships: [ship],
                 hand: ["card-ship"],
@@ -669,7 +684,7 @@ describe("ActionResolver", () => {
             const action = buildPlayCardAction({
                 payload: {
                     kind: "Ship",
-                    hullLocations: [deployedHull],
+                    location: [1, 0],
                 },
             });
 
