@@ -1,6 +1,7 @@
 import {
     IPlayerSpendCommandPointsSignalPayload,
     IShipAttackSignalPayload,
+    IShipMoveSignalPayload,
     IShipReceiveAttackSignalPayload,
     ISignal,
 } from "@shared/models/signals/types";
@@ -423,6 +424,10 @@ export interface IBasicShipAttackSignalHandleCtx extends ISignalHandleCtx {
 
 export interface IReceiveShipAttackSignalHandleCtx extends ISignalHandleCtx {
     signal: ISignal & { payload: IShipReceiveAttackSignalPayload };
+}
+
+export interface IBasicShipMoveSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IShipMoveSignalPayload };
 }
 
 export interface IPlayerSpendCommandPointsSignalHandleCtx extends ISignalHandleCtx {

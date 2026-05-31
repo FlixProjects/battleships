@@ -80,8 +80,8 @@ describe("createResolvePipeline", () => {
         expect(createResolvePipeline().map((s) => s.name)).toEqual([
             "ResolvePlayCard",
             "ResolveDeploy",
-            "ResolveMove",
-            // "ResolveAttack",
+            // "ResolveMove", // migrated to GameEngineV2
+            // "ResolveAttack", // migrated to GameEngineV2
             "ResolveEffects",
         ]);
     });
@@ -89,11 +89,11 @@ describe("createResolvePipeline", () => {
     it("running the whole pipeline invokes the matching resolver once + drains support effects", () => {
         const ctx = new FakeCtx();
         for (const step of createResolvePipeline()) {
-            step.resolve(actionOf(ActionTypes.MOVE), ctx);
+            step.resolve(actionOf(ActionTypes.DEPLOY), ctx);
         }
         // ResolveEffectsStep always drains the pending-support queue (no-op
         // when empty) — so the final call is always pendingSupportEffects.
-        expect(ctx.calls).toEqual(["move", "pendingSupportEffects"]);
-        expect(ctx.gameState).toEqual(tag("move"));
+        expect(ctx.calls).toEqual(["deploy", "pendingSupportEffects"]);
+        expect(ctx.gameState).toEqual(tag("deploy"));
     });
 });

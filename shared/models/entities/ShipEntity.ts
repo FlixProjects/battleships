@@ -3,6 +3,7 @@ import { Hull } from "../Hull";
 import { Listener } from "../listeners/Listener";
 import { IListener } from "../listeners/types";
 import { BasicShipAttackSignalHandler } from "../signal-handlers/BasicShipAttackSignalHandler";
+import { BasicShipMoveSignalHandler } from "../signal-handlers/BasicShipMoveSignalHandler";
 import { ReceiveShipAttackSignalHandler } from "../signal-handlers/ReceiveShipAttackSignalHandler";
 import { SignalType } from "../signals/types";
 import { GameObjectEntity } from "./GameObjectEntity";
@@ -101,10 +102,13 @@ export class ShipEntity extends GameObjectEntity<ShipEntity> implements IShip {
     }
 
     protected getDefaultListeners(): IListener[] {
-        return [this.createBasicShipAttackListener(), this.createReceiveShipAttackListener()];
+        return [
+            this.createBasicShipAttackListener(),
+            this.createReceiveShipAttackListener(),
+            this.createBasicShipMoveListener(),
+        ];
     }
 
-    // Ship.attack should override callback if its a special attack
     protected createBasicShipAttackListener() {
         return new Listener(
             [SignalType.BasicShipAttack],
@@ -120,6 +124,16 @@ export class ShipEntity extends GameObjectEntity<ShipEntity> implements IShip {
             [SignalType.ReceiveShipAttack],
             (ctx) => {
                 new ReceiveShipAttackSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
+    protected createBasicShipMoveListener() {
+        return new Listener(
+            [SignalType.BasicShipMove],
+            (ctx) => {
+                new BasicShipMoveSignalHandler().handle(ctx);
             },
             this.defaultHandlerShouldHandleSignal,
         );

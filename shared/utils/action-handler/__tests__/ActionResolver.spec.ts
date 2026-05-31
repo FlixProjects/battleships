@@ -208,6 +208,55 @@ describe("ActionResolver", () => {
             expect(targetHullAfter?.remainingHealth).toBe(0);
         });
 
+        it("moves the ship and deducts CP via signals through GameEngineV2", () => {
+            const movingHull = hullBuilder.build({ id: "hullM", shipId: "shipM", location: [0, 1], front: true });
+            const movingShip = shipBuilder.build({ id: "shipM", playerId: "player1", hulls: [movingHull] });
+
+            const moveAction: IMoveAction = {
+                id: "mv-1",
+                type: ActionTypes.MOVE,
+                playerId: "player1",
+                shipId: "shipM",
+                round: 1,
+                order: 0,
+                commandPointCost: 1,
+                hullLocations: [{ ...movingHull, location: [2, 1] }],
+            };
+
+            // commandPoints 2, movementCommandPointCost 1 (builder defaults)
+            const player1 = buildPlayer1({ ships: [movingShip], commandPoints: 2, maxCommandPoints: 2 });
+            const player2 = buildPlayer2({ ships: [] });
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [movingShip],
+                hulls: [movingHull],
+                cards: [],
+                decks: [],
+                winners: [],
+                isOver: false,
+            });
+
+            const resolver = new ActionResolver("player1", gameState);
+            const next = resolver.resolveAction(moveAction);
+
+            // hull moved to the target location (flat gameState.hulls stays in sync)
+            const movedHull = next.hulls?.find((h) => h.id === "hullM");
+            expect(movedHull?.location).toEqual([2, 1]);
+
+            // movement consumed and CP spent through the PlayerSpendCommandPoints signal
+            const movedShip = next.ships.find((s) => s.id === "shipM");
+            expect(movedShip?.remainingMovement).toBe(0);
+            const mover = next.players.find((p) => p.id === "player1");
+            expect(mover?.commandPoints).toBe(1);
+
+            // action recorded by the engine
+            expect(mover?.pendingActions?.map((a) => a.id)).toContain("mv-1");
+        });
+
         it("should resolve actions in initiative order within a turn", () => {
             const moveAction1: IMoveAction = {
                 id: "action1",

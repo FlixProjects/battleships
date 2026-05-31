@@ -1,5 +1,6 @@
 import {
     IBasicShipAttackSignalHandleCtx,
+    IBasicShipMoveSignalHandleCtx,
     IPlayerSpendCommandPointsSignalHandleCtx,
     IReceiveShipAttackSignalHandleCtx,
     ISignalHandleCtx,
@@ -9,6 +10,7 @@ import { SignalType } from "../signals/types";
 export type SignalCtxMap = {
     [SignalType.BasicShipAttack]: IBasicShipAttackSignalHandleCtx;
     [SignalType.ReceiveShipAttack]: IReceiveShipAttackSignalHandleCtx;
+    [SignalType.BasicShipMove]: IBasicShipMoveSignalHandleCtx;
     [SignalType.PlayerSpendCommandPoints]: IPlayerSpendCommandPointsSignalHandleCtx;
 };
 

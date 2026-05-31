@@ -1,10 +1,6 @@
 import { IGameObjectEntity, ISignalHandleCtx } from "@shared/types/types";
-import { Listener } from "../listeners/Listener";
 import { ListenerManager } from "../listeners/ListenerManager";
 import { IListener, IListenerManager, IListenerOptions } from "../listeners/types";
-import { BasicShipAttackSignalHandler } from "../signal-handlers/BasicShipAttackSignalHandler";
-import { ReceiveShipAttackSignalHandler } from "../signal-handlers/ReceiveShipAttackSignalHandler";
-import { SignalType } from "../signals/types";
 import { Entity } from "./Entity";
 
 export class GameObjectEntity<T extends GameObjectEntity<T>> extends Entity<T> implements IGameObjectEntity {

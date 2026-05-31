@@ -19,7 +19,7 @@ export { ResolvePlayCardStep, ResolveDeployStep, ResolveMoveStep, ResolveAttackS
 export const createResolvePipeline = (): IResolveStep[] => [
     new ResolvePlayCardStep(),
     new ResolveDeployStep(),
-    new ResolveMoveStep(),
-    // new ResolveAttackStep(), // temp remove to test GameEngineV2
+    // new ResolveMoveStep(), // migrated to GameEngineV2 (BasicShipMove signal)
+    // new ResolveAttackStep(), // migrated to GameEngineV2 (BasicShipAttack signal)
     new ResolveEffectsStep(),
 ];

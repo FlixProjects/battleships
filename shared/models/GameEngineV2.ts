@@ -1,20 +1,19 @@
 import { ActionSignalCreator } from "@shared/models/signal-creators/ActionSignalCreator";
 import { BasicShipAttackActionSignalCreator } from "@shared/models/signal-creators/BasicShipAttackActionSignalCreator";
-import { IPlayerAction, IGameObjectEntity, IGameState, IGameStateManager, ISignalHandleCtx, GameState } from "..";
-import { BasicShipAttackSignalHandler } from "./signal-handlers/BasicShipAttackSignalHandler";
-import { SignalHandler } from "./signal-handlers/SignalHandler";
-import { Signal } from "./signals/Signal";
-import { ISignal, SignalType } from "./signals/types";
+import { BasicShipMoveActionSignalCreator } from "@shared/models/signal-creators/BasicShipMoveActionSignalCreator";
+import { IGameObjectEntity, IGameState, IGameStateManager, IPlayerAction, ISignalHandleCtx } from "..";
 import { GameObjectEntity } from "./entities/GameObjectEntity";
+import { Signal } from "./signals/Signal";
+import { ISignal } from "./signals/types";
 
 export class GameEngine {
     private currentAction: IPlayerAction | null = null;
     private gameObjects: Map<string, IGameObjectEntity> = new Map();
     private signalStacks: Map<string, Signal[]> = new Map();
-    private signalCreators: ActionSignalCreator[] = [new BasicShipAttackActionSignalCreator()];
-    private signalHandlers: Map<SignalType, SignalHandler> = new Map([
-        [SignalType.BasicShipAttack, new BasicShipAttackSignalHandler()],
-    ]);
+    private signalCreators: ActionSignalCreator[] = [
+        new BasicShipAttackActionSignalCreator(),
+        new BasicShipMoveActionSignalCreator(),
+    ];
 
     constructor(
         private gameState: IGameState,

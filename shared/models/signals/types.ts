@@ -1,4 +1,4 @@
-import { ICellLoc } from "@shared/types/types";
+import { ICellLoc, IHull } from "@shared/types/types";
 import type { Ship } from "../Ship";
 
 export interface ISignal {
@@ -13,6 +13,7 @@ export interface ISignal {
 export const SignalType = {
     BasicShipAttack: "BasicShipAttack",
     ReceiveShipAttack: "ReceiveShipAttack",
+    BasicShipMove: "BasicShipMove",
     PlayerSpendCommandPoints: "PlayerSpendCommandPoints",
 } as const;
 
@@ -28,6 +29,11 @@ export interface IShipReceiveAttackSignalPayload extends ISignalPayload {
     attackingShipId: string;
     attackedShipId: string;
     attacks: IAttackPayload[];
+}
+
+export interface IShipMoveSignalPayload extends ISignalPayload {
+    shipId: string;
+    hullLocations: IHull[];
 }
 
 export interface IPlayerSpendCommandPointsSignalPayload extends ISignalPayload {
