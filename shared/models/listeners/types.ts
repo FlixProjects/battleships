@@ -14,7 +14,7 @@ export type TListenerCallback<T extends SignalType = SignalType> = (ctx: SignalC
 
 export interface IListener<T extends SignalType = SignalType> {
     id: string;
-    signalTypes: T[];
+    signalTypes: SignalType[];
     handleSignal(ctx: ISignalHandleCtx): void;
     overrideCallback(fn: TListenerCallback<T>): void;
 }

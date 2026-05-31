@@ -1,22 +1,19 @@
 import { IGameObjectEntity, ISignalHandleCtx } from "@shared/types/types";
 import { Listener } from "../listeners/Listener";
 import { ListenerManager } from "../listeners/ListenerManager";
-import { IListenerManager } from "../listeners/types";
+import { IListener, IListenerManager, IListenerOptions } from "../listeners/types";
 import { BasicShipAttackSignalHandler } from "../signal-handlers/BasicShipAttackSignalHandler";
 import { ReceiveShipAttackSignalHandler } from "../signal-handlers/ReceiveShipAttackSignalHandler";
 import { SignalType } from "../signals/types";
 import { Entity } from "./Entity";
 
-export class GameObjectEntity<T>
-    extends Entity<T extends GameObjectEntity<T> ? T : GameObjectEntity<T>>
-    implements IGameObjectEntity
-{
+export class GameObjectEntity<T extends GameObjectEntity<T>> extends Entity<T> implements IGameObjectEntity {
     public id: string;
     //ECMAScript private field. private at runtime: not enumerable
     #listenerManager: IListenerManager = new ListenerManager();
 
-    constructor(){
-        super()
+    constructor() {
+        super();
         this.loadDefaultListeners();
     }
 
@@ -30,8 +27,16 @@ export class GameObjectEntity<T>
     }
 
     public loadDefaultListeners() {
-        const defaultListeners = [this.createBasicShipAttackListener(), this.createReceiveShipAttackListener()];
-        defaultListeners.forEach((listener) => this.#listenerManager.addListener(listener));
+        this.getDefaultListeners().forEach((listener) => this.addListener(listener));
+    }
+
+    protected getDefaultListeners(): IListener[] {
+        return [this.createBasicShipAttackListener(), this.createReceiveShipAttackListener()];
+    }
+
+    protected addListener(listener: IListener, options?: IListenerOptions) {
+        this.#listenerManager.addListener(listener, options);
+        return this;
     }
 
     // Ship.attack should override callback if its a special attack
@@ -55,7 +60,7 @@ export class GameObjectEntity<T>
         );
     }
 
-    private defaultHandlerShouldHandleSignal = (ctx: ISignalHandleCtx) => {
+    protected defaultHandlerShouldHandleSignal = (ctx: ISignalHandleCtx) => {
         return ctx.signal.targetId === this.id;
     };
 
