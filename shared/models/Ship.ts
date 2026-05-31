@@ -14,6 +14,7 @@ import { SegmentBuilder } from "@shared/utils/segment-builder";
 import { mergician } from "mergician";
 import { ShipEntity } from "./entities/ShipEntity";
 import { Resolver } from "./resolvers/Resolver";
+import { GameStateCreateHullSignal } from "./signals/GameStateCreateHullSignal";
 import { HullMoveSignal } from "./signals/HullMoveSignal";
 import { HullReceiveAttackSignal } from "./signals/HullReceiveAttackSignal";
 import { PlayerSpendCommandPointsSignal } from "./signals/PlayerSpendCommandPointsSignal";
@@ -180,10 +181,17 @@ export class Ship extends ShipEntity {
         const resolver = new Resolver(gsm.gameState, () => {
             const { hullLocations } = signal.payload;
 
-            // TODO: perhap GameState should be a GameObjectEntity with Listeners that can create child Entities
             this.deployed = true;
-            this.addHullLocations(hullLocations);
-            gsm.addHulls(hullLocations);
+
+            hullLocations.forEach((hull) => {
+                emitter([
+                    new GameStateCreateHullSignal({
+                        senderId: this.id,
+                        originId: signal.id,
+                        payload: { hull, shipId: this.id },
+                    }),
+                ]);
+            });
 
             emitter([
                 new PlayerSpendCommandPointsSignal({

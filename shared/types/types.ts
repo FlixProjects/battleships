@@ -1,4 +1,5 @@
 import {
+    IGameStateCreateHullSignalPayload,
     IHullDestroyedSignalPayload,
     IHullMoveSignalPayload,
     IHullReceiveAttackSignalPayload,
@@ -459,4 +460,8 @@ export interface IHullDestroyedSignalHandleCtx extends ISignalHandleCtx {
 
 export interface IPlayerSpendCommandPointsSignalHandleCtx extends ISignalHandleCtx {
     signal: ISignal & { payload: IPlayerSpendCommandPointsSignalPayload };
+}
+
+export interface IGameStateCreateHullSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IGameStateCreateHullSignalPayload };
 }

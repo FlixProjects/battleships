@@ -148,6 +148,11 @@ export class GameEngine {
             const value = this.gameState[key as TGameStatePropKey];
             this.registerGameObjects(value, visited);
         }
+        // GameState is itself a game object (the entity-lifecycle owner). The
+        // property walk above never reaches it, so register it explicitly.
+        if (this.gameState instanceof GameObjectEntity) {
+            this.gameState.registerGameObject(this.register);
+        }
     }
 
     private registerGameObjects = (value: any, visited: WeakSet<object>): any => {

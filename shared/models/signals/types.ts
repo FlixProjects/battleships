@@ -19,6 +19,7 @@ export const SignalType = {
     HullReceiveDamage: "HullReceiveDamage",
     HullMove: "HullMove",
     HullDestroyed: "HullDestroyed",
+    GameStateCreateHull: "GameStateCreateHull",
     PlayerSpendCommandPoints: "PlayerSpendCommandPoints",
 } as const;
 
@@ -64,6 +65,11 @@ export interface IHullMoveSignalPayload extends ISignalPayload {
 
 export interface IHullDestroyedSignalPayload extends ISignalPayload {
     hullId: string;
+    shipId: string;
+}
+
+export interface IGameStateCreateHullSignalPayload extends ISignalPayload {
+    hull: IHull;
     shipId: string;
 }
 

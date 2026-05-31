@@ -398,6 +398,8 @@ describe("ActionResolver", () => {
             expect(deployedShip?.deployed).toBe(true);
             // hull materialised into the flat gameState.hulls (serialised source of truth)
             expect(next.hulls?.find((h) => h.id === "hullD")?.location).toEqual([1, 0]);
+            // …and GameState.createHull linked that hull to the ship
+            expect(deployedShip?.hulls?.some((h) => h.id === "hullD")).toBe(true);
 
             const mover = next.players.find((p) => p.id === "player1");
             expect(mover?.commandPoints).toBe(1); // 2 - commandPointCost(1) via PlayerSpendCommandPoints

@@ -1,6 +1,5 @@
 import clone from "lodash.clonedeep";
 import {
-    Board,
     EffectKind,
     ICard,
     ICellLoc,
@@ -24,31 +23,20 @@ import { createEffect } from "../utils/effect-helper";
 import { locationToKey } from "../utils/helpers";
 import { PathHelper } from "../utils/path-helper";
 import { Action } from "./actions";
-import { Card } from "./Card";
 import { Deck } from "./Deck";
 import { Effect } from "./effects/Effect";
 import { Entity } from "./entities/Entity";
+import { GameStateEntity } from "./entities/GameStateEntity";
 import { Hull } from "./Hull";
 import { Player } from "./Player";
 import { Ship } from "./Ship";
 
 // GameObjects should not be nested within other GameObjects unless they have their equivalent on this layer
-export class GameState implements IGameState {
-    code: string;
-    currentRound: number;
-    initiative?: string;
-    players: Player[];
-    ships: Ship[];
-    hulls: Hull[];
-    cards: Card[];
-    decks: Deck[];
-    effects: Effect[];
-    board?: Board;
-    winners: string[];
-    isOver: boolean;
-    actions: Action[] = [];
-
+export class GameState extends GameStateEntity implements IGameState {
+    // TODO: Can we just pass in the props and do Object.assign(this, props) in Entity-level?
     constructor(props: Readonly<IGameStateData | IPlainGameState>) {
+        super();
+        this.id = props.code;
         this.code = props.code;
         this.initiative = props.initiative;
         this.board = props.board;
@@ -227,6 +215,13 @@ export class GameState implements IGameState {
 
         this.hulls.push(new Hull(hull));
         return this;
+    }
+
+    createHull(hull: IHull, shipId: string): Hull {
+        const created = this.createEntity(this.hulls, Hull, hull);
+        const ship = this.ships.find((s) => s.id === shipId);
+        ship?.addHullLocation(created);
+        return created;
     }
 
     getHull(hullId: string) {

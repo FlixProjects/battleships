@@ -2,6 +2,7 @@ import {
     IBasicShipAttackSignalHandleCtx,
     IBasicShipDeploySignalHandleCtx,
     IBasicShipMoveSignalHandleCtx,
+    IGameStateCreateHullSignalHandleCtx,
     IHullDestroyedSignalHandleCtx,
     IHullMoveSignalHandleCtx,
     IHullReceiveAttackSignalHandleCtx,
@@ -21,6 +22,7 @@ export type SignalCtxMap = {
     [SignalType.HullReceiveDamage]: IHullReceiveDamageSignalHandleCtx;
     [SignalType.HullMove]: IHullMoveSignalHandleCtx;
     [SignalType.HullDestroyed]: IHullDestroyedSignalHandleCtx;
+    [SignalType.GameStateCreateHull]: IGameStateCreateHullSignalHandleCtx;
     [SignalType.PlayerSpendCommandPoints]: IPlayerSpendCommandPointsSignalHandleCtx;
 };
 
