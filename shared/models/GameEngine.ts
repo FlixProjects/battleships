@@ -329,7 +329,7 @@ export class GameEngine {
             ship.resolveDestroyed();
         });
 
-        attackingShip.resolveAttack();
+        attackingShip.reduceAttacksRemaining();
 
         players[playerIndex].commandPoints -= attackCommandPointCost;
 

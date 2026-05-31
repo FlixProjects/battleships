@@ -54,7 +54,7 @@ export class Ship extends ShipEntity {
         return this;
     }
 
-    resolveAttack() {
+    reduceAttacksRemaining() {
         this.remainingAttacks -= 1;
         return this;
     }
@@ -122,7 +122,7 @@ export class Ship extends ShipEntity {
         const { gsm, signal, emitter } = ctx;
 
         const resolver = new Resolver(gsm.gameState, () => {
-            this.resolveAttack();
+            this.reduceAttacksRemaining();
             const { payload } = signal;
             const { attackLocations } = payload;
 
