@@ -1,25 +1,13 @@
 import { MAX_HAND_SIZE } from "../../config/constants";
-import { ERROR_CODE } from "../../constants";
 import { GameEngine, GameStateManager } from "../../models";
 import { GameEngine as GameEngineV2 } from "../../models/GameEngineV2";
-import { IResolveStep, createResolvePipeline } from "./steps";
-import {
-    ActionTypes,
-    IDeployAction,
-    IMoveAction,
-    IPlayerAction,
-    IShipAttackAction,
-    IResult,
-    IGameState,
-    ResultType,
-} from "../../types";
+import { IGameState, IPlayerAction, IResult } from "../../types";
 
 export class ActionResolver {
     public currentTurn: IPlayerAction[] = [];
     public results: IResult[] = [];
     public player1Actions: IPlayerAction[];
     public player2Actions: IPlayerAction[];
-    private readonly resolveSteps: IResolveStep[] = createResolvePipeline();
 
     constructor(
         public playerId: string, // for the perspective the ActionResolver is resolving for
@@ -122,101 +110,10 @@ export class ActionResolver {
         this.gameState = gsm.gameState;
     }
 
-    // Deploy / Move / Attack / PlayCard all resolve through the signal engine.
-    // For PlayCard the engine routes PlayCardSignal → card.play(ctx) (ShipCard →
-    // deploy, SupportCard → effect creation) + the card lifecycle; PlayCardValidator
-    // guards card-exists / card-in-hand, so an invalid play is a clean no-op.
-    // The trailing step loop is the (currently empty) extension point for any
-    // non-engine resolution; all action types now go through engine.run.
     public resolveAction(action: IPlayerAction) {
         const engine = new GameEngineV2(this.gameState, GameStateManager);
-        if (
-            action.type === ActionTypes.ATTACK ||
-            action.type === ActionTypes.MOVE ||
-            action.type === ActionTypes.DEPLOY ||
-            action.type === ActionTypes.PLAY_CARD
-        ) {
-            this.gameState = engine.run(action);
-        }
-        for (const step of this.resolveSteps) {
-            step.resolve(action, this);
-        }
+        this.gameState = engine.run(action);
         return this.gameState;
-    }
-
-    public resolveDeploy(action: IDeployAction) {
-        this.applyDeploy(action);
-        const gsm = new GameStateManager(this.gameState);
-        this.trackAction(gsm, action);
-        this.gameState = gsm.gameState;
-        return gsm.gameState;
-    }
-
-    private applyDeploy(action: IDeployAction) {
-        const gsm = new GameStateManager(this.gameState);
-        const gameEngine = new GameEngine(this.gameState);
-        const result = gameEngine.commit.deployShip(action);
-
-        if (result.type === ResultType.ERROR) {
-            throw new Error("Cannot deploy ship here, space is occupied");
-        }
-
-        const { player, ship, hulls } = result;
-        this.gameState = gsm.addHulls(hulls).updateShip(ship).updatePlayer(player).gameState;
-    }
-
-    private trackAction(gsm: GameStateManager, action: IPlayerAction) {
-        gsm.addAction(action);
-        const player = gsm.gameState.getPlayer(action.playerId);
-        const alreadyTracked = player.pendingActions.some((a) => a.id === action.id);
-        if (!alreadyTracked) {
-            player.pendingActions = [...player.pendingActions, action];
-            gsm.updatePlayer(player);
-        }
-    }
-
-    public resolveMove(action: IMoveAction) {
-        // for now, if the player with initiative occupies the location,
-        // the other player's Move is not resolved (they are not refunded the CP)
-        const gsm = new GameStateManager(this.gameState);
-        const gameEngine = new GameEngine(this.gameState);
-
-        const result = gameEngine.commit.moveShip(action);
-        if (result.type === ResultType.ERROR) {
-            const isNonSystemError =
-                // Ship's movement may have been reduced by earlier opponent's effect
-                result.errorCode === ERROR_CODE.MOVE_ERROR_INSUFFICIENT_MOVEMENT ||
-                // Destination may have become occupied by earlier opponent's turn
-                result.errorCode === ERROR_CODE.MOVE_ERROR_LOCATION_OCCUPIED;
-
-            if (isNonSystemError) {
-                return gsm.gameState;
-            }
-
-            throw new Error(result.message || "An error occurred while moving the ship");
-        }
-
-        const { player, ship, hulls } = result;
-        const newState = gsm.updateHulls(hulls).updateShip(ship).updatePlayer(player).addAction(action).gameState;
-
-        return newState;
-    }
-
-    public resolveAttack(action: IShipAttackAction) {
-        const gsm = new GameStateManager(this.gameState);
-        const gameEngine = new GameEngine(this.gameState);
-
-        // TODO: change to commit with validation
-        const result = gameEngine.commit.shipAttack(action);
-
-        if (result.type === ResultType.ERROR) {
-            throw new Error(result.message || "An error occurred while attacking");
-        }
-
-        const { players, ships, hulls } = result;
-        const newState = gsm.updateHulls(hulls).updateShips(ships).updatePlayers(players).addAction(action).gameState;
-
-        return newState;
     }
 
     public resolveVisibility() {

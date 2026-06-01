@@ -1,15 +1,11 @@
-import { HullCalculator as _HullCalculator, computeDeployedHullLocation } from "@shared/utils/hull-helper";
+import { HullCalculator as _HullCalculator } from "@shared/utils/hull-helper";
 import { EFFECTS_CONFIG, SUPPORTS_CONFIG } from "../config/constants";
 import { BOARD_COLUMNS, BOARD_ROWS } from "../constants";
 import { GameStateManager } from "../models";
 import {
     EffectAnchor,
-    IAttackResult,
     ICellLoc,
-    IDeployAction,
-    IDeployResult,
     IEffectConfig,
-    IErrorResult,
     IGameState,
     IGetValidAttackCellsAction,
     IGetValidDeployCellsAction,
@@ -18,19 +14,14 @@ import {
     IGetValidMoveCellsResult,
     IGetValidSupportCellsAction,
     IGetValidSupportCellsResult,
-    IMoveAction,
-    IMoveResult,
-    IResult,
-    IShipAttackAction,
     ResultType,
     TEffectRefNo,
     THullCalculatorConstructor,
-    TSupportRefNo
+    TSupportRefNo,
 } from "../types";
 import { keyToLocation, LocationHelper, locationToKey, PathHelper } from "../utils";
 import { buildEffect as buildEffectFromConfig } from "../utils/effect-helper";
 import { cellLocToNodeId, nodeIdToCellLoc, PathFinder, routeToCellLocs } from "../utils/path-finder";
-import { MoveShipValidator } from "../utils/validator";
 import { Movement } from "./Movement";
 
 // TODO: migrate to a more signal based approach
@@ -56,29 +47,6 @@ export class GameEngine {
         };
     }
 
-    get commit() {
-        return {
-            deployShip: (action: IDeployAction): IDeployResult | IErrorResult => {
-                const results = this.validateDeployShip(action);
-                if (results.type === ResultType.SUCCESS) {
-                    return this.commitDeployShip(action);
-                }
-                return { ...results, type: ResultType.ERROR }; // TODO: better handle typing
-            },
-            moveShip: (action: IMoveAction): IMoveResult | IErrorResult => {
-                const results = this.validateMoveShip(action);
-                if (results.type === ResultType.SUCCESS) {
-                    return this.commitMoveShip(action);
-                }
-                return { ...results, type: ResultType.ERROR };
-            },
-            shipAttack: (action: IShipAttackAction): IAttackResult | IErrorResult => {
-                // TODO: validate
-                return this.commitAttack(action);
-            },
-        };
-    }
-
     private primeDeployShip(action: IGetValidDeployCellsAction): IGetValidDeployCellsResult {
         const { playerId, shipId } = action;
 
@@ -100,58 +68,6 @@ export class GameEngine {
             type: ResultType.SUCCESS,
             playerId,
             validCells,
-        };
-    }
-
-    // commit should be after validation, we modify the local state.
-    // Action-level concerns (pushing to pendingActions, playing the card from
-    // hand, recording the action in gameState.actions) live one layer up in
-    // the ActionResolver — this method only applies the deploy *effect* on
-    // ships/hulls/players.
-    private commitDeployShip(action: IDeployAction): IDeployResult {
-        const { shipId, playerId, location } = action;
-
-        const player = this.gsm.getPlayer(playerId);
-        const shipToDeploy = this.gsm.getShip(shipId);
-        const commandPointCost = shipToDeploy?.commandPointCost ? shipToDeploy.commandPointCost : 0;
-
-        // hull placement is derived from the ship's own templates + side
-        const hullLocations = shipToDeploy.getDeployHullLocations(location, this.isFirstPlayer(playerId));
-
-        shipToDeploy.deployed = true;
-        shipToDeploy.addHullLocations(hullLocations);
-
-        player.commandPoints -= commandPointCost;
-
-        return {
-            type: ResultType.SUCCESS,
-            playerId,
-            player,
-            ship: shipToDeploy,
-            hulls: hullLocations,
-        };
-    }
-
-    public validateDeployShip(deployAction: IDeployAction): IResult {
-        const { playerId, shipId, location } = deployAction;
-
-        const ship = this.gsm.getShip(shipId);
-        const cells = ship.hullTemplates.map((ht) =>
-            computeDeployedHullLocation(location, ht.templateLocation, this.isFirstPlayer(playerId)),
-        );
-
-        const locationHelper = new LocationHelper(this.gameState.players);
-
-        if (!locationHelper.hasSpaceForShip(cells)) {
-            return {
-                type: ResultType.ERROR,
-                playerId,
-            };
-        }
-
-        return {
-            type: ResultType.SUCCESS,
-            playerId,
         };
     }
 
@@ -211,20 +127,6 @@ export class GameEngine {
         return pathFinder;
     }
 
-    private commitMoveShip(action: IMoveAction): IMoveResult {
-        const { player, ship, hulls } = this.calculateMoveShip(action);
-
-        player.pendingActions = [...player.pendingActions, action];
-
-        return {
-            type: ResultType.SUCCESS,
-            playerId: player.id,
-            player,
-            ship,
-            hulls,
-        };
-    }
-
     public calculateVisibility(playerId: string) {
         const obscuredState = new GameStateManager(this.gsm.gameState).gameState;
         const visibleTiles = obscuredState.getVisibleTilesforPlayer(playerId);
@@ -232,24 +134,6 @@ export class GameEngine {
             obscuredGameState: obscuredState.removeInvisibleFromPlayer(visibleTiles, playerId),
             gameState: this.gsm.gameState,
         };
-    }
-
-    public calculateMoveShip(action: IMoveAction) {
-        const { shipId, playerId, targetCell, route, commandPointCost } = action;
-        const player = this.gsm.getPlayer(playerId);
-
-        const ship = this.gsm.getShip(shipId);
-        const newLocation = ship.getNewHullLocations(targetCell, route);
-        ship.update({ id: shipId, remainingMovement: 0 }).updateHullLocations(newLocation);
-
-        player.updateShip(ship);
-        player.update({ commandPoints: player.commandPoints - commandPointCost });
-
-        return { player, ship, hulls: newLocation };
-    }
-
-    public validateMoveShip(moveAction: IMoveAction): IResult {
-        return new MoveShipValidator(this.gameState, moveAction).validate();
     }
 
     private primeAttack(action: IGetValidAttackCellsAction) {
@@ -279,68 +163,6 @@ export class GameEngine {
             playerId,
             validCells: reachableCells,
             origin: currentLoc,
-        };
-    }
-
-    private commitAttack(action: IShipAttackAction) {
-        const { playerId } = action;
-
-        // update for frontend
-        const { players, ships, hulls } = this.calculateAttackResult(action);
-
-        // load actions for eventual submission
-        const thisPlayerIndex = players.findIndex((p) => p.id === playerId);
-        players[thisPlayerIndex].pendingActions = [...players[thisPlayerIndex].pendingActions, action];
-
-        return {
-            type: ResultType.SUCCESS,
-            playerId,
-            players,
-            ships,
-            hulls,
-        };
-    }
-
-    public calculateAttackResult(action: IShipAttackAction) {
-        const ships = this.gsm.gameState.ships;
-        const hulls = this.gsm.gameState.hulls;
-        const players = this.gsm.gameState.players;
-
-        const { attackLocations, playerId, shipId } = action;
-
-        const playerIndex = this.getPlayerIndex(playerId);
-
-        const attackingShip = this.gsm.gameState.getShip(shipId);
-
-        const { attackCommandPointCost, attackDamage } = attackingShip;
-
-        // shipId to hullIds
-        const shipsHit: Record<string, string[]> = {};
-
-        hulls.forEach((hull) => {
-            if (attackLocations.some((loc) => locationToKey(loc) === locationToKey(hull.location))) {
-                shipsHit[hull.shipId] = shipsHit[hull.shipId] || [];
-                shipsHit[hull.shipId].push(hull.id);
-
-                hull.getDamaged(attackDamage);
-            }
-        });
-
-        ships.forEach((ship) => {
-            ship.hulls = hulls.filter((h) => h.shipId === ship.id);
-            ship.resolveDestroyed();
-        });
-
-        attackingShip.reduceAttacksRemaining();
-
-        players[playerIndex].commandPoints -= attackCommandPointCost;
-
-        return {
-            type: ResultType.SUCCESS,
-            hulls,
-            ships,
-            players,
-            shipsHit,
         };
     }
 
@@ -462,10 +284,6 @@ export class GameEngine {
     }
 
     // ================= Helpers =================
-
-    private getPlayerIndex(playerId: string): number {
-        return this.gameState.players.findIndex((p) => p.id === playerId);
-    }
 
     private isFirstPlayer(playerId: string) {
         return this.gsm.gameState.getFirstPlayerId() === playerId;
