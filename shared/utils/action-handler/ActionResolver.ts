@@ -159,6 +159,15 @@ export class ActionResolver {
             throw new Error(`Cannot play card ${action.cardId}: not in player ${action.playerId}'s hand`);
         }
 
+        // Ship cards resolve entirely through the signal engine: the PlayCard
+        // action records as itself, and ShipCard.play emits the deploy cascade
+        // plus the card lifecycle (hand → played). No inner action is synthesised.
+        if (card.isShipCard()) {
+            this.gameState = new GameEngineV2(this.gameState, GameStateManager).run(action);
+            return this.gameState;
+        }
+
+        // Legacy path for Support cards — effects are not signalised yet.
         const innerAction = card.buildAction(
             {
                 id: action.id,
@@ -182,9 +191,6 @@ export class ActionResolver {
 
     private applyInnerAction(action: IPlayerAction) {
         switch (action.type) {
-            case ActionTypes.DEPLOY:
-                this.applyDeploy(action as IDeployAction);
-                return;
             case ActionTypes.SUPPORT:
                 this.pendingSupportActions.push(action as IPlaySupportAction);
                 return;

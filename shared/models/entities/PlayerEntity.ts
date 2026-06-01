@@ -3,6 +3,7 @@ import { Action } from "../actions/Action";
 import { Listener } from "../listeners/Listener";
 import { IListener } from "../listeners/types";
 import { Ship } from "../Ship";
+import { PlayerRemoveCardFromHandSignalHandler } from "../signal-handlers/PlayerRemoveCardFromHandSignalHandler";
 import { PlayerSpendCommandPointsSignalHandler } from "../signal-handlers/PlayerSpendCommandPointsSignalHandler";
 import { SignalType } from "../signals/types";
 import { GameObjectEntity } from "./GameObjectEntity";
@@ -52,7 +53,7 @@ export class PlayerEntity extends GameObjectEntity<PlayerEntity> implements IPla
     }
 
     protected getDefaultListeners(): IListener[] {
-        return [this.createPlayerSpendCommandPointsListener()];
+        return [this.createPlayerSpendCommandPointsListener(), this.createPlayerRemoveCardFromHandListener()];
     }
 
     protected createPlayerSpendCommandPointsListener() {
@@ -65,8 +66,23 @@ export class PlayerEntity extends GameObjectEntity<PlayerEntity> implements IPla
         );
     }
 
+    protected createPlayerRemoveCardFromHandListener() {
+        return new Listener(
+            [SignalType.PlayerRemoveCardFromHand],
+            (ctx) => {
+                new PlayerRemoveCardFromHandSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
     public spendCommandPoints(amount: number) {
         this.commandPoints -= amount;
+        return this;
+    }
+
+    public removeCardFromHand(cardId: string) {
+        this.hand = this.hand.filter((id) => id !== cardId);
         return this;
     }
 

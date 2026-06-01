@@ -1,4 +1,4 @@
-import { ICard, IMEvent, IPlainCard, IPlayerAction, TActionMeta, TPlayCardPayload } from "../types";
+import { ICard, IGameState, IMEvent, IPlainCard, IPlayCardSignalHandleCtx, IPlayerAction, TActionMeta, TPlayCardPayload } from "../types";
 import { CardEntity } from "./entities/CardEntity";
 
 export interface ICardPlaySink {
@@ -39,6 +39,16 @@ export class Card extends CardEntity {
 
     public buildAction(_meta: TActionMeta, _payload: TPlayCardPayload): IPlayerAction {
         throw new Error(`Card ${this.id} (kind=${this.kind}) does not implement buildAction`);
+    }
+
+    /**
+     * Resolve this card through the signal engine: a played card emits the
+     * signals that carry out its effect (a ShipCard emits a deploy + the card
+     * lifecycle). Subclasses that resolve via signals override this; others
+     * (still on the legacy path) leave it unimplemented.
+     */
+    public play(_ctx: IPlayCardSignalHandleCtx): IGameState {
+        throw new Error(`Card ${this.id} (kind=${this.kind}) does not implement play`);
     }
 
     public getSelectionEvent(_handlers: ICardSelectionHandlers): IMEvent {

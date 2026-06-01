@@ -414,6 +414,63 @@ describe("ActionResolver", () => {
             expect(mover?.pendingActions?.map((a) => a.id)).toContain("dep-1");
         });
 
+        it("rejects a deploy onto an occupied tile via the engine validator (no hull created, no CP spent, not recorded)", () => {
+            // player1 already occupies [1,0] in its own deploy row
+            const occupyingHull = hullBuilder.build({ id: "hullOcc", shipId: "shipOcc", location: [1, 0], front: true });
+            const occupyingShip = shipBuilder.build({
+                id: "shipOcc",
+                playerId: "player1",
+                deployed: true,
+                hulls: [occupyingHull],
+            });
+
+            const ship = shipBuilder.build({
+                id: "shipD",
+                playerId: "player1",
+                deployed: false,
+                hulls: [],
+                commandPointCost: 1,
+                hullTemplates: [frigateTemplate],
+            });
+
+            const deployAction: IDeployAction = {
+                id: "dep-occupied",
+                type: ActionTypes.DEPLOY,
+                playerId: "player1",
+                shipId: "shipD",
+                round: 1,
+                order: 0,
+                commandPointCost: 1,
+                location: [1, 0],
+            };
+
+            const player1 = buildPlayer1({ ships: [occupyingShip, ship], commandPoints: 2, maxCommandPoints: 2 });
+            const player2 = buildPlayer2({ ships: [] });
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [occupyingShip, ship],
+                hulls: [occupyingHull],
+                cards: [],
+                decks: [],
+                winners: [],
+                isOver: false,
+            });
+
+            const next = new ActionResolver("player1", gameState).resolveAction(deployAction);
+
+            // invalid → engine.run is a no-op: nothing deployed, no hull, CP untouched, not recorded
+            const attempted = next.ships.find((s) => s.id === "shipD");
+            expect(attempted?.deployed).toBe(false);
+            expect(next.hulls?.some((h) => h.shipId === "shipD")).toBe(false);
+            const player = next.players.find((p) => p.id === "player1");
+            expect(player?.commandPoints).toBe(2);
+            expect(player?.pendingActions?.map((a) => a.id)).not.toContain("dep-occupied");
+        });
+
         it("should resolve actions in initiative order within a turn", () => {
             const moveAction1: IMoveAction = {
                 id: "action1",
@@ -691,8 +748,45 @@ describe("ActionResolver", () => {
             const resolvedDeck = next.decks.find((d) => d.id === "deck-1");
             expect(resolvedDeck?.played.map((c) => c.id)).toEqual(["card-ship"]);
 
-            // Audit trail keeps the outer PlayCardAction, not the synthesised inner Deploy.
+            // Audit trail keeps the PlayCardAction; the deploy is signals, not an action.
             expect(next.actions?.map((a) => a.type)).toEqual([ActionTypes.PLAY_CARD]);
+        });
+
+        it("no-ops a ship-card play onto an occupied tile (PlayCardValidator): card stays in hand, nothing deployed", () => {
+            const { card, deck, ship } = buildShipCardEntities();
+            // player1 already occupies the target tile [1,0] in its own deploy row
+            const occupyingHull = hullBuilder.build({ id: "hullOcc", shipId: "shipOcc", location: [1, 0], front: true });
+            const occupyingShip = shipBuilder.build({
+                id: "shipOcc",
+                playerId: "player1",
+                deployed: true,
+                hulls: [occupyingHull],
+            });
+
+            const player1 = buildPlayer1({ ships: [occupyingShip, ship], hand: ["card-ship"], deck: "deck-1" });
+            const player2 = buildPlayer2();
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [occupyingShip, ship],
+                hulls: [occupyingHull],
+                cards: [card],
+                decks: [deck],
+                winners: [],
+                isOver: false,
+            });
+
+            const action = buildPlayCardAction({ payload: { kind: "Ship", location: [1, 0] } });
+            const next = new ActionResolver("player1", gameState).resolvePlayCard(action);
+
+            // invalid → engine.run is a clean no-op: card retained, nothing deployed/played/recorded
+            expect(next.ships.find((s) => s.id === "ship1")?.deployed).toBe(false);
+            expect(next.players.find((p) => p.id === "player1")?.hand).toEqual(["card-ship"]);
+            expect(next.decks.find((d) => d.id === "deck-1")?.played).toEqual([]);
+            expect(next.actions ?? []).toEqual([]);
         });
 
         it("rejects a play of a card that is not in the player's hand", () => {

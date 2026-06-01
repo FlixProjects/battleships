@@ -2,11 +2,14 @@ import {
     IBasicShipAttackSignalHandleCtx,
     IBasicShipDeploySignalHandleCtx,
     IBasicShipMoveSignalHandleCtx,
+    IDeckAddToPlayedSignalHandleCtx,
     IGameStateCreateHullSignalHandleCtx,
     IHullDestroyedSignalHandleCtx,
     IHullMoveSignalHandleCtx,
     IHullReceiveAttackSignalHandleCtx,
     IHullReceiveDamageSignalHandleCtx,
+    IPlayCardSignalHandleCtx,
+    IPlayerRemoveCardFromHandSignalHandleCtx,
     IPlayerSpendCommandPointsSignalHandleCtx,
     IReceiveShipAttackSignalHandleCtx,
     ISignalHandleCtx,
@@ -24,6 +27,9 @@ export type SignalCtxMap = {
     [SignalType.HullDestroyed]: IHullDestroyedSignalHandleCtx;
     [SignalType.GameStateCreateHull]: IGameStateCreateHullSignalHandleCtx;
     [SignalType.PlayerSpendCommandPoints]: IPlayerSpendCommandPointsSignalHandleCtx;
+    [SignalType.PlayCard]: IPlayCardSignalHandleCtx;
+    [SignalType.PlayerRemoveCardFromHand]: IPlayerRemoveCardFromHandSignalHandleCtx;
+    [SignalType.DeckAddToPlayed]: IDeckAddToPlayedSignalHandleCtx;
 };
 
 export type TListenerCallback<T extends SignalType = SignalType> = (ctx: SignalCtxMap[T]) => void;

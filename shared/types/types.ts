@@ -1,9 +1,12 @@
 import {
+    IDeckAddToPlayedSignalPayload,
     IGameStateCreateHullSignalPayload,
     IHullDestroyedSignalPayload,
     IHullMoveSignalPayload,
     IHullReceiveAttackSignalPayload,
     IHullReceiveDamageSignalPayload,
+    IPlayCardSignalPayload,
+    IPlayerRemoveCardFromHandSignalPayload,
     IPlayerSpendCommandPointsSignalPayload,
     IShipAttackSignalPayload,
     IShipDeploySignalPayload,
@@ -12,7 +15,7 @@ import {
     ISignal,
 } from "@shared/models/signals/types";
 import { AppStatus, CardKind, EFFECT_REF_NO, Faction, SHIP_REF_NO, SUPPORT_REF_NO } from "../config/constants";
-import type { GameState, Hull, Player, Ship } from "../models";
+import type { Card, Deck, GameState, Hull, Player, Ship } from "../models";
 import { ICommand } from "../models/commands/types";
 import { IDeployAction, IMoveAction, IPlayCardAction, IPlayerAction, IShipAttackAction } from "./action-types";
 
@@ -25,7 +28,7 @@ export interface IGame {
 
 export interface IActionResolver {
     resolveAction(action: IPlayerAction): IGameState;
-    resolvePlayCard(action: IPlayCardAction): GameState;
+    resolvePlayCard(action: IPlayCardAction): IGameState;
     resolveDeploy(action: IDeployAction): GameState;
     resolveMove(action: IMoveAction): GameState;
     resolveAttack(action: IShipAttackAction): GameState;
@@ -52,6 +55,8 @@ export interface IGameStateManager {
     getHull(hullId: string): Hull;
     getShipHulls(shipId: string): Hull[];
     getHulls(locations?: ICellLoc[]): Hull[];
+    getCard(cardId: string): Card | undefined;
+    getDeck(deckId: string): Deck | undefined;
     getPlayerHand(playerId: string): ICard[];
     getPlayerIndex(playerId: string): number;
     updatePlayer(player: Partial<IPlayer>): this;
@@ -464,4 +469,16 @@ export interface IPlayerSpendCommandPointsSignalHandleCtx extends ISignalHandleC
 
 export interface IGameStateCreateHullSignalHandleCtx extends ISignalHandleCtx {
     signal: ISignal & { payload: IGameStateCreateHullSignalPayload };
+}
+
+export interface IPlayCardSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IPlayCardSignalPayload };
+}
+
+export interface IPlayerRemoveCardFromHandSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IPlayerRemoveCardFromHandSignalPayload };
+}
+
+export interface IDeckAddToPlayedSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IDeckAddToPlayedSignalPayload };
 }

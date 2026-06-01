@@ -1,4 +1,8 @@
 import { ICard, TCardKind } from "../../types";
+import { Listener } from "../listeners/Listener";
+import { IListener } from "../listeners/types";
+import { PlayCardSignalHandler } from "../signal-handlers/PlayCardSignalHandler";
+import { SignalType } from "../signals/types";
 import { GameObjectEntity } from "./GameObjectEntity";
 
 export class CardEntity extends GameObjectEntity<CardEntity> implements ICard {
@@ -15,5 +19,19 @@ export class CardEntity extends GameObjectEntity<CardEntity> implements ICard {
         this.instanceId = props.instanceId;
         this.kind = props.kind;
         this.refNo = props.refNo;
+    }
+
+    protected getDefaultListeners(): IListener[] {
+        return [this.createPlayCardListener()];
+    }
+
+    protected createPlayCardListener() {
+        return new Listener(
+            [SignalType.PlayCard],
+            (ctx) => {
+                new PlayCardSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
     }
 }

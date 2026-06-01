@@ -2,17 +2,20 @@ import { ActionSignalCreator } from "@shared/models/signal-creators/ActionSignal
 import { BasicShipAttackActionSignalCreator } from "@shared/models/signal-creators/BasicShipAttackActionSignalCreator";
 import { BasicShipDeployActionSignalCreator } from "@shared/models/signal-creators/BasicShipDeployActionSignalCreator";
 import { BasicShipMoveActionSignalCreator } from "@shared/models/signal-creators/BasicShipMoveActionSignalCreator";
+import { PlayCardActionSignalCreator } from "@shared/models/signal-creators/PlayCardActionSignalCreator";
 import {
     ActionTypes,
+    IDeployAction,
     IGameObjectEntity,
     IGameState,
     IGameStateManager,
     IMoveAction,
+    IPlayCardAction,
     IPlayerAction,
     ISignalHandleCtx,
     ResultType,
 } from "..";
-import { MoveShipValidator } from "../utils/validator";
+import { DeployShipValidator, MoveShipValidator, PlayCardValidator } from "../utils/validator";
 import { IValidator } from "../utils/validator/types";
 import { GameObjectEntity } from "./entities/GameObjectEntity";
 import { Signal } from "./signals/Signal";
@@ -26,6 +29,7 @@ export class GameEngine {
         new BasicShipAttackActionSignalCreator(),
         new BasicShipMoveActionSignalCreator(),
         new BasicShipDeployActionSignalCreator(),
+        new PlayCardActionSignalCreator(),
     ];
 
     constructor(
@@ -125,6 +129,12 @@ export class GameEngine {
     private getValidator(action: IPlayerAction): IValidator | null {
         if (action.type === ActionTypes.MOVE) {
             return new MoveShipValidator(this.gameState, action as IMoveAction);
+        }
+        if (action.type === ActionTypes.DEPLOY) {
+            return new DeployShipValidator(this.gameState, action as IDeployAction);
+        }
+        if (action.type === ActionTypes.PLAY_CARD) {
+            return new PlayCardValidator(this.gameState, action as IPlayCardAction);
         }
         return null;
     }
