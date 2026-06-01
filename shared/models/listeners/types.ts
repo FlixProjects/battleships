@@ -3,6 +3,7 @@ import {
     IBasicShipDeploySignalHandleCtx,
     IBasicShipMoveSignalHandleCtx,
     IDeckAddToPlayedSignalHandleCtx,
+    IGameStateCreateEffectSignalHandleCtx,
     IGameStateCreateHullSignalHandleCtx,
     IHullDestroyedSignalHandleCtx,
     IHullMoveSignalHandleCtx,
@@ -30,6 +31,7 @@ export type SignalCtxMap = {
     [SignalType.PlayCard]: IPlayCardSignalHandleCtx;
     [SignalType.PlayerRemoveCardFromHand]: IPlayerRemoveCardFromHandSignalHandleCtx;
     [SignalType.DeckAddToPlayed]: IDeckAddToPlayedSignalHandleCtx;
+    [SignalType.GameStateCreateEffect]: IGameStateCreateEffectSignalHandleCtx;
 };
 
 export type TListenerCallback<T extends SignalType = SignalType> = (ctx: SignalCtxMap[T]) => void;

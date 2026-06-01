@@ -1,5 +1,6 @@
 import {
     IDeckAddToPlayedSignalPayload,
+    IGameStateCreateEffectSignalPayload,
     IGameStateCreateHullSignalPayload,
     IHullDestroyedSignalPayload,
     IHullMoveSignalPayload,
@@ -481,4 +482,8 @@ export interface IPlayerRemoveCardFromHandSignalHandleCtx extends ISignalHandleC
 
 export interface IDeckAddToPlayedSignalHandleCtx extends ISignalHandleCtx {
     signal: ISignal & { payload: IDeckAddToPlayedSignalPayload };
+}
+
+export interface IGameStateCreateEffectSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IGameStateCreateEffectSignalPayload };
 }

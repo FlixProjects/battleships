@@ -9,6 +9,7 @@ import { Listener } from "../listeners/Listener";
 import { IListener } from "../listeners/types";
 import type { Player } from "../Player";
 import type { Ship } from "../Ship";
+import { GameStateCreateEffectSignalHandler } from "../signal-handlers/GameStateCreateEffectSignalHandler";
 import { GameStateCreateHullSignalHandler } from "../signal-handlers/GameStateCreateHullSignalHandler";
 import { SignalType } from "../signals/types";
 import { GameObjectEntity } from "./GameObjectEntity";
@@ -29,7 +30,7 @@ export class GameStateEntity extends GameObjectEntity<GameState> {
     actions: Action[] = [];
 
     protected getDefaultListeners(): IListener[] {
-        return [this.createGameStateCreateHullListener()];
+        return [this.createGameStateCreateHullListener(), this.createGameStateCreateEffectListener()];
     }
 
     // Lifecycle signals address "the world", not a specific entity id, so the
@@ -37,6 +38,12 @@ export class GameStateEntity extends GameObjectEntity<GameState> {
     protected createGameStateCreateHullListener() {
         return new Listener([SignalType.GameStateCreateHull], (ctx) => {
             new GameStateCreateHullSignalHandler().handle(ctx);
+        });
+    }
+
+    protected createGameStateCreateEffectListener() {
+        return new Listener([SignalType.GameStateCreateEffect], (ctx) => {
+            new GameStateCreateEffectSignalHandler().handle(ctx);
         });
     }
 

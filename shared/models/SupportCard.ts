@@ -1,21 +1,24 @@
 import { EFFECTS_CONFIG, SUPPORTS_CONFIG } from "../config/constants";
 import {
-    ActionTypes,
     ICard,
     IEffectConfig,
+    IGameState,
     IMEvent,
     IMEventType,
     IPlainCard,
-    IPlaySupportAction,
+    IPlayCardSignalHandleCtx,
     ISupportCardPayload,
     PlaySupportConfirmIMEvent,
     PlaySupportTargetIMEvent,
-    TActionMeta,
     TEffectRefNo,
-    TPlayCardPayload,
     TSupportRefNo,
 } from "../types";
+import { buildEffect } from "../utils/effect-helper";
 import { Card, ICardSelectionHandlers } from "./Card";
+import { DeckAddToPlayedSignal } from "./signals/DeckAddToPlayedSignal";
+import { GameStateCreateEffectSignal } from "./signals/GameStateCreateEffectSignal";
+import { PlayerRemoveCardFromHandSignal } from "./signals/PlayerRemoveCardFromHandSignal";
+import { PlayerSpendCommandPointsSignal } from "./signals/PlayerSpendCommandPointsSignal";
 
 export class SupportCard extends Card {
     public readonly name: string;
@@ -46,20 +49,57 @@ export class SupportCard extends Card {
         }
     }
 
-    public buildAction(meta: TActionMeta, payload: TPlayCardPayload): IPlaySupportAction {
-        if (payload.kind !== "Support") {
-            throw new Error(
-                `SupportCard ${this.id} received non-Support payload (kind=${payload.kind}); cannot build support action`,
-            );
+    public play(ctx: IPlayCardSignalHandleCtx): IGameState {
+        const { gsm, signal, emitter } = ctx;
+        const { playerId, cardPayload } = signal.payload;
+
+        if (cardPayload.kind !== "Support") {
+            throw new Error(`SupportCard ${this.id} received non-Support payload (kind=${cardPayload.kind}); cannot play`);
         }
-        const supportPayload = payload as ISupportCardPayload;
-        return {
-            ...meta,
-            type: ActionTypes.SUPPORT,
-            cardId: this.id,
-            supportRefNo: this.refNo,
-            targetCell: supportPayload.targetCell,
-        };
+        const { targetCell } = cardPayload as ISupportCardPayload;
+        const currentRound = gsm.gameState.currentRound;
+
+        this.effects.forEach((effectConfig) => {
+            const effect = buildEffect({ effectConfig, playerId, cardId: this.id, targetCell, currentRound });
+
+            // Immediate on-play impact — emits its own signals (no-op for passive vision).
+            effect.resolve(ctx);
+
+            // Effects with a lifetime are born into the world (GameState owns the collection).
+            if (effectConfig.duration > 0) {
+                emitter([
+                    new GameStateCreateEffectSignal({
+                        senderId: this.id,
+                        originId: signal.id,
+                        payload: { effect: effect.toPlain() },
+                    }),
+                ]);
+            }
+        });
+
+        emitter([
+            new PlayerSpendCommandPointsSignal({
+                targetId: playerId,
+                senderId: this.id,
+                originId: signal.id,
+                payload: { playerId, amount: this.commandPointCost },
+            }),
+            // Card lifecycle — same as ShipCard: Player owns the hand, Deck owns the played pile.
+            new PlayerRemoveCardFromHandSignal({
+                targetId: playerId,
+                senderId: this.id,
+                originId: signal.id,
+                payload: { playerId, cardId: this.id },
+            }),
+            new DeckAddToPlayedSignal({
+                targetId: this.deckId,
+                senderId: this.id,
+                originId: signal.id,
+                payload: { deckId: this.deckId, cardId: this.id },
+            }),
+        ]);
+
+        return gsm.gameState;
     }
 
     public getSelectionEvent(handlers: ICardSelectionHandlers): IMEvent {

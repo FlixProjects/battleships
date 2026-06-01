@@ -3,7 +3,6 @@ import {
     IResolveStepContext,
     ResolveAttackStep,
     ResolveDeployStep,
-    ResolveEffectsStep,
     ResolveMoveStep,
     ResolvePlayCardStep,
     createResolvePipeline,
@@ -30,9 +29,6 @@ class FakeCtx implements IResolveStepContext {
     resolveAttack(): IGameState {
         this.calls.push("attack");
         return tag("attack");
-    }
-    resolvePendingSupportEffects(): void {
-        this.calls.push("pendingSupportEffects");
     }
 }
 
@@ -62,17 +58,6 @@ describe("resolve steps (isolation)", () => {
         }
     });
 
-    it("ResolveEffectsStep drains pending support effects for every action type (Step 8)", () => {
-        const effects = new ResolveEffectsStep();
-        for (const { type } of cases) {
-            const ctx = new FakeCtx();
-            effects.resolve(actionOf(type), ctx);
-            // Drains regardless of action type — pending queue is empty when
-            // there are no PlayCard(Support) inner-actions, so calling is safe.
-            expect(ctx.calls).toEqual(["pendingSupportEffects"]);
-            expect(ctx.gameState).toEqual(tag("initial"));
-        }
-    });
 });
 
 describe("createResolvePipeline", () => {
@@ -82,18 +67,15 @@ describe("createResolvePipeline", () => {
             // "ResolveDeploy", // migrated to GameEngineV2
             // "ResolveMove", // migrated to GameEngineV2
             // "ResolveAttack", // migrated to GameEngineV2
-            "ResolveEffects",
         ]);
     });
 
-    it("running the whole pipeline invokes the matching resolver once + drains support effects", () => {
+    it("running the whole pipeline invokes the matching resolver once", () => {
         const ctx = new FakeCtx();
         for (const step of createResolvePipeline()) {
             step.resolve(actionOf(ActionTypes.PLAY_CARD), ctx);
         }
-        // ResolveEffectsStep always drains the pending-support queue (no-op
-        // when empty) — so the final call is always pendingSupportEffects.
-        expect(ctx.calls).toEqual(["playCard", "pendingSupportEffects"]);
+        expect(ctx.calls).toEqual(["playCard"]);
         expect(ctx.gameState).toEqual(tag("playCard"));
     });
 });

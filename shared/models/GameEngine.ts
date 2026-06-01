@@ -1,16 +1,13 @@
-import { computeDeployedHullLocation, HullCalculator as _HullCalculator } from "@shared/utils/hull-helper";
-import { v7 as uuidv7 } from "uuid";
+import { HullCalculator as _HullCalculator, computeDeployedHullLocation } from "@shared/utils/hull-helper";
 import { EFFECTS_CONFIG, SUPPORTS_CONFIG } from "../config/constants";
 import { BOARD_COLUMNS, BOARD_ROWS } from "../constants";
 import { GameStateManager } from "../models";
 import {
     EffectAnchor,
-    EffectKind,
     IAttackResult,
     ICellLoc,
     IDeployAction,
     IDeployResult,
-    IEffect,
     IEffectConfig,
     IErrorResult,
     IGameState,
@@ -25,14 +22,13 @@ import {
     IMoveResult,
     IResult,
     IShipAttackAction,
-    IVisionEffectPayload,
     ResultType,
     TEffectRefNo,
     THullCalculatorConstructor,
-    TSupportRefNo,
+    TSupportRefNo
 } from "../types";
 import { keyToLocation, LocationHelper, locationToKey, PathHelper } from "../utils";
-import { createEffect } from "../utils/effect-helper";
+import { buildEffect as buildEffectFromConfig } from "../utils/effect-helper";
 import { cellLocToNodeId, nodeIdToCellLoc, PathFinder, routeToCellLocs } from "../utils/path-finder";
 import { MoveShipValidator } from "../utils/validator";
 import { Movement } from "./Movement";
@@ -430,38 +426,9 @@ export class GameEngine {
         targetCell?: ICellLoc;
         currentRound: number;
     }) {
-        const { effectConfig, playerId, cardId, targetCell, currentRound } = args;
-        const expiresAfterRound = effectConfig.duration > 0 ? currentRound + effectConfig.duration : undefined;
-
-        const payload =
-            effectConfig.kind === EffectKind.Vision
-                ? this.buildVisionPayload(effectConfig, targetCell)
-                : ({ kind: EffectKind.CommandPoint, amount: 0 } as const);
-
-        const plain: IEffect = {
-            id: uuidv7(),
-            refNo: effectConfig.refNo,
-            kind: effectConfig.kind,
-            sourceCardId: cardId,
-            playerId,
-            createdOnRound: currentRound,
-            expiresAfterRound,
-            existsOnBoard: effectConfig.existsOnBoard,
-            payload,
-            location: targetCell,
-        };
-        return createEffect(plain);
-    }
-
-    private buildVisionPayload(effectConfig: IEffectConfig, targetCell?: ICellLoc): IVisionEffectPayload {
-        if (!targetCell) {
-            throw new Error(`Vision Effect '${effectConfig.refNo}' requires a targetCell`);
-        }
-        return {
-            kind: EffectKind.Vision,
-            center: targetCell,
-            range: effectConfig.range,
-        };
+        // Superseded by the pure `buildEffect` in effect-helper (shared with
+        // SupportCard.play); retire with the rest of GameEngine.
+        return buildEffectFromConfig(args);
     }
 
     public calculateWinner() {

@@ -1,5 +1,5 @@
 import { TPlayCardPayload } from "@shared/types/action-types";
-import { ICellLoc, IHull } from "@shared/types/types";
+import { ICellLoc, IEffect, IHull } from "@shared/types/types";
 import type { Ship } from "../Ship";
 
 export interface ISignal {
@@ -25,6 +25,7 @@ export const SignalType = {
     PlayCard: "PlayCard",
     PlayerRemoveCardFromHand: "PlayerRemoveCardFromHand",
     DeckAddToPlayed: "DeckAddToPlayed",
+    GameStateCreateEffect: "GameStateCreateEffect",
 } as const;
 
 export type SignalType = (typeof SignalType)[keyof typeof SignalType];
@@ -96,6 +97,10 @@ export interface IPlayerRemoveCardFromHandSignalPayload extends ISignalPayload {
 export interface IDeckAddToPlayedSignalPayload extends ISignalPayload {
     deckId: string;
     cardId: string;
+}
+
+export interface IGameStateCreateEffectSignalPayload extends ISignalPayload {
+    effect: IEffect;
 }
 
 export interface IAttackPayload {

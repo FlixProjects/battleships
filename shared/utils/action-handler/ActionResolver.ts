@@ -1,4 +1,4 @@
-import { EFFECTS_CONFIG, MAX_HAND_SIZE, SUPPORTS_CONFIG } from "../../config/constants";
+import { MAX_HAND_SIZE } from "../../config/constants";
 import { ERROR_CODE } from "../../constants";
 import { GameEngine, GameStateManager } from "../../models";
 import { GameEngine as GameEngineV2 } from "../../models/GameEngineV2";
@@ -8,14 +8,11 @@ import {
     IDeployAction,
     IMoveAction,
     IPlayCardAction,
-    IPlaySupportAction,
     IPlayerAction,
     IShipAttackAction,
     IResult,
     IGameState,
     ResultType,
-    TEffectRefNo,
-    TSupportRefNo,
 } from "../../types";
 
 export class ActionResolver {
@@ -23,9 +20,6 @@ export class ActionResolver {
     public results: IResult[] = [];
     public player1Actions: IPlayerAction[];
     public player2Actions: IPlayerAction[];
-    // Support inner-actions queued by ResolvePlayCardStep, drained by
-    // ResolveEffectsStep within the same resolveAction() pass
-    public pendingSupportActions: IPlaySupportAction[] = [];
     private readonly resolveSteps: IResolveStep[] = createResolvePipeline();
 
     constructor(
@@ -159,85 +153,12 @@ export class ActionResolver {
             throw new Error(`Cannot play card ${action.cardId}: not in player ${action.playerId}'s hand`);
         }
 
-        // Ship cards resolve entirely through the signal engine: the PlayCard
-        // action records as itself, and ShipCard.play emits the deploy cascade
-        // plus the card lifecycle (hand → played). No inner action is synthesised.
-        if (card.isShipCard()) {
-            this.gameState = new GameEngineV2(this.gameState, GameStateManager).run(action);
-            return this.gameState;
-        }
-
-        // Legacy path for Support cards — effects are not signalised yet.
-        const innerAction = card.buildAction(
-            {
-                id: action.id,
-                order: action.order,
-                round: action.round,
-                playerId: action.playerId,
-                commandPointCost: action.commandPointCost,
-            },
-            action.payload,
-        );
-
-        this.applyInnerAction(innerAction);
-
-        // Card hand → deck.played; PlayCardAction is the audit-trail entry.
-        const next = new GameStateManager(this.gameState);
-        next.gameState.playCard(action.playerId, action.cardId);
-        this.trackAction(next, action);
-        this.gameState = next.gameState;
-        return next.gameState;
-    }
-
-    private applyInnerAction(action: IPlayerAction) {
-        switch (action.type) {
-            case ActionTypes.SUPPORT:
-                this.pendingSupportActions.push(action as IPlaySupportAction);
-                return;
-            default:
-                throw new Error(`Unsupported inner action type: ${action.type}`);
-        }
-    }
-
-    public resolvePendingSupportEffects() {
-        for (const action of this.pendingSupportActions) {
-            this.applySupportAction(action);
-        }
-        this.pendingSupportActions = [];
-    }
-
-    private applySupportAction(action: IPlaySupportAction) {
-        const { playerId, supportRefNo, cardId, targetCell, commandPointCost } = action;
-
-        const supportConfig = SUPPORTS_CONFIG[supportRefNo as TSupportRefNo];
-        if (!supportConfig) {
-            throw new Error(`applySupportAction: unknown SupportCard refNo '${supportRefNo}'`);
-        }
-
-        const gsm = new GameStateManager(this.gameState);
-        const gameEngine = new GameEngine(this.gameState);
-        const player = gsm.getPlayer(playerId);
-        const currentRound = gsm.gameState.currentRound;
-
-        supportConfig.effects.forEach((effectRefNo) => {
-            const effectConfig = EFFECTS_CONFIG[effectRefNo as TEffectRefNo];
-            if (!effectConfig) {
-                throw new Error(`applySupportAction: no EffectConfig for refNo '${effectRefNo}'`);
-            }
-            const effect = gameEngine.buildEffect({ effectConfig, playerId, cardId, targetCell, currentRound });
-
-            // Resolve once on the action turn — a no-op for passive vision effects;
-            // matters for one-shot effects (e.g. damage / instant CP grants).
-            effect.resolve(gsm);
-
-            if (effectConfig.duration > 0) {
-                gsm.addEffect(effect);
-            }
-        });
-
-        player.commandPoints -= commandPointCost;
-        gsm.updatePlayer(player);
-        this.gameState = gsm.gameState;
+        // Every card resolves itself through the signal engine: PlayCardSignal →
+        // card.play(ctx) emits the card's cascade (ShipCard → deploy, SupportCard
+        // → effect creation) plus the card lifecycle (hand → played). The PlayCard
+        // action records as itself; no inner action is synthesised.
+        this.gameState = new GameEngineV2(this.gameState, GameStateManager).run(action);
+        return this.gameState;
     }
 
     public resolveDeploy(action: IDeployAction) {

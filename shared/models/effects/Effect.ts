@@ -1,21 +1,25 @@
 import { locationToKey } from "@shared/utils";
-import { IEffect, IGameStateManager, IPlainEffect } from "../../types";
+import { IEffect, IGameStateManager, IPlainEffect, ISignalHandleCtx } from "../../types";
 import { EffectEntity } from "../entities/EffectEntity";
 
 /**
- * Concrete subclasses implement `resolve(gsm)` for the immediate, on-action effect
+ * Concrete subclasses implement `resolve(ctx)` for the immediate, on-play impact.
+ * It runs inside the play cascade, so an Effect applies itself by **emitting
+ * signals** via `ctx.emitter` (e.g. a damage Effect emits `HullReceiveAttack`),
+ * never by mutating other entities directly. Passive Effects (vision) are no-ops.
  */
 export class Effect extends EffectEntity {
     constructor(props: Readonly<IEffect>) {
         super(props);
     }
 
-    public resolve(_gsm: IGameStateManager): void {
+    public resolve(_ctx: ISignalHandleCtx): void {
         throw new Error(`Effect ${this.id} (refNo=${this.refNo}) does not implement resolve`);
     }
 
     public resolveTick(_gsm: IGameStateManager): void {
         // Default no-op. Persistent Effects (e.g. FlarePersistentEffect) override.
+        // Per-turn ticks remain resolver-driven until Phase B (turn-lifecycle signals).
     }
 
     public isPersistent(): boolean {
