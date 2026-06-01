@@ -7,7 +7,6 @@ import {
     ActionTypes,
     IDeployAction,
     IMoveAction,
-    IPlayCardAction,
     IPlayerAction,
     IShipAttackAction,
     IResult,
@@ -123,41 +122,25 @@ export class ActionResolver {
         this.gameState = gsm.gameState;
     }
 
-    // Fixed, ordered pipeline (C1 / Decision 2): every step runs, each a no-op
-    // unless the action is relevant to it. Replaces the per-type switch.
-    // Action types are mutually exclusive so this is behaviour-identical.
+    // Deploy / Move / Attack / PlayCard all resolve through the signal engine.
+    // For PlayCard the engine routes PlayCardSignal → card.play(ctx) (ShipCard →
+    // deploy, SupportCard → effect creation) + the card lifecycle; PlayCardValidator
+    // guards card-exists / card-in-hand, so an invalid play is a clean no-op.
+    // The trailing step loop is the (currently empty) extension point for any
+    // non-engine resolution; all action types now go through engine.run.
     public resolveAction(action: IPlayerAction) {
         const engine = new GameEngineV2(this.gameState, GameStateManager);
         if (
             action.type === ActionTypes.ATTACK ||
             action.type === ActionTypes.MOVE ||
-            action.type === ActionTypes.DEPLOY
+            action.type === ActionTypes.DEPLOY ||
+            action.type === ActionTypes.PLAY_CARD
         ) {
             this.gameState = engine.run(action);
         }
         for (const step of this.resolveSteps) {
             step.resolve(action, this);
         }
-        return this.gameState;
-    }
-
-    public resolvePlayCard(action: IPlayCardAction) {
-        const gsm = new GameStateManager(this.gameState);
-        const player = gsm.getPlayer(action.playerId);
-        const card = gsm.getCard(action.cardId);
-
-        if (!card) {
-            throw new Error(`Cannot play card ${action.cardId}: card not found`);
-        }
-        if (!player.hand.includes(action.cardId)) {
-            throw new Error(`Cannot play card ${action.cardId}: not in player ${action.playerId}'s hand`);
-        }
-
-        // Every card resolves itself through the signal engine: PlayCardSignal →
-        // card.play(ctx) emits the card's cascade (ShipCard → deploy, SupportCard
-        // → effect creation) plus the card lifecycle (hand → played). The PlayCard
-        // action records as itself; no inner action is synthesised.
-        this.gameState = new GameEngineV2(this.gameState, GameStateManager).run(action);
         return this.gameState;
     }
 

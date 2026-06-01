@@ -1,12 +1,5 @@
 import { ActionTypes, IGameState, IPlayerAction } from "../../../../types";
-import {
-    IResolveStepContext,
-    ResolveAttackStep,
-    ResolveDeployStep,
-    ResolveMoveStep,
-    ResolvePlayCardStep,
-    createResolvePipeline,
-} from "..";
+import { IResolveStepContext, ResolveAttackStep, ResolveDeployStep, ResolveMoveStep, createResolvePipeline } from "..";
 
 const tag = (name: string) => ({ tag: name }) as unknown as IGameState;
 const actionOf = (type: string) => ({ type }) as unknown as IPlayerAction;
@@ -14,10 +7,6 @@ const actionOf = (type: string) => ({ type }) as unknown as IPlayerAction;
 class FakeCtx implements IResolveStepContext {
     public gameState: IGameState = tag("initial");
     public calls: string[] = [];
-    resolvePlayCard(): IGameState {
-        this.calls.push("playCard");
-        return tag("playCard");
-    }
     resolveDeploy(): IGameState {
         this.calls.push("deploy");
         return tag("deploy");
@@ -33,8 +22,9 @@ class FakeCtx implements IResolveStepContext {
 }
 
 describe("resolve steps (isolation)", () => {
+    // The step classes are retained (commented out of the pipeline) as templates
+    // for the non-engine resolution pattern; their isolation behaviour still holds.
     const cases = [
-        { step: new ResolvePlayCardStep(), type: ActionTypes.PLAY_CARD, call: "playCard" },
         { step: new ResolveDeployStep(), type: ActionTypes.DEPLOY, call: "deploy" },
         { step: new ResolveMoveStep(), type: ActionTypes.MOVE, call: "move" },
         { step: new ResolveAttackStep(), type: ActionTypes.ATTACK, call: "attack" },
@@ -57,25 +47,10 @@ describe("resolve steps (isolation)", () => {
             expect(ctx.gameState).toEqual(tag("initial"));
         }
     });
-
 });
 
 describe("createResolvePipeline", () => {
-    it("is the fixed ordered set, no win-check step (winner stays turn-level)", () => {
-        expect(createResolvePipeline().map((s) => s.name)).toEqual([
-            "ResolvePlayCard",
-            // "ResolveDeploy", // migrated to GameEngineV2
-            // "ResolveMove", // migrated to GameEngineV2
-            // "ResolveAttack", // migrated to GameEngineV2
-        ]);
-    });
-
-    it("running the whole pipeline invokes the matching resolver once", () => {
-        const ctx = new FakeCtx();
-        for (const step of createResolvePipeline()) {
-            step.resolve(actionOf(ActionTypes.PLAY_CARD), ctx);
-        }
-        expect(ctx.calls).toEqual(["playCard"]);
-        expect(ctx.gameState).toEqual(tag("playCard"));
+    it("is empty — every action type now resolves through GameEngineV2 in resolveAction", () => {
+        expect(createResolvePipeline()).toEqual([]);
     });
 });

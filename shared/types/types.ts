@@ -29,7 +29,6 @@ export interface IGame {
 
 export interface IActionResolver {
     resolveAction(action: IPlayerAction): IGameState;
-    resolvePlayCard(action: IPlayCardAction): IGameState;
     resolveDeploy(action: IDeployAction): GameState;
     resolveMove(action: IMoveAction): GameState;
     resolveAttack(action: IShipAttackAction): GameState;

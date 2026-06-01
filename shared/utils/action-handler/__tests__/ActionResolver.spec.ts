@@ -661,7 +661,7 @@ describe("ActionResolver", () => {
         });
     });
 
-    describe("resolvePlayCard (Ship card → Deploy)", () => {
+    describe("resolveAction (PlayCard: Ship card → Deploy)", () => {
         const buildPlayCardAction = (overrides: Partial<IPlayCardAction> = {}): IPlayCardAction => ({
             id: "play-action-1",
             type: ActionTypes.PLAY_CARD,
@@ -734,7 +734,7 @@ describe("ActionResolver", () => {
             });
 
             const resolver = new ActionResolver("player1", gameState);
-            const next = resolver.resolvePlayCard(action);
+            const next = resolver.resolveAction(action);
 
             const resolvedShip = next.ships.find((s) => s.id === "ship1");
             expect(resolvedShip?.deployed).toBe(true);
@@ -780,7 +780,7 @@ describe("ActionResolver", () => {
             });
 
             const action = buildPlayCardAction({ payload: { kind: "Ship", location: [1, 0] } });
-            const next = new ActionResolver("player1", gameState).resolvePlayCard(action);
+            const next = new ActionResolver("player1", gameState).resolveAction(action);
 
             // invalid → engine.run is a clean no-op: card retained, nothing deployed/played/recorded
             expect(next.ships.find((s) => s.id === "ship1")?.deployed).toBe(false);
@@ -789,7 +789,7 @@ describe("ActionResolver", () => {
             expect(next.actions ?? []).toEqual([]);
         });
 
-        it("rejects a play of a card that is not in the player's hand", () => {
+        it("no-ops a play of a card that is not in the player's hand (PlayCardValidator)", () => {
             const { card, deck, ship } = buildShipCardEntities();
             const player1 = buildPlayer1({ ships: [ship], hand: [], deck: "deck-1" });
             const player2 = buildPlayer2();
@@ -808,12 +808,15 @@ describe("ActionResolver", () => {
             });
 
             const action = buildPlayCardAction();
-            const resolver = new ActionResolver("player1", gameState);
-            expect(() => resolver.resolvePlayCard(action)).toThrow(/not in player .* hand/);
+            const next = new ActionResolver("player1", gameState).resolveAction(action);
+
+            // card-in-hand check now lives in PlayCardValidator → invalid play is a clean no-op
+            expect(next.ships.find((s) => s.id === "ship1")?.deployed).toBe(false);
+            expect(next.actions ?? []).toEqual([]);
         });
     });
 
-    describe("resolvePlayCard (Support card → Flare)", () => {
+    describe("resolveAction (PlayCard: Support card → Flare)", () => {
         const buildFlareCardEntities = () => {
             const card: ICard = {
                 id: "card-flare",

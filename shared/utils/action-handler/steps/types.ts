@@ -1,4 +1,4 @@
-import { IDeployAction, IGameState, IMoveAction, IPlayCardAction, IPlayerAction, IShipAttackAction } from "../../../types";
+import { IDeployAction, IGameState, IMoveAction, IPlayerAction, IShipAttackAction } from "../../../types";
 
 /**
  * The narrow surface a resolve step is allowed to touch on the resolver.
@@ -8,7 +8,6 @@ import { IDeployAction, IGameState, IMoveAction, IPlayCardAction, IPlayerAction,
  */
 export interface IResolveStepContext {
     gameState: IGameState;
-    resolvePlayCard(action: IPlayCardAction): IGameState;
     resolveDeploy(action: IDeployAction): IGameState;
     resolveMove(action: IMoveAction): IGameState;
     resolveAttack(action: IShipAttackAction): IGameState;

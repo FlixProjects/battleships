@@ -30,6 +30,15 @@ export class PlayCardValidator extends Validator {
             } as IErrorResult;
         }
 
+        const player = this.gameState.getPlayer(playerId);
+        if (!player || !player.hand.includes(cardId)) {
+            return {
+                type: ResultType.ERROR,
+                errorCode: ERROR_CODE.PLAY_CARD_ERROR_NOT_IN_HAND,
+                message: `Card ${cardId} is not in player ${playerId}'s hand`,
+            } as IErrorResult;
+        }
+
         if (card.kind === CardKind.Ship) {
             return new DeployShipValidator(this.gameState, this.toDeployAction(card.instanceId)).validate();
         }
