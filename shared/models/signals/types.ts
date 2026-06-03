@@ -25,7 +25,13 @@ export const SignalType = {
     PlayCard: "PlayCard",
     PlayerRemoveCardFromHand: "PlayerRemoveCardFromHand",
     DeckAddToPlayed: "DeckAddToPlayed",
-    GameStateCreateEffect: "GameStateCreateEffect",
+    GameCreateEffect: "GameCreateEffect",
+    GamePersistentEffectsTick: "GamePersistentEffectsTick",
+    GameWinnerDetermined: "GameWinnerDetermined",
+    GameRotateInitiative: "GameRotateInitiative",
+    GameRemoveSubmissionCommandPoints: "GameRemoveSubmissionCommandPoints",
+    GameRemoveExpiredEffects: "GameRemoveExpiredEffects",
+    GameRefillHands: "GameRefillHands",
 } as const;
 
 export type SignalType = (typeof SignalType)[keyof typeof SignalType];
@@ -74,7 +80,7 @@ export interface IHullDestroyedSignalPayload extends ISignalPayload {
     shipId: string;
 }
 
-export interface IGameStateCreateHullSignalPayload extends ISignalPayload {
+export interface IGameCreateHullSignalPayload extends ISignalPayload {
     hull: IHull;
     shipId: string;
 }
@@ -99,8 +105,16 @@ export interface IDeckAddToPlayedSignalPayload extends ISignalPayload {
     cardId: string;
 }
 
-export interface IGameStateCreateEffectSignalPayload extends ISignalPayload {
+export interface IGameCreateEffectSignalPayload extends ISignalPayload {
     effect: IEffect;
+}
+
+export interface IGameRemoveSubmissionCommandPointsSignalPayload extends ISignalPayload {
+    playerId: string;
+}
+
+export interface IGameRefillHandsSignalPayload extends ISignalPayload {
+    maxHandSize: number;
 }
 
 export interface IAttackPayload {

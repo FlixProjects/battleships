@@ -1,8 +1,8 @@
-import { IGameStateCreateHullSignalHandleCtx } from "@shared/types/types";
+import { IGameCreateHullSignalHandleCtx } from "@shared/types/types";
 import { SignalHandler } from "./SignalHandler";
 
-export class GameStateCreateHullSignalHandler extends SignalHandler {
-    handle(ctx: IGameStateCreateHullSignalHandleCtx) {
+export class GameCreateHullSignalHandler extends SignalHandler {
+    handle(ctx: IGameCreateHullSignalHandleCtx) {
         const { gsm, saveNewState } = ctx;
         const { hull, shipId } = ctx.signal.payload;
 

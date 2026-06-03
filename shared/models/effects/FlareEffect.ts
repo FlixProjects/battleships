@@ -1,4 +1,4 @@
-import { IEffect, IGameStateManager, ISignalHandleCtx } from "../../types";
+import { IEffect, IGameState, ISignalHandleCtx } from "../../types";
 import { registerEffect } from "../../utils/effect-helper";
 import { EFFECT_REF_NO } from "../../config/constants";
 import { Effect } from "./Effect";
@@ -18,7 +18,7 @@ export class FlareEffect extends Effect {
         // Vision is read live from gameState.effects — no on-play impact to emit.
     }
 
-    public resolveTick(_gsm: IGameStateManager): void {
+    public resolveTick(_gameState: IGameState): void {
         // Same as resolve — passive vision, no per-round mutation.
     }
 }

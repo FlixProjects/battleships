@@ -3,8 +3,8 @@ import {
     IBasicShipDeploySignalHandleCtx,
     IBasicShipMoveSignalHandleCtx,
     IDeckAddToPlayedSignalHandleCtx,
-    IGameStateCreateEffectSignalHandleCtx,
-    IGameStateCreateHullSignalHandleCtx,
+    IGameCreateEffectSignalHandleCtx,
+    IGameCreateHullSignalHandleCtx,
     IHullDestroyedSignalHandleCtx,
     IHullMoveSignalHandleCtx,
     IHullReceiveAttackSignalHandleCtx,
@@ -13,6 +13,8 @@ import {
     IPlayerRemoveCardFromHandSignalHandleCtx,
     IPlayerSpendCommandPointsSignalHandleCtx,
     IReceiveShipAttackSignalHandleCtx,
+    IGameRefillHandsSignalHandleCtx,
+    IGameRemoveSubmissionCommandPointsSignalHandleCtx,
     ISignalHandleCtx,
 } from "@shared/types/types";
 import { SignalType } from "../signals/types";
@@ -26,12 +28,18 @@ export type SignalCtxMap = {
     [SignalType.HullReceiveDamage]: IHullReceiveDamageSignalHandleCtx;
     [SignalType.HullMove]: IHullMoveSignalHandleCtx;
     [SignalType.HullDestroyed]: IHullDestroyedSignalHandleCtx;
-    [SignalType.GameStateCreateHull]: IGameStateCreateHullSignalHandleCtx;
+    [SignalType.GameStateCreateHull]: IGameCreateHullSignalHandleCtx;
     [SignalType.PlayerSpendCommandPoints]: IPlayerSpendCommandPointsSignalHandleCtx;
     [SignalType.PlayCard]: IPlayCardSignalHandleCtx;
     [SignalType.PlayerRemoveCardFromHand]: IPlayerRemoveCardFromHandSignalHandleCtx;
     [SignalType.DeckAddToPlayed]: IDeckAddToPlayedSignalHandleCtx;
-    [SignalType.GameStateCreateEffect]: IGameStateCreateEffectSignalHandleCtx;
+    [SignalType.GameCreateEffect]: IGameCreateEffectSignalHandleCtx;
+    [SignalType.GamePersistentEffectsTick]: ISignalHandleCtx;
+    [SignalType.GameWinnerDetermined]: ISignalHandleCtx;
+    [SignalType.GameRotateInitiative]: ISignalHandleCtx;
+    [SignalType.GameRemoveSubmissionCommandPoints]: IGameRemoveSubmissionCommandPointsSignalHandleCtx;
+    [SignalType.GameRemoveExpiredEffects]: ISignalHandleCtx;
+    [SignalType.GameRefillHands]: IGameRefillHandsSignalHandleCtx;
 };
 
 export type TListenerCallback<T extends SignalType = SignalType> = (ctx: SignalCtxMap[T]) => void;

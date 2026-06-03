@@ -1,8 +1,8 @@
-import { IGameStateCreateEffectSignalHandleCtx } from "@shared/types/types";
+import { IGameCreateEffectSignalHandleCtx } from "@shared/types/types";
 import { SignalHandler } from "./SignalHandler";
 
-export class GameStateCreateEffectSignalHandler extends SignalHandler {
-    handle(ctx: IGameStateCreateEffectSignalHandleCtx) {
+export class GameCreateEffectSignalHandler extends SignalHandler {
+    handle(ctx: IGameCreateEffectSignalHandleCtx) {
         const { gsm, saveNewState } = ctx;
         const { effect } = ctx.signal.payload;
 

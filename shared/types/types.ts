@@ -1,7 +1,9 @@
 import {
     IDeckAddToPlayedSignalPayload,
-    IGameStateCreateEffectSignalPayload,
-    IGameStateCreateHullSignalPayload,
+    IGameCreateEffectSignalPayload,
+    IGameCreateHullSignalPayload,
+    IGameRefillHandsSignalPayload,
+    IGameRemoveSubmissionCommandPointsSignalPayload,
     IHullDestroyedSignalPayload,
     IHullMoveSignalPayload,
     IHullReceiveAttackSignalPayload,
@@ -18,7 +20,7 @@ import {
 import { AppStatus, CardKind, EFFECT_REF_NO, Faction, SHIP_REF_NO, SUPPORT_REF_NO } from "../config/constants";
 import type { Card, Deck, GameState, Hull, Player, Ship } from "../models";
 import { ICommand } from "../models/commands/types";
-import { IDeployAction, IMoveAction, IPlayCardAction, IPlayerAction, IShipAttackAction } from "./action-types";
+import { IPlayerAction } from "./action-types";
 
 export interface IGame {
     queueCommand(command: ICommand): Promise<void>;
@@ -464,8 +466,8 @@ export interface IPlayerSpendCommandPointsSignalHandleCtx extends ISignalHandleC
     signal: ISignal & { payload: IPlayerSpendCommandPointsSignalPayload };
 }
 
-export interface IGameStateCreateHullSignalHandleCtx extends ISignalHandleCtx {
-    signal: ISignal & { payload: IGameStateCreateHullSignalPayload };
+export interface IGameCreateHullSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IGameCreateHullSignalPayload };
 }
 
 export interface IPlayCardSignalHandleCtx extends ISignalHandleCtx {
@@ -480,6 +482,14 @@ export interface IDeckAddToPlayedSignalHandleCtx extends ISignalHandleCtx {
     signal: ISignal & { payload: IDeckAddToPlayedSignalPayload };
 }
 
-export interface IGameStateCreateEffectSignalHandleCtx extends ISignalHandleCtx {
-    signal: ISignal & { payload: IGameStateCreateEffectSignalPayload };
+export interface IGameCreateEffectSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IGameCreateEffectSignalPayload };
+}
+
+export interface IGameRemoveSubmissionCommandPointsSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IGameRemoveSubmissionCommandPointsSignalPayload };
+}
+
+export interface IGameRefillHandsSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IGameRefillHandsSignalPayload };
 }

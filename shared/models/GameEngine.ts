@@ -253,36 +253,6 @@ export class GameEngine {
         return buildEffectFromConfig(args);
     }
 
-    public calculateWinner() {
-        const gameState = this.gsm.gameState;
-        const losers = new Set();
-
-        try {
-            const flagships = gameState.ships.filter((s) => s.isFlagship);
-
-            flagships.forEach((fs) => {
-                if (fs.destroyed) {
-                    losers.add(fs.playerId);
-                }
-            });
-
-            const players = gameState.players.map((p) => p.id);
-
-            if (losers.size === players.length) {
-                return { type: ResultType.SUCCESS, winners: players, isOver: true }; // Game end: Draw
-            }
-
-            if (losers.size === players.length - 1) {
-                const winners = players.filter((p) => !losers.has(p));
-                return { type: ResultType.SUCCESS, winners, isOver: true }; // Game end: 1 winner
-            }
-
-            return { type: ResultType.SUCCESS, winners: [], isOver: false }; // Game continues
-        } catch (error) {
-            return { type: ResultType.ERROR, error };
-        }
-    }
-
     // ================= Helpers =================
 
     private isFirstPlayer(playerId: string) {

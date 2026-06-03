@@ -16,7 +16,7 @@ import {
 import { buildEffect } from "../utils/effect-helper";
 import { Card, ICardSelectionHandlers } from "./Card";
 import { DeckAddToPlayedSignal } from "./signals/DeckAddToPlayedSignal";
-import { GameStateCreateEffectSignal } from "./signals/GameStateCreateEffectSignal";
+import { GameCreateEffectSignal } from "./signals/GameCreateEffectSignal";
 import { PlayerRemoveCardFromHandSignal } from "./signals/PlayerRemoveCardFromHandSignal";
 import { PlayerSpendCommandPointsSignal } from "./signals/PlayerSpendCommandPointsSignal";
 
@@ -54,7 +54,9 @@ export class SupportCard extends Card {
         const { playerId, cardPayload } = signal.payload;
 
         if (cardPayload.kind !== "Support") {
-            throw new Error(`SupportCard ${this.id} received non-Support payload (kind=${cardPayload.kind}); cannot play`);
+            throw new Error(
+                `SupportCard ${this.id} received non-Support payload (kind=${cardPayload.kind}); cannot play`,
+            );
         }
         const { targetCell } = cardPayload as ISupportCardPayload;
         const currentRound = gsm.gameState.currentRound;
@@ -68,7 +70,7 @@ export class SupportCard extends Card {
             // Effects with a lifetime are born into the world (GameState owns the collection).
             if (effectConfig.duration > 0) {
                 emitter([
-                    new GameStateCreateEffectSignal({
+                    new GameCreateEffectSignal({
                         senderId: this.id,
                         originId: signal.id,
                         payload: { effect: effect.toPlain() },

@@ -1,5 +1,5 @@
 import { locationToKey } from "@shared/utils";
-import { IEffect, IGameStateManager, IPlainEffect, ISignalHandleCtx } from "../../types";
+import { IEffect, IGameState, IPlainEffect, ISignalHandleCtx } from "../../types";
 import { EffectEntity } from "../entities/EffectEntity";
 
 /**
@@ -17,9 +17,9 @@ export class Effect extends EffectEntity {
         throw new Error(`Effect ${this.id} (refNo=${this.refNo}) does not implement resolve`);
     }
 
-    public resolveTick(_gsm: IGameStateManager): void {
-        // Default no-op. Persistent Effects (e.g. FlarePersistentEffect) override.
-        // Per-turn ticks remain resolver-driven until Phase B (turn-lifecycle signals).
+    public resolveTick(_gameState: IGameState): void {
+        // Default no-op. Persistent Effects override. Driven per-turn by the
+        // GamePersistentEffectsTick signal → GameState.tickPersistentEffects.
     }
 
     public isPersistent(): boolean {

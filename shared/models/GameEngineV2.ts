@@ -52,6 +52,21 @@ export class GameEngine {
         return this.gameState;
     }
 
+    public runWithSignal(signal: ISignal) {
+        this.resetRun();
+        this.emit(signal);
+        this.sendSignals();
+        return this.gameState;
+    }
+
+    // Re-point the engine at the latest state and rebuild the game-object view.
+    public setGameState(gameState: IGameState) {
+        this.gameState = gameState;
+        this.gameObjects.clear();
+        this.loadGameObjects();
+        return this;
+    }
+
     private resetRun() {
         this.currentAction = null;
     }

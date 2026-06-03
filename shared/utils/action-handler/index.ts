@@ -49,7 +49,7 @@ const saveActions = (thisPlayer: string, gameState: IGameState, actions: IPlayer
         player.pendingActions = [];
     }
 
-    newState.actions.push(...actions);
+    newState.actions?.push(...actions);
     player.pendingActions = actions;
     player.ready = true;
 
@@ -66,7 +66,7 @@ const refreshPlayers = (gameState: IGameState) => {
         p.ready = false;
         p.commandPoints = p.maxCommandPoints;
         p.pendingActions = [];
-        p.ships.forEach((s) => {
+        p.ships?.forEach((s) => {
             s.remainingAttacks = s.attackCountMax;
             s.remainingMovement = s.movementRange;
         });

@@ -380,4 +380,61 @@ export class GameState extends GameStateEntity implements IGameState {
     isFirstPlayer(playerId: string) {
         return this.getFirstPlayerId() === playerId;
     }
+
+    // ================= Turn-lifecycle logic =================
+    // The mutation behind each non-action (turn-lifecycle) signal. Handlers call
+    // these; GameStateEntity holds the matching listeners.
+
+    tickPersistentEffects() {
+        this.getActiveEffects().forEach((effect) => effect.resolveTick(this));
+        return this;
+    }
+
+    determineWinner() {
+        const losers = new Set<string>();
+        this.ships
+            .filter((s) => s.isFlagship)
+            .forEach((flagship) => {
+                if (flagship.destroyed) losers.add(flagship.playerId);
+            });
+
+        const playerIds = this.players.map((p) => p.id);
+
+        if (losers.size === playerIds.length) {
+            this.winners = playerIds; // all flagships down → draw
+            this.isOver = true;
+        } else if (losers.size === playerIds.length - 1) {
+            this.winners = playerIds.filter((id) => !losers.has(id)); // one survivor
+            this.isOver = true;
+        } else {
+            this.winners = [];
+            this.isOver = false;
+        }
+        return this;
+    }
+
+    rotateInitiative() {
+        const players = this.getPlayers();
+        if (players.length === 0) return this;
+        const currentIndex = players.findIndex((p) => p.id === this.initiative);
+        const nextIndex = (currentIndex + 1) % players.length;
+        this.initiative = players[nextIndex].id;
+        return this;
+    }
+
+    removeSubmissionCommandPoints(playerId: string) {
+        this.updatePlayer({ id: playerId, commandPoints: 0 });
+        return this;
+    }
+
+    removeExpiredEffects() {
+        this.effects.filter((e) => e.hasExpired(this.currentRound)).forEach((e) => this.removeEffect(e.id));
+        return this;
+    }
+
+    refillHands(maxHandSize: number) {
+        if (this.isOver) return this;
+        this.players.forEach((player) => this.refillPlayerHand(player.id, maxHandSize));
+        return this;
+    }
 }
