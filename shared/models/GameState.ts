@@ -327,6 +327,15 @@ export class GameState extends GameStateEntity implements IGameState {
         return mergeSets([visibilityFromShips, visibilityFromEffects]);
     }
 
+    calculateVisibility(playerId: string) {
+        const obscured = clone(this);
+        const visibleTiles = obscured.getVisibleTilesforPlayer(playerId);
+        return {
+            obscuredGameState: obscured.removeInvisibleFromPlayer(visibleTiles, playerId),
+            gameState: this,
+        };
+    }
+
     private getVisionFromEffectsForPlayer(playerId: string): Set<string> {
         const tiles = new Set<string>();
         const pathHelper = new PathHelper();

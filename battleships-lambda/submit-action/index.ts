@@ -1,5 +1,6 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import {
+    Action,
     FP_AUTH_TOKEN,
     getTokenCookie,
     IPlainGameState,
@@ -85,7 +86,7 @@ export const handler = async (event: any) => {
         const { results, newGameState, obscuredGameState } = handleActions(
             playerId!,
             transformPlainGameStateToDomain(gameState),
-            actions,
+            actions.map((a) => Action.toDomain(a)),
         );
 
         gameState = transformGameStateToPlain(newGameState);

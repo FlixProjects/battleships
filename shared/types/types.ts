@@ -122,6 +122,7 @@ export interface IGameState extends IGameStateData {
 
     getVisibleTilesforPlayer(playerId: string): Set<string>;
     removeInvisibleFromPlayer(visibleTiles: Set<string>, playerId: string): IGameState;
+    calculateVisibility(playerId: string): { obscuredGameState: IGameState; gameState: IGameState };
     linkPlayerShips(options?: { reverse?: boolean }): this;
     linkShipHulls(options?: { reverse?: boolean }): this;
 }

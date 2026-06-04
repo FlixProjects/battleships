@@ -127,15 +127,6 @@ export class GameEngine {
         return pathFinder;
     }
 
-    public calculateVisibility(playerId: string) {
-        const obscuredState = new GameStateManager(this.gsm.gameState).gameState;
-        const visibleTiles = obscuredState.getVisibleTilesforPlayer(playerId);
-        return {
-            obscuredGameState: obscuredState.removeInvisibleFromPlayer(visibleTiles, playerId),
-            gameState: this.gsm.gameState,
-        };
-    }
-
     private primeAttack(action: IGetValidAttackCellsAction) {
         const { playerId, shipId } = action;
 
