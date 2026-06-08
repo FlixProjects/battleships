@@ -9,9 +9,9 @@ import { BasicShipMoveSignalHandler } from "../signal-handlers/BasicShipMoveSign
 import { HullDestroyedSignalHandler } from "../signal-handlers/HullDestroyedSignalHandler";
 import { ReceiveShipAttackSignalHandler } from "../signal-handlers/ReceiveShipAttackSignalHandler";
 import { SignalType } from "../signals/types";
-import { GameObjectEntity } from "./GameObjectEntity";
+import { GameObjectWithVisibilityEntity } from "./GameObjectWithVisibilityEntity";
 
-export class ShipEntity extends GameObjectEntity<ShipEntity> implements IShip {
+export class ShipEntity extends GameObjectWithVisibilityEntity<ShipEntity> implements IShip {
     id: string;
     playerId: string;
     refNo: string;
@@ -111,19 +111,13 @@ export class ShipEntity extends GameObjectEntity<ShipEntity> implements IShip {
 
     protected getDefaultListeners(): IListener[] {
         return [
+            ...super.getDefaultListeners(),
             this.createBasicShipAttackListener(),
             this.createReceiveShipAttackListener(),
             this.createBasicShipMoveListener(),
             this.createBasicShipDeployListener(),
-            this.createHullDestroyedListener(),
-            this.createProjectVisibilityListener(),
+            this.createHullDestroyedListener(),            
         ];
-    }
-
-    protected createProjectVisibilityListener() {
-        return new Listener([SignalType.GameProjectVisibility], (ctx) => {
-            this.projectVisibility(ctx.signal.payload.visibleTiles);
-        });
     }
 
     protected createBasicShipAttackListener() {
