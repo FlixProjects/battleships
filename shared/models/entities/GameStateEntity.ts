@@ -51,7 +51,7 @@ export class GameStateEntity extends GameObjectEntity<GameState> {
     // Lifecycle signals address "the world", not a specific entity id, so the
     // single GameState handles them all (default predicate is always-true).
     protected createGameStateCreateHullListener() {
-        return new Listener([SignalType.GameStateCreateHull], (ctx) => {
+        return new Listener([SignalType.GameCreateHull], (ctx) => {
             new GameCreateHullSignalHandler().handle(ctx);
         });
     }

@@ -5,6 +5,7 @@ import {
     IDeckAddToPlayedSignalHandleCtx,
     IGameCreateEffectSignalHandleCtx,
     IGameCreateHullSignalHandleCtx,
+    IGameProjectVisibilitySignalHandleCtx,
     IHullDestroyedSignalHandleCtx,
     IHullMoveSignalHandleCtx,
     IHullReceiveAttackSignalHandleCtx,
@@ -28,7 +29,7 @@ export type SignalCtxMap = {
     [SignalType.HullReceiveDamage]: IHullReceiveDamageSignalHandleCtx;
     [SignalType.HullMove]: IHullMoveSignalHandleCtx;
     [SignalType.HullDestroyed]: IHullDestroyedSignalHandleCtx;
-    [SignalType.GameStateCreateHull]: IGameCreateHullSignalHandleCtx;
+    [SignalType.GameCreateHull]: IGameCreateHullSignalHandleCtx;
     [SignalType.PlayerSpendCommandPoints]: IPlayerSpendCommandPointsSignalHandleCtx;
     [SignalType.PlayCard]: IPlayCardSignalHandleCtx;
     [SignalType.PlayerRemoveCardFromHand]: IPlayerRemoveCardFromHandSignalHandleCtx;
@@ -40,6 +41,7 @@ export type SignalCtxMap = {
     [SignalType.GameRemoveSubmissionCommandPoints]: IGameRemoveSubmissionCommandPointsSignalHandleCtx;
     [SignalType.GameRemoveExpiredEffects]: ISignalHandleCtx;
     [SignalType.GameRefillHands]: IGameRefillHandsSignalHandleCtx;
+    [SignalType.GameProjectVisibility]: IGameProjectVisibilitySignalHandleCtx;
 };
 
 export type TListenerCallback<T extends SignalType = SignalType> = (ctx: SignalCtxMap[T]) => void;

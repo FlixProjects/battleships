@@ -2,6 +2,7 @@ import { MAX_HAND_SIZE } from "../../config/constants";
 import { GameStateManager } from "../../models";
 import { GameEngine as GameEngineV2 } from "../../models/GameEngineV2";
 import { GamePersistentEffectsTickSignal } from "../../models/signals/GamePersistentEffectsTickSignal";
+import { GameProjectVisibilitySignal } from "../../models/signals/GameProjectVisibilitySignal";
 import { GameRefillHandsSignal } from "../../models/signals/GameRefillHandsSignal";
 import { GameRemoveExpiredEffectsSignal } from "../../models/signals/GameRemoveExpiredEffectsSignal";
 import { GameRemoveSubmissionCommandPointsSignal } from "../../models/signals/GameRemoveSubmissionCommandPointsSignal";
@@ -108,7 +109,12 @@ export class ActionResolver {
     }
 
     public resolveVisibility() {
-        return this.gameState.calculateVisibility(this.playerId);
+        const visibleTiles = this.gameState.getVisibleTilesforPlayer(this.playerId);
+
+        this.gameState = this.engine
+            .setGameState(this.gameState)
+            .runWithSignal(new GameProjectVisibilitySignal({ payload: { visibleTiles } }));
+        return { obscuredGameState: this.gameState.obscureOtherPlayer(this.playerId), gameState: this.gameState };
     }
 
     private resolvePostSubmissionCommandPointRemoval() {

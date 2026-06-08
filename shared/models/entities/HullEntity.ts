@@ -1,4 +1,5 @@
 import { ICellLoc, IHull } from "../../types";
+import { locationToKey } from "../../utils/helpers";
 import { Listener } from "../listeners/Listener";
 import { IListener } from "../listeners/types";
 import { HullMoveSignalHandler } from "../signal-handlers/HullMoveSignalHandler";
@@ -29,13 +30,24 @@ export class HullEntity extends GameObjectEntity<HullEntity> implements IHull {
         super();
         Object.assign(this, props);
     }
-
+    public projectVisibility(visibleTiles: Set<string>) {
+        this.isVisible = visibleTiles.has(locationToKey(this.location));
+        return this;
+    }
+    
     protected getDefaultListeners(): IListener[] {
         return [
             this.createHullReceiveAttackListener(),
             this.createHullReceiveDamageListener(),
             this.createHullMoveListener(),
+            this.createProjectVisibilityListener(),
         ];
+    }
+
+    protected createProjectVisibilityListener() {
+        return new Listener([SignalType.GameProjectVisibility], (ctx) => {
+            this.projectVisibility(ctx.signal.payload.visibleTiles);
+        });
     }
 
     protected createHullReceiveAttackListener() {

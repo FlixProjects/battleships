@@ -2,6 +2,7 @@ import {
     IDeckAddToPlayedSignalPayload,
     IGameCreateEffectSignalPayload,
     IGameCreateHullSignalPayload,
+    IGameProjectVisibilitySignalPayload,
     IGameRefillHandsSignalPayload,
     IGameRemoveSubmissionCommandPointsSignalPayload,
     IHullDestroyedSignalPayload,
@@ -122,7 +123,7 @@ export interface IGameState extends IGameStateData {
 
     getVisibleTilesforPlayer(playerId: string): Set<string>;
     removeInvisibleFromPlayer(visibleTiles: Set<string>, playerId: string): IGameState;
-    calculateVisibility(playerId: string): { obscuredGameState: IGameState; gameState: IGameState };
+    obscureOtherPlayer(playerId: string): IGameState;
     linkPlayerShips(options?: { reverse?: boolean }): this;
     linkShipHulls(options?: { reverse?: boolean }): this;
 }
@@ -493,4 +494,8 @@ export interface IGameRemoveSubmissionCommandPointsSignalHandleCtx extends ISign
 
 export interface IGameRefillHandsSignalHandleCtx extends ISignalHandleCtx {
     signal: ISignal & { payload: IGameRefillHandsSignalPayload };
+}
+
+export interface IGameProjectVisibilitySignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IGameProjectVisibilitySignalPayload };
 }

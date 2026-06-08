@@ -1,4 +1,5 @@
 import { IHull, IHullTemplate, IShip } from "../../types";
+import { locationToKey } from "../../utils/helpers";
 import { Hull } from "../Hull";
 import { Listener } from "../listeners/Listener";
 import { IListener } from "../listeners/types";
@@ -103,6 +104,11 @@ export class ShipEntity extends GameObjectEntity<ShipEntity> implements IShip {
         return this;
     }
 
+    public projectVisibility(visibleTiles: Set<string>) {
+        this.isVisible = !!this.hulls?.some((h) => visibleTiles.has(locationToKey(h.location)));
+        return this;
+    }
+
     protected getDefaultListeners(): IListener[] {
         return [
             this.createBasicShipAttackListener(),
@@ -110,7 +116,14 @@ export class ShipEntity extends GameObjectEntity<ShipEntity> implements IShip {
             this.createBasicShipMoveListener(),
             this.createBasicShipDeployListener(),
             this.createHullDestroyedListener(),
+            this.createProjectVisibilityListener(),
         ];
+    }
+
+    protected createProjectVisibilityListener() {
+        return new Listener([SignalType.GameProjectVisibility], (ctx) => {
+            this.projectVisibility(ctx.signal.payload.visibleTiles);
+        });
     }
 
     protected createBasicShipAttackListener() {

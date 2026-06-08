@@ -20,7 +20,7 @@ export const SignalType = {
     HullReceiveDamage: "HullReceiveDamage",
     HullMove: "HullMove",
     HullDestroyed: "HullDestroyed",
-    GameStateCreateHull: "GameStateCreateHull",
+    GameCreateHull: "GameStateCreateHull",
     PlayerSpendCommandPoints: "PlayerSpendCommandPoints",
     PlayCard: "PlayCard",
     PlayerRemoveCardFromHand: "PlayerRemoveCardFromHand",
@@ -32,6 +32,7 @@ export const SignalType = {
     GameRemoveSubmissionCommandPoints: "GameRemoveSubmissionCommandPoints",
     GameRemoveExpiredEffects: "GameRemoveExpiredEffects",
     GameRefillHands: "GameRefillHands",
+    GameProjectVisibility: "GameProjectVisibility",
 } as const;
 
 export type SignalType = (typeof SignalType)[keyof typeof SignalType];
@@ -115,6 +116,10 @@ export interface IGameRemoveSubmissionCommandPointsSignalPayload extends ISignal
 
 export interface IGameRefillHandsSignalPayload extends ISignalPayload {
     maxHandSize: number;
+}
+
+export interface IGameProjectVisibilitySignalPayload extends ISignalPayload {
+    visibleTiles: Set<string>;
 }
 
 export interface IAttackPayload {
