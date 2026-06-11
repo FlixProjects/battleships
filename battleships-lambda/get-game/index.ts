@@ -1,5 +1,11 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { GetGameResponse, IGameState, getTokenCookie, transformGameStateToPlain } from "../../shared";
+import {
+    GetGameResponse,
+    IPlainGameState,
+    getTokenCookie,
+    transformGameStateToPlain,
+    transformPlainGameStateToDomain,
+} from "../../shared";
 import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
 
 export const handler = async (event: any) => {
@@ -17,7 +23,7 @@ export const handler = async (event: any) => {
 
         const gameCode = event.queryStringParameters?.code;
 
-        let gameState: IGameState;
+        let gameState: IPlainGameState;
 
         if (isLocal) {
             // we will only have body for local
@@ -47,7 +53,10 @@ export const handler = async (event: any) => {
             return WrongGameError;
         }
 
-        const { obscuredGameState } = new ActionResolver(userId, gameState).resolveVisibility();
+        const { obscuredGameState } = new ActionResolver(
+            userId,
+            transformPlainGameStateToDomain(gameState),
+        ).resolveVisibility();
 
         const responseBody: GetGameResponse = {
             gameState: transformGameStateToPlain(obscuredGameState),

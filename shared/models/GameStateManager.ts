@@ -1,5 +1,6 @@
 import clone from "lodash.clonedeep";
 import {
+    ICellLoc,
     IEffect,
     IGameState,
     IGameStateData,
@@ -8,6 +9,7 @@ import {
     IPlainAction,
     IPlainGameState,
     IPlayer,
+    IPlayerAction,
     IShip,
 } from "../types";
 import { ActionResolver } from "../utils/action-handler/ActionResolver";
@@ -73,8 +75,16 @@ export class GameStateManager implements IGameStateManager {
         return this.gameState.getShip(shipId);
     }
 
+    getHull(hullId: string) {
+        return this.gameState.getHull(hullId);
+    }
+
     getShipHulls(shipId: string) {
         return this.gameState.getShipHulls(shipId);
+    }
+
+    getHulls(locations?: ICellLoc[]) {
+        return locations ? this.gameState.getHullsByLocations(locations) : this.gameState.getHulls();
     }
 
     getCard(cardId: string) {
@@ -90,6 +100,10 @@ export class GameStateManager implements IGameStateManager {
         return player.hand
             .map((cardId) => this.getCard(cardId))
             .filter((c): c is NonNullable<typeof c> => c !== undefined);
+    }
+
+    getPlayerIndex(playerId: string) {
+        return this.gameState.getPlayerIndex(playerId);
     }
 
     updatePlayer(player: Partial<IPlayer>) {
@@ -134,6 +148,11 @@ export class GameStateManager implements IGameStateManager {
 
     updateAction(action: Partial<IPlainAction>) {
         this._gameState = this.gameState.updateAction(action);
+        return this;
+    }
+
+    addPendingAction(action: IPlayerAction) {
+        this.getPlayer(action.playerId)?.addPendingAction(action);
         return this;
     }
 

@@ -1,7 +1,8 @@
-import { ICellLoc, IEffect, TEffectKind, TEffectPayload } from "../../types";
-import { Entity } from "./Entity";
+import { IEffect, TEffectKind, TEffectPayload } from "../../types";
+import { locationToKey } from "../../utils/helpers";
+import { GameObjectWithVisibilityEntity } from "./GameObjectWithVisibilityEntity";
 
-export class EffectEntity extends Entity<EffectEntity> implements IEffect {
+export class EffectEntity extends GameObjectWithVisibilityEntity<EffectEntity> implements IEffect {
     id: string;
     refNo: string;
     kind: TEffectKind;
@@ -10,13 +11,21 @@ export class EffectEntity extends Entity<EffectEntity> implements IEffect {
     createdOnRound: number;
     expiresAfterRound?: number;
     payload: TEffectPayload;
-    existsOnBoard: boolean;
-    // extra
-    isVisible = false;
-    location?: ICellLoc;
+    existsOnBoard: boolean;    
 
     constructor(props: Readonly<IEffect>) {
         super();
         Object.assign(this, props);
+    }
+
+    public projectVisibility(visibleTiles: Set<string>) {
+        if (!this.existsOnBoard || !this.location) {
+            this.isVisible = false;
+            return this;
+        }
+        if (visibleTiles.has(locationToKey(this.location))) {
+            this.isVisible = true;
+        }
+        return this;
     }
 }

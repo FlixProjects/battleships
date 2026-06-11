@@ -1,7 +1,13 @@
 import { ICellLoc, IHull } from "../../types";
-import { Entity } from "./Entity";
+import { Listener } from "../listeners/Listener";
+import { IListener } from "../listeners/types";
+import { HullMoveSignalHandler } from "../signal-handlers/HullMoveSignalHandler";
+import { HullReceiveAttackSignalHandler } from "../signal-handlers/HullReceiveAttackSignalHandler";
+import { HullReceiveDamageSignalHandler } from "../signal-handlers/HullReceiveDamageSignalHandler";
+import { SignalType } from "../signals/types";
+import { GameObjectWithVisibilityEntity } from "./GameObjectWithVisibilityEntity";
 
-export class HullEntity extends Entity<HullEntity> implements IHull {
+export class HullEntity extends GameObjectWithVisibilityEntity<HullEntity> implements IHull {
     id: string;
     shipId: string; // ties the hull to the ship
     location: ICellLoc;
@@ -16,11 +22,48 @@ export class HullEntity extends Entity<HullEntity> implements IHull {
     imgSrc?: string | undefined; // TODO: amend to non-optional once ships config is updated
     front?: boolean | undefined;
     orientation: number;
-    // extra
-    isVisible: boolean;
 
     constructor(props: Readonly<IHull>) {
         super();
         Object.assign(this, props);
+    }
+
+    protected getDefaultListeners(): IListener[] {
+        return [
+            ...super.getDefaultListeners(),
+            this.createHullReceiveAttackListener(),
+            this.createHullReceiveDamageListener(),
+            this.createHullMoveListener(),
+        ];
+    }
+
+    protected createHullReceiveAttackListener() {
+        return new Listener(
+            [SignalType.HullReceiveAttack],
+            (ctx) => {
+                new HullReceiveAttackSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
+    protected createHullReceiveDamageListener() {
+        return new Listener(
+            [SignalType.HullReceiveDamage],
+            (ctx) => {
+                new HullReceiveDamageSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
+    protected createHullMoveListener() {
+        return new Listener(
+            [SignalType.HullMove],
+            (ctx) => {
+                new HullMoveSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
     }
 }

@@ -1,0 +1,46 @@
+import { IGameObjectEntity, ISignalHandleCtx } from "@shared/types/types";
+import { ListenerManager } from "../listeners/ListenerManager";
+import { IListener, IListenerManager, IListenerOptions } from "../listeners/types";
+import { Entity } from "./Entity";
+
+export class GameObjectEntity<T extends GameObjectEntity<T>> extends Entity<T> implements IGameObjectEntity {
+    public id: string;
+    //ECMAScript private field. private at runtime: not enumerable
+    #listenerManager: IListenerManager = new ListenerManager();
+
+    constructor() {
+        super();
+        this.loadDefaultListeners();
+    }
+
+    public receiveSignal(ctx: ISignalHandleCtx) {
+        this.#listenerManager.listeners.forEach(({ listener, options }) => {
+            listener.handleSignal(ctx);
+            if (options.removeOnSignalHandled) {
+                this.#listenerManager.removeListener(listener.id);
+            }
+        });
+    }
+
+    public loadDefaultListeners() {
+        this.getDefaultListeners().forEach((listener) => this.addListener(listener));
+    }
+
+    // to override by Entity classes
+    protected getDefaultListeners(): IListener[] {
+        return [];
+    }
+
+    protected addListener(listener: IListener, options?: IListenerOptions) {
+        this.#listenerManager.addListener(listener, options);
+        return this;
+    }
+
+    protected defaultHandlerShouldHandleSignal = (ctx: ISignalHandleCtx) => {
+        return ctx.signal.targetId === this.id;
+    };
+
+    public registerGameObject(register: (id: string, go: GameObjectEntity<T>) => void) {
+        register(this.id, this);
+    }
+}

@@ -35,13 +35,14 @@ export interface IPlayerAction extends IAction {
 export interface IDeployAction extends IPlayerAction {
     type?: typeof ActionTypes.DEPLOY;
     shipId: string;
-    hullLocations: IHull[]; // locations where the ship's hull will be deployed
+    location: ICellLoc; // anchor tile; the domain derives hull placements from the ship's templates
 }
 
 export interface IMoveAction extends IPlayerAction {
     type?: typeof ActionTypes.MOVE;
     shipId: string;
-    hullLocations: IHull[];
+    targetCell: ICellLoc; // destination of the front hull; the domain derives the layout
+    route?: ICellLoc[];
 }
 
 export interface IShipAttackAction extends IPlayerAction {
@@ -65,7 +66,7 @@ export interface IPlaySupportAction extends IPlayerAction {
 
 export interface IShipCardPayload {
     kind: "Ship";
-    hullLocations: IHull[];
+    location: ICellLoc; // anchor tile for the deploy
 }
 
 export interface ISupportCardPayload {
@@ -116,6 +117,6 @@ export interface IGetValidSupportCellsAction {
     effectIndex: number;
 }
 
-export type TCommitDeployShipParams = Pick<IDeployAction, "shipId" | "hullLocations" | "commandPointCost">;
-export type TCommitMoveShipParams = Pick<IMoveAction, "shipId" | "hullLocations" | "commandPointCost">;
+export type TCommitDeployShipParams = Pick<IDeployAction, "shipId" | "location" | "commandPointCost">;
+export type TCommitMoveShipParams = Pick<IMoveAction, "shipId" | "targetCell" | "route" | "commandPointCost">;
 export type TCommitAttackShipParams = Pick<IShipAttackAction, "shipId" | "commandPointCost" | "attackLocations">;

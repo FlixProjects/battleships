@@ -3,7 +3,16 @@ import { HullBuilder } from "../../../factories/hull-builder";
 import { PlayerBuilder } from "../../../factories/player-builder";
 import { ShipBuilder } from "../../../factories/ship-builder";
 import { GameState } from "../../../models";
-import { ICard, IDeck, IMoveAction, IPlayCardAction, IPlayer, IShipAttackAction } from "../../../types";
+import {
+    ICard,
+    IDeck,
+    IDeployAction,
+    IHullTemplate,
+    IMoveAction,
+    IPlayCardAction,
+    IPlayer,
+    IShipAttackAction,
+} from "../../../types";
 import { ActionTypes } from "../../../types/action-types";
 import { ActionResolver } from "../ActionResolver";
 
@@ -32,6 +41,15 @@ const hullBuilder = new HullBuilder({
     maxHealth: 1,
     templateLocation: [0, 0],
 });
+
+const frigateTemplate: IHullTemplate = {
+    templateLocation: [0, 0],
+    maxHealth: 1,
+    armor: 0,
+    visionRange: 2,
+    orientation: 0,
+    front: true,
+};
 
 describe("ActionResolver", () => {
     describe("initiative and action resolution order", () => {
@@ -73,13 +91,7 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [
-                    {
-                        ...player1Hull,
-                        location: [2, 1],
-                        front: true,
-                    },
-                ],
+                targetCell: [2, 1],
             };
 
             // Setup: Create player1's attack action (fire at [0, 0])
@@ -103,13 +115,7 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [
-                    {
-                        ...player2Hull,
-                        location: [0, 0],
-                        front: true,
-                    },
-                ],
+                targetCell: [0, 0],
             };
 
             // Setup: Create players
@@ -162,6 +168,309 @@ describe("ActionResolver", () => {
             expect(player1ShipAfter?.destroyed).toBe(false);
         });
 
+        it("deducts the attacker's command points via the PlayerSpendCommandPoints signal", () => {
+            const attackerHull = hullBuilder.build({ id: "hullA", shipId: "shipA", location: [1, 1], front: true });
+            const targetHull = hullBuilder.build({ id: "hullB", shipId: "shipB", location: [0, 0], front: true });
+            const attackerShip = shipBuilder.build({ id: "shipA", playerId: "player1", hulls: [attackerHull] });
+            const targetShip = shipBuilder.build({ id: "shipB", playerId: "player2", hulls: [targetHull] });
+
+            const attackAction: IShipAttackAction = {
+                id: "atk-1",
+                type: ActionTypes.ATTACK,
+                playerId: "player1",
+                shipId: "shipA",
+                round: 1,
+                order: 0,
+                commandPointCost: 1,
+                attackLocations: [[0, 0]],
+            };
+
+            // commandPoints 2, attackCommandPointCost 1 (builder defaults)
+            const player1 = buildPlayer1({ ships: [attackerShip], commandPoints: 2, maxCommandPoints: 2 });
+            const player2 = buildPlayer2({ ships: [targetShip] });
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [attackerShip, targetShip],
+                hulls: [attackerHull, targetHull],
+                cards: [],
+                decks: [],
+                winners: [],
+                isOver: false,
+            });
+
+            const resolver = new ActionResolver("player1", gameState);
+            const next = resolver.resolveAction(attackAction);
+
+            // CP spent through the signal cascade, not by direct mutation in Ship.attack
+            const attackerAfter = next.players.find((p) => p.id === "player1");
+            expect(attackerAfter?.commandPoints).toBe(1);
+
+            // the rest of the cascade still lands: the targeted hull takes damage
+            const targetHullAfter = next.hulls?.find((h) => h.id === "hullB");
+            expect(targetHullAfter?.remainingHealth).toBe(0);
+        });
+
+        it("applies hull damage via the hull signal cascade without destroying a surviving hull", () => {
+            const attackerHull = hullBuilder.build({ id: "hullA", shipId: "shipA", location: [1, 1], front: true });
+            // 2 HP hull vs default attackDamage 1 → damaged but not destroyed
+            const targetHull = hullBuilder.build({
+                id: "hullB",
+                shipId: "shipB",
+                location: [0, 0],
+                front: true,
+                remainingHealth: 2,
+                maxHealth: 2,
+            });
+            const attackerShip = shipBuilder.build({ id: "shipA", playerId: "player1", hulls: [attackerHull] });
+            const targetShip = shipBuilder.build({ id: "shipB", playerId: "player2", hulls: [targetHull] });
+
+            const attackAction: IShipAttackAction = {
+                id: "atk-survive",
+                type: ActionTypes.ATTACK,
+                playerId: "player1",
+                shipId: "shipA",
+                round: 1,
+                order: 0,
+                commandPointCost: 1,
+                attackLocations: [[0, 0]],
+            };
+
+            const player1 = buildPlayer1({ ships: [attackerShip] });
+            const player2 = buildPlayer2({ ships: [targetShip] });
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [attackerShip, targetShip],
+                hulls: [attackerHull, targetHull],
+                cards: [],
+                decks: [],
+                winners: [],
+                isOver: false,
+            });
+
+            const next = new ActionResolver("player1", gameState).resolveAction(attackAction);
+
+            const hullAfter = next.hulls?.find((h) => h.id === "hullB");
+            expect(hullAfter?.remainingHealth).toBe(1);
+            expect(hullAfter?.destroyed).toBe(false);
+
+            // HullDestroyed never fires → ship's destroyed stays false
+            const shipAfter = next.ships.find((s) => s.id === "shipB");
+            expect(shipAfter?.destroyed).toBe(false);
+        });
+
+        it("moves the ship and deducts CP via signals through GameEngineV2", () => {
+            const movingHull = hullBuilder.build({ id: "hullM", shipId: "shipM", location: [0, 1], front: true });
+            const movingShip = shipBuilder.build({ id: "shipM", playerId: "player1", hulls: [movingHull] });
+
+            const moveAction: IMoveAction = {
+                id: "mv-1",
+                type: ActionTypes.MOVE,
+                playerId: "player1",
+                shipId: "shipM",
+                round: 1,
+                order: 0,
+                commandPointCost: 1,
+                targetCell: [2, 1],
+            };
+
+            // commandPoints 2, movementCommandPointCost 1 (builder defaults)
+            const player1 = buildPlayer1({ ships: [movingShip], commandPoints: 2, maxCommandPoints: 2 });
+            const player2 = buildPlayer2({ ships: [] });
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [movingShip],
+                hulls: [movingHull],
+                cards: [],
+                decks: [],
+                winners: [],
+                isOver: false,
+            });
+
+            const resolver = new ActionResolver("player1", gameState);
+            const next = resolver.resolveAction(moveAction);
+
+            // hull moved to the target location (flat gameState.hulls stays in sync)
+            const movedHull = next.hulls?.find((h) => h.id === "hullM");
+            expect(movedHull?.location).toEqual([2, 1]);
+
+            // movement consumed and CP spent through the PlayerSpendCommandPoints signal
+            const movedShip = next.ships.find((s) => s.id === "shipM");
+            expect(movedShip?.remainingMovement).toBe(0);
+            const mover = next.players.find((p) => p.id === "player1");
+            expect(mover?.commandPoints).toBe(1);
+
+            // action recorded by the engine
+            expect(mover?.pendingActions?.map((a) => a.id)).toContain("mv-1");
+        });
+
+        it("rejects a move onto an occupied destination via the engine validator (no mutation, no CP spent)", () => {
+            const movingHull = hullBuilder.build({ id: "hullM", shipId: "shipM", location: [0, 1], front: true });
+            const movingShip = shipBuilder.build({ id: "shipM", playerId: "player1", hulls: [movingHull] });
+            // opponent ship sits on the destination tile, so the move must be rejected
+            const blockerHull = hullBuilder.build({ id: "hullX", shipId: "shipX", location: [2, 1], front: true });
+            const blockerShip = shipBuilder.build({ id: "shipX", playerId: "player2", hulls: [blockerHull] });
+
+            const moveAction: IMoveAction = {
+                id: "mv-invalid",
+                type: ActionTypes.MOVE,
+                playerId: "player1",
+                shipId: "shipM",
+                round: 1,
+                order: 0,
+                commandPointCost: 1,
+                targetCell: [2, 1],
+            };
+
+            const player1 = buildPlayer1({ ships: [movingShip], commandPoints: 2, maxCommandPoints: 2 });
+            const player2 = buildPlayer2({ ships: [blockerShip] });
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [movingShip, blockerShip],
+                hulls: [movingHull, blockerHull],
+                cards: [],
+                decks: [],
+                winners: [],
+                isOver: false,
+            });
+
+            const next = new ActionResolver("player1", gameState).resolveAction(moveAction);
+
+            // invalid → engine.run is a no-op: hull stays, movement intact, CP untouched
+            expect(next.hulls?.find((h) => h.id === "hullM")?.location).toEqual([0, 1]);
+            expect(next.ships.find((s) => s.id === "shipM")?.remainingMovement).toBe(3);
+            const mover = next.players.find((p) => p.id === "player1");
+            expect(mover?.commandPoints).toBe(2);
+            // rejected action is not recorded
+            expect(mover?.pendingActions?.map((a) => a.id)).not.toContain("mv-invalid");
+        });
+
+        it("deploys a ship via the engine: hulls materialise, CP spent by signal, action recorded", () => {
+            // undeployed ship with no hulls — deploy supplies them via the action
+            const ship = shipBuilder.build({
+                id: "shipD",
+                playerId: "player1",
+                deployed: false,
+                hulls: [],
+                commandPointCost: 1,
+                hullTemplates: [frigateTemplate],
+            });
+
+            const deployAction: IDeployAction = {
+                id: "dep-1",
+                type: ActionTypes.DEPLOY,
+                playerId: "player1",
+                shipId: "shipD",
+                round: 1,
+                order: 0,
+                commandPointCost: 1,
+                location: [1, 0],
+            };
+
+            const player1 = buildPlayer1({ ships: [ship], commandPoints: 2, maxCommandPoints: 2 });
+            const player2 = buildPlayer2({ ships: [] });
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [ship],
+                hulls: [],
+                cards: [],
+                decks: [],
+                winners: [],
+                isOver: false,
+            });
+
+            const next = new ActionResolver("player1", gameState).resolveAction(deployAction);
+
+            const deployedShip = next.ships.find((s) => s.id === "shipD");
+            expect(deployedShip?.deployed).toBe(true);
+            // hull derived from the ship's template (anchor [1,0] + template [0,0]) and
+            // materialised into the flat gameState.hulls (serialised source of truth)
+            const createdHull = next.hulls?.find((h) => h.shipId === "shipD");
+            expect(createdHull?.location).toEqual([1, 0]);
+            // …and GameState.createHull linked that same hull to the ship
+            expect(deployedShip?.hulls?.some((h) => h.id === createdHull?.id)).toBe(true);
+
+            const mover = next.players.find((p) => p.id === "player1");
+            expect(mover?.commandPoints).toBe(1); // 2 - commandPointCost(1) via PlayerSpendCommandPoints
+            expect(mover?.pendingActions?.map((a) => a.id)).toContain("dep-1");
+        });
+
+        it("rejects a deploy onto an occupied tile via the engine validator (no hull created, no CP spent, not recorded)", () => {
+            // player1 already occupies [1,0] in its own deploy row
+            const occupyingHull = hullBuilder.build({ id: "hullOcc", shipId: "shipOcc", location: [1, 0], front: true });
+            const occupyingShip = shipBuilder.build({
+                id: "shipOcc",
+                playerId: "player1",
+                deployed: true,
+                hulls: [occupyingHull],
+            });
+
+            const ship = shipBuilder.build({
+                id: "shipD",
+                playerId: "player1",
+                deployed: false,
+                hulls: [],
+                commandPointCost: 1,
+                hullTemplates: [frigateTemplate],
+            });
+
+            const deployAction: IDeployAction = {
+                id: "dep-occupied",
+                type: ActionTypes.DEPLOY,
+                playerId: "player1",
+                shipId: "shipD",
+                round: 1,
+                order: 0,
+                commandPointCost: 1,
+                location: [1, 0],
+            };
+
+            const player1 = buildPlayer1({ ships: [occupyingShip, ship], commandPoints: 2, maxCommandPoints: 2 });
+            const player2 = buildPlayer2({ ships: [] });
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [occupyingShip, ship],
+                hulls: [occupyingHull],
+                cards: [],
+                decks: [],
+                winners: [],
+                isOver: false,
+            });
+
+            const next = new ActionResolver("player1", gameState).resolveAction(deployAction);
+
+            // invalid → engine.run is a no-op: nothing deployed, no hull, CP untouched, not recorded
+            const attempted = next.ships.find((s) => s.id === "shipD");
+            expect(attempted?.deployed).toBe(false);
+            expect(next.hulls?.some((h) => h.shipId === "shipD")).toBe(false);
+            const player = next.players.find((p) => p.id === "player1");
+            expect(player?.commandPoints).toBe(2);
+            expect(player?.pendingActions?.map((a) => a.id)).not.toContain("dep-occupied");
+        });
+
         it("should resolve actions in initiative order within a turn", () => {
             const moveAction1: IMoveAction = {
                 id: "action1",
@@ -171,7 +480,7 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [],
+                targetCell: [0, 0],
             };
 
             const moveAction2: IMoveAction = {
@@ -182,7 +491,7 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [],
+                targetCell: [0, 0],
             };
 
             const player1 = buildPlayer1({ ships: [], pendingActions: [moveAction1] });
@@ -219,7 +528,7 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [],
+                targetCell: [0, 0],
             };
 
             const moveAction2: IMoveAction = {
@@ -230,7 +539,7 @@ describe("ActionResolver", () => {
                 round: 1,
                 order: 0,
                 commandPointCost: 1,
-                hullLocations: [],
+                targetCell: [0, 0],
             };
 
             const player1 = buildPlayer1({ ships: [], pendingActions: [moveAction1, moveAction2] });
@@ -352,7 +661,7 @@ describe("ActionResolver", () => {
         });
     });
 
-    describe("resolvePlayCard (Ship card → Deploy)", () => {
+    describe("resolveAction (PlayCard: Ship card → Deploy)", () => {
         const buildPlayCardAction = (overrides: Partial<IPlayCardAction> = {}): IPlayCardAction => ({
             id: "play-action-1",
             type: ActionTypes.PLAY_CARD,
@@ -363,7 +672,7 @@ describe("ActionResolver", () => {
             cardId: "card-ship",
             payload: {
                 kind: "Ship",
-                hullLocations: [],
+                location: [1, 0],
             },
             ...overrides,
         });
@@ -383,25 +692,20 @@ describe("ActionResolver", () => {
                 cards: [],
                 played: [],
             };
-            // Undeployed ship — no hulls yet. Deploy supplies them via payload.
+            // Undeployed ship — no hulls yet. Deploy derives them from the template.
             const ship = shipBuilder.build({
                 id: "ship1",
                 playerId: "player1",
                 deployed: false,
                 hulls: [],
                 commandPointCost: 1,
+                hullTemplates: [frigateTemplate],
             });
-            const deployedHull = hullBuilder.build({
-                id: "hull1",
-                shipId: "ship1",
-                location: [1, 0],
-                front: true,
-            });
-            return { card, deck, ship, deployedHull };
+            return { card, deck, ship };
         };
 
         it("deploys the ship, removes the card from hand, and pushes it onto the deck's played pile", () => {
-            const { card, deck, ship, deployedHull } = buildShipCardEntities();
+            const { card, deck, ship } = buildShipCardEntities();
             const player1 = buildPlayer1({
                 ships: [ship],
                 hand: ["card-ship"],
@@ -425,12 +729,12 @@ describe("ActionResolver", () => {
             const action = buildPlayCardAction({
                 payload: {
                     kind: "Ship",
-                    hullLocations: [deployedHull],
+                    location: [1, 0],
                 },
             });
 
             const resolver = new ActionResolver("player1", gameState);
-            const next = resolver.resolvePlayCard(action);
+            const next = resolver.resolveAction(action);
 
             const resolvedShip = next.ships.find((s) => s.id === "ship1");
             expect(resolvedShip?.deployed).toBe(true);
@@ -444,11 +748,48 @@ describe("ActionResolver", () => {
             const resolvedDeck = next.decks.find((d) => d.id === "deck-1");
             expect(resolvedDeck?.played.map((c) => c.id)).toEqual(["card-ship"]);
 
-            // Audit trail keeps the outer PlayCardAction, not the synthesised inner Deploy.
+            // Audit trail keeps the PlayCardAction; the deploy is signals, not an action.
             expect(next.actions?.map((a) => a.type)).toEqual([ActionTypes.PLAY_CARD]);
         });
 
-        it("rejects a play of a card that is not in the player's hand", () => {
+        it("no-ops a ship-card play onto an occupied tile (PlayCardValidator): card stays in hand, nothing deployed", () => {
+            const { card, deck, ship } = buildShipCardEntities();
+            // player1 already occupies the target tile [1,0] in its own deploy row
+            const occupyingHull = hullBuilder.build({ id: "hullOcc", shipId: "shipOcc", location: [1, 0], front: true });
+            const occupyingShip = shipBuilder.build({
+                id: "shipOcc",
+                playerId: "player1",
+                deployed: true,
+                hulls: [occupyingHull],
+            });
+
+            const player1 = buildPlayer1({ ships: [occupyingShip, ship], hand: ["card-ship"], deck: "deck-1" });
+            const player2 = buildPlayer2();
+
+            const gameState = new GameState({
+                code: "TEST",
+                currentRound: 1,
+                initiative: "player1",
+                players: [player1, player2],
+                ships: [occupyingShip, ship],
+                hulls: [occupyingHull],
+                cards: [card],
+                decks: [deck],
+                winners: [],
+                isOver: false,
+            });
+
+            const action = buildPlayCardAction({ payload: { kind: "Ship", location: [1, 0] } });
+            const next = new ActionResolver("player1", gameState).resolveAction(action);
+
+            // invalid → engine.run is a clean no-op: card retained, nothing deployed/played/recorded
+            expect(next.ships.find((s) => s.id === "ship1")?.deployed).toBe(false);
+            expect(next.players.find((p) => p.id === "player1")?.hand).toEqual(["card-ship"]);
+            expect(next.decks.find((d) => d.id === "deck-1")?.played).toEqual([]);
+            expect(next.actions ?? []).toEqual([]);
+        });
+
+        it("no-ops a play of a card that is not in the player's hand (PlayCardValidator)", () => {
             const { card, deck, ship } = buildShipCardEntities();
             const player1 = buildPlayer1({ ships: [ship], hand: [], deck: "deck-1" });
             const player2 = buildPlayer2();
@@ -467,12 +808,15 @@ describe("ActionResolver", () => {
             });
 
             const action = buildPlayCardAction();
-            const resolver = new ActionResolver("player1", gameState);
-            expect(() => resolver.resolvePlayCard(action)).toThrow(/not in player .* hand/);
+            const next = new ActionResolver("player1", gameState).resolveAction(action);
+
+            // card-in-hand check now lives in PlayCardValidator → invalid play is a clean no-op
+            expect(next.ships.find((s) => s.id === "ship1")?.deployed).toBe(false);
+            expect(next.actions ?? []).toEqual([]);
         });
     });
 
-    describe("resolvePlayCard (Support card → Flare)", () => {
+    describe("resolveAction (PlayCard: Support card → Flare)", () => {
         const buildFlareCardEntities = () => {
             const card: ICard = {
                 id: "card-flare",

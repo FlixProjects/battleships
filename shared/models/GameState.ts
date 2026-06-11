@@ -1,8 +1,8 @@
 import clone from "lodash.clonedeep";
 import {
-    Board,
     EffectKind,
     ICard,
+    ICellLoc,
     IDeck,
     IEffect,
     IGameState,
@@ -21,32 +21,22 @@ import { mergeSets } from "../utils";
 import { createCard } from "../utils/card-helper";
 import { createEffect } from "../utils/effect-helper";
 import { locationToKey } from "../utils/helpers";
-import { PathHelper } from "../utils/path-helper";
+import { PathFinder } from "../utils/path-finder";
 import { Action } from "./actions";
-import { Card } from "./Card";
 import { Deck } from "./Deck";
 import { Effect } from "./effects/Effect";
-import { Entity } from "./entities";
+import { Entity } from "./entities/Entity";
+import { GameStateEntity } from "./entities/GameStateEntity";
 import { Hull } from "./Hull";
 import { Player } from "./Player";
 import { Ship } from "./Ship";
 
-export class GameState implements IGameState {
-    code: string;
-    currentRound: number;
-    initiative?: string;
-    players: Player[];
-    ships: Ship[];
-    hulls: Hull[];
-    cards: Card[];
-    decks: Deck[];
-    effects: Effect[];
-    board?: Board;
-    winners: string[];
-    isOver: boolean;
-    actions: Action[] = [];
-
+// GameObjects should not be nested within other GameObjects unless they have their equivalent on this layer
+export class GameState extends GameStateEntity implements IGameState {
+    // TODO: Can we just pass in the props and do Object.assign(this, props) in Entity-level?
     constructor(props: Readonly<IGameStateData | IPlainGameState>) {
+        super();
+        this.id = props.code;
         this.code = props.code;
         this.initiative = props.initiative;
         this.board = props.board;
@@ -227,12 +217,28 @@ export class GameState implements IGameState {
         return this;
     }
 
+    createHull(hull: IHull, shipId: string): Hull {
+        const created = this.createEntity(this.hulls, Hull, hull);
+        const ship = this.ships.find((s) => s.id === shipId);
+        ship?.addHullLocation(created);
+        return created;
+    }
+
     getHull(hullId: string) {
         const hull = this.hulls.find((h) => h.id === hullId);
         if (!hull) {
             throw new Error(`Hull with id ${hullId} not found`);
         }
         return hull;
+    }
+
+    getHulls() {
+        return this.hulls;
+    }
+
+    getHullsByLocations(locations: ICellLoc[]) {
+        const hullMap = new Map(this.hulls.map((h) => [locationToKey(h.location), h]));
+        return locations.map((loc) => hullMap.get(locationToKey(loc))).filter((h): h is Hull => h !== undefined);
     }
 
     getShipHulls(shipId: string) {
@@ -245,6 +251,11 @@ export class GameState implements IGameState {
 
     updateHull(hull: Partial<IHull>) {
         return this.updateEntity(hull, this.hulls, Hull);
+    }
+
+    addPendingAction(playerId: string, action: IPlayerAction) {
+        this.getPlayer(playerId)?.addPendingAction(action);
+        return this;
     }
 
     addAction(action: IPlayerAction) {
@@ -316,18 +327,30 @@ export class GameState implements IGameState {
         return mergeSets([visibilityFromShips, visibilityFromEffects]);
     }
 
+    obscureOtherPlayer(currentPlayerId: string): IGameState {
+        const obscured = new GameState(this);
+        obscured.linkShipHulls().linkPlayerShips();
+        obscured.players.forEach((p) => {
+            if (p.id === currentPlayerId) return; // current player see's own enitities
+            p.ships.forEach((s) => s.removeInvisibleHullLocations());
+            p.removeInvisibleShips();
+        });
+        obscured.removeInvisibleEffects();
+        obscured.linkPlayerShips({ reverse: true }).linkShipHulls({ reverse: true });
+        return obscured;
+    }
+
     private getVisionFromEffectsForPlayer(playerId: string): Set<string> {
         const tiles = new Set<string>();
-        const pathHelper = new PathHelper();
 
         this.getActiveEffects(playerId)
             .filter((e) => e.kind === EffectKind.Vision)
             .forEach((e) => {
                 const payload = e.payload as IVisionEffectPayload;
                 tiles.add(locationToKey(payload.center));
-                pathHelper
-                    .getReachableCells({ start: payload.center, range: payload.range })
-                    .forEach((cell) => tiles.add(locationToKey(cell)));
+                PathFinder.getCellsWithinRange({ start: payload.center, range: payload.range }).forEach((cell) =>
+                    tiles.add(locationToKey(cell)),
+                );
             });
 
         return tiles;
@@ -357,11 +380,73 @@ export class GameState implements IGameState {
         return this;
     }
 
+    getPlayerIndex(playerId: string) {
+        const playerIndex = this.players.findIndex((p) => p.id === playerId);
+        return playerIndex;
+    }
+
     getFirstPlayerId() {
         return this.players.find((p) => p.order === 0)?.id;
     }
 
     isFirstPlayer(playerId: string) {
         return this.getFirstPlayerId() === playerId;
+    }
+
+    // ================= Turn-lifecycle logic =================
+    // The mutation behind each non-action (turn-lifecycle) signal. Handlers call
+    // these; GameStateEntity holds the matching listeners.
+
+    tickPersistentEffects() {
+        this.getActiveEffects().forEach((effect) => effect.resolveTick(this));
+        return this;
+    }
+
+    determineWinner() {
+        const losers = new Set<string>();
+        this.ships
+            .filter((s) => s.isFlagship)
+            .forEach((flagship) => {
+                if (flagship.destroyed) losers.add(flagship.playerId);
+            });
+
+        const playerIds = this.players.map((p) => p.id);
+
+        if (losers.size === playerIds.length) {
+            this.winners = playerIds; // all flagships down → draw
+            this.isOver = true;
+        } else if (losers.size === playerIds.length - 1) {
+            this.winners = playerIds.filter((id) => !losers.has(id)); // one survivor
+            this.isOver = true;
+        } else {
+            this.winners = [];
+            this.isOver = false;
+        }
+        return this;
+    }
+
+    rotateInitiative() {
+        const players = this.getPlayers();
+        if (players.length === 0) return this;
+        const currentIndex = players.findIndex((p) => p.id === this.initiative);
+        const nextIndex = (currentIndex + 1) % players.length;
+        this.initiative = players[nextIndex].id;
+        return this;
+    }
+
+    removeSubmissionCommandPoints(playerId: string) {
+        this.updatePlayer({ id: playerId, commandPoints: 0 });
+        return this;
+    }
+
+    removeExpiredEffects() {
+        this.effects.filter((e) => e.hasExpired(this.currentRound)).forEach((e) => this.removeEffect(e.id));
+        return this;
+    }
+
+    refillHands(maxHandSize: number) {
+        if (this.isOver) return this;
+        this.players.forEach((player) => this.refillPlayerHand(player.id, maxHandSize));
+        return this;
     }
 }

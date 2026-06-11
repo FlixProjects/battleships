@@ -1,7 +1,27 @@
+import {
+    IDeckAddToPlayedSignalPayload,
+    IGameCreateEffectSignalPayload,
+    IGameCreateHullSignalPayload,
+    IGameProjectVisibilitySignalPayload,
+    IGameRefillHandsSignalPayload,
+    IGameRemoveSubmissionCommandPointsSignalPayload,
+    IHullDestroyedSignalPayload,
+    IHullMoveSignalPayload,
+    IHullReceiveAttackSignalPayload,
+    IHullReceiveDamageSignalPayload,
+    IPlayCardSignalPayload,
+    IPlayerRemoveCardFromHandSignalPayload,
+    IPlayerSpendCommandPointsSignalPayload,
+    IShipAttackSignalPayload,
+    IShipDeploySignalPayload,
+    IShipMoveSignalPayload,
+    IShipReceiveAttackSignalPayload,
+    ISignal,
+} from "@shared/models/signals/types";
 import { AppStatus, CardKind, EFFECT_REF_NO, Faction, SHIP_REF_NO, SUPPORT_REF_NO } from "../config/constants";
-import type { GameState, Hull, Player, Ship } from "../models";
+import type { Card, Deck, GameState, Hull, Player, Ship } from "../models";
 import { ICommand } from "../models/commands/types";
-import { IDeployAction, IMoveAction, IPlayCardAction, IPlayerAction, IShipAttackAction } from "./action-types";
+import { IPlayerAction } from "./action-types";
 
 export interface IGame {
     queueCommand(command: ICommand): Promise<void>;
@@ -12,10 +32,6 @@ export interface IGame {
 
 export interface IActionResolver {
     resolveAction(action: IPlayerAction): IGameState;
-    resolvePlayCard(action: IPlayCardAction): GameState;
-    resolveDeploy(action: IDeployAction): GameState;
-    resolveMove(action: IMoveAction): GameState;
-    resolveAttack(action: IShipAttackAction): GameState;
 }
 
 export interface IGameManager {
@@ -32,19 +48,28 @@ export interface IGameStateManager {
     get gameState(): GameState;
     setGameState(_gameState: IGameState): void;
     getCurrentRound(): number;
-    getPlayer(playerId: string): IPlayer;
+    getPlayer(playerId: string): Player;
     getPlayers(): IPlayer[];
     getPlayerShips(playerId: string): IShip[];
     getShip(shipId: string): Ship;
+    getHull(hullId: string): Hull;
     getShipHulls(shipId: string): Hull[];
+    getHulls(locations?: ICellLoc[]): Hull[];
+    getCard(cardId: string): Card | undefined;
+    getDeck(deckId: string): Deck | undefined;
+    getPlayerHand(playerId: string): ICard[];
+    getPlayerIndex(playerId: string): number;
     updatePlayer(player: Partial<IPlayer>): this;
     updatePlayers(players: Partial<IPlayer>[]): this;
     updateShip(ship: Partial<IShip>): this;
     updateShips(ships: Partial<IShip>[]): this;
     updateHull(hull: Partial<IHull>): this;
+    updateHulls(hulls: Partial<IHull>[]): this;
     addHull(hull: IHull): this;
+    addHulls(hulls: IHull[]): this;
     updateActions(actions: Partial<IPlainAction>[]): this;
     updateAction(action: Partial<IPlainAction>): this;
+    addPendingAction(action: IPlayerAction): this;
     addAction(action: IPlainAction): this;
     addEffect(effect: IEffect): this;
     addEffects(effects: IEffect[]): this;
@@ -98,6 +123,7 @@ export interface IGameState extends IGameStateData {
 
     getVisibleTilesforPlayer(playerId: string): Set<string>;
     removeInvisibleFromPlayer(visibleTiles: Set<string>, playerId: string): IGameState;
+    obscureOtherPlayer(playerId: string): IGameState;
     linkPlayerShips(options?: { reverse?: boolean }): this;
     linkShipHulls(options?: { reverse?: boolean }): this;
 }
@@ -132,6 +158,12 @@ export interface IHull extends IHullTemplate {
     remainingHealth: number;
     remainingArmor: number;
     destroyed: boolean;
+}
+
+export interface IGameObjectEntity {
+    id: string;
+    update(entity: Partial<IGameObjectEntity>): void;
+    receiveSignal(ctx: ISignalHandleCtx): void;
 }
 
 export type IDeckTemplateEntry = IShipDeckTemplateEntry | ISupportDeckTemplateEntry;
@@ -385,4 +417,85 @@ export interface IHullCalculator {
 export interface INewOldHullLocMap {
     oldLoc: ICellLoc;
     newLoc: ICellLoc;
+}
+
+export interface IGameObjectSignalHandlerOptions {
+    onMove?: (signal: ISignal, gsm: IGameStateManager) => void;
+    onAttack?: (signal: ISignal, gsm: IGameStateManager) => void;
+    onDeploy?: (signal: ISignal, gsm: IGameStateManager) => void;
+}
+
+export interface ISignalHandleCtx {
+    signal: ISignal;
+    gsm: IGameStateManager;
+    saveNewState: (newState: IGameState) => void;
+    emitter: (signals: ISignal[]) => void;
+}
+
+export interface IBasicShipAttackSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IShipAttackSignalPayload };
+}
+
+export interface IReceiveShipAttackSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IShipReceiveAttackSignalPayload };
+}
+
+export interface IBasicShipMoveSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IShipMoveSignalPayload };
+}
+
+export interface IBasicShipDeploySignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IShipDeploySignalPayload };
+}
+
+export interface IHullReceiveAttackSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IHullReceiveAttackSignalPayload };
+}
+
+export interface IHullReceiveDamageSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IHullReceiveDamageSignalPayload };
+}
+
+export interface IHullMoveSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IHullMoveSignalPayload };
+}
+
+export interface IHullDestroyedSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IHullDestroyedSignalPayload };
+}
+
+export interface IPlayerSpendCommandPointsSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IPlayerSpendCommandPointsSignalPayload };
+}
+
+export interface IGameCreateHullSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IGameCreateHullSignalPayload };
+}
+
+export interface IPlayCardSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IPlayCardSignalPayload };
+}
+
+export interface IPlayerRemoveCardFromHandSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IPlayerRemoveCardFromHandSignalPayload };
+}
+
+export interface IDeckAddToPlayedSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IDeckAddToPlayedSignalPayload };
+}
+
+export interface IGameCreateEffectSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IGameCreateEffectSignalPayload };
+}
+
+export interface IGameRemoveSubmissionCommandPointsSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IGameRemoveSubmissionCommandPointsSignalPayload };
+}
+
+export interface IGameRefillHandsSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IGameRefillHandsSignalPayload };
+}
+
+export interface IGameProjectVisibilitySignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IGameProjectVisibilitySignalPayload };
 }

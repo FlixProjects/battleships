@@ -1,8 +1,17 @@
 import { IHull, IHullTemplate, IShip } from "../../types";
+import { locationToKey } from "../../utils/helpers";
 import { Hull } from "../Hull";
-import { Entity } from "./Entity";
+import { Listener } from "../listeners/Listener";
+import { IListener } from "../listeners/types";
+import { BasicShipAttackSignalHandler } from "../signal-handlers/BasicShipAttackSignalHandler";
+import { BasicShipDeploySignalHandler } from "../signal-handlers/BasicShipDeploySignalHandler";
+import { BasicShipMoveSignalHandler } from "../signal-handlers/BasicShipMoveSignalHandler";
+import { HullDestroyedSignalHandler } from "../signal-handlers/HullDestroyedSignalHandler";
+import { ReceiveShipAttackSignalHandler } from "../signal-handlers/ReceiveShipAttackSignalHandler";
+import { SignalType } from "../signals/types";
+import { GameObjectWithVisibilityEntity } from "./GameObjectWithVisibilityEntity";
 
-export class ShipEntity extends Entity<ShipEntity> implements IShip {
+export class ShipEntity extends GameObjectWithVisibilityEntity<ShipEntity> implements IShip {
     id: string;
     playerId: string;
     refNo: string;
@@ -47,7 +56,7 @@ export class ShipEntity extends Entity<ShipEntity> implements IShip {
 
     public getHull(hullId: string) {
         return this.getHulls().find((h) => h.id === hullId);
-    };
+    }
 
     public updateHull(hull: Partial<IHull>) {
         if (!hull.id) return this;
@@ -93,5 +102,71 @@ export class ShipEntity extends Entity<ShipEntity> implements IShip {
             this.hulls[index] = updatedHull;
         });
         return this;
+    }
+
+    public projectVisibility(visibleTiles: Set<string>) {
+        this.isVisible = !!this.hulls?.some((h) => visibleTiles.has(locationToKey(h.location)));
+        return this;
+    }
+
+    protected getDefaultListeners(): IListener[] {
+        return [
+            ...super.getDefaultListeners(),
+            this.createBasicShipAttackListener(),
+            this.createReceiveShipAttackListener(),
+            this.createBasicShipMoveListener(),
+            this.createBasicShipDeployListener(),
+            this.createHullDestroyedListener(),            
+        ];
+    }
+
+    protected createBasicShipAttackListener() {
+        return new Listener(
+            [SignalType.BasicShipAttack],
+            (ctx) => {
+                new BasicShipAttackSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
+    protected createReceiveShipAttackListener() {
+        return new Listener(
+            [SignalType.ReceiveShipAttack],
+            (ctx) => {
+                new ReceiveShipAttackSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
+    protected createBasicShipMoveListener() {
+        return new Listener(
+            [SignalType.BasicShipMove],
+            (ctx) => {
+                new BasicShipMoveSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
+    protected createBasicShipDeployListener() {
+        return new Listener(
+            [SignalType.BasicShipDeploy],
+            (ctx) => {
+                new BasicShipDeploySignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
+    protected createHullDestroyedListener() {
+        return new Listener(
+            [SignalType.HullDestroyed],
+            (ctx) => {
+                new HullDestroyedSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
     }
 }

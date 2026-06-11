@@ -25,18 +25,18 @@ export class Game {
     }
 
     public async run(command: ICommand): Promise<ICommand[]> {
-        const children = await command.execute(this.buildParams());
+        const children = await command.execute(this.buildContext());
         return Array.isArray(children) ? children : [];
     }
 
     public async undo(command: ICommand): Promise<void> {
-        const children = await command.undo(this.buildParams());
+        const children = await command.undo(this.buildContext());
         for (const child of Array.isArray(children) ? children : []) {
             await this.runCommandTree(child);
         }
     }
 
-    private buildParams(): ICommandExecutionParams {
+    private buildContext(): ICommandExecutionParams {
         const currentPlayerId = this.db.getCurrentPlayerId();
         const gameState = this.db.state.gameState;
         return {

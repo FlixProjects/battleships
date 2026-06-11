@@ -35,8 +35,8 @@ export const DEFAULT_APP_STATE: IPlainAppState = {
 };
 
 // TODO: move row and column to GameConfig
-export const BOARD_ROWS = 10;
-export const BOARD_COLUMNS = 7;
+export const BOARD_ROWS = 7;
+export const BOARD_COLUMNS = 5;
 export const CELL_SEPARATOR = "/";
 export const TILE_SIZE_PX = 48;
 export const TILE_GAP_PX = 0;
@@ -105,6 +105,8 @@ export const ERROR_CODE = {
     SYS_INVALID_PARAMS: "SYS_INVALID_PARAMS",
     MOVE_ERROR_LOCATION_OCCUPIED: "MOVE_ERROR_LOCATION_OCCUPIED",
     MOVE_ERROR_INSUFFICIENT_MOVEMENT: "MOVE_ERROR_INSUFFICIENT_MOVEMENT",
+    DEPLOY_ERROR_LOCATION_OCCUPIED: "DEPLOY_ERROR_LOCATION_OCCUPIED",
+    PLAY_CARD_ERROR_NOT_IN_HAND: "PLAY_CARD_ERROR_NOT_IN_HAND",
 } as const;
 export type TErrorCode = (typeof ERROR_CODE)[keyof typeof ERROR_CODE];
 

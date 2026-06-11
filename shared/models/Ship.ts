@@ -1,8 +1,26 @@
-import { ICellLoc, IGameState, IHull, IPlainShip, IShip } from "@shared/types";
-import { PathHelper } from "@shared/utils";
+import {
+    IBasicShipAttackSignalHandleCtx,
+    IBasicShipDeploySignalHandleCtx,
+    IBasicShipMoveSignalHandleCtx,
+    ICellLoc,
+    IGameState,
+    IHull,
+    IPlainShip,
+    IReceiveShipAttackSignalHandleCtx,
+    IShip,
+} from "@shared/types";
+import { PathFinder } from "@shared/utils/path-finder";
+import { computeDeployedHullLocation } from "@shared/utils/hull-helper";
+import { getHull, locationToKey } from "@shared/utils/helpers";
 import { SegmentBuilder } from "@shared/utils/segment-builder";
 import { mergician } from "mergician";
 import { ShipEntity } from "./entities/ShipEntity";
+import { Resolver } from "./resolvers/Resolver";
+import { GameCreateHullSignal } from "./signals/GameCreateHullSignal";
+import { HullMoveSignal } from "./signals/HullMoveSignal";
+import { HullReceiveAttackSignal } from "./signals/HullReceiveAttackSignal";
+import { PlayerSpendCommandPointsSignal } from "./signals/PlayerSpendCommandPointsSignal";
+import { ReceiveShipAttackSignal } from "./signals/ReceiveShipAttackSignal";
 
 export class Ship extends ShipEntity {
     constructor(props: Readonly<IShip>) {
@@ -13,8 +31,15 @@ export class Ship extends ShipEntity {
         if (this.destroyed || !this.deployed || !this.hulls) {
             return new Set<string>();
         }
-        const ph = new PathHelper();
-        return ph.getVisibleTilesForPlayer(this.hulls);
+        const visible = new Set<string>();
+        this.hulls.forEach((hull) => {
+            if (!hull.location) return;
+            visible.add(locationToKey(hull.location));
+            PathFinder.getCellsWithinRange({ start: hull.location, range: hull.visionRange }).forEach((cell) =>
+                visible.add(locationToKey(cell)),
+            );
+        });
+        return visible;
     }
 
     updateVisibility(visibleTiles: Set<string>) {
@@ -43,7 +68,7 @@ export class Ship extends ShipEntity {
         return this;
     }
 
-    resolveAttack() {
+    reduceAttacksRemaining() {
         this.remainingAttacks -= 1;
         return this;
     }
@@ -80,6 +105,13 @@ export class Ship extends ShipEntity {
         return newHulls;
     }
 
+    getDeployHullLocations(anchorCell: ICellLoc, isFirstPlayer: boolean): IHull[] {
+        return this.hullTemplates.map((ht) => {
+            const location = computeDeployedHullLocation(anchorCell, ht.templateLocation, isFirstPlayer);
+            return getHull({ shipId: this.id, hullTemplate: ht, location, isFirstPlayer });
+        });
+    }
+
     private computeRouteOutcome(args: {
         segmentBuilder: SegmentBuilder;
         startingOrientation: number;
@@ -102,6 +134,159 @@ export class Ship extends ShipEntity {
         return { finalOrientation, backLocation: oldFrontLocation };
     }
 
+    // ===============================================================================
+    // signal functions
+    // ===============================================================================
+
+    attack(ctx: IBasicShipAttackSignalHandleCtx) {
+        // called upon receiving BasicShipAttack signal
+        const { gsm, signal, emitter } = ctx;
+
+        const resolver = new Resolver(gsm.gameState, () => {
+            this.reduceAttacksRemaining();
+            const { payload } = signal;
+            const { attackLocations } = payload;
+
+            emitter([
+                new PlayerSpendCommandPointsSignal({
+                    targetId: this.playerId,
+                    senderId: this.id,
+                    originId: signal.id,
+                    payload: { playerId: this.playerId, amount: this.attackCommandPointCost },
+                }),
+            ]);
+
+            const shipsHit: Record<string, string[]> = {};
+
+            gsm.getHulls(attackLocations).forEach((hull) => {
+                shipsHit[hull.shipId] = shipsHit[hull.shipId] || [];
+                shipsHit[hull.shipId].push(hull.id);
+            });
+
+            Object.entries(shipsHit).forEach(([attackedShipId, hullIds]) => {
+                const attackDamage = this.attackDamage;
+                const payload = {
+                    attackingShipId: this.id,
+                    attackedShipId,
+                    attacks: hullIds.map((hullId) => ({
+                        shipId: attackedShipId,
+                        hullId,
+                        attackDamage,
+                    })),
+                };
+                emitter([
+                    new ReceiveShipAttackSignal({
+                        targetId: attackedShipId,
+                        payload,
+                        senderId: this.id,
+                        originId: signal.id,
+                    }),
+                ]);
+            });
+
+            return gsm.gameState;
+        });
+
+        return resolver.resolve();
+    }
+
+    deploy(ctx: IBasicShipDeploySignalHandleCtx) {
+        // called upon receiving BasicShipDeploy signal
+        const { gsm, signal, emitter } = ctx;
+
+        const resolver = new Resolver(gsm.gameState, () => {
+            const { location } = signal.payload;
+
+            this.deployed = true;
+
+            const isFirstPlayer = gsm.gameState.isFirstPlayer(this.playerId);
+            this.getDeployHullLocations(location, isFirstPlayer).forEach((hull) => {
+                emitter([
+                    new GameCreateHullSignal({
+                        senderId: this.id,
+                        originId: signal.id,
+                        payload: { hull, shipId: this.id },
+                    }),
+                ]);
+            });
+
+            emitter([
+                new PlayerSpendCommandPointsSignal({
+                    targetId: this.playerId,
+                    senderId: this.id,
+                    originId: signal.id,
+                    payload: { playerId: this.playerId, amount: this.commandPointCost },
+                }),
+            ]);
+
+            return gsm.gameState;
+        });
+
+        return resolver.resolve();
+    }
+
+    move(ctx: IBasicShipMoveSignalHandleCtx) {
+        // called upon receiving BasicShipMove signal
+        const { gsm, signal, emitter } = ctx;
+
+        const resolver = new Resolver(gsm.gameState, () => {
+            const { targetCell, route } = signal.payload;
+
+            this.remainingMovement = 0;
+
+            this.getNewHullLocations(targetCell, route).forEach((newHull) => {
+                emitter([
+                    new HullMoveSignal({
+                        targetId: newHull.id,
+                        senderId: this.id,
+                        originId: signal.id,
+                        payload: { hullId: newHull.id, location: newHull.location, orientation: newHull.orientation },
+                    }),
+                ]);
+            });
+
+            emitter([
+                new PlayerSpendCommandPointsSignal({
+                    targetId: this.playerId,
+                    senderId: this.id,
+                    originId: signal.id,
+                    payload: { playerId: this.playerId, amount: this.movementCommandPointCost },
+                }),
+            ]);
+
+            return gsm.gameState;
+        });
+
+        return resolver.resolve();
+    }
+
+    receiveAttack(ctx: IReceiveShipAttackSignalHandleCtx) {
+        const { gsm, signal, emitter } = ctx;
+
+        const resolver = new Resolver(gsm.gameState, () => {
+            const { attacks } = signal.payload;
+
+            attacks.forEach(({ hullId, attackDamage }) => {
+                emitter([
+                    new HullReceiveAttackSignal({
+                        targetId: hullId,
+                        senderId: this.id,
+                        originId: signal.id,
+                        payload: { hullId, attackDamage },
+                    }),
+                ]);
+            });
+
+            return gsm.gameState;
+        });
+
+        return resolver.resolve();
+    }
+
+    // ===============================================================================
+    // transform functions
+    // ===============================================================================
+
     /** Flattens hulls (IHull[]) → string[] of hull IDs. */
     public toPlain(): IPlainShip {
         return {
@@ -115,9 +300,7 @@ export class Ship extends ShipEntity {
      */
     public static toDomain(plain: IPlainShip, state: IGameState): Ship {
         const hullsById = new Map<string, IHull>((state.hulls ?? []).map((h) => [h.id, h]));
-        const hulls = plain.hulls
-            .map((id) => hullsById.get(id))
-            .filter((h): h is IHull => h !== undefined);
+        const hulls = plain.hulls.map((id) => hullsById.get(id)).filter((h): h is IHull => h !== undefined);
         return new Ship({ ...plain, hulls });
     }
 }

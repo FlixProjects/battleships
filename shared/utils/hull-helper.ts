@@ -2,6 +2,15 @@ import { ICellLoc, IGameStateManager } from "@shared/types";
 import { getOccupiedLocations } from "./helpers";
 import { BOARD_COLUMNS, BOARD_ROWS } from "..";
 
+export const computeDeployedHullLocation = (
+    selectedLoc: ICellLoc,
+    hullTemplateLoc: ICellLoc,
+    isFirstPlayer: boolean,
+): ICellLoc => {
+    const offset = isFirstPlayer ? hullTemplateLoc : [hullTemplateLoc[0], -hullTemplateLoc[1]];
+    return [offset[0] + selectedLoc[0], offset[1] + selectedLoc[1]];
+};
+
 export class HullCalculator {
     constructor(
         private gsm: IGameStateManager,
@@ -9,10 +18,7 @@ export class HullCalculator {
     ) {}
 
     public getDeployedHullLocation(selectedLoc: ICellLoc, _hullTemplateLoc: ICellLoc): ICellLoc {
-        const hullTemplateLoc = this.isFirstPlayer ? _hullTemplateLoc : this.invertY(_hullTemplateLoc);
-        const x = hullTemplateLoc[0] + selectedLoc[0];
-        const y = hullTemplateLoc[1] + selectedLoc[1];
-        return [x, y];
+        return computeDeployedHullLocation(selectedLoc, _hullTemplateLoc, this.isFirstPlayer);
     }
 
     public getDeployedHullLocations(selectedLoc: ICellLoc, _hullTemplateLocs: ICellLoc[]): ICellLoc[] {
@@ -38,9 +44,5 @@ export class HullCalculator {
     private isWithinBoardLimits(loc: ICellLoc): boolean {
         const [x, y] = loc;
         return x >= 0 && x < BOARD_COLUMNS && y >= 0 && y < BOARD_ROWS;
-    }
-
-    private invertY(hullTemplateLoc: ICellLoc): ICellLoc {
-        return [hullTemplateLoc[0], -hullTemplateLoc[1]];
     }
 }

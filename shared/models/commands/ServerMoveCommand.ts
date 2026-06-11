@@ -13,7 +13,8 @@ export class ServerMoveCommand extends ServerCommand {
         const player = gsm.getPlayer(this.props.playerId);
         return new MoveShipActionCreator(player, gsm.getCurrentRound()).create({
             shipId: this.props.shipId,
-            hullLocations: this.props.hullLocations,
+            targetCell: this.props.targetCell,
+            route: this.props.route,
             commandPointCost: this.props.commandPointCost,
         });
     }

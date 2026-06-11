@@ -24,10 +24,9 @@ export const handleActions = (
 };
 
 const resolveActions = (thisPlayer: string, gameState: IGameState): ActionHandlerResult => {
-    const newState = { ...gameState };
     // TODO: validate command points
 
-    const { results, gameState: newGameState, obscuredGameState } = new ActionResolver(thisPlayer, newState).resolve();
+    const { results, gameState: newGameState, obscuredGameState } = new ActionResolver(thisPlayer, gameState).resolve();
 
     return {
         results,
@@ -37,44 +36,42 @@ const resolveActions = (thisPlayer: string, gameState: IGameState): ActionHandle
 };
 
 const saveActions = (thisPlayer: string, gameState: IGameState, actions: IPlayerAction[]): ActionHandlerResult => {
-    const newState = { ...gameState };
-    const player = newState.players.find((p) => p.id === thisPlayer);
+    const player = gameState.players.find((p) => p.id === thisPlayer);
     // TODO: validate command points
     // TODO: use GSM instead of mutating the object
     if (!player) {
-        return { results: [], newGameState: newState };
+        return { results: [], newGameState: gameState };
     }
 
-    if (player && !player.pendingActions) {
+    if (!player.pendingActions) {
         player.pendingActions = [];
     }
 
-    newState.actions.push(...actions);
+    gameState.actions?.push(...actions);
     player.pendingActions = actions;
     player.ready = true;
 
-    return { results: [], newGameState: newState };
+    return { results: [], newGameState: gameState };
 };
 
 const refreshPlayers = (gameState: IGameState) => {
-    const newState = { ...gameState };
-    newState.ships.forEach((s) => {
+    gameState.ships.forEach((s) => {
         s.remainingAttacks = s.attackCountMax;
         s.remainingMovement = s.movementRange;
     });
-    newState.players.forEach((p) => {
+    gameState.players.forEach((p) => {
         p.ready = false;
         p.commandPoints = p.maxCommandPoints;
         p.pendingActions = [];
-        p.ships.forEach((s) => {
+        p.ships?.forEach((s) => {
             s.remainingAttacks = s.attackCountMax;
             s.remainingMovement = s.movementRange;
         });
     });
 
-    newState.currentRound++;
+    gameState.currentRound++;
 
-    return newState;
+    return gameState;
 };
 
 const isOtherPlayerReady = (thisPlayer: string, gameState: IGameState) => {

@@ -36,13 +36,12 @@ export class FEMoveShipCommand extends FECommand {
         });
         const startingOrientation = ship.getFrontHull().orientation;
 
-        const newHullLocations = ship.getNewHullLocations(keyToLocation(tileId), route);
-
         return [
             new ServerMoveCommand({
                 playerId,
                 shipId,
-                hullLocations: newHullLocations,
+                targetCell: keyToLocation(tileId),
+                route,
                 commandPointCost: ship.movementCommandPointCost,
             }),
             new FEMoveShipAnimationCommand({
