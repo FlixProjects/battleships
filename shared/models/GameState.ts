@@ -21,7 +21,7 @@ import { mergeSets } from "../utils";
 import { createCard } from "../utils/card-helper";
 import { createEffect } from "../utils/effect-helper";
 import { locationToKey } from "../utils/helpers";
-import { PathHelper } from "../utils/path-helper";
+import { PathFinder } from "../utils/path-finder";
 import { Action } from "./actions";
 import { Deck } from "./Deck";
 import { Effect } from "./effects/Effect";
@@ -342,16 +342,15 @@ export class GameState extends GameStateEntity implements IGameState {
 
     private getVisionFromEffectsForPlayer(playerId: string): Set<string> {
         const tiles = new Set<string>();
-        const pathHelper = new PathHelper();
 
         this.getActiveEffects(playerId)
             .filter((e) => e.kind === EffectKind.Vision)
             .forEach((e) => {
                 const payload = e.payload as IVisionEffectPayload;
                 tiles.add(locationToKey(payload.center));
-                pathHelper
-                    .getReachableCells({ start: payload.center, range: payload.range })
-                    .forEach((cell) => tiles.add(locationToKey(cell)));
+                PathFinder.getCellsWithinRange({ start: payload.center, range: payload.range }).forEach((cell) =>
+                    tiles.add(locationToKey(cell)),
+                );
             });
 
         return tiles;

@@ -1,4 +1,4 @@
-import { CELL_SEPARATOR } from "@shared/constants";
+import { BOARD_COLUMNS, BOARD_ROWS, CELL_SEPARATOR } from "@shared/constants";
 import { Movement } from "@shared/models/Movement";
 import { ICellLoc } from "@shared/types";
 import { PathFinder } from "../path-finder";
@@ -271,6 +271,60 @@ describe("PathFinder", () => {
             );
 
             routes.forEach((r) => expect(r).not.toContain(createCellId(1, 0)));
+        });
+    });
+
+    describe("getCellsWithinRange", () => {
+        const sortKeys = (cells: ICellLoc[]) => cells.map((c) => c.join(",")).sort();
+
+        it("returns the Manhattan neighbours within range, excluding the start", () => {
+            const cells = PathFinder.getCellsWithinRange({ start: [0, 0], range: 1 });
+
+            expect(sortKeys(cells)).toEqual(
+                sortKeys([
+                    [1, 0],
+                    [0, 1],
+                ]),
+            );
+            expect(cells).not.toContainEqual([0, 0]);
+        });
+
+        it("expands to every cell within the given range", () => {
+            const cells = PathFinder.getCellsWithinRange({ start: [0, 0], range: 2 });
+
+            expect(sortKeys(cells)).toEqual(
+                sortKeys([
+                    [1, 0],
+                    [0, 1],
+                    [2, 0],
+                    [1, 1],
+                    [0, 2],
+                ]),
+            );
+        });
+
+        it("stays within board bounds for an oversized range", () => {
+            const cells = PathFinder.getCellsWithinRange({ start: [0, 0], range: 100 });
+
+            cells.forEach(([x, y]) => {
+                expect(x).toBeGreaterThanOrEqual(0);
+                expect(x).toBeLessThan(BOARD_COLUMNS);
+                expect(y).toBeGreaterThanOrEqual(0);
+                expect(y).toBeLessThan(BOARD_ROWS);
+            });
+        });
+
+        it("does not traverse through cells the filterFn rejects", () => {
+            const cells = PathFinder.getCellsWithinRange({
+                start: [0, 0],
+                range: 2,
+                filterFn: (loc) => !(loc[0] === 1 && loc[1] === 0),
+            });
+            const keys = cells.map((c) => c.join(","));
+
+            expect(keys).not.toContain("1,0"); // blocked outright
+            expect(keys).not.toContain("2,0"); // only reachable via the blocked cell
+            expect(keys).toContain("1,1"); // still reachable via (0,1)
         });
     });
 });

@@ -1,11 +1,11 @@
 import { BOARD_COLUMNS, BOARD_ROWS, ERROR_CODE } from "../../constants";
 import { Ship } from "../../models/Ship";
 import { IErrorResult, IGameState, IHull, IMoveAction, ResultType } from "../../types";
-import { LocationHelper, locationToKey, PathHelper } from "../../utils";
+import { LocationHelper, locationToKey } from "../../utils";
+import { PathFinder } from "../../utils/path-finder";
 import { Validator } from "./Validator";
 
 export class MoveShipValidator extends Validator {
-    private readonly pathHelper = new PathHelper();
     constructor(
         private readonly gameState: IGameState,
         private readonly moveAction: IMoveAction,
@@ -79,7 +79,7 @@ export class MoveShipValidator extends Validator {
         const currentLoc = ship.getFrontHull().location;
         const movementRange = ship.movementRange || 0;
 
-        const reachableCells = this.pathHelper.getReachableCells({
+        const reachableCells = PathFinder.getCellsWithinRange({
             start: currentLoc,
             range: movementRange,
         });

@@ -19,18 +19,14 @@ import {
     THullCalculatorConstructor,
     TSupportRefNo,
 } from "../types";
-import { keyToLocation, LocationHelper, locationToKey, PathHelper } from "../utils";
-import { buildEffect as buildEffectFromConfig } from "../utils/effect-helper";
+import { keyToLocation, LocationHelper, locationToKey } from "../utils";
 import { cellLocToNodeId, nodeIdToCellLoc, PathFinder, routeToCellLocs } from "../utils/path-finder";
 import { Movement } from "./Movement";
 
-// TODO: migrate to a more signal based approach
-// GameEngine receives commands/signals from UI and updates the GameManager state
-// updateComponents() then allows rendering of UI based on the updated state
-// GameEngine should not have access to frontend methods
+// TODO: move prime methods into FE Entity classes?
+// TODO: eventually deprecate this
 export class GameEngine {
     private gsm: GameStateManager;
-    private pathHelper = new PathHelper();
     private HullCalculator: THullCalculatorConstructor = _HullCalculator;
     constructor(public gameState: IGameState) {
         this.gsm = new GameStateManager(gameState);
@@ -143,7 +139,7 @@ export class GameEngine {
         const currentLoc = ship.hulls?.find((h) => h.shipId === shipId && h.front)?.location ?? [0, 0];
         const attackRange = ship.attackRange || 0;
 
-        const reachableCells = this.pathHelper.getReachableCells({
+        const reachableCells = PathFinder.getCellsWithinRange({
             start: currentLoc,
             range: attackRange,
             filterFn: (loc: ICellLoc) => !locArr.includes(locationToKey(loc)),
@@ -197,13 +193,12 @@ export class GameEngine {
         }
 
         const anchorCells = this.getAnchorCells(playerId, effectConfig.anchor);
-        const pathHelper = new PathHelper();
         const reached = new Set<string>();
         anchorCells.forEach((origin) => {
             reached.add(locationToKey(origin));
-            pathHelper
-                .getReachableCells({ start: origin, range: effectConfig.range })
-                .forEach((cell) => reached.add(locationToKey(cell)));
+            PathFinder.getCellsWithinRange({ start: origin, range: effectConfig.range }).forEach((cell) =>
+                reached.add(locationToKey(cell)),
+            );
         });
 
         return Array.from(reached).map((key) => keyToLocation(key));
@@ -230,18 +225,6 @@ export class GameEngine {
             return cells;
         }
         return [];
-    }
-
-    public buildEffect(args: {
-        effectConfig: IEffectConfig;
-        playerId: string;
-        cardId: string;
-        targetCell?: ICellLoc;
-        currentRound: number;
-    }) {
-        // Superseded by the pure `buildEffect` in effect-helper (shared with
-        // SupportCard.play); retire with the rest of GameEngine.
-        return buildEffectFromConfig(args);
     }
 
     // ================= Helpers =================

@@ -17,6 +17,12 @@ interface IPathFinderProps {
     yUpperBound: number;
 }
 
+export interface ICellsWithinRangeOptions {
+    start: ICellLoc;
+    range: number;
+    filterFn?: NodeFilterFn;
+}
+
 const DEFAULT_BOUNDS = {
     xLowerBound: 0,
     yLowerBound: 0,
@@ -59,6 +65,37 @@ export class PathFinder {
         this.run(travellerProps);
         const startId = travellerProps.current?.id;
         return Array.from(this.routes.keys()).filter((id) => id !== startId);
+    }
+
+    public static getCellsWithinRange({ start, range, filterFn }: ICellsWithinRangeOptions): ICellLoc[] {
+        const pathFinder = new PathFinder();
+        pathFinder.initialiseNodes(filterFn);
+        return pathFinder.cellsWithinRange(start, range);
+    }
+
+    public cellsWithinRange(start: ICellLoc, range: number): ICellLoc[] {
+        const startNode = this.nodes.get(cellLocToNodeId(start));
+        if (!startNode) return [];
+
+        const visited = new Set<string>([startNode.id]);
+        const reachable: string[] = [];
+        let frontier: PathNode[] = [startNode];
+
+        for (let step = 0; step < range; step++) {
+            const next: PathNode[] = [];
+            frontier.forEach((node) => {
+                node.nextTo.forEach((neighbour) => {
+                    if (visited.has(neighbour.id) || !neighbour.isEnterable()) return;
+                    visited.add(neighbour.id);
+                    reachable.push(neighbour.id);
+                    next.push(neighbour);
+                });
+            });
+            if (next.length === 0) break;
+            frontier = next;
+        }
+
+        return reachable.map(nodeIdToCellLoc);
     }
 
     public initialiseNodes(filterFn?: NodeFilterFn) {
@@ -167,6 +204,10 @@ export class PathNode {
     ) {}
 
     public canBeEntered(_traveller: Traveller): boolean {
+        return this.enterable;
+    }
+
+    public isEnterable(): boolean {
         return this.enterable;
     }
 

@@ -9,9 +9,9 @@ import {
     IReceiveShipAttackSignalHandleCtx,
     IShip,
 } from "@shared/types";
-import { PathHelper } from "@shared/utils";
+import { PathFinder } from "@shared/utils/path-finder";
 import { computeDeployedHullLocation } from "@shared/utils/hull-helper";
-import { getHull } from "@shared/utils/helpers";
+import { getHull, locationToKey } from "@shared/utils/helpers";
 import { SegmentBuilder } from "@shared/utils/segment-builder";
 import { mergician } from "mergician";
 import { ShipEntity } from "./entities/ShipEntity";
@@ -31,8 +31,15 @@ export class Ship extends ShipEntity {
         if (this.destroyed || !this.deployed || !this.hulls) {
             return new Set<string>();
         }
-        const ph = new PathHelper();
-        return ph.getVisibleTilesForPlayer(this.hulls);
+        const visible = new Set<string>();
+        this.hulls.forEach((hull) => {
+            if (!hull.location) return;
+            visible.add(locationToKey(hull.location));
+            PathFinder.getCellsWithinRange({ start: hull.location, range: hull.visionRange }).forEach((cell) =>
+                visible.add(locationToKey(cell)),
+            );
+        });
+        return visible;
     }
 
     updateVisibility(visibleTiles: Set<string>) {
