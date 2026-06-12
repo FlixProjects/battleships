@@ -49,28 +49,40 @@ export class GameState extends GameStateEntity implements IGameState {
         // from FK arrays) before delegating to each entity's strict toDomain.
 
         // Phase 1 — independent collections (no cross-refs needed).
-        this.hulls = (props.hulls ?? []).map(this.toHull);
-        this.cards = (props.cards ?? []).map(this.toCard);
-        this.actions = (props.actions ?? []).map(this.toAction);
-        this.effects = (props.effects ?? []).map(this.toEffect);
+        this.hulls = (props.hulls ?? []).map((h) => this.toHull(h));
+        this.cards = (props.cards ?? []).map((c) => this.toCard(c));
+        this.actions = (props.actions ?? []).map((a) => this.toAction(a));
+        this.effects = (props.effects ?? []).map((e) => this.toEffect(e));
 
         // Phase 2 — depends on Phase 1.
-        this.ships = (props.ships ?? []).map(this.toShip);
-        this.decks = (props.decks ?? []).map(this.toDeck);
+        this.ships = (props.ships ?? []).map((s) => this.toShip(s));
+        this.decks = (props.decks ?? []).map((d) => this.toDeck(d));
 
         // Phase 3 — depends on Phase 2.
-        this.players = (props.players ?? []).map(this.toPlayer);
+        this.players = (props.players ?? []).map((p) => this.toPlayer(p));
 
         // Phase 4 — wire runtime back-references (Card → Deck).
         this.bindCardsToDecks();
     }
 
-    protected toHull = (h: IHull) => Hull.toDomain(h);
-    protected toCard = (c: ICard) => createCard(c);
-    protected toAction = (a: IPlayerAction) => Action.toDomain(a);
-    protected toEffect = (e: IEffect) => createEffect(e);
-    protected toPlayer = (p: IPlayer | IPlainPlayer) => Player.toDomain(GameState.toPlainPlayer(p), this);
-    protected toShip = (s: IShip | IPlainShip) => Ship.toDomain(GameState.toPlainShip(s), this);
+    protected toHull(h: IHull) {
+        return Hull.toDomain(h);
+    }
+    protected toCard(c: ICard) {
+        return createCard(c);
+    }
+    protected toAction(a: IPlayerAction) {
+        return Action.toDomain(a);
+    }
+    protected toEffect(e: IEffect) {
+        return createEffect(e);
+    }
+    protected toPlayer(p: IPlayer | IPlainPlayer) {
+        return Player.toDomain(GameState.toPlainPlayer(p), this);
+    }
+    protected toShip(s: IShip | IPlainShip): Ship {
+        return Ship.toDomain(GameState.toPlainShip(s), this);
+    }
     protected toDeck = (d: IDeck | IPlainDeck) => Deck.toDomain(GameState.toPlainDeck(d), this);
     /**
      * The next three helpers normalise an `IShip | IPlainShip` (etc.) input
@@ -81,11 +93,11 @@ export class GameState extends GameStateEntity implements IGameState {
         return typeof ref === "string" ? ref : ref.id;
     }
 
-    private static toPlainShip(s: IShip | IPlainShip): IPlainShip {
+    protected static toPlainShip(s: IShip | IPlainShip): IPlainShip {
         return { ...s, hulls: (s.hulls ?? []).map((h: string | IHull) => GameState.idOf(h)) } as IPlainShip;
     }
 
-    private static toPlainDeck(d: IDeck | IPlainDeck): IPlainDeck {
+    protected static toPlainDeck(d: IDeck | IPlainDeck): IPlainDeck {
         return {
             ...d,
             cards: (d.cards ?? []).map((c: string | ICard) => GameState.idOf(c)),
@@ -93,7 +105,7 @@ export class GameState extends GameStateEntity implements IGameState {
         } as IPlainDeck;
     }
 
-    private static toPlainPlayer(p: IPlayer | IPlainPlayer): IPlainPlayer {
+    protected static toPlainPlayer(p: IPlayer | IPlainPlayer): IPlainPlayer {
         return {
             ...p,
             ships: (p.ships ?? []).map((s: string | IShip) => GameState.idOf(s)),
