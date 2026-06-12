@@ -49,22 +49,29 @@ export class GameState extends GameStateEntity implements IGameState {
         // from FK arrays) before delegating to each entity's strict toDomain.
 
         // Phase 1 — independent collections (no cross-refs needed).
-        this.hulls = (props.hulls ?? []).map((h) => Hull.toDomain(h));
-        this.cards = (props.cards ?? []).map((c) => createCard(c));
-        this.actions = (props.actions ?? []).map((a) => Action.toDomain(a));
-        this.effects = (props.effects ?? []).map((e) => createEffect(e));
+        this.hulls = (props.hulls ?? []).map(this.toHull);
+        this.cards = (props.cards ?? []).map(this.toCard);
+        this.actions = (props.actions ?? []).map(this.toAction);
+        this.effects = (props.effects ?? []).map(this.toEffect);
 
         // Phase 2 — depends on Phase 1.
-        this.ships = (props.ships ?? []).map((s) => Ship.toDomain(GameState.toPlainShip(s), this));
-        this.decks = (props.decks ?? []).map((d) => Deck.toDomain(GameState.toPlainDeck(d), this));
+        this.ships = (props.ships ?? []).map(this.toShip);
+        this.decks = (props.decks ?? []).map(this.toDeck);
 
         // Phase 3 — depends on Phase 2.
-        this.players = (props.players ?? []).map((p) => Player.toDomain(GameState.toPlainPlayer(p), this));
+        this.players = (props.players ?? []).map(this.toPlayer);
 
         // Phase 4 — wire runtime back-references (Card → Deck).
         this.bindCardsToDecks();
     }
 
+    protected toHull = (h: IHull) => Hull.toDomain(h);
+    protected toCard = (c: ICard) => createCard(c);
+    protected toAction = (a: IPlayerAction) => Action.toDomain(a);
+    protected toEffect = (e: IEffect) => createEffect(e);
+    protected toPlayer = (p: IPlayer | IPlainPlayer) => Player.toDomain(GameState.toPlainPlayer(p), this);
+    protected toShip = (s: IShip | IPlainShip) => Ship.toDomain(GameState.toPlainShip(s), this);
+    protected toDeck = (d: IDeck | IPlainDeck) => Deck.toDomain(GameState.toPlainDeck(d), this);
     /**
      * The next three helpers normalise an `IShip | IPlainShip` (etc.) input
      * to its strict plain shape — `string[]` for any FK-array field. Used
