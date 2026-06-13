@@ -1,4 +1,4 @@
-import { IAnimation } from "../types";
+import { IAnimation } from "../types/animations/types";
 import { AnimationLayer } from "./AnimationLayer";
 
 export class AnimationManager {

@@ -1,4 +1,4 @@
-import { IHitAnimationProps } from "../../types";
+import { IHitAnimationProps } from "../../types/animations/types";
 import { HullBaseAnimation } from "./HullBaseAnimation";
 
 export class HitAnimation extends HullBaseAnimation {

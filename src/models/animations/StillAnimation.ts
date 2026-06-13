@@ -1,4 +1,4 @@
-import { IHullBaseAnimationProps } from "../../types";
+import { IHullBaseAnimationProps } from "../../types/animations/types";
 import { HullBaseAnimation } from "./HullBaseAnimation";
 
 export class StillAnimation extends HullBaseAnimation {

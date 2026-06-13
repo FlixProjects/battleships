@@ -1,4 +1,4 @@
-import { IRotateAnimationProps } from "../../types";
+import { IRotateAnimationProps } from "../../types/animations/types";
 import { BaseAnimation } from "./Animation";
 
 export class RotateAnimation extends BaseAnimation {

@@ -1,5 +1,5 @@
 import { TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
-import { IMoveAnimationProps } from "../../types";
+import { IMoveAnimationProps } from "../../types/animations/types";
 import { BaseAnimation } from "./Animation";
 
 export class MoveAnimation extends BaseAnimation {

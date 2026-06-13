@@ -1,5 +1,5 @@
 // Frontend types for components
-import { IAnimation } from "../../src/types";
+import { IAnimation } from "../../src/types/animations/types";
 import { IHull, IShip } from "./types";
 
 export interface IBaseComponent {

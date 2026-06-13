@@ -1,5 +1,5 @@
 import { COMPONENT_ID } from "@shared/constants";
-import { IHullBaseAnimationProps } from "../../types";
+import { IHullBaseAnimationProps } from "../../types/animations/types";
 import { BaseAnimation } from "./Animation";
 
 export class HullBaseAnimation extends BaseAnimation {

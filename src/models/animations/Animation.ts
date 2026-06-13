@@ -1,6 +1,6 @@
 import { v7 as uuidv7 } from "uuid";
 import { appConfig } from "../../config/app-config";
-import { IAnimation, IAnimationProps } from "../../types";
+import { IAnimation, IAnimationProps } from "../../types/animations/types";
 import { AnimationLayer } from "../AnimationLayer";
 
 const DEFAULT_CANCEL_CLICK = () => {

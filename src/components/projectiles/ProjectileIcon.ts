@@ -1,5 +1,5 @@
 import { Z_INDEX } from "@shared/constants";
-import { IconProps } from "../../types";
+import { IconProps } from "../../types/components/types";
 import { Icon } from "../ships/Icon";
 
 interface Props extends IconProps {

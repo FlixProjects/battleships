@@ -1,4 +1,4 @@
-import { IconProps } from "../../types";
+import { IconProps } from "../../types/components/types";
 import { HTMLImage } from "../native/Image";
 
 export class Icon extends HTMLImage {
@@ -7,7 +7,7 @@ export class Icon extends HTMLImage {
     }
     public build(): HTMLElement {
         this.ref = document.createElement("img");
-        this.ref.id = this.props.id;
+        this.ref.id = this.props.id ?? "";
         this.addStyles();
         return this.ref;
     }
@@ -18,7 +18,7 @@ export class Icon extends HTMLImage {
         this.ref.style.height = "20px";
         this.ref.style.filter = "brightness(0) invert(1)";
 
-        if(this.props.addStyles){
+        if (this.props.addStyles) {
             this.props.addStyles(this);
         }
     }

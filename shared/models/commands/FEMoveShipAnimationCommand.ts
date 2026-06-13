@@ -1,4 +1,4 @@
-import { IMoveShipAnimationProps } from "../../../src/types";
+import { IMoveShipAnimationProps } from "../../../src/types/animations/types";
 import { MoveShipAnimation } from "../../../src/models/animations/MoveShipAnimation";
 import { FEAnimationCommand } from "./FEAnimationCommand";
 import { ICommandExecutionParams } from "./types";

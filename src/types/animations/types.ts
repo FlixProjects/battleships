@@ -1,17 +1,6 @@
 import type { INewOldHullLocMap } from "@shared/index";
 import { ICellLoc } from "@shared/types";
-import type { HTMLImage } from "./components/native/Image";
-import { SwitchPlayerButton } from "./components/SwitchPlayerButton";
-import { AnimationLayer } from "./models/AnimationLayer";
-
-export interface IDynamicComponents {
-    button: {
-        switchPlayerBtn?: SwitchPlayerButton;
-    };
-    span: {};
-    div: {};
-    input: {};
-}
+import { AnimationLayer } from "../../models/AnimationLayer";
 
 export interface IAnimation {
     id: string;
@@ -57,10 +46,4 @@ export interface IDestroyedAnimationProps extends IHullBaseAnimationProps {}
 export interface IHullBaseAnimationProps extends IAnimationProps {
     id?: string;
     elements?: { el: HTMLElement; rect: DOMRect }[];
-}
-
-export interface IconProps {
-    id?: string;
-    src: string;
-    addStyles?: (ref: HTMLImage) => void;
 }

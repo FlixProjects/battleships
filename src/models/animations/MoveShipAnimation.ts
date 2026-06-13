@@ -1,7 +1,7 @@
 import { COMPONENT_ID } from "@shared/constants";
 import { ICellLoc, INewOldHullLocMap } from "@shared/types";
 import { SegmentBuilder } from "@shared/utils/segment-builder";
-import { IMoveShipAnimationProps } from "../../types";
+import { IMoveShipAnimationProps } from "../../types/animations/types";
 import { BaseAnimation } from "./Animation";
 import { PivotWrapper } from "./PivotWrapper";
 

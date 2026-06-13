@@ -1,4 +1,4 @@
-import { IProjectileAnimationProps } from "../../types";
+import { IProjectileAnimationProps } from "../../types/animations/types";
 import { MoveAnimation } from "./MoveAnimation";
 
 export class ProjectileAnimation extends MoveAnimation {

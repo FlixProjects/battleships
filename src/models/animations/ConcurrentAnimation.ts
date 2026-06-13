@@ -1,4 +1,4 @@
-import { IAnimation } from "../../types";
+import { IAnimation } from "../../types/animations/types";
 import { BaseAnimation } from "./Animation";
 
 // TODO: not used for now but to be used for animations that need to be coordinated
