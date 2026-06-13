@@ -28,7 +28,7 @@ const buildState = (overrides: Partial<IGameStateData>): IGameStateData => ({
 const buildDeck = (id: string, playerId: string, cards: ICard[], played: ICard[] = []): IDeck => ({
     id,
     playerId,
-    faction: Faction.THE_UNITED_FLEET,
+    faction: Faction.THE_UNITED_DEFENSE_FLEET,
     cards,
     played,
 });
@@ -42,7 +42,7 @@ const buildPlayer = (id: string, deck: string, hand: string[]): IPlayer => ({
     pendingActions: [] as IPlayerAction[],
     maxCommandPoints: 2,
     commandPoints: 2,
-    faction: Faction.THE_UNITED_FLEET,
+    faction: Faction.THE_UNITED_DEFENSE_FLEET,
     hand,
     deck,
 });

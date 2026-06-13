@@ -75,7 +75,7 @@ export const handler = async (event: any) => {
 
         const playerId = randomUUID();
         const newPlayer = initialiseNewPlayer({ id: playerId, name: playerName, order: gameState.players.length });
-        const starting = buildPlayerStartingState(playerId, GameConfig.Faction.THE_UNITED_FLEET);
+        const starting = buildPlayerStartingState(playerId, GameConfig.Faction.THE_UNITED_DEFENSE_FLEET);
         applyStartingStateToPlayer(newPlayer, starting);
 
         gameState.ships.push(...starting.ships);

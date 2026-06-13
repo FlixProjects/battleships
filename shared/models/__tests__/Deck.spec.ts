@@ -14,7 +14,7 @@ const makeCard = (id: string, refNo: string, deckId = "deck-1"): ICard => ({
 const baseProps = (cards: ICard[], played: ICard[] = []) => ({
     id: "deck-1",
     playerId: "p1",
-    faction: Faction.THE_UNITED_FLEET,
+    faction: Faction.THE_UNITED_DEFENSE_FLEET,
     cards,
     played,
 });

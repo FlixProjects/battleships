@@ -13,7 +13,7 @@ export class PlayerBuilder extends Builder<IPlayer, Player> {
             maxCommandPoints: 2,
             commandPoints: 2,
             pendingActions: [],
-            faction: Faction.THE_UNITED_FLEET,
+            faction: Faction.THE_UNITED_DEFENSE_FLEET,
             hand: [],
             deck: "",
         };

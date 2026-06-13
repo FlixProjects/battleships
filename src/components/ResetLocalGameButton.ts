@@ -74,10 +74,14 @@ export class ResetLocalGameButton extends HTMLButton {
         setGameCode(gameCode);
         setCurrentPlayer(player1Id);
 
-        gameManager.saveAppState({ status: GameConfig.AppStatus.Initialised, loading: false, gameState: initialGameState });
+        gameManager.saveAppState({
+            status: GameConfig.AppStatus.Initialised,
+            loading: false,
+            gameState: initialGameState,
+        });
 
         const player2 = initialiseNewPlayer({ id: player2Id, name: player2Name, order: 1 });
-        const player2Starting = buildPlayerStartingState(player2Id, GameConfig.Faction.THE_UNITED_FLEET);
+        const player2Starting = buildPlayerStartingState(player2Id, GameConfig.Faction.THE_UNITED_DEFENSE_FLEET);
         applyStartingStateToPlayer(player2, player2Starting);
 
         initialGameState.ships.push(...player2Starting.ships);
@@ -89,8 +93,12 @@ export class ResetLocalGameButton extends HTMLButton {
         sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(initialGameState));
 
         gameManager.setCurrentPlayer(player2Id);
-        gameManager.saveAppState({ status: GameConfig.AppStatus.Initialised, loading: false, gameState: initialGameState });
-        
+        gameManager.saveAppState({
+            status: GameConfig.AppStatus.Initialised,
+            loading: false,
+            gameState: initialGameState,
+        });
+
         setGameCode(gameCode);
         updateComponents();
     }

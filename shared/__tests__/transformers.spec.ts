@@ -68,7 +68,7 @@ describe("transformGameStateToPlain", () => {
                 {
                     id: "deck-1",
                     playerId: "p1",
-                    faction: Faction.THE_UNITED_FLEET,
+                    faction: Faction.THE_UNITED_DEFENSE_FLEET,
                     cards: [card1, card2],
                     played: [card3],
                 },
@@ -183,7 +183,7 @@ describe("transformPlainGameStateToDomain", () => {
                 {
                     id: "deck-1",
                     playerId: "p1",
-                    faction: Faction.THE_UNITED_FLEET,
+                    faction: Faction.THE_UNITED_DEFENSE_FLEET,
                     cards: ["card-1", "card-2"],
                     played: ["card-3"],
                 },

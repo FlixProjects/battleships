@@ -12,7 +12,7 @@ const buildPlayer = (overrides: Partial<IPlayer> = {}): IPlayer => ({
     pendingActions: [] as IPlayerAction[],
     maxCommandPoints: 2,
     commandPoints: 2,
-    faction: Faction.THE_UNITED_FLEET,
+    faction: Faction.THE_UNITED_DEFENSE_FLEET,
     hand: [],
     deck: "deck-1",
     ...overrides,

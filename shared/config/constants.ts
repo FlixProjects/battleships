@@ -1,4 +1,16 @@
-import { TShipRefNo, IHullTemplate, IShipTemplate, TEffectRefNo, IEffectConfig, EffectKind, EffectAnchor, TSupportRefNo, ISupportConfig, DeckTemplate, TFaction } from "@shared/types";
+import {
+    TShipRefNo,
+    IHullTemplate,
+    IShipTemplate,
+    TEffectRefNo,
+    IEffectConfig,
+    EffectKind,
+    EffectAnchor,
+    TSupportRefNo,
+    ISupportConfig,
+    DeckTemplate,
+    TFaction,
+} from "@shared/types";
 
 export const AppStatus = {
     NewGame: "NewGame",
@@ -31,7 +43,7 @@ export const SUPPORT_REF_NO = {
 } as const;
 
 export const Faction = {
-    THE_UNITED_FLEET: "THE_UNITED_FLEET",
+    THE_UNITED_DEFENSE_FLEET: "THE_UNITED_DEFENSE_FLEET",
 } as const;
 
 export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
@@ -135,7 +147,7 @@ export const SUPPORTS_CONFIG: Record<TSupportRefNo, ISupportConfig> = {
 export const MAX_HAND_SIZE = 4;
 
 export const FACTION_CONFIG: Record<TFaction, DeckTemplate> = {
-    [Faction.THE_UNITED_FLEET]: [
+    [Faction.THE_UNITED_DEFENSE_FLEET]: [
         // Ships
         { kind: CardKind.Ship, refNo: "flagship0", count: 1 },
         { kind: CardKind.Ship, refNo: "frigate0", count: 4 },

@@ -416,7 +416,12 @@ describe("ActionResolver", () => {
 
         it("rejects a deploy onto an occupied tile via the engine validator (no hull created, no CP spent, not recorded)", () => {
             // player1 already occupies [1,0] in its own deploy row
-            const occupyingHull = hullBuilder.build({ id: "hullOcc", shipId: "shipOcc", location: [1, 0], front: true });
+            const occupyingHull = hullBuilder.build({
+                id: "hullOcc",
+                shipId: "shipOcc",
+                location: [1, 0],
+                front: true,
+            });
             const occupyingShip = shipBuilder.build({
                 id: "shipOcc",
                 playerId: "player1",
@@ -584,14 +589,14 @@ describe("ActionResolver", () => {
             const p1Deck: IDeck = {
                 id: "deck-1",
                 playerId: "player1",
-                faction: Faction.THE_UNITED_FLEET,
+                faction: Faction.THE_UNITED_DEFENSE_FLEET,
                 cards: p1Cards,
                 played: [],
             };
             const p2Deck: IDeck = {
                 id: "deck-2",
                 playerId: "player2",
-                faction: Faction.THE_UNITED_FLEET,
+                faction: Faction.THE_UNITED_DEFENSE_FLEET,
                 cards: p2Cards,
                 played: [],
             };
@@ -632,7 +637,7 @@ describe("ActionResolver", () => {
             const deck: IDeck = {
                 id: "deck-1",
                 playerId: "player1",
-                faction: Faction.THE_UNITED_FLEET,
+                faction: Faction.THE_UNITED_DEFENSE_FLEET,
                 cards,
                 played: [],
             };
@@ -688,7 +693,7 @@ describe("ActionResolver", () => {
             const deck: IDeck = {
                 id: "deck-1",
                 playerId: "player1",
-                faction: Faction.THE_UNITED_FLEET,
+                faction: Faction.THE_UNITED_DEFENSE_FLEET,
                 cards: [],
                 played: [],
             };
@@ -755,7 +760,12 @@ describe("ActionResolver", () => {
         it("no-ops a ship-card play onto an occupied tile (PlayCardValidator): card stays in hand, nothing deployed", () => {
             const { card, deck, ship } = buildShipCardEntities();
             // player1 already occupies the target tile [1,0] in its own deploy row
-            const occupyingHull = hullBuilder.build({ id: "hullOcc", shipId: "shipOcc", location: [1, 0], front: true });
+            const occupyingHull = hullBuilder.build({
+                id: "hullOcc",
+                shipId: "shipOcc",
+                location: [1, 0],
+                front: true,
+            });
             const occupyingShip = shipBuilder.build({
                 id: "shipOcc",
                 playerId: "player1",
@@ -828,7 +838,7 @@ describe("ActionResolver", () => {
             const deck: IDeck = {
                 id: "deck-1",
                 playerId: "player1",
-                faction: Faction.THE_UNITED_FLEET,
+                faction: Faction.THE_UNITED_DEFENSE_FLEET,
                 cards: [],
                 played: [],
             };

@@ -1,13 +1,6 @@
 import { BOARD_COLUMNS, BOARD_ROWS, CELL_SEPARATOR, FP_AUTH_TOKEN } from "@shared/constants";
 import { v7 as uuidv7 } from "uuid";
-import {
-    CardKind,
-    Faction,
-    FACTION_CONFIG,
-    MAX_HAND_SIZE,
-    SHIPS_CONFIG,
-    SUPPORTS_CONFIG,
-} from "../config/constants";
+import { CardKind, Faction, FACTION_CONFIG, MAX_HAND_SIZE, SHIPS_CONFIG, SUPPORTS_CONFIG } from "../config/constants";
 import { Cell } from "../models/Cell";
 import { Deck } from "../models/Deck";
 import {
@@ -83,7 +76,7 @@ export const getNewBoard = (): Board => {
 
 export const createNewGameState = (gameCode: string, playerId: string, playerName: string): IPlainGameState => {
     const player = initialiseNewPlayer({ id: playerId, name: playerName, order: 0 });
-    const starting = buildPlayerStartingState(playerId, Faction.THE_UNITED_FLEET);
+    const starting = buildPlayerStartingState(playerId, Faction.THE_UNITED_DEFENSE_FLEET);
     applyStartingStateToPlayer(player, starting);
 
     const newGame: IPlainGameState = {
@@ -214,7 +207,7 @@ export const initialiseNewPlayer = (_options: { id: string; name: string; order?
         pendingActions: [],
         maxCommandPoints: 2,
         commandPoints: 2,
-        faction: Faction.THE_UNITED_FLEET,
+        faction: Faction.THE_UNITED_DEFENSE_FLEET,
         hand: [],
         deck: "",
     };
