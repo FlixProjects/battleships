@@ -399,6 +399,11 @@ export class GameState extends GameStateEntity implements IGameState {
         return this;
     }
 
+    public isFlagshipDeployed(playerId: string): boolean {
+        const flagship = this.ships.find((s) => s.isFlagship && s.playerId === playerId);
+        return !!flagship?.deployed;
+    }
+
     getPlayerIndex(playerId: string) {
         const playerIndex = this.players.findIndex((p) => p.id === playerId);
         return playerIndex;

@@ -31,7 +31,7 @@ export const submitAction = async (actions: IAction[]) => {
 
         if (isLocal) {
             const localState = sessionStorage.getItem(FP_GAME_STATE);
-            reqBody.gameState = localState ? (JSON.parse(localState) as IPlainGameState) : null;
+            reqBody.gameState = localState ? (JSON.parse(localState) as IPlainGameState) : undefined;
         }
 
         const res = await fetch(url, {

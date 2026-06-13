@@ -1,10 +1,10 @@
-import { IActionResolver, IGameManager, IGameState, IGameStateManager } from "../types";
+import { IActionResolver, IGameManager, IGameState, IGameStateManager, TGameStateManagerCtor } from "../types";
 import { ICommand, ICommandExecutionParams } from "./commands/types";
 
 export class Game {
     constructor(
         private db: IGameManager,
-        private GSM: new (_gameState: IGameState) => IGameStateManager,
+        private GSM: TGameStateManagerCtor,
         private Resolver: new (playerId: string, gameState: IGameState) => IActionResolver,
     ) {}
 

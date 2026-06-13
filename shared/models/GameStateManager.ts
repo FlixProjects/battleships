@@ -183,4 +183,8 @@ export class GameStateManager implements IGameStateManager {
     getActiveEffects(playerId?: string) {
         return this.gameState.getActiveEffects(playerId);
     }
+
+    isFlagshipDeployed(playerId: string): boolean {
+        return this.gameState.isFlagshipDeployed(playerId);
+    }
 }

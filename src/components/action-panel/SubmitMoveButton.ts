@@ -25,7 +25,7 @@ export class SubmitMoveButton extends HTMLButton {
         this.ref.textContent = this.getTextcontent();
         this.ref.className = "btn primary";
         this.ref.style.marginTop = "12px";
-        this.setDisabled(this.hasFlagshipNotDeployed || this.isSubmitted || this.isOver);
+        this.setDisabled(!this.isFlagshipDeployed || this.isSubmitted || this.isOver);
         this.addClickEventListener();
 
         return this.ref;
@@ -35,10 +35,10 @@ export class SubmitMoveButton extends HTMLButton {
         this.ref.disabled = isDisabled;
     }
 
-    private get hasFlagshipNotDeployed() {
+    private get isFlagshipDeployed() {
         const player = gameManager.getPlayer();
-        const flagshipIndex = player.ships.findIndex((s) => s.isFlagship);
-        return flagshipIndex > -1 && !player.ships[flagshipIndex].deployed;
+
+        return new this.GSM(gameManager.state.gameState).isFlagshipDeployed(player.id);
     }
 
     private getTextcontent() {
@@ -50,7 +50,11 @@ export class SubmitMoveButton extends HTMLButton {
     async onClick() {
         try {
             this.setDisabled(true);
-            const { gameState, gameStateForLocal } = await submitAction(gameManager.getPlayer().pendingActions);
+            const res = await submitAction(gameManager.getPlayer().pendingActions);
+            if (!res) {
+                throw new Error("No response from submit action");
+            }
+            const { gameState, gameStateForLocal } = res;
 
             // Re-resolve locally so the player sees the resolved board while
             // they wait for the opponent. Server's stored state stays raw.

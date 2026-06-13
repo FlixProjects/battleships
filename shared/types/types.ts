@@ -80,6 +80,7 @@ export interface IGameStateManager {
     removeEffect(effectId: string): this;
     getActiveEffects(playerId?: string): IEffect[];
     resolveLocalActionsForPlayer(playerId: string): this;
+    isFlagshipDeployed(playerId: string): boolean;
 }
 
 export interface IGameStateData {
@@ -129,6 +130,7 @@ export interface IGameState extends IGameStateData {
     getVisibleTilesforPlayer(playerId: string): Set<string>;
     removeInvisibleFromPlayer(visibleTiles: Set<string>, playerId: string): IGameState;
     obscureOtherPlayer(playerId: string): IGameState;
+    isFlagshipDeployed(playerId: string): boolean;
     linkPlayerShips(options?: { reverse?: boolean }): this;
     linkShipHulls(options?: { reverse?: boolean }): this;
 }
