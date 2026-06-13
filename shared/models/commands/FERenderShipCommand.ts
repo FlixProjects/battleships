@@ -1,4 +1,4 @@
-import { FEShipEntity } from "../../../src/models/fe-entities/FEShipEntity";
+import { IFECommandExecutionParams } from "../../../src/types/commands/types";
 import { FERenderCommand } from "./FERenderCommand";
 import { ICommandExecutionParams } from "./types";
 
@@ -7,11 +7,9 @@ export class FERenderShipCommand extends FERenderCommand {
         super();
     }
 
-    public async execute(params: ICommandExecutionParams): Promise<void> {
+    public async execute(params: IFECommandExecutionParams): Promise<void> {
         const { gsm } = params;
-        const ship = gsm.getShip(this.shipId);
-
-        const feShip = new FEShipEntity(ship);
+        const feShip = gsm.getShip(this.shipId);
 
         feShip.render(this.gameBoard);
     }
