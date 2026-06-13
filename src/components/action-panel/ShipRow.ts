@@ -1,7 +1,7 @@
-import { gameManager } from "../..";
 import { COLOR } from "@shared/constants";
-import { IAppState } from "@shared/types";
-import { GameStateManager } from "@shared/models";
+import { IAppState, TGameStateManagerCtor } from "@shared/types";
+import { gameManager } from "../..";
+import { FEGameStateManager } from "../../models/FEGameStateManager";
 import { Selectable } from "../Selectable";
 import { ShipIcon } from "../ships/ShipIcon";
 
@@ -15,6 +15,7 @@ interface Props {
 
 // TODO: Should extend from generic Row component
 export class ShipRow extends Selectable {
+    private GSM: TGameStateManagerCtor = FEGameStateManager;
     constructor(public props: Props) {
         const { shipId } = props;
         super(shipId);
@@ -33,7 +34,7 @@ export class ShipRow extends Selectable {
     renderShipIcon() {
         const { shipId, refNo } = this.props;
 
-        const gsm = new GameStateManager(gameManager.state.gameState);
+        const gsm = new this.GSM(gameManager.state.gameState);
         const playerId = gsm.gameState.getShip(shipId)?.playerId;
 
         const shipIcon = new ShipIcon({
@@ -54,7 +55,7 @@ export class ShipRow extends Selectable {
         this.addStyles();
 
         this.isSelectable = this.props.isSelectable;
-        this.setState()
+        this.setState();
 
         this.renderShipIcon();
         return this.ref;

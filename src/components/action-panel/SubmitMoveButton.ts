@@ -1,9 +1,9 @@
 import { FP_GAME_STATE } from "@shared/constants";
-import { GameConfig } from "@shared/index";
-import { GameStateManager } from "@shared/models";
+import { GameConfig, TGameStateManagerCtor } from "@shared/index";
 import { gameManager } from "../..";
 import { submitAction } from "../../apis/submit-action";
 import { isLocal } from "../../config/app-config";
+import { FEGameStateManager } from "../../models/FEGameStateManager";
 import { isWaitingForOtherPlayer } from "../../utils/game-helper";
 import { updateComponents } from "../component-helper";
 import { HTMLButton } from "../native/Button";
@@ -11,6 +11,7 @@ import { HTMLButton } from "../native/Button";
 export class SubmitMoveButton extends HTMLButton {
     private isSubmitted = false;
     private isOver = false;
+    private GSM: TGameStateManagerCtor = FEGameStateManager;
     constructor() {
         super();
     }
@@ -53,7 +54,7 @@ export class SubmitMoveButton extends HTMLButton {
 
             // Re-resolve locally so the player sees the resolved board while
             // they wait for the opponent. Server's stored state stays raw.
-            const gsm = new GameStateManager(gameState);
+            const gsm = new this.GSM(gameState);
             gsm.resolveLocalActionsForPlayer(gameManager.getCurrentPlayerId());
 
             if (isLocal && !!gameState) {

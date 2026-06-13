@@ -6,9 +6,9 @@ import { GridHelper } from "@shared/utils/grid-helper";
 import { locationToKey } from "@shared/utils/helpers";
 import { Selectable } from "../../../src/components/Selectable";
 import { queueCommand } from "../../../src/utils/game-helper";
-import { FEEntity } from "./FEEntity";
+import { IPlainShip, IGameState, IHull } from "@shared/index";
 
-export class FEShipEntity extends FEEntity<Ship> {
+export class FEShipEntity extends Ship {
     protected gameBoard: IGameBoard;
     private shipWrapper: Selectable;
 
@@ -21,10 +21,10 @@ export class FEShipEntity extends FEEntity<Ship> {
 
     private renderHulls() {
         const gh = new GridHelper();
-        const topCorner: IRect = gh.getMostTopLeft(this.entityProps.hulls?.map((hull) => hull.location) ?? []);
+        const topCorner: IRect = gh.getMostTopLeft(this.hulls?.map((hull) => hull.location) ?? []);
         const rectToTileMap = new Map<string, IRect>();
 
-        this.entityProps.hulls?.forEach((hull) => {
+        this.hulls?.forEach((hull) => {
             const tileKey = locationToKey(hull.location);
             rectToTileMap.set(tileKey, gh.getTopLeft(hull.location));
         });
@@ -34,7 +34,7 @@ export class FEShipEntity extends FEEntity<Ship> {
         shipWrapperElement.style.top = `${topCorner?.top ?? 0}px`;
         shipWrapperElement.style.left = `${topCorner?.left ?? 0}px`;
 
-        this.entityProps.hulls?.forEach((hull) => this.renderHull(hull, gh.getRelativeTopLeft(rectToTileMap)));
+        this.hulls?.forEach((hull) => this.renderHull(hull, gh.getRelativeTopLeft(rectToTileMap)));
     }
 
     private renderHull(hull: Hull, rectToTileMap: Map<string, IRect>) {
@@ -50,11 +50,17 @@ export class FEShipEntity extends FEEntity<Ship> {
     }
 
     private createShipWrapper() {
-        const shipWrapperId = `ship-${this.entityProps.id}`;
+        const shipWrapperId = `ship-${this.id}`;
 
         this.shipWrapper = new Selectable(shipWrapperId);
         this.shipWrapper.ref = document.createElement("div");
         this.shipWrapper.ref.id = shipWrapperId;
         this.shipWrapper.ref.style.position = "absolute";
+    }
+
+    public static toDomain(plain: IPlainShip, state: IGameState): FEShipEntity {
+        const hullsById = new Map<string, IHull>((state.hulls ?? []).map((h) => [h.id, h]));
+        const hulls = plain.hulls.map((id) => hullsById.get(id)).filter((h): h is IHull => h !== undefined);
+        return new FEShipEntity({ ...plain, hulls });
     }
 }

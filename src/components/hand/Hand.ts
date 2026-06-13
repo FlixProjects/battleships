@@ -1,7 +1,8 @@
 import { GameConfig } from "@shared/index";
-import { GameStateManager, SupportCard } from "@shared/models";
-import { ICard, IPlayer } from "@shared/types";
+import { SupportCard } from "@shared/models";
+import { ICard, IPlayer, IGameStateManager, TGameStateManagerCtor } from "@shared/types";
 import { gameManager, interactionManager } from "../..";
+import { FEGameStateManager } from "../../models/FEGameStateManager";
 import { BaseComponent } from "../BaseComponent";
 import { getComponents } from "../component-helper";
 import { Toast } from "../Toast";
@@ -21,7 +22,7 @@ interface Props {
 export class Hand extends BaseComponent {
     private selectedCardId?: string;
     private cardRows: CardRow[] = [];
-
+    private GSM: TGameStateManagerCtor = FEGameStateManager;
     constructor(private props: Props) {
         super();
     }
@@ -34,7 +35,7 @@ export class Hand extends BaseComponent {
     }
 
     private renderCards() {
-        const gsm = new GameStateManager(gameManager.state.gameState);
+        const gsm = new this.GSM(gameManager.state.gameState);
         const cards = gsm.getPlayerHand(this.props.player.id);
 
         const flagshipShipCard = this.findFlagshipShipCardNotDeployed(cards, gsm);
@@ -63,7 +64,7 @@ export class Hand extends BaseComponent {
         }
     }
 
-    private isCardPlayable(card: ICard, gsm: GameStateManager): boolean {
+    private isCardPlayable(card: ICard, gsm: IGameStateManager): boolean {
         if (card.kind === "Ship") {
             const ship = gsm.gameState.ships.find((s) => s.id === card.instanceId);
             // Only render ship cards whose Ship hasn't been deployed yet.
@@ -73,7 +74,7 @@ export class Hand extends BaseComponent {
         return true;
     }
 
-    private isSelectable(card: ICard, gsm: GameStateManager): boolean {
+    private isSelectable(card: ICard, gsm: IGameStateManager): boolean {
         if (this.props.isGameOver) return false;
         if (this.props.player.ready) return false;
 
@@ -87,7 +88,7 @@ export class Hand extends BaseComponent {
         return true;
     }
 
-    private findFlagshipShipCardNotDeployed(cards: ICard[], gsm: GameStateManager): ICard | undefined {
+    private findFlagshipShipCardNotDeployed(cards: ICard[], gsm: IGameStateManager): ICard | undefined {
         return cards.find((c) => {
             if (c.kind !== "Ship") return false;
             const ship = gsm.gameState.ships.find((s) => s.id === c.instanceId);
@@ -96,7 +97,7 @@ export class Hand extends BaseComponent {
     }
 
     private dispatchCardSelection(cardId: string) {
-        const gsm = new GameStateManager(gameManager.state.gameState);
+        const gsm = new this.GSM(gameManager.state.gameState);
         const card = gsm.getCard(cardId);
         if (!card) return;
 
@@ -114,13 +115,13 @@ export class Hand extends BaseComponent {
     }
 
     private shouldAutoSelectFlagship(): boolean {
-        const gsm = new GameStateManager(gameManager.state.gameState);
+        const gsm = new this.GSM(gameManager.state.gameState);
         const cards = gsm.getPlayerHand(this.props.player.id);
         return !!this.findFlagshipShipCardNotDeployed(cards, gsm);
     }
 
     private autoSelectFlagshipCard() {
-        const gsm = new GameStateManager(gameManager.state.gameState);
+        const gsm = new this.GSM(gameManager.state.gameState);
         const cards = gsm.getPlayerHand(this.props.player.id);
         const flagshipCard = this.findFlagshipShipCardNotDeployed(cards, gsm);
         if (!flagshipCard) return;

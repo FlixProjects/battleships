@@ -9,18 +9,19 @@ import {
     TILE_SIZE_PX,
     Z_INDEX,
 } from "@shared/constants";
-import { GameStateManager } from "@shared/models";
 import { FERenderShipCommand } from "@shared/models/commands/FERenderShipCommand";
-import { IAppState, ICellLoc, IShip } from "@shared/types";
+import { IAppState, ICellLoc, IShip, TGameStateManagerCtor } from "@shared/types";
 import { IUpdateSelectableOptions, TSetSelectableOptions } from "@shared/types/fe-types";
 import { locationToKey } from "@shared/utils";
 import { gameManager } from "../..";
+import { FEGameStateManager } from "../../models/FEGameStateManager";
 import { queueCommand } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 import { EffectSprite } from "./EffectSprite";
 import { Tile } from "./Tile";
 
 export class GameBoard extends BaseComponent {
+    private GSM: TGameStateManagerCtor = FEGameStateManager;
     public tiles: Record<string, Tile> = {};
 
     private container = document.getElementById(COMPONENT_ID.GAME_AREA) as HTMLDivElement;
@@ -107,9 +108,7 @@ export class GameBoard extends BaseComponent {
 
         if (!playerId) return;
 
-        const visibleTiles = new GameStateManager(gameManager.state.gameState).gameState.getVisibleTilesforPlayer(
-            playerId,
-        );
+        const visibleTiles = new this.GSM(gameManager.state.gameState).gameState.getVisibleTilesforPlayer(playerId);
         Object.keys(this.tiles).forEach((tileKey) => {
             this.tiles[tileKey].setVisible(visibleTiles.has(tileKey));
         });
@@ -148,7 +147,7 @@ export class GameBoard extends BaseComponent {
     }
 
     private renderPlayersShips() {
-        const gameState = new GameStateManager(gameManager.state.gameState).gameState;
+        const gameState = new this.GSM(gameManager.state.gameState).gameState;
         if (!gameState) return;
         const shipsToRender = gameState.ships?.filter((s) => s.deployed && !s.destroyed);
 
@@ -165,7 +164,7 @@ export class GameBoard extends BaseComponent {
     }
 
     private renderEffects() {
-        const gameState = new GameStateManager(gameManager.state.gameState).gameState;
+        const gameState = new this.GSM(gameManager.state.gameState).gameState;
         gameState.getActiveEffects().forEach((effect) => {
             const sprite = new EffectSprite({ effect });
             this.addChild(sprite);

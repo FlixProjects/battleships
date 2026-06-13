@@ -11,21 +11,20 @@ import {
     IPlayer,
     IPlayerAction,
     IShip,
+    TGameStateInput,
 } from "../types";
 import { ActionResolver } from "../utils/action-handler/ActionResolver";
 import { GameState } from "./GameState";
 
-type GameStateInput = IGameState | IGameStateData | IPlainGameState;
-
 export class GameStateManager implements IGameStateManager {
     private _gameState: GameState;
-    constructor(_gameState: GameStateInput) {
+    constructor(_gameState: TGameStateInput) {
         // each time we instantiate we deep clone the gameState
         const plain = clone(_gameState);
         this._gameState = this.transformToDomain(plain);
     }
 
-    private transformToDomain(_gameState: GameStateInput) {
+    protected transformToDomain(_gameState: TGameStateInput) {
         return new GameState(_gameState);
     }
 

@@ -1,7 +1,7 @@
 import { DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_CURRENT_PLAYER, FP_PLAYER_STATES } from "@shared/constants";
-import { transformPlainAppStateToDomain } from "@shared/transformers";
 import { IAppState, IPlainAppState, IPlayer } from "@shared/types";
 import { mergician } from "mergician";
+import { transformPlainAppStateToFEDomain } from "../utils/transformers";
 
 interface PlayerGameStates {
     [playerId: string]: IPlainAppState;
@@ -69,14 +69,14 @@ export class GameManager {
     private getCurrentPlayerState(): IAppState {
         const currentPlayerId = this.getCurrentPlayerId();
         if (!currentPlayerId) {
-            return transformPlainAppStateToDomain(DEFAULT_APP_STATE);
+            return transformPlainAppStateToFEDomain(DEFAULT_APP_STATE);
         }
         return this.loadPlayerState(currentPlayerId);
     }
 
     private loadPlayerState(playerId: string): IAppState {
         const rawState = this.playerGameStates[playerId] ?? DEFAULT_APP_STATE;
-        return transformPlainAppStateToDomain(rawState);
+        return transformPlainAppStateToFEDomain(rawState);
     }
 
     private loadAllPlayerStates(): PlayerGameStates {

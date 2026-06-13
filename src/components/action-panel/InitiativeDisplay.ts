@@ -1,5 +1,6 @@
+import { TGameStateManagerCtor } from "@shared/types";
 import { gameManager } from "../..";
-import { GameStateManager } from "@shared/models";
+import { FEGameStateManager } from "../../models/FEGameStateManager";
 import { BaseComponent } from "../BaseComponent";
 import { InitiativeIcon } from "./InitiativeIcon";
 import { InitiativeName } from "./InitiativeName";
@@ -7,13 +8,13 @@ import { InitiativeName } from "./InitiativeName";
 export class InitiativeDisplay extends BaseComponent {
     private isFirstPlayer: boolean;
     private initiativePlayerName: string;
+    private GSM: TGameStateManagerCtor = FEGameStateManager;
 
     build() {
-        const gsm = new GameStateManager(gameManager.state.gameState);
+        const gsm = new this.GSM(gameManager.state.gameState);
         const gameState = gsm.gameState;
-        const currentPlayer = gsm.getPlayer(gameManager.getCurrentPlayerId()).id;
 
-        if (!gameState?.initiative) return null;
+        if (!gameState?.initiative) return this.ref;
 
         this.initiativePlayerName = gameState.players.find((p) => p.id === gameState.initiative)?.name || "Unknown";
         this.isFirstPlayer = gameState.initiative === gameState.getFirstPlayerId();

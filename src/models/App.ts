@@ -1,18 +1,18 @@
 import { DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_GAME_CODE } from "@shared/constants";
 import { GameConfig } from "@shared/index";
-import { GameStateManager } from "@shared/models";
-import { transformPlainAppStateToDomain } from "@shared/transformers";
-import { IAppState } from "@shared/types";
+import { IAppState, TGameStateManagerCtor } from "@shared/types";
 import { gameManager } from "..";
 import { getGame } from "../apis/get-game";
 import { updateComponents } from "../components/component-helper";
 import { loadStyles } from "../css-anim-styles";
 import { deleteAuthCookie, getCookie } from "../utils/cookie-helper";
 import { getGameCode, isWaitingForOtherPlayer, removeGameCode } from "../utils/game-helper";
+import { transformPlainAppStateToFEDomain } from "../utils/transformers";
+import { FEGameStateManager } from "./FEGameStateManager";
 
 export class App {
-    private _state: IAppState = transformPlainAppStateToDomain(DEFAULT_APP_STATE);
-
+    private _state: IAppState = transformPlainAppStateToFEDomain(DEFAULT_APP_STATE);
+    private GSM: TGameStateManagerCtor = FEGameStateManager;
     public async start() {
         loadStyles();
         updateComponents(this._state);
@@ -50,7 +50,7 @@ export class App {
             }
 
             const currentPlayerId = getCookie(FP_AUTH_TOKEN);
-            const gsm = new GameStateManager(response.gameState);
+            const gsm = new this.GSM(response.gameState);
             // Server speaks plain. Run local re-resolution (only fires if player has already submitted)
             gsm.resolveLocalActionsForPlayer(currentPlayerId);
 

@@ -23,6 +23,7 @@ import type { Card, Deck, GameState, Hull, Player, Ship } from "../models";
 import { ICommand } from "../models/commands/types";
 import { IPlayerAction } from "./action-types";
 
+export type TGameStateInput = IGameState | IGameStateData | IPlainGameState;
 export interface IGame {
     queueCommand(command: ICommand): Promise<void>;
     runCommandTree(command: ICommand): Promise<void>;
@@ -44,6 +45,9 @@ export interface IGameManager {
         },
     ) => void;
 }
+
+export type TGameStateManagerCtor = new (_gameState: TGameStateInput) => IGameStateManager;
+
 export interface IGameStateManager {
     get gameState(): GameState;
     setGameState(_gameState: IGameState): void;
@@ -75,6 +79,7 @@ export interface IGameStateManager {
     addEffects(effects: IEffect[]): this;
     removeEffect(effectId: string): this;
     getActiveEffects(playerId?: string): IEffect[];
+    resolveLocalActionsForPlayer(playerId: string): this;
 }
 
 export interface IGameStateData {

@@ -1,8 +1,8 @@
 import { DEFAULT_APP_STATE, FP_CURRENT_PLAYER, LOCAL_TEMP_PLAYER_ID } from "@shared/constants";
-import { transformPlainAppStateToDomain } from "@shared/transformers";
 import { IAppState } from "@shared/types";
 import { gameManager } from "..";
 import { isLocal } from "../config/app-config";
+import { transformPlainAppStateToFEDomain } from "../utils/transformers";
 import { updateComponents } from "./component-helper";
 import { HTMLButton } from "./native/Button";
 
@@ -75,7 +75,7 @@ export class SwitchPlayerButton extends HTMLButton {
         const nextPlayerId = this.switchCurrentPlayer();
 
         if (!nextPlayerId || nextPlayerId === LOCAL_TEMP_PLAYER_ID) {
-            updateComponents(transformPlainAppStateToDomain(DEFAULT_APP_STATE));
+            updateComponents(transformPlainAppStateToFEDomain(DEFAULT_APP_STATE));
             return;
         }
 

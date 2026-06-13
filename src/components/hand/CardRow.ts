@@ -1,8 +1,8 @@
 import { COLOR } from "@shared/constants";
-import { GameConfig } from "@shared/index";
-import { GameStateManager } from "@shared/models";
-import { IAppState } from "@shared/types";
+import { GameConfig, TGameStateManagerCtor } from "@shared/index";
+import { IAppState, IGameStateManager } from "@shared/types";
 import { gameManager } from "../..";
+import { FEGameStateManager } from "../../models/FEGameStateManager";
 import { Selectable } from "../Selectable";
 import { ShipIcon } from "../ships/ShipIcon";
 import { SupportIcon } from "../supports/SupportIcon";
@@ -22,6 +22,7 @@ interface Props {
  * renderers) — the parent CardSelector stays generic.
  */
 export class CardRow extends Selectable {
+    private GSM: TGameStateManagerCtor = FEGameStateManager;
     constructor(public props: Props) {
         super(props.cardId);
     }
@@ -50,7 +51,7 @@ export class CardRow extends Selectable {
     }
 
     private renderBody() {
-        const gsm = new GameStateManager(gameManager.state.gameState);
+        const gsm = new this.GSM(gameManager.state.gameState);
         const card = gsm.getCard(this.props.cardId);
         if (!card) return;
 
@@ -64,7 +65,7 @@ export class CardRow extends Selectable {
         }
     }
 
-    private renderSupportIcon(cardId: string, refNo: string, gsm: GameStateManager) {
+    private renderSupportIcon(cardId: string, refNo: string, gsm: IGameStateManager) {
         const supportIcon = new SupportIcon({
             cardId,
             refNo,
@@ -74,7 +75,7 @@ export class CardRow extends Selectable {
         this.ref.appendChild(supportIcon.build());
     }
 
-    private renderShipIcon(shipId: string, refNo: string, gsm: GameStateManager) {
+    private renderShipIcon(shipId: string, refNo: string, gsm: IGameStateManager) {
         const playerId = gsm.gameState.getShip(shipId)?.playerId;
         const shipIcon = new ShipIcon({
             refNo,
