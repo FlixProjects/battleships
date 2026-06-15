@@ -1,4 +1,4 @@
-import { IPlainGameState, IGameState, IPlainAppState, IAppState } from "@shared/index";
+import { IPlainGameState, IGameState, IPlainAppState, IAppState } from "@shared/types";
 import { FEGameState } from "../models/fe-entities/FEGameState";
 
 export const transformPlainGameStateToDomain = (plain: IPlainGameState): IGameState => {

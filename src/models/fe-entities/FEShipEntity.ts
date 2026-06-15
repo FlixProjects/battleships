@@ -1,4 +1,4 @@
-import { IGameState, IHull, IPlainShip } from "@shared/index";
+import { IGameState, IHull, IPlainShip } from "@shared/types";
 import { FERenderHullCommand } from "@shared/models/commands/FERenderHullCommand";
 import { Hull } from "@shared/models/Hull";
 import { Ship } from "@shared/models/Ship";

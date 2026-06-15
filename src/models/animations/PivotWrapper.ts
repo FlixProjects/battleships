@@ -1,5 +1,5 @@
 import { TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
-import { ICellLoc } from "@shared/index";
+import { ICellLoc } from "@shared/types";
 import { MoveAnimation } from "./MoveAnimation";
 import { RotateAnimation } from "./RotateAnimation";
 

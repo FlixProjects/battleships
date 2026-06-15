@@ -1,4 +1,5 @@
-import { ICellLoc, locationToKey } from "@shared/index";
+import { ICellLoc } from "../../types";
+import { locationToKey } from "../../utils/helpers";
 import { Listener } from "../listeners/Listener";
 import { SignalType } from "../signals/types";
 import { GameObjectEntity } from "./GameObjectEntity";

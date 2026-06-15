@@ -1,4 +1,4 @@
-import type { IActionResolver, IGameManager } from "@shared/index";
+import type { IActionResolver, IGameManager } from "@shared/types";
 import type { IFEGameStateManager } from "../types";
 
 export interface IFECommandExecutionParams {
