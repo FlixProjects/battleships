@@ -1,5 +1,7 @@
-import { Ship } from "../../Ship";
+import type { ShipConstructor } from "@shared/utils/ship-helper";
 
-export class TUDF_Flagship extends Ship {
-    refNo = "tudf_flagship0" as const;
+export function TUDF_Flagship<TBase extends ShipConstructor>(Base: TBase) {
+    return class extends Base {
+        refNo = "tudf_flagship0" as const;
+    };
 }

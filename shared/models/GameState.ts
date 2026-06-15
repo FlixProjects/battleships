@@ -30,6 +30,7 @@ import { GameStateEntity } from "./entities/GameStateEntity";
 import { Hull } from "./Hull";
 import { Player } from "./Player";
 import { Ship } from "./Ship";
+import { getFactionMixin } from "../utils/ship-helper";
 
 // GameObjects should not be nested within other GameObjects unless they have their equivalent on this layer
 export class GameState extends GameStateEntity implements IGameState {
@@ -81,7 +82,12 @@ export class GameState extends GameStateEntity implements IGameState {
         return Player.toDomain(GameState.toPlainPlayer(p), this);
     }
     protected toShip(s: IShip | IPlainShip): Ship {
-        return Ship.toDomain(GameState.toPlainShip(s), this);
+        const plain = GameState.toPlainShip(s);
+        const hullsById = new Map<string, IHull>((this.hulls ?? []).map((h) => [h.id, h]));
+        const hulls = plain.hulls.map((id) => hullsById.get(id)).filter((h): h is IHull => h !== undefined);
+
+        const Ctor = getFactionMixin(plain.refNo)(Ship);
+        return new Ctor({ ...plain, hulls });
     }
     protected toDeck = (d: IDeck | IPlainDeck) => Deck.toDomain(GameState.toPlainDeck(d), this);
     /**
