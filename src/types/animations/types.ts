@@ -1,4 +1,4 @@
-import type { INewOldHullLocMap } from "@shared/index";
+import type { INewOldHullLocMap } from "@shared/types";
 import { ICellLoc } from "@shared/types";
 import { AnimationLayer } from "../../models/AnimationLayer";
 

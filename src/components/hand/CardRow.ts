@@ -1,5 +1,6 @@
 import { COLOR } from "@shared/constants";
-import { GameConfig, TGameStateManagerCtor } from "@shared/index";
+import { GameConfig } from "@shared/index";
+import { TGameStateManagerCtor } from "@shared/types";
 import { IAppState, IGameStateManager } from "@shared/types";
 import { gameManager } from "../..";
 import { FEGameStateManager } from "../../models/FEGameStateManager";

@@ -1,4 +1,4 @@
-import { IHull, IHullTemplate, IShip } from "../../types";
+import { IHull, IHullTemplate, IShip, TShipRefNo } from "../../types";
 import { locationToKey } from "../../utils/helpers";
 import { Hull } from "../Hull";
 import { Listener } from "../listeners/Listener";
@@ -14,7 +14,7 @@ import { GameObjectWithVisibilityEntity } from "./GameObjectWithVisibilityEntity
 export class ShipEntity extends GameObjectWithVisibilityEntity<ShipEntity> implements IShip {
     id: string;
     playerId: string;
-    refNo: string;
+    refNo: TShipRefNo;
     name: string;
     hulls: Hull[] = [];
     hullIds: string[] = [];

@@ -1,5 +1,5 @@
 import { Ship } from "../models/Ship";
-import { IShip } from "../types";
+import { IShip, TShipRefNo } from "../types";
 import { Builder } from "./builder";
 
 export class ShipBuilder extends Builder<IShip, Ship> {
@@ -7,7 +7,7 @@ export class ShipBuilder extends Builder<IShip, Ship> {
         const defaultProps: IShip = {
             id: "",
             playerId: "",
-            refNo: "",
+            refNo: "frigate0" as TShipRefNo,
             name: "",
             dimensions: [1, 1],
             deployed: false,

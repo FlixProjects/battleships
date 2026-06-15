@@ -26,6 +26,8 @@ export const AppStatus = {
 export const SHIP_REF_NO = {
     frigate0: "frigate0",
     flagship0: "flagship0",
+    tudf_frigate0: "tudf_frigate0",
+    tudf_flagship0: "tudf_flagship0",
 } as const;
 
 export const CardKind = {
@@ -59,6 +61,36 @@ export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
         },
     ],
     [SHIP_REF_NO.flagship0]: [
+        {
+            templateLocation: [0, 0],
+            maxHealth: 1,
+            armor: 0,
+            visionRange: 2,
+            imgSrc: "assets/ships/flagship-0.png",
+            orientation: 0,
+        },
+        {
+            templateLocation: [0, 1],
+            maxHealth: 1,
+            armor: 0,
+            visionRange: 2,
+            imgSrc: "assets/ships/flagship-1.png",
+            front: true,
+            orientation: 0,
+        },
+    ],
+    [SHIP_REF_NO.tudf_frigate0]: [
+        {
+            templateLocation: [0, 0],
+            maxHealth: 1,
+            armor: 0,
+            visionRange: 2,
+            imgSrc: "assets/ships/frigate0.png",
+            front: true,
+            orientation: 0,
+        },
+    ],
+    [SHIP_REF_NO.tudf_flagship0]: [
         {
             templateLocation: [0, 0],
             maxHealth: 1,
@@ -112,6 +144,38 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
         hullTemplates: HULLS_CONFIG[SHIP_REF_NO.flagship0],
         isFlagship: true,
     },
+    [SHIP_REF_NO.tudf_frigate0]: {
+        refNo: SHIP_REF_NO.frigate0,
+        name: "Frigate",
+        deployed: false,
+        dimensions: [1, 1],
+        commandPointCost: 1,
+        movementRange: 2,
+        movementCommandPointCost: 1,
+        attackCountMax: 1,
+        attackCommandPointCost: 1,
+        attackRange: 3,
+        attackDamage: 1,
+        attackMinRange: 1,
+        hullTemplates: HULLS_CONFIG[SHIP_REF_NO.frigate0],
+        isFlagship: false,
+    } as IShipTemplate,
+    [SHIP_REF_NO.tudf_flagship0]: {
+        refNo: SHIP_REF_NO.flagship0,
+        name: "Flagship",
+        deployed: false,
+        dimensions: [1, 1],
+        commandPointCost: 0,
+        movementRange: 1,
+        movementCommandPointCost: 1,
+        attackCountMax: 1,
+        attackCommandPointCost: 1,
+        attackRange: 5,
+        attackDamage: 1,
+        attackMinRange: 1,
+        hullTemplates: HULLS_CONFIG[SHIP_REF_NO.flagship0],
+        isFlagship: true,
+    } as IShipTemplate,
 };
 
 export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectConfig> = {
@@ -149,9 +213,9 @@ export const MAX_HAND_SIZE = 4;
 export const FACTION_CONFIG: Record<TFaction, DeckTemplate> = {
     [Faction.THE_UNITED_DEFENSE_FLEET]: [
         // Ships
-        { kind: CardKind.Ship, refNo: "flagship0", count: 1 },
-        { kind: CardKind.Ship, refNo: "frigate0", count: 4 },
+        { kind: CardKind.Ship, refNo: SHIP_REF_NO.flagship0, count: 1 },
+        { kind: CardKind.Ship, refNo: SHIP_REF_NO.frigate0, count: 4 },
         // Supports
-        { kind: CardKind.Support, refNo: "flare", count: 2 },
+        { kind: CardKind.Support, refNo: SUPPORT_REF_NO.flare, count: 2 },
     ],
 };

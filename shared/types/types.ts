@@ -379,7 +379,7 @@ export interface ICell {
 export type ICellLoc = [number, number];
 
 export interface IShipTemplate {
-    refNo: string;
+    refNo: TShipRefNo;
     name: string;
     dimensions: [number, number];
     deployed: boolean;
