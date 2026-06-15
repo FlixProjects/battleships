@@ -9,7 +9,7 @@ import {
     transformPlainAppStateToDomain,
     transformPlainGameStateToDomain,
 } from "../transformers";
-import { IAppState, IGameStateData, IHull, IPlainAppState, IPlainGameState, IShip } from "../types/types";
+import { IAppState, IGameStateData, IHull, IPlainAppState, IPlainGameState, IShip, TShipRefNo } from "../types/types";
 
 const playerBuilder = new PlayerBuilder({
     id: "player1",
@@ -21,7 +21,7 @@ const playerBuilder = new PlayerBuilder({
 
 const shipBuilder = new ShipBuilder({
     playerId: "player1",
-    refNo: "ref1",
+    refNo: "frigate0" as TShipRefNo,
     name: "Destroyer",
 });
 
@@ -118,7 +118,7 @@ describe("transformPlainGameStateToDomain", () => {
                     pendingActions: [],
                 },
             ],
-            ships: [{ id: "ship1", playerId: "player1", hulls: ["hull1"] } as unknown as any],
+            ships: [{ id: "ship1", playerId: "player1", refNo: "frigate0", hulls: ["hull1"] } as unknown as any],
             hulls: [{ id: "hull1", shipId: "ship1" } as IHull],
             cards: [],
             decks: [],

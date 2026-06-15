@@ -1,6 +1,6 @@
 import { ICellLoc, IGameStateManager } from "@shared/types";
 import { getOccupiedLocations } from "./helpers";
-import { BOARD_COLUMNS, BOARD_ROWS } from "..";
+import { BOARD_COLUMNS, BOARD_ROWS } from "../constants";
 
 export const computeDeployedHullLocation = (
     selectedLoc: ICellLoc,
