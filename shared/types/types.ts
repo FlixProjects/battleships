@@ -18,7 +18,16 @@ import {
     IShipReceiveAttackSignalPayload,
     ISignal,
 } from "@shared/models/signals/types";
-import { AppStatus, CardKind, EFFECT_REF_NO, Faction, SHIP_REF_NO, SUPPORT_REF_NO } from "../config/constants";
+import {
+    AppStatus,
+    CardKind,
+    CELL_NODE_REF_NO,
+    EFFECT_REF_NO,
+    Faction,
+    MAP_REF_NO,
+    SHIP_REF_NO,
+    SUPPORT_REF_NO,
+} from "../config/constants";
 import type { Card, Deck, GameState, Hull, Player, Ship } from "../models";
 import { ICommand } from "../models/commands/types";
 import { IPlayerAction } from "./action-types";
@@ -81,6 +90,10 @@ export interface IGameStateManager {
     getActiveEffects(playerId?: string): IEffect[];
     resolveLocalActionsForPlayer(playerId: string): this;
     isFlagshipDeployed(playerId: string): boolean;
+    getBoardDimensions(): {
+        rows: number;
+        cols: number;
+    };
 }
 
 export interface IGameStateData {
@@ -94,7 +107,7 @@ export interface IGameStateData {
     decks: IDeck[];
     effects?: IEffect[];
     actions?: IPlayerAction[];
-    board?: Board;
+    board?: IBoard;
     winners: string[];
     isOver: boolean;
 }
@@ -274,6 +287,8 @@ export interface ICard {
 
 export type TAppStatus = (typeof AppStatus)[keyof typeof AppStatus];
 export type TShipRefNo = (typeof SHIP_REF_NO)[keyof typeof SHIP_REF_NO];
+export type TMapRefNo = (typeof MAP_REF_NO)[keyof typeof MAP_REF_NO];
+export type TCellNodeRefNo = (typeof CELL_NODE_REF_NO)[keyof typeof CELL_NODE_REF_NO];
 
 export type TSupportRefNo = (typeof SUPPORT_REF_NO)[keyof typeof SUPPORT_REF_NO];
 
@@ -327,7 +342,7 @@ export interface IPlainGameState {
     decks: IPlainDeck[];
     effects?: IPlainEffect[];
     actions?: IPlainAction[];
-    board?: Board;
+    board?: IBoard;
     winners: string[];
     isOver: boolean;
 }
@@ -364,8 +379,22 @@ export type IPlayerShallow = IPlayer & {
     ships: IShip[];
 };
 
-export interface Board {
-    grid: Grid;
+export type IBoard = Record<string, ICellNode>;
+
+export interface IBoardConfig {
+    rows: number;
+    columns: number;
+    nodes: Record<string, ICellNode>;
+}
+
+export interface ICellNode extends ICellNodeConfig {
+    id: string;
+    location: ICellLoc;
+}
+
+export interface ICellNodeConfig {
+    refNo: TCellNodeRefNo;
+    imgSrc?: string;
 }
 
 export type Grid = Array<ICell>;

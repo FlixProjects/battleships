@@ -1,8 +1,10 @@
 import clone from "lodash.clonedeep";
 import {
     EffectKind,
+    IBoard,
     ICard,
     ICellLoc,
+    ICellNode,
     IDeck,
     IEffect,
     IGameState,
@@ -22,6 +24,7 @@ import { createCard } from "../utils/card-helper";
 import { createEffect } from "../utils/effect-helper";
 import { locationToKey } from "../utils/helpers";
 import { PathFinder } from "../utils/path-finder";
+import { getFactionMixin } from "../utils/ship-helper";
 import { Action } from "./actions";
 import { Deck } from "./Deck";
 import { Effect } from "./effects/Effect";
@@ -30,7 +33,7 @@ import { GameStateEntity } from "./entities/GameStateEntity";
 import { Hull } from "./Hull";
 import { Player } from "./Player";
 import { Ship } from "./Ship";
-import { getFactionMixin } from "../utils/ship-helper";
+import { createCellNodeByRefNo } from "@shared/utils/cell-node-helper";
 
 // GameObjects should not be nested within other GameObjects unless they have their equivalent on this layer
 export class GameState extends GameStateEntity implements IGameState {
@@ -40,7 +43,7 @@ export class GameState extends GameStateEntity implements IGameState {
         this.id = props.code;
         this.code = props.code;
         this.initiative = props.initiative;
-        this.board = props.board;
+        this.board = this.toBoard(props.board);
         this.winners = props.winners;
         this.isOver = props.isOver;
         this.currentRound = props.currentRound;
@@ -89,6 +92,17 @@ export class GameState extends GameStateEntity implements IGameState {
         const Ctor = getFactionMixin(plain.refNo)(Ship);
         return new Ctor({ ...plain, hulls });
     }
+    protected toBoard(board?: IBoard): IBoard | undefined {
+        if (!board) return undefined;
+        const nodes: Record<string, ICellNode> = {};
+        Object.entries(board).forEach(([locKey, cn]) => {
+            nodes[locKey] = this.toCellNode(cn);
+        });
+        return nodes;
+    }
+    protected toCellNode(cn: ICellNode) {
+        return createCellNodeByRefNo(cn);
+    }
     protected toDeck = (d: IDeck | IPlainDeck) => Deck.toDomain(GameState.toPlainDeck(d), this);
     /**
      * The next three helpers normalise an `IShip | IPlainShip` (etc.) input
@@ -97,6 +111,15 @@ export class GameState extends GameStateEntity implements IGameState {
      */
     private static idOf<T extends { id: string }>(ref: string | T): string {
         return typeof ref === "string" ? ref : ref.id;
+    }
+
+    protected static toPlainBoard(board?: IBoard): IBoard | undefined {
+        if (!board) return undefined;
+        const nodes: Record<string, ICellNode> = {};
+        Object.entries(board).forEach(([locKey, cn]) => {
+            nodes[locKey] = cn;
+        });
+        return nodes;
     }
 
     protected static toPlainShip(s: IShip | IPlainShip): IPlainShip {
@@ -403,6 +426,18 @@ export class GameState extends GameStateEntity implements IGameState {
             s.hulls = this.hulls.filter((h) => h.shipId === s.id);
         });
         return this;
+    }
+
+    getBoardDimensions() {
+        if (!this.board) return { rows: 0, cols: 0 };
+        let maxRow = 0;
+        let maxCol = 0;
+        Object.values(this.board).forEach((cn) => {
+            const [col, row] = cn.location;
+            if (row > maxRow) maxRow = row;
+            if (col > maxCol) maxCol = col;
+        });
+        return { rows: maxRow, cols: maxCol };
     }
 
     public isFlagshipDeployed(playerId: string): boolean {

@@ -1,4 +1,4 @@
-import type { Board } from "../../types";
+import type { IBoard } from "../../types";
 import type { Action } from "../actions";
 import type { Card } from "../Card";
 import type { Deck } from "../Deck";
@@ -30,7 +30,7 @@ export class GameStateEntity extends GameObjectEntity<GameState> {
     cards: Card[];
     decks: Deck[];
     effects: Effect[];
-    board?: Board;
+    board?: IBoard;
     winners: string[];
     isOver: boolean;
     actions: Action[] = [];

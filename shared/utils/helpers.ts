@@ -1,11 +1,23 @@
-import { BOARD_COLUMNS, BOARD_ROWS, CELL_SEPARATOR, FP_AUTH_TOKEN } from "@shared/constants";
+import { CELL_SEPARATOR, FP_AUTH_TOKEN } from "@shared/constants";
 import { v7 as uuidv7 } from "uuid";
-import { CardKind, Faction, FACTION_CONFIG, MAX_HAND_SIZE, SHIPS_CONFIG, SUPPORTS_CONFIG } from "../config/constants";
+import {
+    BOARD_CONFIG,
+    CardKind,
+    CELL_CONFIG,
+    CELL_NODE_REF_NO,
+    Faction,
+    FACTION_CONFIG,
+    MAP_REF_NO,
+    MAX_HAND_SIZE,
+    SHIPS_CONFIG,
+    SUPPORTS_CONFIG,
+} from "../config/constants";
 import { Cell } from "../models/Cell";
 import { Deck } from "../models/Deck";
 import {
-    Board,
+    IBoard,
     ICellLoc,
+    ICellNode,
     IDeckTemplateEntry,
     IGameState,
     IHull,
@@ -16,8 +28,10 @@ import {
     IPlainPlayer,
     IPlainShip,
     ISupportDeckTemplateEntry,
+    TCellNodeRefNo,
     TFaction,
-    TShipRefNo,
+    TMapRefNo,
+    TShipRefNo
 } from "../types/types";
 
 export const parseCookies = (cookieStr: string) => {
@@ -63,15 +77,29 @@ export const getNewCell = (cellLoc: ICellLoc): Cell =>
         visibleTo: [],
     });
 
-export const getNewBoard = (): Board => {
-    const grid: Cell[] = [];
+export const getCellNode = (
+    cellNodeRefNo: TCellNodeRefNo,
+    cellNode: Pick<ICellNode, "id" | "location">,
+): ICellNode => ({
+    ...CELL_CONFIG[cellNodeRefNo],
+    ...cellNode,
+});
 
-    for (let i = 0; i < BOARD_COLUMNS; i++) {
-        for (let j = 0; j < BOARD_ROWS; j++) {
-            grid.push(getNewCell([i, j]));
+export const getNewBoard = (mapRefNo?: TMapRefNo): IBoard => {
+    const nodes: Record<string, ICellNode> = {};
+
+    const boardConfig = BOARD_CONFIG[mapRefNo ?? MAP_REF_NO.default];
+
+    for (let i = 0; i < boardConfig.columns; i++) {
+        for (let j = 0; j < boardConfig.rows; j++) {
+            const locKey = locationToKey([i, j]);
+            nodes[locKey] = getCellNode(boardConfig.nodes[locKey]?.refNo ?? CELL_NODE_REF_NO.default, {
+                id: uuidv7(),
+                location: [i, j],
+            });
         }
     }
-    return { grid };
+    return nodes;
 };
 
 export const createNewGameState = (gameCode: string, playerId: string, playerName: string): IPlainGameState => {

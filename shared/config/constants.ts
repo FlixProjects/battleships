@@ -1,16 +1,25 @@
 import {
-    TShipRefNo,
+    DeckTemplate,
+    EffectAnchor,
+    EffectKind,
+    IBoardConfig,
+    IEffectConfig,
     IHullTemplate,
     IShipTemplate,
-    TEffectRefNo,
-    IEffectConfig,
-    EffectKind,
-    EffectAnchor,
-    TSupportRefNo,
     ISupportConfig,
-    DeckTemplate,
+    ICellNodeConfig,
+    TCellNodeRefNo,
+    TEffectRefNo,
     TFaction,
-} from "@shared/types";
+    TMapRefNo,
+    TShipRefNo,
+    TSupportRefNo,
+} from "../types";
+
+export const CELL_SEPARATOR = "/";
+
+export const BOARD_ROWS = 7;
+export const BOARD_COLUMNS = 5;
 
 export const AppStatus = {
     NewGame: "NewGame",
@@ -42,6 +51,15 @@ export const EFFECT_REF_NO = {
 
 export const SUPPORT_REF_NO = {
     flare: "flare",
+} as const;
+
+export const MAP_REF_NO = {
+    default: "default",
+} as const;
+
+export const CELL_NODE_REF_NO = {
+    default: "default",
+    island0: "island0",
 } as const;
 
 export const Faction = {
@@ -218,4 +236,28 @@ export const FACTION_CONFIG: Record<TFaction, DeckTemplate> = {
         // Supports
         { kind: CardKind.Support, refNo: SUPPORT_REF_NO.flare, count: 2 },
     ],
+};
+
+export const BOARD_CONFIG: Record<TMapRefNo, IBoardConfig> = {
+    [MAP_REF_NO.default]: {
+        rows: BOARD_ROWS,
+        columns: BOARD_COLUMNS,
+        nodes: {
+            [`3${CELL_SEPARATOR}3`]: {
+                id: "id",
+                refNo: CELL_NODE_REF_NO.island0,
+                location: [3, 3],
+            },
+        },
+    },
+};
+
+export const CELL_CONFIG: Record<TCellNodeRefNo, ICellNodeConfig> = {
+    [CELL_NODE_REF_NO.default]: {
+        refNo: CELL_NODE_REF_NO.default,
+    },
+    [CELL_NODE_REF_NO.island0]: {
+        refNo: CELL_NODE_REF_NO.island0,
+        imgSrc: "assets/terrain/island0.png",
+    },
 };

@@ -187,4 +187,8 @@ export class GameStateManager implements IGameStateManager {
     isFlagshipDeployed(playerId: string): boolean {
         return this.gameState.isFlagshipDeployed(playerId);
     }
+
+    getBoardDimensions() {
+        return this.gameState.getBoardDimensions();
+    }
 }

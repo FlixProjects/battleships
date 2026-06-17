@@ -14,7 +14,7 @@ describe("HullCalculator", () => {
             hulls: [],
             cards: [],
             decks: [],
-            board: { grid: [] },
+            board: {},
             winners: [],
             isOver: false,
             currentRound: 0,

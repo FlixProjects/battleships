@@ -19,7 +19,7 @@ const buildState = (overrides: Partial<IGameStateData>): IGameStateData => ({
     cards: [],
     decks: [],
     actions: [],
-    board: { grid: [] },
+    board: {},
     winners: [],
     isOver: false,
     ...overrides,

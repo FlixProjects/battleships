@@ -1,5 +1,6 @@
-import { AppStatus } from "./config/constants";
+import { AppStatus, BOARD_COLUMNS, BOARD_ROWS, CELL_SEPARATOR } from "./config/constants";
 import { IPlainAppState, IPlainGameState } from "./types";
+export { BOARD_ROWS, BOARD_COLUMNS, CELL_SEPARATOR };
 
 export const FP_AUTH_TOKEN = "fp-auth-token";
 export const FP_USER_ID = "fp-user-id";
@@ -22,7 +23,7 @@ export const INITIAL_GAME_STATE: IPlainGameState = {
     hulls: [],
     cards: [],
     decks: [],
-    board: { grid: [] },
+    board: {},
     winners: [],
     isOver: false,
     currentRound: 0,
@@ -34,10 +35,6 @@ export const DEFAULT_APP_STATE: IPlainAppState = {
     gameState: INITIAL_GAME_STATE,
 };
 
-// TODO: move row and column to GameConfig
-export const BOARD_ROWS = 7;
-export const BOARD_COLUMNS = 5;
-export const CELL_SEPARATOR = "/";
 export const TILE_SIZE_PX = 48;
 export const TILE_GAP_PX = 0;
 
