@@ -1,6 +1,5 @@
 import { ICellLoc, IGameStateManager } from "@shared/types";
 import { getOccupiedLocations } from "./helpers";
-import { BOARD_COLUMNS, BOARD_ROWS } from "../constants";
 
 export const computeDeployedHullLocation = (
     selectedLoc: ICellLoc,
@@ -43,6 +42,7 @@ export class HullCalculator {
 
     private isWithinBoardLimits(loc: ICellLoc): boolean {
         const [x, y] = loc;
-        return x >= 0 && x < BOARD_COLUMNS && y >= 0 && y < BOARD_ROWS;
+        const { rows, cols } = this.gsm.getBoardDimensions();
+        return x >= 0 && x < cols && y >= 0 && y < rows;
     }
 }

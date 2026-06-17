@@ -1,4 +1,4 @@
-import { BOARD_COLUMNS, BOARD_ROWS, ERROR_CODE } from "../../constants";
+import { ERROR_CODE } from "../../constants";
 import { Ship } from "../../models/Ship";
 import { IErrorResult, IGameState, IHull, IMoveAction, ResultType } from "../../types";
 import { LocationHelper, locationToKey } from "../../utils";
@@ -51,10 +51,10 @@ export class MoveShipValidator extends Validator {
 
     private validateWithinBoardBounds() {
         const newLocation = this.computeNewHullLocations();
-
+        const { rows, cols } = this.gameState.getBoardDimensions();
         const isWithinBounds = newLocation.every((hullLoc) => {
             const [x, y] = hullLoc.location;
-            return x >= 0 && x < BOARD_COLUMNS && y >= 0 && y < BOARD_ROWS;
+            return x >= 0 && x < cols && y >= 0 && y < rows;
         });
 
         if (!isWithinBounds) {
@@ -73,7 +73,11 @@ export class MoveShipValidator extends Validator {
         const newLocations = this.computeNewHullLocations();
         const _ship = this.gameState.ships.find((s) => s.id === shipId);
         if (!_ship) {
-            throw { type: ResultType.ERROR, errorCode: ERROR_CODE.SYS_NOT_FOUND, message: "[validateWithinMovementRange] Ship not found" };
+            throw {
+                type: ResultType.ERROR,
+                errorCode: ERROR_CODE.SYS_NOT_FOUND,
+                message: "[validateWithinMovementRange] Ship not found",
+            };
         }
         const ship = new Ship(_ship);
         const currentLoc = ship.getFrontHull().location;

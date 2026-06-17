@@ -1,8 +1,8 @@
 import { CardKind, Faction, MAX_HAND_SIZE } from "../../../config/constants";
+import { GameStateBuilder } from "../../../factories/game-state-builder";
 import { HullBuilder } from "../../../factories/hull-builder";
 import { PlayerBuilder } from "../../../factories/player-builder";
 import { ShipBuilder } from "../../../factories/ship-builder";
-import { GameState } from "../../../models";
 import {
     ICard,
     IDeck,
@@ -41,6 +41,8 @@ const hullBuilder = new HullBuilder({
     maxHealth: 1,
     templateLocation: [0, 0],
 });
+
+const gameStateBuilder = new GameStateBuilder();
 
 const frigateTemplate: IHullTemplate = {
     templateLocation: [0, 0],
@@ -127,18 +129,11 @@ describe("ActionResolver", () => {
 
             // Setup: Create game state with player1 having initiative.
             // Just after resolution, GameState will have both pendingActions and actions
-            const gameState = new GameState({
-                code: "TEST",
-                currentRound: 1,
-                initiative: "player1",
+            const gameState = gameStateBuilder.build({
                 players: [player1, player2],
                 ships: [player1Ship, player2Ship],
                 hulls: [player1Hull, player2Hull],
-                cards: [],
-                decks: [],
                 actions: [player1MoveAction, player1AttackAction, player2MoveAction],
-                winners: [],
-                isOver: false,
             });
 
             // Execute: Resolve actions
@@ -189,17 +184,10 @@ describe("ActionResolver", () => {
             const player1 = buildPlayer1({ ships: [attackerShip], commandPoints: 2, maxCommandPoints: 2 });
             const player2 = buildPlayer2({ ships: [targetShip] });
 
-            const gameState = new GameState({
-                code: "TEST",
-                currentRound: 1,
-                initiative: "player1",
+            const gameState = gameStateBuilder.build({
                 players: [player1, player2],
                 ships: [attackerShip, targetShip],
                 hulls: [attackerHull, targetHull],
-                cards: [],
-                decks: [],
-                winners: [],
-                isOver: false,
             });
 
             const resolver = new ActionResolver("player1", gameState);
@@ -242,17 +230,10 @@ describe("ActionResolver", () => {
             const player1 = buildPlayer1({ ships: [attackerShip] });
             const player2 = buildPlayer2({ ships: [targetShip] });
 
-            const gameState = new GameState({
-                code: "TEST",
-                currentRound: 1,
-                initiative: "player1",
+            const gameState = gameStateBuilder.build({
                 players: [player1, player2],
                 ships: [attackerShip, targetShip],
                 hulls: [attackerHull, targetHull],
-                cards: [],
-                decks: [],
-                winners: [],
-                isOver: false,
             });
 
             const next = new ActionResolver("player1", gameState).resolveAction(attackAction);
@@ -285,17 +266,10 @@ describe("ActionResolver", () => {
             const player1 = buildPlayer1({ ships: [movingShip], commandPoints: 2, maxCommandPoints: 2 });
             const player2 = buildPlayer2({ ships: [] });
 
-            const gameState = new GameState({
-                code: "TEST",
-                currentRound: 1,
-                initiative: "player1",
+            const gameState = gameStateBuilder.build({
                 players: [player1, player2],
                 ships: [movingShip],
                 hulls: [movingHull],
-                cards: [],
-                decks: [],
-                winners: [],
-                isOver: false,
             });
 
             const resolver = new ActionResolver("player1", gameState);
@@ -336,17 +310,10 @@ describe("ActionResolver", () => {
             const player1 = buildPlayer1({ ships: [movingShip], commandPoints: 2, maxCommandPoints: 2 });
             const player2 = buildPlayer2({ ships: [blockerShip] });
 
-            const gameState = new GameState({
-                code: "TEST",
-                currentRound: 1,
-                initiative: "player1",
+            const gameState = gameStateBuilder.build({
                 players: [player1, player2],
                 ships: [movingShip, blockerShip],
                 hulls: [movingHull, blockerHull],
-                cards: [],
-                decks: [],
-                winners: [],
-                isOver: false,
             });
 
             const next = new ActionResolver("player1", gameState).resolveAction(moveAction);
@@ -385,17 +352,9 @@ describe("ActionResolver", () => {
             const player1 = buildPlayer1({ ships: [ship], commandPoints: 2, maxCommandPoints: 2 });
             const player2 = buildPlayer2({ ships: [] });
 
-            const gameState = new GameState({
-                code: "TEST",
-                currentRound: 1,
-                initiative: "player1",
+            const gameState = gameStateBuilder.build({
                 players: [player1, player2],
                 ships: [ship],
-                hulls: [],
-                cards: [],
-                decks: [],
-                winners: [],
-                isOver: false,
             });
 
             const next = new ActionResolver("player1", gameState).resolveAction(deployAction);
@@ -452,17 +411,10 @@ describe("ActionResolver", () => {
             const player1 = buildPlayer1({ ships: [occupyingShip, ship], commandPoints: 2, maxCommandPoints: 2 });
             const player2 = buildPlayer2({ ships: [] });
 
-            const gameState = new GameState({
-                code: "TEST",
-                currentRound: 1,
-                initiative: "player1",
+            const gameState = gameStateBuilder.build({
                 players: [player1, player2],
                 ships: [occupyingShip, ship],
                 hulls: [occupyingHull],
-                cards: [],
-                decks: [],
-                winners: [],
-                isOver: false,
             });
 
             const next = new ActionResolver("player1", gameState).resolveAction(deployAction);
@@ -502,18 +454,9 @@ describe("ActionResolver", () => {
             const player1 = buildPlayer1({ ships: [], pendingActions: [moveAction1] });
             const player2 = buildPlayer2({ ships: [], pendingActions: [moveAction2] });
 
-            const gameState = new GameState({
-                code: "TEST",
-                currentRound: 1,
-                initiative: "player1",
+            const gameState = gameStateBuilder.build({
                 players: [player1, player2],
-                ships: [],
-                hulls: [],
-                cards: [],
-                decks: [],
                 actions: [moveAction1, moveAction2],
-                winners: [],
-                isOver: false,
             });
 
             const resolver = new ActionResolver("player1", gameState);
@@ -550,18 +493,10 @@ describe("ActionResolver", () => {
             const player1 = buildPlayer1({ ships: [], pendingActions: [moveAction1, moveAction2] });
             const player2 = buildPlayer2({ ships: [], pendingActions: [moveAction2] });
 
-            const gameState = new GameState({
-                code: "TEST",
-                currentRound: 1,
+            const gameState = gameStateBuilder.build({
                 initiative: "player2",
                 players: [player1, player2],
-                ships: [],
-                hulls: [],
-                cards: [],
-                decks: [],
                 actions: [moveAction1, moveAction2],
-                winners: [],
-                isOver: false,
             });
 
             const resolver = new ActionResolver("player1", gameState);
@@ -604,17 +539,10 @@ describe("ActionResolver", () => {
             const player1 = buildPlayer1({ deck: "deck-1", hand: [] });
             const player2 = buildPlayer2({ deck: "deck-2", hand: [] });
 
-            const gameState = new GameState({
-                code: "TEST",
-                currentRound: 1,
-                initiative: "player1",
+            const gameState = gameStateBuilder.build({
                 players: [player1, player2],
-                ships: [],
-                hulls: [],
                 cards: [...p1Cards, ...p2Cards],
                 decks: [p1Deck, p2Deck],
-                winners: [],
-                isOver: false,
             });
 
             const { gameState: resolved } = new ActionResolver("player1", gameState).resolve();
@@ -645,13 +573,8 @@ describe("ActionResolver", () => {
             const player1 = buildPlayer1({ deck: "deck-1", hand: [] });
             const player2 = buildPlayer2({ deck: "", hand: [] });
 
-            const gameState = new GameState({
-                code: "TEST",
-                currentRound: 1,
-                initiative: "player1",
+            const gameState = gameStateBuilder.build({
                 players: [player1, player2],
-                ships: [],
-                hulls: [],
                 cards,
                 decks: [deck],
                 winners: ["player2"],
@@ -718,17 +641,11 @@ describe("ActionResolver", () => {
             });
             const player2 = buildPlayer2();
 
-            const gameState = new GameState({
-                code: "TEST",
-                currentRound: 1,
-                initiative: "player1",
+            const gameState = gameStateBuilder.build({
                 players: [player1, player2],
                 ships: [ship],
-                hulls: [],
                 cards: [card],
                 decks: [deck],
-                winners: [],
-                isOver: false,
             });
 
             const action = buildPlayCardAction({
@@ -776,17 +693,12 @@ describe("ActionResolver", () => {
             const player1 = buildPlayer1({ ships: [occupyingShip, ship], hand: ["card-ship"], deck: "deck-1" });
             const player2 = buildPlayer2();
 
-            const gameState = new GameState({
-                code: "TEST",
-                currentRound: 1,
-                initiative: "player1",
+            const gameState = gameStateBuilder.build({
                 players: [player1, player2],
                 ships: [occupyingShip, ship],
                 hulls: [occupyingHull],
                 cards: [card],
                 decks: [deck],
-                winners: [],
-                isOver: false,
             });
 
             const action = buildPlayCardAction({ payload: { kind: "Ship", location: [1, 0] } });
@@ -804,17 +716,11 @@ describe("ActionResolver", () => {
             const player1 = buildPlayer1({ ships: [ship], hand: [], deck: "deck-1" });
             const player2 = buildPlayer2();
 
-            const gameState = new GameState({
-                code: "TEST",
-                currentRound: 1,
-                initiative: "player1",
+            const gameState = gameStateBuilder.build({
                 players: [player1, player2],
                 ships: [ship],
-                hulls: [],
                 cards: [card],
                 decks: [deck],
-                winners: [],
-                isOver: false,
             });
 
             const action = buildPlayCardAction();
@@ -869,17 +775,12 @@ describe("ActionResolver", () => {
             });
             const player2 = buildPlayer2({ ships: [opponentShip] });
 
-            const gameState = new GameState({
-                code: "TEST",
-                currentRound: 1,
-                initiative: "player1",
+            const gameState = gameStateBuilder.build({
                 players: [player1, player2],
                 ships: [opponentShip],
                 hulls: [opponentHull],
                 cards: [card],
                 decks: [deck],
-                winners: [],
-                isOver: false,
             });
 
             const action: IPlayCardAction = {
@@ -930,17 +831,10 @@ describe("ActionResolver", () => {
             });
             const player2 = buildPlayer2();
 
-            const gameState = new GameState({
-                code: "TEST",
-                currentRound: 1,
-                initiative: "player1",
+            const gameState = gameStateBuilder.build({
                 players: [player1, player2],
-                ships: [],
-                hulls: [],
                 cards: [card],
                 decks: [deck],
-                winners: [],
-                isOver: false,
             });
 
             const action: IPlayCardAction = {

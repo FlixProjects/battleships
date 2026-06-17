@@ -90,10 +90,7 @@ export interface IGameStateManager {
     getActiveEffects(playerId?: string): IEffect[];
     resolveLocalActionsForPlayer(playerId: string): this;
     isFlagshipDeployed(playerId: string): boolean;
-    getBoardDimensions(): {
-        rows: number;
-        cols: number;
-    };
+    getBoardDimensions(): IBoardDimensions;
 }
 
 export interface IGameStateData {
@@ -146,6 +143,7 @@ export interface IGameState extends IGameStateData {
     isFlagshipDeployed(playerId: string): boolean;
     linkPlayerShips(options?: { reverse?: boolean }): this;
     linkShipHulls(options?: { reverse?: boolean }): this;
+    getBoardDimensions(): IBoardDimensions;
 }
 
 export interface IPlayer {
@@ -385,6 +383,10 @@ export interface IBoardConfig {
     rows: number;
     columns: number;
     nodes: Record<string, ICellNode>;
+}
+export interface IBoardDimensions {
+    rows: number;
+    cols: number;
 }
 
 export interface ICellNode extends ICellNodeConfig {

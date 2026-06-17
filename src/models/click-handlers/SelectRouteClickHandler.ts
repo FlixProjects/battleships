@@ -1,4 +1,4 @@
-import { ICellLoc } from "@shared/types";
+import { IBoardDimensions, ICellLoc } from "@shared/types";
 import { PathMenu } from "../../components/path-menu/PathMenu";
 import { PathOverlay } from "../../components/path-menu/PathOverlay";
 
@@ -7,6 +7,7 @@ interface ISelectRouteEvent {
     onConfirm: (selectedRoute: ICellLoc[]) => Promise<void> | void;
     onBack: () => void;
     onDismiss: () => void;
+    boardConfig: IBoardDimensions;
 }
 
 export class SelectRouteClickHandler {
@@ -15,7 +16,7 @@ export class SelectRouteClickHandler {
     private currentIndex = 0;
 
     constructor(private event: ISelectRouteEvent) {
-        this.pathOverlay = new PathOverlay();
+        this.pathOverlay = new PathOverlay({ boardConfig: event.boardConfig });
     }
 
     public start() {

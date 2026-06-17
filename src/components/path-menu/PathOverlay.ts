@@ -1,9 +1,13 @@
-import { BOARD_COLUMNS, BOARD_ROWS, COMPONENT_ID, TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
-import { ICellLoc } from "@shared/types";
+import { COMPONENT_ID, TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
+import { IBoardDimensions, ICellLoc } from "@shared/types";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
+interface IProps {
+    boardConfig: IBoardDimensions;
+}
 export class PathOverlay {
+    constructor(private props: IProps) {}
     private svg?: SVGSVGElement;
 
     public draw(route: ICellLoc[]) {
@@ -37,8 +41,9 @@ export class PathOverlay {
     };
 
     private createSvg(): SVGSVGElement {
-        const width = BOARD_COLUMNS * TILE_SIZE_PX + (BOARD_COLUMNS - 1) * TILE_GAP_PX;
-        const height = BOARD_ROWS * TILE_SIZE_PX + (BOARD_ROWS - 1) * TILE_GAP_PX;
+        const { rows, cols } = this.props.boardConfig;
+        const width = cols * TILE_SIZE_PX + (cols - 1) * TILE_GAP_PX;
+        const height = rows * TILE_SIZE_PX + (rows - 1) * TILE_GAP_PX;
 
         const svg = document.createElementNS(SVG_NS, "svg") as SVGSVGElement;
         svg.setAttribute("width", `${width}`);

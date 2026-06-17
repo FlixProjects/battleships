@@ -437,7 +437,7 @@ export class GameState extends GameStateEntity implements IGameState {
             if (row > maxRow) maxRow = row;
             if (col > maxCol) maxCol = col;
         });
-        return { rows: maxRow, cols: maxCol };
+        return { rows: maxRow + 1, cols: maxCol + 1 };
     }
 
     public isFlagshipDeployed(playerId: string): boolean {

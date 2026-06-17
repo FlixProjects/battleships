@@ -1,6 +1,8 @@
+import { ICellLoc, IGameStateData, IGameStateManager } from "@shared/types";
 import { HullCalculator } from "../hull-helper";
-import { IGameStateManager, ICellLoc, IGameStateData } from "@shared/types";
-import { BOARD_COLUMNS, BOARD_ROWS } from "@shared/constants";
+
+const mockRows = 4;
+const mockCols = 4;
 
 describe("HullCalculator", () => {
     let mockGSM: IGameStateManager;
@@ -19,7 +21,10 @@ describe("HullCalculator", () => {
             isOver: false,
             currentRound: 0,
         };
-        mockGSM = { gameState: mockGameState } as IGameStateManager;
+        mockGSM = {
+            gameState: mockGameState,
+            getBoardDimensions: () => ({ rows: mockRows, cols: mockCols }),
+        } as IGameStateManager;
     });
 
     describe("getDeployedHullLocation", () => {
@@ -108,8 +113,8 @@ describe("HullCalculator", () => {
         it("should filter out locations that exceed board boundaries", () => {
             const calculator = new HullCalculator(mockGSM, true);
             const selectableLocations: ICellLoc[] = [
-                [0, BOARD_ROWS - 1],
-                [1, BOARD_ROWS - 1],
+                [0, mockRows - 1],
+                [1, mockRows - 1],
             ];
             const result = calculator.getValidDeploymentLocations(selectableLocations, [
                 [0, 0],
@@ -137,7 +142,7 @@ describe("HullCalculator", () => {
             const calculator = new HullCalculator(mockGSM, true);
             const selectableLocations: ICellLoc[] = [
                 [1, 0],
-                [BOARD_COLUMNS - 1, 0],
+                [mockCols - 1, 0],
             ];
             const result = calculator.getValidDeploymentLocations(selectableLocations, [
                 [0, 0],

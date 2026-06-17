@@ -1,6 +1,5 @@
 import { HullCalculator as _HullCalculator } from "@shared/utils/hull-helper";
 import { EFFECTS_CONFIG, SUPPORTS_CONFIG } from "../config/constants";
-import { BOARD_COLUMNS, BOARD_ROWS } from "../constants";
 import { GameStateManager } from "../models";
 import {
     EffectAnchor,
@@ -48,11 +47,11 @@ export class GameEngine {
 
         const availableCells: ICellLoc[] = [];
         const ship = this.gsm.getShip(shipId);
-
+        const { rows, cols } = this.gsm.getBoardDimensions();
         const isFirstPlayer = this.isFirstPlayer(playerId);
 
-        for (let i = 0; i < BOARD_COLUMNS; i++) {
-            availableCells.push([i, isFirstPlayer ? 0 : BOARD_ROWS - 1]);
+        for (let i = 0; i < cols; i++) {
+            availableCells.push([i, isFirstPlayer ? 0 : rows - 1]);
         }
 
         const validCells = new this.HullCalculator(this.gsm, isFirstPlayer).getValidDeploymentLocations(
@@ -184,8 +183,9 @@ export class GameEngine {
     private computeAnchoredCells(playerId: string, effectConfig: IEffectConfig): ICellLoc[] {
         if (effectConfig.anchor === EffectAnchor.AnyTile) {
             const all: ICellLoc[] = [];
-            for (let x = 0; x < BOARD_COLUMNS; x++) {
-                for (let y = 0; y < BOARD_ROWS; y++) {
+            const { rows, cols } = this.gsm.getBoardDimensions();
+            for (let x = 0; x < cols; x++) {
+                for (let y = 0; y < rows; y++) {
                     all.push([x, y]);
                 }
             }
@@ -219,9 +219,10 @@ export class GameEngine {
         }
         if (anchor === EffectAnchor.DeploymentRow) {
             const isFirstPlayer = this.gsm.gameState.isFirstPlayer(playerId);
-            const row = isFirstPlayer ? 0 : BOARD_ROWS - 1;
+            const { rows, cols } = this.gsm.getBoardDimensions();
+            const row = isFirstPlayer ? 0 : rows - 1;
             const cells: ICellLoc[] = [];
-            for (let x = 0; x < BOARD_COLUMNS; x++) cells.push([x, row]);
+            for (let x = 0; x < cols; x++) cells.push([x, row]);
             return cells;
         }
         return [];

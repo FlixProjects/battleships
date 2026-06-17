@@ -59,8 +59,8 @@ export class MoveShipClickHandler extends ClickHandler {
     private async handleValidMoveShipClick(destinationTileId: string, shipId: string, onSuccessCb?: () => void) {
         const playerId = gameManager.getCurrentPlayerId();
         const tile = this.selectables[destinationTileId];
-
-        const gameEngine = new GameEngine(gameManager.state.gameState);
+        const gameState = gameManager.state.gameState;
+        const gameEngine = new GameEngine(gameState);
         const routes = gameEngine.prime.moveShipRoutes({ playerId, shipId }, destinationTileId);
 
         if (routes.length === 0) return;
@@ -68,7 +68,7 @@ export class MoveShipClickHandler extends ClickHandler {
         // Hand off to route selection: detach the global tile-click listener
         // so subsequent clicks go to the PathMenu's outside-click handler instead.
         this.removeGlobalClickEventListener();
-
+        const boardConfig = gameState.getBoardDimensions();
         const routeHandler = new SelectRouteClickHandler({
             routes,
             onConfirm: async (selectedRoute) => {
@@ -94,6 +94,7 @@ export class MoveShipClickHandler extends ClickHandler {
             onDismiss: () => {
                 this.event.onGlobalDeselect?.();
             },
+            boardConfig,
         });
         routeHandler.start();
     }

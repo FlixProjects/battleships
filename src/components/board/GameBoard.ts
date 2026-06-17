@@ -1,14 +1,13 @@
 import {
     ANIMATION_LAYER_ID,
-    BOARD_COLUMNS,
-    BOARD_ROWS,
     CELL_SEPARATOR,
     COMPONENT_ID,
     GAME_BOARD_ID,
     TILE_GAP_PX,
     TILE_SIZE_PX,
-    Z_INDEX,
+    Z_INDEX
 } from "@shared/constants";
+import { GameState } from "@shared/models";
 import { FERenderShipCommand } from "@shared/models/commands/FERenderShipCommand";
 import { IAppState, ICellLoc, IShip, TGameStateManagerCtor } from "@shared/types";
 import { IUpdateSelectableOptions, TSetSelectableOptions } from "@shared/types/fe-types";
@@ -23,6 +22,8 @@ import { Tile } from "./Tile";
 export class GameBoard extends BaseComponent {
     private GSM: TGameStateManagerCtor = FEGameStateManager;
     public tiles: Record<string, Tile> = {};
+    public gameState: GameState;
+    private boardConfig = { rows: 0, cols: 0 };
 
     private container = document.getElementById(COMPONENT_ID.GAME_AREA) as HTMLDivElement;
     private gameBoardContainer = document.getElementById(COMPONENT_ID.GAME_BOARD_CONTAINER) as HTMLDivElement;
@@ -38,6 +39,8 @@ export class GameBoard extends BaseComponent {
         this.remove();
         this.staticLayer?.remove();
         if (_state?.gameState?.players?.length === 2) {
+            this.gameState = new this.GSM(_state.gameState).gameState;
+            this.boardConfig = { ...this.gameState.getBoardDimensions() };
             this.build();
             return;
         }
@@ -52,9 +55,12 @@ export class GameBoard extends BaseComponent {
         this.ref.id = GAME_BOARD_ID;
         this.addStyles();
 
-        for (let row = 0; row < BOARD_ROWS; row++) {
-            for (let col = 0; col < BOARD_COLUMNS; col++) {
-                this.renderTile(`${col}${CELL_SEPARATOR}${row}`);
+        if (this.gameState) {
+            const { rows, cols } = this.boardConfig;
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    this.renderTile(`${col}${CELL_SEPARATOR}${row}`);
+                }
             }
         }
 
@@ -70,10 +76,11 @@ export class GameBoard extends BaseComponent {
     }
 
     protected addStyles(): void {
+        const { cols } = this.boardConfig;
         this.ref.style.position = "relative";
         this.ref.innerHTML = "";
         this.ref.style.display = "grid";
-        this.ref.style.gridTemplateColumns = `repeat(${BOARD_COLUMNS}, ${TILE_SIZE_PX}px)`;
+        this.ref.style.gridTemplateColumns = `repeat(${cols}, ${TILE_SIZE_PX}px)`;
         this.ref.style.gap = `${TILE_GAP_PX}px`;
         this.ref.style.background = "rgba(255, 255, 255, 0)";
     }
