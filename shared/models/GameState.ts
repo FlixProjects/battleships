@@ -34,6 +34,7 @@ import { Hull } from "./Hull";
 import { Player } from "./Player";
 import { Ship } from "./Ship";
 import { createCellNodeByRefNo } from "@shared/utils/cell-node-helper";
+import { CellNodeEntity } from "./entities/CellNodeEntity";
 
 // GameObjects should not be nested within other GameObjects unless they have their equivalent on this layer
 export class GameState extends GameStateEntity implements IGameState {
@@ -117,7 +118,7 @@ export class GameState extends GameStateEntity implements IGameState {
         if (!board) return undefined;
         const nodes: Record<string, ICellNode> = {};
         Object.entries(board).forEach(([locKey, cn]) => {
-            nodes[locKey] = cn;
+            nodes[locKey] = cn instanceof CellNodeEntity ? cn.toPlain() : cn;
         });
         return nodes;
     }
@@ -147,7 +148,7 @@ export class GameState extends GameStateEntity implements IGameState {
             code: this.code,
             currentRound: this.currentRound,
             initiative: this.initiative,
-            board: this.board,
+            board: GameState.toPlainBoard(this.board),
             winners: this.winners,
             isOver: this.isOver,
             hulls: this.hulls.map((h) => h.toPlain()),
