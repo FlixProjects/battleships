@@ -1,7 +1,8 @@
 import { CELL_NODE_REF_NO } from "@shared/config/constants";
 import { DefaultCellNode, IslandCellNode } from "@shared/models/cell-nodes/";
 import { CellNodeEntity } from "@shared/models/entities/CellNodeEntity";
-import { ICellNode, TCellNodeRefNo } from "..";
+import { IBoard, ICellNode, TCellNodeRefNo } from "..";
+import { PathCellNodeLookup } from "@shared/utils/path-finder";
 
 export const refNoToCellNodeClassMap: Record<TCellNodeRefNo, new (props: ICellNode) => CellNodeEntity> = {
     [CELL_NODE_REF_NO.default]: DefaultCellNode,
@@ -14,4 +15,13 @@ export function createCellNodeByRefNo(cellNode: ICellNode): CellNodeEntity {
         throw new Error(`No CellNode class found for refNo: ${cellNode.refNo}`);
     }
     return new CellNodeClass(cellNode);
+}
+
+export function boardToPathCellNodes(board?: IBoard): PathCellNodeLookup {
+    const lookup: PathCellNodeLookup = {};
+    if (!board) return lookup;
+    Object.entries(board).forEach(([key, node]) => {
+        if (node instanceof CellNodeEntity) lookup[key] = node;
+    });
+    return lookup;
 }

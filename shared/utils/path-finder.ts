@@ -1,6 +1,6 @@
 import { BOARD_COLUMNS, BOARD_ROWS } from "@shared/constants";
 import { Movement } from "@shared/models/Movement";
-import { ICellLoc } from "@shared/types";
+import { ICellLoc, IPathCellNode, IPathTraveller } from "@shared/types";
 import { keyToLocation, locationToKey } from "./helpers";
 
 interface ITravellerProps {
@@ -36,8 +36,16 @@ export const routeToCellLocs = (route: string[]): ICellLoc[] => route.map(nodeId
 
 export type NodeFilterFn = (loc: ICellLoc) => boolean;
 
+/**
+ * Lookup of backing cell nodes keyed by location id. A `PathNode` delegates its
+ * per-tile decisions to its `IPathCellNode` (today `CellNodeEntity`); the
+ * contract itself lives in `@shared/types`.
+ */
+export type PathCellNodeLookup = Record<string, IPathCellNode>;
+
 export class PathFinder {
     private nodes: Map<string, PathNode> = new Map();
+    private cellNodes?: PathCellNodeLookup;
     private xLowerBound = DEFAULT_BOUNDS.xLowerBound;
     private yLowerBound = DEFAULT_BOUNDS.yLowerBound;
     private xUpperBound = DEFAULT_BOUNDS.xUpperBound;
@@ -98,8 +106,9 @@ export class PathFinder {
         return reachable.map(nodeIdToCellLoc);
     }
 
-    public initialiseNodes(filterFn?: NodeFilterFn) {
+    public initialiseNodes(filterFn?: NodeFilterFn, cellNodes?: PathCellNodeLookup) {
         this.nodes.clear();
+        this.cellNodes = cellNodes;
         this.createAndLoadIdForNodes(filterFn);
         this.loadNextNodesForNodes();
     }
@@ -132,7 +141,7 @@ export class PathFinder {
             for (let y = this.yLowerBound; y <= this.yUpperBound; y++) {
                 const id = cellLocToNodeId([x, y]);
                 const enterable = filterFn ? filterFn([x, y]) : true;
-                this.nodes.set(id, new PathNode(id, [], enterable));
+                this.nodes.set(id, new PathNode(id, [], enterable, this.cellNodes?.[id]));
             }
         }
     }
@@ -201,14 +210,17 @@ export class PathNode {
         public id: string,
         public nextTo: PathNode[] = [],
         private enterable: boolean = true,
+        private cellNode?: IPathCellNode,
     ) {}
 
-    public canBeEntered(_traveller: Traveller): boolean {
-        return this.enterable;
+    public canBeEntered(traveller: Traveller): boolean {
+        if (!this.enterable) return false;
+        return this.cellNode?.canBeEntered(traveller) ?? true;
     }
 
     public isEnterable(): boolean {
-        return this.enterable;
+        if (!this.enterable) return false;
+        return this.cellNode?.isEnterable() ?? true;
     }
 
     public receive(traveller: Traveller) {
@@ -233,10 +245,11 @@ export class PathNode {
         traveller.onEnterNextNode(this);
         traveller.recordRoute(this);
         traveller.updateCurrent(this);
+        this.cellNode?.onEnter(traveller);
     }
 }
 
-class Traveller {
+class Traveller implements IPathTraveller {
     private isStopped: boolean = false;
     public current?: PathNode;
     public route: string[];

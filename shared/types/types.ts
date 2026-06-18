@@ -29,6 +29,7 @@ import {
     SUPPORT_REF_NO,
 } from "../config/constants";
 import type { Card, Deck, GameState, Hull, Player, Ship } from "../models";
+import type { Movement } from "../models/Movement";
 import { ICommand } from "../models/commands/types";
 import { IPlayerAction } from "./action-types";
 
@@ -397,6 +398,20 @@ export interface ICellNode extends ICellNodeConfig {
 export interface ICellNodeConfig {
     refNo: TCellNodeRefNo;
     imgSrc?: string;
+}
+
+export interface IPathTraveller {
+    movement: Movement;
+}
+
+export interface IPathCellNode {
+    /** Terrain-intrinsic, traveller-independent. Cheap predicate used by range
+     *  scans (vision/attack) that have no traveller. */
+    isEnterable(): boolean;
+    /** Per-tile, traveller-aware entry decision. Defaults to isEnterable(). */
+    canBeEntered(traveller: IPathTraveller): boolean;
+    /** Side-effect applied when a traveller lands on this tile. No-op default. */
+    onEnter(traveller: IPathTraveller): void;
 }
 
 export type Grid = Array<ICell>;

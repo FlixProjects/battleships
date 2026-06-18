@@ -19,6 +19,7 @@ import {
     TSupportRefNo,
 } from "../types";
 import { keyToLocation, LocationHelper, locationToKey } from "../utils";
+import { boardToPathCellNodes } from "../utils/cell-node-helper";
 import { cellLocToNodeId, nodeIdToCellLoc, PathFinder, routeToCellLocs } from "../utils/path-finder";
 import { Movement } from "./Movement";
 
@@ -118,7 +119,10 @@ export class GameEngine {
         const locationHelper = new LocationHelper(this.gsm.getPlayers());
 
         const pathFinder = new PathFinder();
-        pathFinder.initialiseNodes((loc: ICellLoc) => !locationHelper.isLocationOccupied(loc));
+        pathFinder.initialiseNodes(
+            (loc: ICellLoc) => !locationHelper.isLocationOccupied(loc),
+            boardToPathCellNodes(this.gsm.gameState.board),
+        );
         return pathFinder;
     }
 
