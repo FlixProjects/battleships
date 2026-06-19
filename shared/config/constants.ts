@@ -243,10 +243,15 @@ export const BOARD_CONFIG: Record<TMapRefNo, IBoardConfig> = {
         rows: BOARD_ROWS,
         columns: BOARD_COLUMNS,
         nodes: {
-            [`3${CELL_SEPARATOR}3`]: {
+            [`2${CELL_SEPARATOR}2`]: {
                 id: "id",
                 refNo: CELL_NODE_REF_NO.island0,
-                location: [3, 3],
+                location: [2, 2],
+            },
+            [`${BOARD_COLUMNS - 3}${CELL_SEPARATOR}${BOARD_ROWS - 3}`]: {
+                id: "id",
+                refNo: CELL_NODE_REF_NO.island0,
+                location: [BOARD_COLUMNS - 3, BOARD_ROWS - 3],
             },
         },
     },
