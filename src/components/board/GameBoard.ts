@@ -14,6 +14,7 @@ import { IUpdateSelectableOptions, TSetSelectableOptions } from "@shared/types/f
 import { locationToKey } from "@shared/utils";
 import { gameManager } from "../..";
 import { FEGameStateManager } from "../../models/FEGameStateManager";
+import { FECellNodeEntity } from "../../models/fe-entities/FECellNodeEntity";
 import { queueCommand } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 import { EffectSprite } from "./EffectSprite";
@@ -67,6 +68,7 @@ export class GameBoard extends BaseComponent {
         this.staticLayer?.remove();
         this.renderStaticLayer();
 
+        this.renderTerrain();
         this.renderPlayersShips();
         this.renderEffects();
         this.applyVisibility();
@@ -151,6 +153,13 @@ export class GameBoard extends BaseComponent {
         this.tiles[key] = tile;
         this.addChild(tile);
         this.ref.appendChild(tile.build());
+    }
+
+    private renderTerrain() {
+        Object.keys(this.tiles).forEach((key) => {
+            const cellNode = this.gameState.board?.[key] as FECellNodeEntity | undefined;
+            cellNode?.render(this.staticLayer);
+        });
     }
 
     private renderPlayersShips() {
