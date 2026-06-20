@@ -57,9 +57,9 @@ export const buildEffectDetails = (
     const stats: DetailsStat[] = [];
     if (effect.kind === EffectKind.Vision) {
         const payload = effect.payload as IVisionEffectPayload;
-        stats.push({ iconSrc: ASSET_PATHS.INFO_ICON, label: "Vision range", value: payload.range });
+        stats.push({ iconSrc: ASSET_PATHS.VISION_ICON, label: "Vision range", value: payload.range });
     }
-    stats.push({ iconSrc: ASSET_PATHS.INFO_ICON, label: "Duration", value: `${effect.duration} rounds` });
+    stats.push({ iconSrc: ASSET_PATHS.DURATION_ICON, label: "Duration", value: `${effect.duration} rounds` });
 
     return {
         title: source.name,

@@ -1,5 +1,6 @@
 import { COLOR_RGBA, SELECTABLE_ID, Z_INDEX } from "@shared/constants";
 import { IAppState } from "@shared/types";
+import { interactionManager } from "../..";
 import { BaseComponent } from "../BaseComponent";
 import { StatBadge } from "../ships/StatBadge";
 import { DetailsViewModel } from "../../models/details/DetailsViewModel";
@@ -53,7 +54,7 @@ export class DetailsPanel extends BaseComponent {
         this.ref.style.borderRight = "none";
         this.ref.replaceChildren();
 
-        this.ref.appendChild(this.renderTitle(vm.title, borderColor));
+        this.ref.appendChild(this.renderHeader(vm.title, borderColor));
         if (vm.description) {
             this.ref.appendChild(this.renderDescription(vm.description));
         }
@@ -65,15 +66,45 @@ export class DetailsPanel extends BaseComponent {
         }
     }
 
-    private renderTitle(title: string, borderColor: string): HTMLElement {
-        const el = document.createElement("div");
-        el.textContent = title;
-        el.style.color = "#ffffff";
-        el.style.fontSize = "18px";
-        el.style.fontWeight = "bold";
-        el.style.borderBottom = `1px solid ${borderColor}`;
-        el.style.paddingBottom = "8px";
-        return el;
+    private renderHeader(title: string, borderColor: string): HTMLElement {
+        const header = document.createElement("div");
+        header.style.display = "flex";
+        header.style.alignItems = "center";
+        header.style.justifyContent = "space-between";
+        header.style.gap = "8px";
+        header.style.borderBottom = `1px solid ${borderColor}`;
+        header.style.paddingBottom = "8px";
+
+        const heading = document.createElement("div");
+        heading.textContent = title;
+        heading.style.color = "#ffffff";
+        heading.style.fontSize = "18px";
+        heading.style.fontWeight = "bold";
+        header.appendChild(heading);
+
+        header.appendChild(this.renderCloseButton());
+        return header;
+    }
+
+    private renderCloseButton(): HTMLElement {
+        const btn = document.createElement("button");
+        btn.textContent = "✕";
+        btn.setAttribute("aria-label", "Close details");
+        btn.style.background = "transparent";
+        btn.style.border = "none";
+        btn.style.color = "rgba(255, 255, 255, 0.6)";
+        btn.style.fontSize = "16px";
+        btn.style.lineHeight = "1";
+        btn.style.cursor = "pointer";
+        btn.style.padding = "2px 4px";
+        btn.addEventListener("mouseenter", () => (btn.style.color = "#ffffff"));
+        btn.addEventListener("mouseleave", () => (btn.style.color = "rgba(255, 255, 255, 0.6)"));
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            this.close();
+            interactionManager.clearInteraction();
+        });
+        return btn;
     }
 
     private renderDescription(description: string): HTMLElement {
@@ -152,7 +183,7 @@ export class DetailsPanel extends BaseComponent {
         this.ref.style.transform = HIDDEN_TRANSFORM;
         this.ref.style.width = "240px";
         this.ref.style.background =
-            "linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01))";
+            "linear-gradient(180deg, rgba(15, 23, 36, 0.97), rgba(10, 15, 28, 0.97))";
         this.ref.style.border = "1px solid rgba(255, 255, 255, 0.06)";
         this.ref.style.borderRight = "none";
         this.ref.style.borderRadius = "14px 0 0 14px";

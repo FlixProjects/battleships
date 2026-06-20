@@ -91,6 +91,8 @@ export const ASSET_PATHS = {
     MOVE_ICON: "./assets/move-icon.svg",
     HEALTH_ICON: "./assets/health-icon.svg",
     INFO_ICON: "./assets/info-icon.svg",
+    VISION_ICON: "./assets/vision-icon.svg",
+    DURATION_ICON: "./assets/duration-icon.svg",
 };
 
 export const COMPONENT_ID = {

@@ -28,6 +28,7 @@ interface Props {
  */
 export class CardRow extends Selectable {
     private GSM: TGameStateManagerCtor = FEGameStateManager;
+    private contentWrapper?: HTMLElement;
     constructor(public props: Props) {
         super(props.cardId);
     }
@@ -47,11 +48,11 @@ export class CardRow extends Selectable {
         this.ref.classList.add("card-row");
 
         this.addStyles();
+        this.renderBody();
 
         this.isSelectable = this.props.isSelectable;
         this.setState();
 
-        this.renderBody();
         return this.ref;
     }
 
@@ -60,31 +61,42 @@ export class CardRow extends Selectable {
         const card = gsm.getCard(this.props.cardId);
         if (!card) return;
 
+        // Left content scales on hover; the tooltip sits past a divider on the
+        // right and highlights on its own — hovering it does not scale the row.
+        this.contentWrapper = document.createElement("div");
+        this.contentWrapper.style.display = "flex";
+        this.contentWrapper.style.alignItems = "center";
+        this.contentWrapper.style.gap = "10px";
+        this.contentWrapper.style.transition = "transform 0.2s ease";
+        this.contentWrapper.style.transformOrigin = "left center";
+
+        let tooltipPayload: { shipId?: string; effectId?: string } = {};
         if (card.kind === GameConfig.CardKind.Ship) {
-            this.renderShipIcon(card.instanceId, card.refNo, gsm);
+            this.renderShipContent(card.instanceId, card.refNo, gsm);
+            tooltipPayload = { shipId: card.instanceId };
+        } else if (card.kind === GameConfig.CardKind.Support) {
+            this.renderSupportContent(card.id, card.refNo, gsm);
+            // Support cards point instanceId at their primary pre-created Effect.
+            tooltipPayload = { effectId: card.instanceId };
+        } else {
             return;
         }
-        if (card.kind === GameConfig.CardKind.Support) {
-            this.renderSupportIcon(card.id, card.refNo, gsm);
-            return;
-        }
+
+        this.ref.appendChild(this.contentWrapper);
+        this.ref.appendChild(this.buildTooltipCell(tooltipPayload));
     }
 
-    private renderSupportIcon(cardId: string, refNo: string, gsm: IGameStateManager) {
+    private renderSupportContent(cardId: string, refNo: string, gsm: IGameStateManager) {
         const supportIcon = new SupportIcon({
             cardId,
             refNo,
             color: gsm.gameState.getFirstPlayerId() === gameManager.getCurrentPlayerId() ? COLOR.TEAL : COLOR.ORANGE,
         });
         this.addChild(supportIcon);
-        this.ref.appendChild(supportIcon.build());
-
-        // Support cards point instanceId at their primary pre-created Effect.
-        const card = gsm.getCard(cardId);
-        this.ref.appendChild(this.buildTooltipIcon({ effectId: card?.instanceId }));
+        this.contentWrapper?.appendChild(supportIcon.build());
     }
 
-    private renderShipIcon(shipId: string, refNo: string, gsm: IGameStateManager) {
+    private renderShipContent(shipId: string, refNo: string, gsm: IGameStateManager) {
         const ship = gsm.gameState.ships.find((s) => s.id === shipId);
         const shipIcon = new ShipIcon({
             refNo,
@@ -93,20 +105,14 @@ export class CardRow extends Selectable {
             color: gsm.gameState.getFirstPlayerId() === gameManager.getCurrentPlayerId() ? COLOR.TEAL : COLOR.ORANGE,
         });
         this.addChild(shipIcon);
-        this.ref.appendChild(shipIcon.build());
+        this.contentWrapper?.appendChild(shipIcon.build());
 
-        const right = document.createElement("div");
-        right.style.display = "flex";
-        right.style.alignItems = "center";
-        right.style.gap = "10px";
         if (ship) {
-            right.appendChild(this.buildShipStats(ship));
+            this.contentWrapper?.appendChild(this.buildShipStats(ship));
         }
-        right.appendChild(this.buildTooltipIcon({ shipId }));
-        this.ref.appendChild(right);
     }
 
-    /** Name (Health | Attack | Move) shown beside a Ship card. */
+    /** (Health | Attack | Move) shown beside a Ship card. */
     private buildShipStats(ship: IShip): HTMLElement {
         const container = document.createElement("div");
         container.style.display = "flex";
@@ -126,45 +132,62 @@ export class CardRow extends Selectable {
         return container;
     }
 
-    /** Info icon that opens the DetailsPanel without selecting the card to play. */
-    private buildTooltipIcon(payload: { shipId?: string; effectId?: string }): HTMLElement {
+    /** Divider + info icon that opens the DetailsPanel without selecting the card. */
+    private buildTooltipCell(payload: { shipId?: string; effectId?: string }): HTMLElement {
+        const cell = document.createElement("div");
+        cell.style.display = "flex";
+        cell.style.alignItems = "center";
+        cell.style.alignSelf = "stretch";
+        cell.style.paddingLeft = "10px";
+        cell.style.marginLeft = "8px";
+        cell.style.borderLeft = "1px solid rgba(255, 255, 255, 0.12)";
+
         const icon = new Icon({
             src: ASSET_PATHS.INFO_ICON,
             addStyles: (img) => {
                 img.ref.style.width = "16px";
                 img.ref.style.height = "16px";
-                img.ref.style.opacity = "0.7";
+                img.ref.style.opacity = "0.6";
                 img.ref.style.cursor = "pointer";
+                img.ref.style.transition = "opacity 0.15s ease, transform 0.15s ease";
             },
         });
         const el = icon.build();
+        el.addEventListener("mouseenter", () => {
+            el.style.opacity = "1";
+            el.style.transform = "scale(1.2)";
+        });
+        el.addEventListener("mouseleave", () => {
+            el.style.opacity = "0.6";
+            el.style.transform = "scale(1)";
+        });
         el.addEventListener("click", (e) => {
             e.stopPropagation(); // don't trigger the row's card-select
             interactionManager.handleEvent({ type: IMEventType.SHOW_SHIP_DETAILS, ...payload });
         });
-        return el;
+
+        cell.appendChild(el);
+        return cell;
     }
 
     public onSelectable(): void {
         this.addClickEventListener();
-        this.ref.addEventListener("mouseenter", this.mouseEnter);
-        this.ref.addEventListener("mouseleave", this.mouseLeave);
+        this.contentWrapper?.addEventListener("mouseenter", this.mouseEnter);
+        this.contentWrapper?.addEventListener("mouseleave", this.mouseLeave);
     }
 
     public onUnselectable(): void {
         this.removeClickEventListener();
-        this.ref.removeEventListener("mouseenter", this.mouseEnter);
-        this.ref.removeEventListener("mouseleave", this.mouseLeave);
+        this.contentWrapper?.removeEventListener("mouseenter", this.mouseEnter);
+        this.contentWrapper?.removeEventListener("mouseleave", this.mouseLeave);
     }
 
     private mouseEnter = () => {
-        this.ref.style.transform = "scale(1.1)";
-        this.ref.style.borderBottomColor = "rgba(110, 231, 183, 0.9)";
+        if (this.contentWrapper) this.contentWrapper.style.transform = "scale(1.08)";
     };
 
     private mouseLeave = () => {
-        this.ref.style.transform = "scale(1)";
-        this.ref.style.borderBottomColor = "rgba(110, 231, 183, 0.6)";
+        if (this.contentWrapper) this.contentWrapper.style.transform = "scale(1)";
     };
 
     public async onClick(): Promise<void> {

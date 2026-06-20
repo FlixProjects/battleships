@@ -8,7 +8,8 @@ import { SelectTargetClickHandler } from "./SelectTargetClickHandler";
 import { ShipAttackClickHandler } from "./ShipAttackClickHandler";
 import { ShowShipDetailsClickHandler } from "./ShowShipDetailsClickHandler";
 
-const clickHandlerMap: Record<TIMEventType, new (event: IMEvent) => ClickHandler> = {
+// FIXME: fix typing
+const clickHandlerMap: Record<TIMEventType, new (event: never) => ClickHandler> = {
     [IMEventType.DEPLOYING_SHIP]: DeployShipClickHandler,
     [IMEventType.MOVING_SHIP]: MoveShipClickHandler,
     [IMEventType.SELECT_SHIP]: SelectShipClickHandler,
@@ -17,11 +18,11 @@ const clickHandlerMap: Record<TIMEventType, new (event: IMEvent) => ClickHandler
     [IMEventType.PLAY_SUPPORT_CONFIRM]: ConfirmEffectClickHandler,
     [IMEventType.SHOW_SHIP_DETAILS]: ShowShipDetailsClickHandler,
 };
-export const getClickHandler = (event: IMEvent) => {
+export const getClickHandler = (event: IMEvent): ClickHandler => {
     const HandlerClass = clickHandlerMap[event.type];
     if (!HandlerClass) {
         throw new Error(`No click handler found for event type: ${event.type}`);
     }
 
-    return new HandlerClass(event);
+    return new HandlerClass(event as never);
 };

@@ -12,6 +12,10 @@ export class InteractionManager {
     public isInteracting() {
         return this.interacting;
     }
+    
+    public clearInteraction() {
+        this.removeGlobalClickEventListener();
+    }
 
     public handleEvent<T extends IMEvent>(event: T) {
         this.removeGlobalClickEventListener();
