@@ -7,6 +7,7 @@ import {
     ICard,
     IDeck,
     IDeployAction,
+    IEffect,
     IHullTemplate,
     IMoveAction,
     IPlayCardAction,
@@ -515,6 +516,7 @@ describe("ActionResolver", () => {
             instanceId: `${id}-instance`,
             kind: CardKind.Ship,
             refNo: "frigate0",
+            name: "Frigate",
         });
 
         it("refills both players' hands to MAX_HAND_SIZE when resolve completes", () => {
@@ -612,6 +614,7 @@ describe("ActionResolver", () => {
                 instanceId: "ship1",
                 kind: CardKind.Ship,
                 refNo: "frigate0",
+                name: "Frigate",
             };
             const deck: IDeck = {
                 id: "deck-1",
@@ -733,13 +736,31 @@ describe("ActionResolver", () => {
     });
 
     describe("resolveAction (PlayCard: Support card → Flare)", () => {
+        // Effects are minted up-front and live in GameState inactive; playing the
+        // card activates them. Mirrors what buildPlayerStartingState produces.
         const buildFlareCardEntities = () => {
+            const effect: IEffect = {
+                id: "effect-flare",
+                refNo: "flare_persistent",
+                kind: "vision",
+                sourceCardId: "card-flare",
+                playerId: "player1",
+                duration: 2,
+                isActive: false,
+                createdOnRound: 0,
+                expiresAfterRound: undefined,
+                payload: { kind: "vision", range: 2 },
+                existsOnBoard: true,
+            };
             const card: ICard = {
                 id: "card-flare",
                 deckId: "deck-1",
-                instanceId: "card-flare",
+                instanceId: "effect-flare",
                 kind: CardKind.Support,
                 refNo: "flare",
+                name: "Flare",
+                description: "Reveal a target area.",
+                commandPointCost: 1,
             };
             const deck: IDeck = {
                 id: "deck-1",
@@ -748,11 +769,11 @@ describe("ActionResolver", () => {
                 cards: [],
                 played: [],
             };
-            return { card, deck };
+            return { card, deck, effect };
         };
 
         it("plays Flare, persists a vision Effect, deducts CP, and reveals the target tile to the playing player", () => {
-            const { card, deck } = buildFlareCardEntities();
+            const { card, deck, effect: preEffect } = buildFlareCardEntities();
             // Place an opponent hull at [1,1] so we can verify visibility leakage
             // through the persisted Flare Effect.
             const opponentHull = hullBuilder.build({
@@ -780,6 +801,7 @@ describe("ActionResolver", () => {
                 ships: [opponentShip],
                 hulls: [opponentHull],
                 cards: [card],
+                effects: [preEffect],
                 decks: [deck],
             });
 
@@ -822,7 +844,7 @@ describe("ActionResolver", () => {
         });
 
         it("expires the persistent Flare Effect after its lifetime is up", () => {
-            const { card, deck } = buildFlareCardEntities();
+            const { card, deck, effect } = buildFlareCardEntities();
             const player1 = buildPlayer1({
                 hand: ["card-flare"],
                 deck: "deck-1",
@@ -834,6 +856,7 @@ describe("ActionResolver", () => {
             const gameState = gameStateBuilder.build({
                 players: [player1, player2],
                 cards: [card],
+                effects: [effect],
                 decks: [deck],
             });
 
@@ -851,12 +874,15 @@ describe("ActionResolver", () => {
             const resolver = new ActionResolver("player1", gameState);
             resolver.resolveAction(action);
             expect(resolver.gameState.effects).toHaveLength(1);
+            expect(resolver.gameState.effects[0].isActive).toBe(true);
 
-            // Simulate the round advancing past expiry.
+            // Simulate the round advancing past expiry. Effects are owned like
+            // Ships — kept in state but deactivated once expired.
             resolver.gameState.update({});
             resolver.gameState.currentRound = 4;
             resolver.resolveExpiredEffects();
-            expect(resolver.gameState.effects).toHaveLength(0);
+            expect(resolver.gameState.effects).toHaveLength(1);
+            expect(resolver.gameState.effects[0].isActive).toBe(false);
         });
     });
 });

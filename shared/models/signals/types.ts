@@ -26,6 +26,7 @@ export const SignalType = {
     PlayerRemoveCardFromHand: "PlayerRemoveCardFromHand",
     DeckAddToPlayed: "DeckAddToPlayed",
     GameCreateEffect: "GameCreateEffect",
+    GameActivateEffect: "GameActivateEffect",
     GamePersistentEffectsTick: "GamePersistentEffectsTick",
     GameWinnerDetermined: "GameWinnerDetermined",
     GameRotateInitiative: "GameRotateInitiative",
@@ -108,6 +109,11 @@ export interface IDeckAddToPlayedSignalPayload extends ISignalPayload {
 
 export interface IGameCreateEffectSignalPayload extends ISignalPayload {
     effect: IEffect;
+}
+
+export interface IGameActivateEffectSignalPayload extends ISignalPayload {
+    effectId: string;
+    targetCell?: ICellLoc;
 }
 
 export interface IGameRemoveSubmissionCommandPointsSignalPayload extends ISignalPayload {

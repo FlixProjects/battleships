@@ -1,5 +1,6 @@
 import {
     IDeckAddToPlayedSignalPayload,
+    IGameActivateEffectSignalPayload,
     IGameCreateEffectSignalPayload,
     IGameCreateHullSignalPayload,
     IGameProjectVisibilitySignalPayload,
@@ -227,7 +228,9 @@ export type TEffectAnchor = (typeof EffectAnchor)[keyof typeof EffectAnchor];
 
 export interface IVisionEffectPayload {
     kind: typeof EffectKind.Vision;
-    center: ICellLoc;
+    /** Set when the effect is activated (targeted). Undefined while the effect
+     *  is pre-created but inactive. */
+    center?: ICellLoc;
     range: number;
 }
 
@@ -244,9 +247,15 @@ export interface IEffect {
     kind: TEffectKind;
     sourceCardId: string;
     playerId: string;
+    /** Rounds the effect persists once activated. `expiresAfterRound` is derived
+     *  from this at activation (`createdOnRound + duration`). 0 = one-shot. */
+    duration: number;
+    /** Pre-created effects start inactive; playing the source card activates
+     *  them. Only active effects are resolved / contribute vision. */
+    isActive: boolean;
     createdOnRound: number;
-    /** undefined = one-shot (never persisted); otherwise persists through and
-     *  including this round number. Expired effects are dropped at round-end. */
+    /** undefined until activated; otherwise persists through and including this
+     *  round number. Expired effects are deactivated (kept in state) at round-end. */
     expiresAfterRound?: number;
     payload: TEffectPayload;
     existsOnBoard: boolean;
@@ -270,6 +279,7 @@ export interface IEffectConfig {
 export interface ISupportConfig {
     refNo: string;
     name: string;
+    description: string;
     commandPointCost: number;
     /** Effect refNos this Support produces, in selection order. Each refNo
      *  must exist in `EFFECTS_CONFIG`. */
@@ -279,9 +289,18 @@ export interface ISupportConfig {
 export interface ICard {
     id: string;
     deckId: string; // FK → IDeck.id
-    instanceId: string; // FK → underlying entity (today: IShip.id)
+    instanceId: string; // FK → underlying entity (ShipCard → IShip.id, SupportCard → primary IEffect.id)
     kind: TCardKind;
     refNo: string; // e.g. TShipRefNo — display hint without dereferencing
+    name: string; // resolved at creation (ship: ship name, support: support name)
+    // Further resolved-at-creation display/play data (persisted, never re-derived
+    // from *_CONFIG at hydration). Populated for SupportCards.
+    description?: string;
+    commandPointCost?: number;
+    /** SupportCard only: the resolved Effect configs this card produces, in
+     *  selection order. Drives FE targeting; the live Effect instances are
+     *  pre-created in GameState and linked by `sourceCardId`. */
+    effects?: IEffectConfig[];
 }
 
 export type TAppStatus = (typeof AppStatus)[keyof typeof AppStatus];
@@ -339,7 +358,7 @@ export interface IPlainGameState {
     hulls?: IHull[];
     cards: IPlainCard[];
     decks: IPlainDeck[];
-    effects?: IPlainEffect[];
+    effects: IPlainEffect[];
     actions?: IPlainAction[];
     board?: IBoard;
     winners: string[];
@@ -427,6 +446,7 @@ export type ICellLoc = [number, number];
 export interface IShipTemplate {
     refNo: TShipRefNo;
     name: string;
+    description: string;
     dimensions: [number, number];
     deployed: boolean;
     commandPointCost: number;
@@ -539,6 +559,10 @@ export interface IDeckAddToPlayedSignalHandleCtx extends ISignalHandleCtx {
 
 export interface IGameCreateEffectSignalHandleCtx extends ISignalHandleCtx {
     signal: ISignal & { payload: IGameCreateEffectSignalPayload };
+}
+
+export interface IGameActivateEffectSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IGameActivateEffectSignalPayload };
 }
 
 export interface IGameRemoveSubmissionCommandPointsSignalHandleCtx extends ISignalHandleCtx {

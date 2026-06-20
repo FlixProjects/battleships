@@ -9,6 +9,7 @@ export class ShipBuilder extends Builder<IShip, Ship> {
             playerId: "",
             refNo: "frigate0" as TShipRefNo,
             name: "",
+            description: "",
             dimensions: [1, 1],
             deployed: false,
             commandPointCost: 1,

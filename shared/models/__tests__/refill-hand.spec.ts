@@ -8,6 +8,7 @@ const makeCard = (id: string, deckId: string, refNo = "frigate0"): ICard => ({
     instanceId: `${id}-instance`,
     kind: CardKind.Ship,
     refNo,
+    name: refNo,
 });
 
 const buildState = (overrides: Partial<IGameStateData>): IGameStateData => ({

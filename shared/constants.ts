@@ -23,6 +23,7 @@ export const INITIAL_GAME_STATE: IPlainGameState = {
     hulls: [],
     cards: [],
     decks: [],
+    effects: [],
     board: {},
     winners: [],
     isOver: false,

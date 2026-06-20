@@ -80,6 +80,7 @@ export const handler = async (event: any) => {
 
         gameState.ships.push(...starting.ships);
         gameState.cards.push(...starting.cards);
+        gameState.effects.push(...starting.effects);
         gameState.decks.push(starting.deck);
         gameState.players.push(newPlayer);
         gameState.currentRound++;

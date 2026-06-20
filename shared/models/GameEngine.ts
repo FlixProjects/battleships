@@ -1,5 +1,4 @@
 import { HullCalculator as _HullCalculator } from "@shared/utils/hull-helper";
-import { EFFECTS_CONFIG, SUPPORTS_CONFIG } from "../config/constants";
 import { GameStateManager } from "../models";
 import {
     EffectAnchor,
@@ -14,14 +13,13 @@ import {
     IGetValidSupportCellsAction,
     IGetValidSupportCellsResult,
     ResultType,
-    TEffectRefNo,
     THullCalculatorConstructor,
-    TSupportRefNo,
 } from "../types";
 import { keyToLocation, LocationHelper, locationToKey } from "../utils";
 import { boardToPathCellNodes } from "../utils/cell-node-helper";
 import { cellLocToNodeId, nodeIdToCellLoc, PathFinder, routeToCellLocs } from "../utils/path-finder";
 import { Movement } from "./Movement";
+import { SupportCard } from "./SupportCard";
 
 // TODO: move prime methods into FE Entity classes?
 // TODO: eventually deprecate this
@@ -159,15 +157,12 @@ export class GameEngine {
     private primePlaySupport(action: IGetValidSupportCellsAction): IGetValidSupportCellsResult {
         const { playerId, cardId, effectIndex } = action;
         const card = this.gsm.gameState.cards.find((c) => c.id === cardId);
-        if (!card) {
-            throw new Error(`primePlaySupport: card ${cardId} not found`);
+        if (!(card instanceof SupportCard)) {
+            throw new Error(`primePlaySupport: support card ${cardId} not found`);
         }
-        const supportConfig = SUPPORTS_CONFIG[card.refNo as TSupportRefNo];
-        if (!supportConfig) {
-            throw new Error(`primePlaySupport: no SupportConfig for refNo '${card.refNo}'`);
-        }
-        const effectRefNo = supportConfig.effects[effectIndex];
-        const effectConfig = effectRefNo ? EFFECTS_CONFIG[effectRefNo as TEffectRefNo] : undefined;
+        // Read the resolved Effect config persisted on the card at creation —
+        // never re-derive from SUPPORTS_CONFIG / EFFECTS_CONFIG at prime time.
+        const effectConfig = card.effects[effectIndex];
         if (!effectConfig) {
             throw new Error(`primePlaySupport: effectIndex ${effectIndex} out of range for ${card.refNo}`);
         }

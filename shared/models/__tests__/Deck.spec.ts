@@ -9,6 +9,7 @@ const makeCard = (id: string, refNo: string, deckId = "deck-1"): ICard => ({
     instanceId: `${id}-instance`,
     kind: CardKind.Ship,
     refNo,
+    name: refNo, // FIXME: should pass in name
 });
 
 const baseProps = (cards: ICard[], played: ICard[] = []) => ({

@@ -338,12 +338,24 @@ export class GameState extends GameStateEntity implements IGameState {
     }
 
     /**
-     * Returns Effects that are still alive on the current round, optionally
-     * filtered by owner. Effects without `expiresAfterRound` (one-shots) are
-     * never persisted in `effects` so this is a simple round-window filter.
+     * Toggle a pre-created Effect active (its source card was played), stamping
+     * the target/round/expiry. Counterpart to `deactivateExpiredEffects`.
+     */
+    activateEffect(effectId: string, targetCell?: ICellLoc): Effect | undefined {
+        const effect = this.effects.find((e) => e.id === effectId);
+        effect?.activate(targetCell, this.currentRound);
+        return effect;
+    }
+
+    /**
+     * Returns Effects that are currently in play on this round, optionally
+     * filtered by owner. Effects are pre-created inactive at game creation and
+     * activated when their source card is played, so resolution gates on both
+     * `isActive` and the expiry window.
      */
     getActiveEffects(playerId?: string): Effect[] {
         return this.effects.filter((e) => {
+            if (!e.isActive) return false;
             if (e.hasExpired(this.currentRound)) return false;
             if (playerId !== undefined && e.playerId !== playerId) return false;
             return true;
@@ -384,7 +396,9 @@ export class GameState extends GameStateEntity implements IGameState {
             p.ships.forEach((s) => s.removeInvisibleHullLocations());
             p.removeInvisibleShips();
         });
-        obscured.removeInvisibleEffects();
+        // Keep the current player's own Effects (active or pre-created/inactive);
+        // prune only the opponent's Effects they can't see.
+        obscured.effects = obscured.effects.filter((e) => e.playerId === currentPlayerId || e.isVisible);
         obscured.linkPlayerShips({ reverse: true }).linkShipHulls({ reverse: true });
         return obscured;
     }
@@ -396,6 +410,7 @@ export class GameState extends GameStateEntity implements IGameState {
             .filter((e) => e.kind === EffectKind.Vision)
             .forEach((e) => {
                 const payload = e.payload as IVisionEffectPayload;
+                if (!payload.center) return; // inactive/untargeted — contributes no vision
                 tiles.add(locationToKey(payload.center));
                 PathFinder.getCellsWithinRange({ start: payload.center, range: payload.range }).forEach((cell) =>
                     tiles.add(locationToKey(cell)),
@@ -505,8 +520,17 @@ export class GameState extends GameStateEntity implements IGameState {
         return this;
     }
 
-    removeExpiredEffects() {
-        this.effects.filter((e) => e.hasExpired(this.currentRound)).forEach((e) => this.removeEffect(e.id));
+    /**
+     * Effects are owned like Ships — never dropped from state. An expired effect
+     * is simply deactivated (kept around, `isActive: false`) so it stops being
+     * resolved / contributing vision.
+     */
+    deactivateExpiredEffects() {
+        this.effects.forEach((e) => {
+            if (e.isActive && e.hasExpired(this.currentRound)) {
+                e.isActive = false;
+            }
+        });
         return this;
     }
 

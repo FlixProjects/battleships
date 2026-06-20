@@ -5,6 +5,7 @@ import {
     CardKind,
     CELL_CONFIG,
     CELL_NODE_REF_NO,
+    EFFECTS_CONFIG,
     Faction,
     FACTION_CONFIG,
     MAP_REF_NO,
@@ -19,20 +20,24 @@ import {
     ICellLoc,
     ICellNode,
     IDeckTemplateEntry,
+    IEffectConfig,
     IGameState,
     IHull,
     IHullTemplate,
     IPlainCard,
     IPlainDeck,
+    IPlainEffect,
     IPlainGameState,
     IPlainPlayer,
     IPlainShip,
     ISupportDeckTemplateEntry,
     TCellNodeRefNo,
+    TEffectRefNo,
     TFaction,
     TMapRefNo,
     TShipRefNo
 } from "../types/types";
+import { buildInactiveEffect } from "./effect-helper";
 
 export const parseCookies = (cookieStr: string) => {
     const cookies = {} as Record<string, string>;
@@ -113,6 +118,7 @@ export const createNewGameState = (gameCode: string, playerId: string, playerNam
         players: [player],
         ships: starting.ships,
         cards: starting.cards,
+        effects: starting.effects,
         decks: [starting.deck],
         board: getNewBoard(),
         initiative: playerId,
@@ -127,6 +133,7 @@ export const createNewGameState = (gameCode: string, playerId: string, playerNam
 export interface IPlayerStartingState {
     ships: IPlainShip[];
     cards: IPlainCard[];
+    effects: IPlainEffect[];
     deck: IPlainDeck;
     hand: string[];
 }
@@ -159,20 +166,43 @@ export const buildPlayerStartingState = (playerId: string, faction: TFaction): I
         instanceId: ship.id,
         kind: CardKind.Ship,
         refNo: ship.refNo,
+        name: ship.name,
     }));
+
+    const effects: IPlainEffect[] = [];
 
     const supportCards: IPlainCard[] = supportEntries.flatMap((entry: ISupportDeckTemplateEntry) =>
         Array.from({ length: entry.count }, () => {
             const cardId = uuidv7();
             const supportConfig = SUPPORTS_CONFIG[entry.refNo];
+
+            const effectConfigs: IEffectConfig[] = supportConfig.effects.map((effectRefNo) => {
+                const effectConfig = EFFECTS_CONFIG[effectRefNo as TEffectRefNo];
+                if (!effectConfig) {
+                    throw new Error(
+                        `buildPlayerStartingState: Support '${entry.refNo}' references unknown Effect '${effectRefNo}'`,
+                    );
+                }
+                return effectConfig;
+            });
+
+            const cardEffects = effectConfigs.map((effectConfig) =>
+                buildInactiveEffect({ effectConfig, playerId, cardId }).toPlain(),
+            );
+            effects.push(...cardEffects);
+
             return {
                 id: cardId,
                 deckId,
-                // Supports have no underlying entity — point instanceId at the
-                // card itself so consumers always get a non-empty value.
-                instanceId: cardId,
+                // SupportCard points at its primary pre-created Effect (mirrors
+                // ShipCard → Ship). Effects link back via `sourceCardId`.
+                instanceId: cardEffects[0]?.id ?? cardId,
                 kind: CardKind.Support,
                 refNo: entry.refNo,
+                name: supportConfig.name,
+                description: supportConfig.description,
+                commandPointCost: supportConfig.commandPointCost,
+                effects: effectConfigs,
             };
         }),
     );
@@ -202,6 +232,7 @@ export const buildPlayerStartingState = (playerId: string, faction: TFaction): I
     return {
         ships,
         cards: allCards,
+        effects,
         deck: plainDeck,
         hand: drawn.map((c) => c.id),
     };

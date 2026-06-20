@@ -1,4 +1,3 @@
-import { EFFECTS_CONFIG, SUPPORTS_CONFIG } from "../config/constants";
 import {
     ICard,
     IEffectConfig,
@@ -10,43 +9,26 @@ import {
     ISupportCardPayload,
     PlaySupportConfirmIMEvent,
     PlaySupportTargetIMEvent,
-    TEffectRefNo,
-    TSupportRefNo,
 } from "../types";
-import { buildEffect } from "../utils/effect-helper";
 import { Card, ICardSelectionHandlers } from "./Card";
 import { DeckAddToPlayedSignal } from "./signals/DeckAddToPlayedSignal";
-import { GameCreateEffectSignal } from "./signals/GameCreateEffectSignal";
+import { GameActivateEffectSignal } from "./signals/GameActivateEffectSignal";
 import { PlayerRemoveCardFromHandSignal } from "./signals/PlayerRemoveCardFromHandSignal";
 import { PlayerSpendCommandPointsSignal } from "./signals/PlayerSpendCommandPointsSignal";
 
 export class SupportCard extends Card {
-    public readonly name: string;
+    public readonly description: string;
     public readonly commandPointCost: number;
     public readonly effects: IEffectConfig[];
 
     constructor(props: Readonly<ICard>) {
         super(props);
-        const supportConfig = SUPPORTS_CONFIG[props.refNo as TSupportRefNo];
-
-        if (!supportConfig) {
-            throw new Error(`SupportCard ${props.id} has unknown refNo '${props.refNo}'`);
-        }
-
-        this.name = supportConfig.name;
-        this.commandPointCost = supportConfig.commandPointCost;
-
-        this.effects = supportConfig.effects.map((effectRefNo) => {
-            const effectConfig = EFFECTS_CONFIG[effectRefNo as TEffectRefNo];
-            if (!effectConfig) {
-                throw new Error(`SupportCard ${props.id} references unknown Effect refNo '${effectRefNo}'`);
-            }
-            return effectConfig;
-        });
-
-        if (this.effects.length === 0) {
-            throw new Error(`SupportCard ${props.id} has no Effects configured`);
-        }
+        // Resolved data is persisted on the card at creation (buildPlayerStartingState).
+        // Never re-derive from SUPPORTS_CONFIG / EFFECTS_CONFIG here. `name` lives
+        // on the Card base.
+        this.description = props.description ?? "";
+        this.commandPointCost = props.commandPointCost ?? 0;
+        this.effects = props.effects ?? [];
     }
 
     public play(ctx: IPlayCardSignalHandleCtx): IGameState {
@@ -59,27 +41,23 @@ export class SupportCard extends Card {
             );
         }
         const { targetCell } = cardPayload as ISupportCardPayload;
-        const currentRound = gsm.gameState.currentRound;
 
-        this.effects.forEach((effectConfig) => {
-            const effect = buildEffect({ effectConfig, playerId, cardId: this.id, targetCell, currentRound });
-
-            // Immediate on-play impact — emits its own signals (no-op for passive vision).
-            effect.resolve(ctx);
-
-            // Effects with a lifetime are born into the world (GameState owns the collection).
-            if (effectConfig.duration > 0) {
-                emitter([
-                    new GameCreateEffectSignal({
+        // Activate this card's pre-created Effects (they already live in GameState,
+        // minted inactive at game creation) — mirrors how a ShipCard deploys its Ship.
+        // GameState owns the toggle (symmetric with expiry-deactivation).
+        const activateSignals = gsm.gameState.effects
+            .filter((e) => e.sourceCardId === this.id)
+            .map(
+                (effect) =>
+                    new GameActivateEffectSignal({
                         senderId: this.id,
                         originId: signal.id,
-                        payload: { effect: effect.toPlain() },
+                        payload: { effectId: effect.id, targetCell },
                     }),
-                ]);
-            }
-        });
+            );
 
         emitter([
+            ...activateSignals,
             new PlayerSpendCommandPointsSignal({
                 targetId: playerId,
                 senderId: this.id,
@@ -107,7 +85,7 @@ export class SupportCard extends Card {
     public getSelectionEvent(handlers: ICardSelectionHandlers): IMEvent {
         const firstEffect = this.effects[0];
 
-        if (firstEffect.range > 0) {
+        if (firstEffect && firstEffect.range > 0) {
             const event: PlaySupportTargetIMEvent = {
                 type: IMEventType.PLAY_SUPPORT_TARGET,
                 cardId: this.id,
@@ -124,6 +102,16 @@ export class SupportCard extends Card {
             ...handlers,
         };
         return event;
+    }
+
+    /** Persist the resolved support data alongside the base card fields. */
+    public toPlain(): IPlainCard {
+        return {
+            ...super.toPlain(),
+            description: this.description,
+            commandPointCost: this.commandPointCost,
+            effects: this.effects,
+        };
     }
 
     public static toDomain(plain: IPlainCard): SupportCard {

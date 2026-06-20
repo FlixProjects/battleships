@@ -57,6 +57,7 @@ export class Card extends CardEntity {
             instanceId: this.instanceId,
             kind: this.kind,
             refNo: this.refNo,
+            name: this.name,
         };
     }
 }

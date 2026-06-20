@@ -3,6 +3,7 @@ import {
     IBasicShipDeploySignalHandleCtx,
     IBasicShipMoveSignalHandleCtx,
     IDeckAddToPlayedSignalHandleCtx,
+    IGameActivateEffectSignalHandleCtx,
     IGameCreateEffectSignalHandleCtx,
     IGameCreateHullSignalHandleCtx,
     IGameProjectVisibilitySignalHandleCtx,
@@ -35,6 +36,7 @@ export type SignalCtxMap = {
     [SignalType.PlayerRemoveCardFromHand]: IPlayerRemoveCardFromHandSignalHandleCtx;
     [SignalType.DeckAddToPlayed]: IDeckAddToPlayedSignalHandleCtx;
     [SignalType.GameCreateEffect]: IGameCreateEffectSignalHandleCtx;
+    [SignalType.GameActivateEffect]: IGameActivateEffectSignalHandleCtx;
     [SignalType.GamePersistentEffectsTick]: ISignalHandleCtx;
     [SignalType.GameWinnerDetermined]: ISignalHandleCtx;
     [SignalType.GameRotateInitiative]: ISignalHandleCtx;

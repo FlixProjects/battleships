@@ -43,6 +43,7 @@ describe("transformGameStateToPlain", () => {
             hulls: [hullBuilder.build({ id: "hull1" })],
             cards: [],
             decks: [],
+            effects: [],
             winners: [],
             isOver: false,
         };
@@ -53,9 +54,9 @@ describe("transformGameStateToPlain", () => {
     });
 
     it("flattens deck.cards and deck.played to ID arrays via Deck.toPlain", () => {
-        const card1 = { id: "card-1", deckId: "deck-1", instanceId: "ship-1", kind: CardKind.Ship, refNo: "frigate0" };
-        const card2 = { id: "card-2", deckId: "deck-1", instanceId: "ship-2", kind: CardKind.Ship, refNo: "flagship0" };
-        const card3 = { id: "card-3", deckId: "deck-1", instanceId: "ship-3", kind: CardKind.Ship, refNo: "frigate0" };
+        const card1 = { id: "card-1", deckId: "deck-1", instanceId: "ship-1", kind: CardKind.Ship, refNo: "frigate0", name: "Frigate" };
+        const card2 = { id: "card-2", deckId: "deck-1", instanceId: "ship-2", kind: CardKind.Ship, refNo: "flagship0", name: "Flagship" };
+        const card3 = { id: "card-3", deckId: "deck-1", instanceId: "ship-3", kind: CardKind.Ship, refNo: "frigate0", name: "Frigate" };
 
         const gs = new GameState({
             code: "GAME123",
@@ -73,6 +74,7 @@ describe("transformGameStateToPlain", () => {
                     played: [card3],
                 },
             ],
+            effects: [],
             winners: [],
             isOver: false,
         });
@@ -96,6 +98,7 @@ describe("transformAppStateToPlain", () => {
                 ships: [],
                 cards: [],
                 decks: [],
+                effects: [],
                 winners: [],
                 isOver: false,
             }),
@@ -122,6 +125,7 @@ describe("transformPlainGameStateToDomain", () => {
             hulls: [{ id: "hull1", shipId: "ship1" } as IHull],
             cards: [],
             decks: [],
+            effects: [],
             actions: [],
             winners: [],
             isOver: false,
@@ -149,6 +153,8 @@ describe("transformPlainGameStateToDomain", () => {
                     kind: "vision",
                     sourceCardId: "card-flare",
                     playerId: "player1",
+                    duration: 2,
+                    isActive: true,
                     createdOnRound: 1,
                     expiresAfterRound: 2,
                     payload: { kind: "vision", center: [1, 1], range: 2 },
@@ -168,9 +174,9 @@ describe("transformPlainGameStateToDomain", () => {
 
     it("rehydrates deck.cards and deck.played from the flat cards list", () => {
         const cards = [
-            { id: "card-1", deckId: "deck-1", instanceId: "ship-1", kind: CardKind.Ship, refNo: "frigate0" },
-            { id: "card-2", deckId: "deck-1", instanceId: "ship-2", kind: CardKind.Ship, refNo: "flagship0" },
-            { id: "card-3", deckId: "deck-1", instanceId: "ship-3", kind: CardKind.Ship, refNo: "frigate0" },
+            { id: "card-1", deckId: "deck-1", instanceId: "ship-1", kind: CardKind.Ship, refNo: "frigate0", name: "Frigate" },
+            { id: "card-2", deckId: "deck-1", instanceId: "ship-2", kind: CardKind.Ship, refNo: "flagship0", name: "Flagship" },
+            { id: "card-3", deckId: "deck-1", instanceId: "ship-3", kind: CardKind.Ship, refNo: "frigate0", name: "Frigate" },
         ];
         const plain: IPlainGameState = {
             code: "GAME123",
@@ -188,6 +194,7 @@ describe("transformPlainGameStateToDomain", () => {
                     played: ["card-3"],
                 },
             ],
+            effects: [],
             actions: [],
             winners: [],
             isOver: false,
@@ -211,6 +218,7 @@ describe("transformPlainAppStateToDomain", () => {
                 ships: [],
                 hulls: [],
                 cards: [],
+                effects: [],
                 decks: [],
                 winners: [],
                 isOver: false,

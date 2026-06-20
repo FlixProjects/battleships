@@ -16,6 +16,7 @@ export class ShipEntity extends GameObjectWithVisibilityEntity<ShipEntity> imple
     playerId: string;
     refNo: TShipRefNo;
     name: string;
+    description: string;
     hulls: Hull[] = [];
     hullIds: string[] = [];
     dimensions: [number, number];

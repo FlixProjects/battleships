@@ -11,6 +11,7 @@ export class CardEntity extends GameObjectEntity<CardEntity> implements ICard {
     instanceId: string;
     kind: TCardKind;
     refNo: string;
+    name: string;
 
     constructor(props: Readonly<ICard>) {
         super();
@@ -19,6 +20,7 @@ export class CardEntity extends GameObjectEntity<CardEntity> implements ICard {
         this.instanceId = props.instanceId;
         this.kind = props.kind;
         this.refNo = props.refNo;
+        this.name = props.name;
     }
 
     protected getDefaultListeners(): IListener[] {

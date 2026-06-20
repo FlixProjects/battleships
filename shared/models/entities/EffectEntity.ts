@@ -8,10 +8,12 @@ export class EffectEntity extends GameObjectWithVisibilityEntity<EffectEntity> i
     kind: TEffectKind;
     sourceCardId: string;
     playerId: string;
+    duration: number;
+    isActive: boolean;
     createdOnRound: number;
     expiresAfterRound?: number;
     payload: TEffectPayload;
-    existsOnBoard: boolean;    
+    existsOnBoard: boolean;
 
     constructor(props: Readonly<IEffect>) {
         super();

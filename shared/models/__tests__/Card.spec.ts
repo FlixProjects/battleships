@@ -8,6 +8,7 @@ describe("Card", () => {
         instanceId: "ship-1",
         kind: CardKind.Ship,
         refNo: "frigate0",
+        name: "Frigate",
     };
 
     it("should construct with all props", () => {

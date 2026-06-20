@@ -24,6 +24,7 @@ const buildCard = (id: string): ICard => ({
     instanceId: `${id}-instance`,
     kind: CardKind.Ship,
     refNo: "frigate0",
+    name: "Frigate",
 });
 
 const makeSink = (): ICardPlaySink & { received: Card[] } => {

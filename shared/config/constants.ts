@@ -133,6 +133,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
     [SHIP_REF_NO.frigate0]: {
         refNo: SHIP_REF_NO.frigate0,
         name: "Frigate",
+        description: "A nimble scout. Short range but quick to reposition, ideal for screening and harassing.",
         deployed: false,
         dimensions: [1, 1],
         commandPointCost: 1,
@@ -149,6 +150,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
     [SHIP_REF_NO.flagship0]: {
         refNo: SHIP_REF_NO.flagship0,
         name: "Flagship",
+        description: "Your command vessel. Long-ranged and durable across two hulls — lose it and you lose the game.",
         deployed: false,
         dimensions: [1, 1],
         commandPointCost: 0,
@@ -165,6 +167,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
     [SHIP_REF_NO.tudf_frigate0]: {
         refNo: SHIP_REF_NO.frigate0,
         name: "Frigate",
+        description: "A nimble scout. Short range but quick to reposition, ideal for screening and harassing.",
         deployed: false,
         dimensions: [1, 1],
         commandPointCost: 1,
@@ -181,6 +184,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
     [SHIP_REF_NO.tudf_flagship0]: {
         refNo: SHIP_REF_NO.flagship0,
         name: "Flagship",
+        description: "Your command vessel. Long-ranged and durable across two hulls — lose it and you lose the game.",
         deployed: false,
         dimensions: [1, 1],
         commandPointCost: 0,
@@ -221,6 +225,7 @@ export const SUPPORTS_CONFIG: Record<TSupportRefNo, ISupportConfig> = {
     [SUPPORT_REF_NO.flare]: {
         refNo: SUPPORT_REF_NO.flare,
         name: "Flare",
+        description: "Illuminate a target area, revealing enemy ships within range for a couple of rounds.",
         commandPointCost: 1,
         effects: [EFFECT_REF_NO.flarePersistent],
     },
