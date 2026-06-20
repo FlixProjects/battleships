@@ -78,8 +78,7 @@ export class ActionPanel extends BaseComponent {
         this.ref.style.position = "fixed";
         this.ref.style.left = "0";
         this.ref.style.top = "50%";
-        this.ref.style.transform = "translateY(-50%)";
-        this.ref.style.width = "220px";
+        this.ref.style.transform = "translateY(-50%)";        
         this.ref.style.background = "linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01))";
         this.ref.style.border = "1px solid rgba(255, 255, 255, 0.06)";
         this.ref.style.borderLeft = "none";

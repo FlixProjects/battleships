@@ -61,14 +61,13 @@ export class CardRow extends Selectable {
         const card = gsm.getCard(this.props.cardId);
         if (!card) return;
 
-        // Left content scales on hover; the tooltip sits past a divider on the
-        // right and highlights on its own — hovering it does not scale the row.
+        // Hovering the left content scales the whole row (tooltip cell included);
+        // hovering the tooltip cell transforms just that cell — see buildTooltipCell.
         this.contentWrapper = document.createElement("div");
         this.contentWrapper.style.display = "flex";
         this.contentWrapper.style.alignItems = "center";
         this.contentWrapper.style.gap = "10px";
-        this.contentWrapper.style.transition = "transform 0.2s ease";
-        this.contentWrapper.style.transformOrigin = "left center";
+        this.contentWrapper.style.padding = "12px 0 12px 12px ";
 
         let tooltipPayload: { shipId?: string; effectId?: string } = {};
         if (card.kind === GameConfig.CardKind.Ship) {
@@ -138,30 +137,38 @@ export class CardRow extends Selectable {
         cell.style.display = "flex";
         cell.style.alignItems = "center";
         cell.style.alignSelf = "stretch";
-        cell.style.paddingLeft = "10px";
+        cell.style.padding = "12px 12px 12px 10px";
+        cell.style.paddingRight = "12px";
         cell.style.marginLeft = "8px";
         cell.style.borderLeft = "1px solid rgba(255, 255, 255, 0.12)";
+        cell.style.cursor = "pointer";
+        cell.style.borderRadius = "0 8px 8px 0";
+        cell.style.opacity = "0.9";
 
         const icon = new Icon({
             src: ASSET_PATHS.INFO_ICON,
             addStyles: (img) => {
                 img.ref.style.width = "16px";
                 img.ref.style.height = "16px";
-                img.ref.style.opacity = "0.6";
-                img.ref.style.cursor = "pointer";
-                img.ref.style.transition = "opacity 0.15s ease, transform 0.15s ease";
             },
         });
         const el = icon.build();
-        el.addEventListener("mouseenter", () => {
+
+        cell.addEventListener("mouseenter", () => {
+            cell.style.transition = "background-color 0.3s ease, opacity 0.3s ease";
+            cell.style.background = "rgba(255, 255, 255, 1)";
+            el.style.transition = "filter 0.3 ease, opacity 0.3s ease";
+            el.style.filter = "brightness(0) invert(0)";
             el.style.opacity = "1";
-            el.style.transform = "scale(1.2)";
         });
-        el.addEventListener("mouseleave", () => {
-            el.style.opacity = "0.6";
-            el.style.transform = "scale(1)";
+        cell.addEventListener("mouseleave", () => {
+            cell.style.transition = "background-color 0.3s ease, opacity 0.3s ease";
+            cell.style.background = "rgba(255, 255, 255, 0)";
+            el.style.transition = "filter 0.3 ease, opacity 0.3s ease";
+            el.style.filter = "brightness(0) invert(1)";
+            el.style.opacity = "1";
         });
-        el.addEventListener("click", (e) => {
+        cell.addEventListener("click", (e) => {
             e.stopPropagation(); // don't trigger the row's card-select
             interactionManager.handleEvent({ type: IMEventType.SHOW_SHIP_DETAILS, ...payload });
         });
@@ -183,11 +190,11 @@ export class CardRow extends Selectable {
     }
 
     private mouseEnter = () => {
-        if (this.contentWrapper) this.contentWrapper.style.transform = "scale(1.08)";
+        this.ref.style.transform = "scale(1.05)";
     };
 
     private mouseLeave = () => {
-        if (this.contentWrapper) this.contentWrapper.style.transform = "scale(1)";
+        this.ref.style.transform = "scale(1)";
     };
 
     public async onClick(): Promise<void> {
@@ -199,9 +206,9 @@ export class CardRow extends Selectable {
         this.ref.style.display = "flex";
         this.ref.style.alignItems = "center";
         this.ref.style.justifyContent = "space-between";
-        this.ref.style.padding = "12px";
         this.ref.style.borderRadius = "8px";
         this.ref.style.cursor = "pointer";
+        this.ref.style.transition = "transform 0.2s ease";
 
         this.updateStyles();
     }
