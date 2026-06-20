@@ -1,5 +1,5 @@
 import { ASSET_PATHS, COLOR } from "@shared/constants";
-import { GameConfig } from "@shared/index";
+import { GameConfig, TCardKind } from "@shared/index";
 import { TGameStateManagerCtor } from "@shared/types";
 import { IAppState, IGameStateManager, IShip } from "@shared/types";
 import { gameManager, interactionManager } from "../..";
@@ -11,9 +11,11 @@ import { Icon } from "../ships/Icon";
 import { ShipIcon } from "../ships/ShipIcon";
 import { StatBadge } from "../ships/StatBadge";
 import { SupportIcon } from "../supports/SupportIcon";
+import { CardKind } from "@shared/config/constants";
 
 interface Props {
     cardId: string;
+    cardType: TCardKind;
     selected: boolean;
     isSelectable?: boolean;
     onSelect?: (cardId: string) => void;
@@ -46,6 +48,9 @@ export class CardRow extends Selectable {
     build() {
         this.ref = document.createElement("div");
         this.ref.classList.add("card-row");
+
+        if (this.props.cardType === CardKind.Ship) this.ref.classList.add("ship-row");
+        if (this.props.cardType === CardKind.Support) this.ref.classList.add("support-row");
 
         this.addStyles();
         this.renderBody();

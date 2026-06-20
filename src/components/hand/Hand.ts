@@ -53,7 +53,7 @@ export class Hand extends BaseComponent {
                     : (cardId: string) => this.dispatchCardSelection(cardId);
 
             const isSelectable = this.isSelectable(card, gsm);
-            const cardRow = new CardRow({ cardId: card.id, selected, isSelectable, onSelect });
+            const cardRow = new CardRow({ cardId: card.id, selected, cardType: card.kind, isSelectable, onSelect });
             this.cardRows.push(cardRow);
             this.addChild(cardRow);
             this.ref.appendChild(cardRow.build());
