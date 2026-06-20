@@ -5,6 +5,7 @@ import { gameManager, interactionManager } from "../..";
 import { IMEventType } from "../../models/interaction-manager/types";
 import { getComponents } from "../component-helper";
 import { Selectable } from "../Selectable";
+import { ActionMenuButton } from "./ActionMenuButton";
 import { SelectShipAttackButton } from "./SelectAttackButton";
 import { SelectMoveButton } from "./SelectMoveButton";
 
@@ -23,9 +24,14 @@ export class ActionMenu extends Selectable implements IActionMenu {
         this.isGameOver = !!gameManager.state.gameState.isOver;
         this.addStyles();
 
-        // TODO: we shud check the ship's movement points to update styles
-        this.addMoveButton();
-        this.addAttackButton();
+        // Own ship → full action set; opponent ship → tooltip (details) only.
+        const isOwnShip = gameManager.getPlayer().id === this.props.ship?.playerId;
+        if (isOwnShip) {
+            // TODO: we shud check the ship's movement points to update styles
+            this.addMoveButton();
+            this.addAttackButton();
+        }
+        this.addTooltipButton();
         return this.ref;
     }
 
@@ -83,13 +89,41 @@ export class ActionMenu extends Selectable implements IActionMenu {
         return btn;
     }
 
+    private addTooltipButton() {
+        const btn = new ActionMenuButton("select-action-tooltip", {
+            iconSrc: ASSET_PATHS.INFO_ICON,
+            disabled: false,
+            onClick: async (e?: MouseEvent) => {
+                e?.stopPropagation();
+                interactionManager.handleEvent({
+                    type: IMEventType.SHOW_SHIP_DETAILS,
+                    shipId: this.props?.ship?.id,
+                });
+                this.remove();
+            },
+        });
+
+        this.addChild(btn);
+        this.ref.appendChild(btn.build());
+        return btn;
+    }
+
     public close() {
         this.remove();
     }
 
+    /** Ships hugging the top edge would clip a menu rendered above — flip below. */
+    private shouldFlipBelow(): boolean {
+        const rows = (this.props.ship?.hulls ?? [])
+            .map((h) => h.location?.[1])
+            .filter((r): r is number => r !== undefined);
+        if (rows.length === 0) return false;
+        return Math.min(...rows) <= 0;
+    }
+
     protected addStyles() {
         this.ref.style.position = "absolute";
-        this.ref.style.top = "-40px";
+        this.ref.style.top = this.shouldFlipBelow() ? `${TILE_SIZE_PX + 4}px` : "-40px";
         this.ref.style.left = `${TILE_SIZE_PX/2}px`;
         this.ref.style.transform = "translateX(-50%)";
         this.ref.style.background = "rgba(15, 23, 36, 0.95)";

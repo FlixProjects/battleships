@@ -30,13 +30,17 @@ export class DeployedHullIcon extends Selectable {
 
         hullContainer.appendChild(hullIcon.build());
         
-        this.isSelectable = gameManager.getPlayer().id === this.props.playerId; // temporarily disallow selecting other player's ships
+        this.isSelectable = true;
         this.setState();
 
         return this.ref;
     }
 
-    public async onClick(e?: MouseEvent): Promise<void> {
+    private isOwnShip(): boolean {
+        return gameManager.getPlayer().id === this.props.playerId;
+    }
+
+    public async onClick(_e?: MouseEvent): Promise<void> {
         interactionManager.handleEvent({
             type: IMEventType.SELECT_SHIP,
             tileId: this.id,
@@ -46,14 +50,33 @@ export class DeployedHullIcon extends Selectable {
         });
     }
 
+    /**
+     * Opponent hulls must not swallow clicks belonging to an active targeting
+     * flow (attack/support resolve via a document-level listener). So they only
+     * intercept — opening the opponent's tooltip-only ActionMenu — when idle.
+     */
+    private onOpponentClick = async (e: MouseEvent): Promise<void> => {
+        if (interactionManager.isInteracting()) return; // defer to the active flow
+        e.stopPropagation();
+        await this.onClick(e);
+    };
+
     public onSelectable(): void {
-        this.addClickEventListener();
+        if (this.isOwnShip()) {
+            this.addClickEventListener();
+        } else {
+            this.ref.addEventListener("click", this.onOpponentClick);
+        }
         this.ref.addEventListener("mouseenter", this.mouseEnter);
         this.ref.addEventListener("mouseleave", this.mouseLeave);
     }
 
     public onUnselectable(): void {
-        this.removeClickEventListener();
+        if (this.isOwnShip()) {
+            this.removeClickEventListener();
+        } else {
+            this.ref.removeEventListener("click", this.onOpponentClick);
+        }
         this.ref.removeEventListener("mouseenter", this.mouseEnter);
         this.ref.removeEventListener("mouseleave", this.mouseLeave);
     }

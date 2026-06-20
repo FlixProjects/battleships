@@ -12,6 +12,7 @@ export const IMEventType = {
     SHIP_ATTACK: "Ship_Attack",
     PLAY_SUPPORT_TARGET: "Play_Support_Target",
     PLAY_SUPPORT_CONFIRM: "Play_Support_Confirm",
+    SHOW_SHIP_DETAILS: "Show_Ship_Details",
 } as const;
 
 export type TIMEventType = (typeof IMEventType)[keyof typeof IMEventType];
@@ -56,4 +57,10 @@ export interface PlaySupportConfirmIMEvent extends IMEvent {
     type: typeof IMEventType.PLAY_SUPPORT_CONFIRM;
     cardId: string;
     effectIndex: number;
+}
+
+export interface ShowShipDetailsIMEvent extends IMEvent {
+    type: typeof IMEventType.SHOW_SHIP_DETAILS;
+    shipId?: string;
+    effectId?: string;
 }

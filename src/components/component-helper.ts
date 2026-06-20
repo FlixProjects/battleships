@@ -2,6 +2,7 @@ import { _components, gameManager } from "..";
 import { IAppState } from "@shared/types";
 import { ActionPanel } from "./action-panel/ActionPanel";
 import { GameBoard } from "./board/GameBoard";
+import { DetailsPanel } from "./details-panel/DetailsPanel";
 import { CreateGameButton } from "./CreateGameButton";
 import { GameCodeText } from "./GameCodeText";
 import { GameOverToast } from "./GameOverToast";
@@ -31,6 +32,7 @@ export const loadComponents = () => {
         playerCardsContainer: new PlayerCards(),
         gameBoard: new GameBoard(),
         actionPanel: new ActionPanel(),
+        detailsPanel: new DetailsPanel(),
         toast: new GameOverToast(),
     };
 };
@@ -77,6 +79,7 @@ const getStaticComponents = () => {
             playerCards: _components.playerCardsContainer,
             gameBoard: _components.gameBoard,
             actionPanel: _components.actionPanel,
+            detailsPanel: _components.detailsPanel,
             toast: _components.toast,
         },
     };

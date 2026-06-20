@@ -7,6 +7,11 @@ export class InteractionManager {
     public uiState = "Idle";
     public selectables: Record<string, Selectable> = {};
     private globalClickHandler: (e: MouseEvent) => void;
+    private interacting = false;
+
+    public isInteracting() {
+        return this.interacting;
+    }
 
     public handleEvent<T extends IMEvent>(event: T) {
         this.removeGlobalClickEventListener();
@@ -17,6 +22,7 @@ export class InteractionManager {
         const { nextClickhandler } = eventHandler.handleEvent(); // any operations to resolve before click
         this.globalClickHandler = nextClickhandler;
         this.addGlobalClickEventListener();
+        this.interacting = true;
 
         // FIXME: should reset uiState but we have no use for it now
     }
@@ -31,5 +37,6 @@ export class InteractionManager {
 
     private removeGlobalClickEventListener() {
         document.removeEventListener("click", this.globalClickHandler);
+        this.interacting = false;
     }
 }

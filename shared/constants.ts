@@ -42,6 +42,7 @@ export const TILE_GAP_PX = 0;
 export const Z_INDEX = {
     TOAST: "100",
     ACTION_PANEL: "100",
+    DETAILS_PANEL: "100",
     STATIC_LAYER: "1",
     PROJECTILE: "100",
     ACTION_MENU: "1000",
@@ -82,11 +83,14 @@ export const COLOR_RGBA = {
 export const SELECTABLE_ID = {
     ACTION_MENU: "action-menu",
     PATH_MENU: "path-menu",
+    DETAILS_PANEL: "details-panel",
 };
 
 export const ASSET_PATHS = {
     TARGET_ICON: "./assets/attack-icon.png",
     MOVE_ICON: "./assets/move-icon.svg",
+    HEALTH_ICON: "./assets/health-icon.svg",
+    INFO_ICON: "./assets/info-icon.svg",
 };
 
 export const COMPONENT_ID = {
