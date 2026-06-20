@@ -28,7 +28,7 @@ export class ShowShipDetailsClickHandler extends ClickHandler {
     private buildViewModel(): DetailsViewModel | undefined {
         const gsm = new FEGameStateManager(gameManager.state.gameState);
         // FIXME: we should record color of player
-        const colorFor = (ownerId: string) => (gsm.getPlayerIndex(ownerId) === 0 ? COLOR.TEAL : COLOR.ORANGE); 
+        const colorFor = (ownerId: string) => (gsm.getPlayerIndex(ownerId) === 0 ? COLOR.TEAL : COLOR.ORANGE);
 
         if (this.event.shipId) {
             const ship = gsm.gameState.ships.find((s) => s.id === this.event.shipId);

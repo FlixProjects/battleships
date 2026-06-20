@@ -46,7 +46,10 @@ export class DeployShipClickHandler extends ClickHandler {
         const validCellIndices = this.validCells.map((cell) => locationToKey(cell));
 
         if (!clickedShipRow && !validCellIndices.includes(id)) {
-            return this.handleInvalidClick(onGlobalDeselect);
+            return this.handleInvalidClick(() => {
+                this.clearPriorOnSelects(validCellIndices);
+                onGlobalDeselect?.();
+            });
         }
 
         this.clearPriorOnSelects(validCellIndices);

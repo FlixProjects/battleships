@@ -103,29 +103,7 @@ export class Hand extends BaseComponent {
 
         this.selectedCardId = cardId;
         this.cardRows.forEach((row) => row.setSelected(row.props.cardId === cardId));
-
-        const onGlobalDeselect = this.shouldAutoSelectFlagship()
-            ? () => {
-                  this.autoSelectFlagshipCard();
-                  this.clearSelection();
-              }
-            : () => this.clearSelection();
-
-        interactionManager.handleEvent(card.getSelectionEvent({ onGlobalDeselect }));
-    }
-
-    private shouldAutoSelectFlagship(): boolean {
-        const gsm = new this.GSM(gameManager.state.gameState);
-        const cards = gsm.getPlayerHand(this.props.player.id);
-        return !!this.findFlagshipShipCardNotDeployed(cards, gsm);
-    }
-
-    private autoSelectFlagshipCard() {
-        const gsm = new this.GSM(gameManager.state.gameState);
-        const cards = gsm.getPlayerHand(this.props.player.id);
-        const flagshipCard = this.findFlagshipShipCardNotDeployed(cards, gsm);
-        if (!flagshipCard) return;
-        this.dispatchCardSelection(flagshipCard.id);
+        interactionManager.handleEvent(card.getSelectionEvent({ onGlobalDeselect: () => this.clearSelection() }));
     }
 
     private clearSelection() {
