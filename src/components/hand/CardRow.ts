@@ -107,6 +107,7 @@ export class CardRow extends Selectable {
             shipId,
             playerId: ship?.playerId,
             color: gsm.gameState.getFirstPlayerId() === gameManager.getCurrentPlayerId() ? COLOR.TEAL : COLOR.ORANGE,
+            ...(ship?.iconImgName ? { imgSrc: `./assets/ships/${ship?.iconImgName}` } : {}),
         });
         this.addChild(shipIcon);
         this.contentWrapper?.appendChild(shipIcon.build());

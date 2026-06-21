@@ -25,6 +25,7 @@ export class ShipBuilder extends Builder<IShip, Ship> {
             destroyed: false,
             hullTemplates: [],
             isFlagship: false,
+            iconImgName: "",
         };
         super(defaultProps, defaultOverrides, Ship);
     }

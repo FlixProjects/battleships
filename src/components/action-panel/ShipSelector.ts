@@ -11,6 +11,7 @@ interface Props {
     player: IPlayer;
 }
 
+// TODO: Deprecated. no longer using
 export class ShipSelector extends BaseComponent {
     private selectedShip?: string;
     private shipRows: ShipRow[] = [];

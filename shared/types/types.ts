@@ -459,6 +459,7 @@ export interface IShipTemplate {
     attackMinRange: number;
     hullTemplates: IHullTemplate[];
     isFlagship: boolean;
+    iconImgName: string;
 }
 
 export interface IHullTemplate extends Omit<IGOWithVisibility, "id"> {

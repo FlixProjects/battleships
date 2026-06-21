@@ -67,6 +67,7 @@ export const Faction = {
 } as const;
 
 export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
+    // TODO: deprecate
     [SHIP_REF_NO.frigate0]: [
         {
             templateLocation: [0, 0],
@@ -78,6 +79,7 @@ export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
             orientation: 0,
         },
     ],
+    // TODO: deprecate
     [SHIP_REF_NO.flagship0]: [
         {
             templateLocation: [0, 0],
@@ -103,7 +105,7 @@ export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
             maxHealth: 1,
             armor: 0,
             visionRange: 2,
-            imgSrc: "assets/ships/frigate0.png",
+            imgSrc: "assets/ships/tudf_frigate-0.png",
             front: true,
             orientation: 0,
         },
@@ -112,17 +114,17 @@ export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
         {
             templateLocation: [0, 0],
             maxHealth: 1,
-            armor: 0,
+            armor: 1,
             visionRange: 2,
-            imgSrc: "assets/ships/flagship-0.png",
+            imgSrc: "assets/ships/tudf_flagship0-0.png",
             orientation: 0,
         },
         {
             templateLocation: [0, 1],
             maxHealth: 1,
-            armor: 0,
+            armor: 1,
             visionRange: 2,
-            imgSrc: "assets/ships/flagship-1.png",
+            imgSrc: "assets/ships/tudf_flagship0-1.png",
             front: true,
             orientation: 0,
         },
@@ -146,6 +148,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
         attackMinRange: 1,
         hullTemplates: HULLS_CONFIG[SHIP_REF_NO.frigate0],
         isFlagship: false,
+        iconImgName: "frigate0",
     },
     [SHIP_REF_NO.flagship0]: {
         refNo: SHIP_REF_NO.flagship0,
@@ -163,6 +166,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
         attackMinRange: 1,
         hullTemplates: HULLS_CONFIG[SHIP_REF_NO.flagship0],
         isFlagship: true,
+        iconImgName: "flagship0",
     },
     [SHIP_REF_NO.tudf_frigate0]: {
         refNo: SHIP_REF_NO.frigate0,
@@ -171,20 +175,21 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
         deployed: false,
         dimensions: [1, 1],
         commandPointCost: 1,
-        movementRange: 2,
+        movementRange: 3,
         movementCommandPointCost: 1,
         attackCountMax: 1,
         attackCommandPointCost: 1,
         attackRange: 3,
         attackDamage: 1,
         attackMinRange: 1,
-        hullTemplates: HULLS_CONFIG[SHIP_REF_NO.frigate0],
+        hullTemplates: HULLS_CONFIG[SHIP_REF_NO.tudf_frigate0],
         isFlagship: false,
-    } as IShipTemplate,
+        iconImgName: "tudf_frigate0",
+    },
     [SHIP_REF_NO.tudf_flagship0]: {
         refNo: SHIP_REF_NO.flagship0,
         name: "Flagship",
-        description: "Your command vessel. Long-ranged and durable across two hulls — lose it and you lose the game.",
+        description: "The TUDF's most reliable flagship design - it boasts a high caliber and long ranged main cannon.",
         deployed: false,
         dimensions: [1, 1],
         commandPointCost: 0,
@@ -194,10 +199,11 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
         attackCommandPointCost: 1,
         attackRange: 5,
         attackDamage: 1,
-        attackMinRange: 1,
-        hullTemplates: HULLS_CONFIG[SHIP_REF_NO.flagship0],
+        attackMinRange: 2,
+        hullTemplates: HULLS_CONFIG[SHIP_REF_NO.tudf_flagship0],
         isFlagship: true,
-    } as IShipTemplate,
+        iconImgName: "tudf_flagship0",
+    },
 };
 
 export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectConfig> = {
@@ -236,8 +242,8 @@ export const MAX_HAND_SIZE = 4;
 export const FACTION_CONFIG: Record<TFaction, DeckTemplate> = {
     [Faction.THE_UNITED_DEFENSE_FLEET]: [
         // Ships
-        { kind: CardKind.Ship, refNo: SHIP_REF_NO.flagship0, count: 1 },
-        { kind: CardKind.Ship, refNo: SHIP_REF_NO.frigate0, count: 4 },
+        { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_flagship0, count: 1 },
+        { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_frigate0, count: 4 },
         // Supports
         { kind: CardKind.Support, refNo: SUPPORT_REF_NO.flare, count: 2 },
     ],

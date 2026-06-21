@@ -34,6 +34,7 @@ export class ShipEntity extends GameObjectWithVisibilityEntity<ShipEntity> imple
     destroyed: boolean;
     hullTemplates: IHullTemplate[];
     isFlagship: boolean;
+    iconImgName: string;
     isVisible: boolean;
 
     constructor(props: Readonly<IShip>) {
