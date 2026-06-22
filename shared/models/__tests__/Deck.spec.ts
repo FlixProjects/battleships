@@ -39,7 +39,7 @@ describe("Deck", () => {
     });
 
     describe("Deck.create", () => {
-        it("pins cards matching pinnedRefNo to the top", () => {
+        it("pins the card matching pinnedCardId to the top", () => {
             const deck = Deck.create({
                 ...baseProps([
                     makeCard("c1", "frigate0"),
@@ -47,25 +47,11 @@ describe("Deck", () => {
                     makeCard("c3", "flagship0"),
                     makeCard("c4", "frigate0"),
                 ]),
-                pinnedRefNo: "flagship0",
+                pinnedCardId: "c3",
                 rng: () => 0,
             });
-            expect(deck.cards[0].refNo).toBe("flagship0");
+            expect(deck.cards[0].id).toBe("c3");
             expect(deck.cards.length).toBe(4);
-        });
-
-        it("preserves relative order of pinned cards", () => {
-            const deck = Deck.create({
-                ...baseProps([
-                    makeCard("flag-a", "flagship0"),
-                    makeCard("c1", "frigate0"),
-                    makeCard("flag-b", "flagship0"),
-                ]),
-                pinnedRefNo: "flagship0",
-                rng: () => 0,
-            });
-            expect(deck.cards[0].id).toBe("flag-a");
-            expect(deck.cards[1].id).toBe("flag-b");
         });
 
         it("is deterministic given a seeded RNG", () => {

@@ -1,11 +1,12 @@
 import { FEHighlightLocationsCommand } from "@shared/models/commands/FEHighlightLocationsCommand";
 import { FEMoveShipCommand } from "@shared/models/commands/FEMoveShipCommand";
-import { GameEngine } from "@shared/models/GameEngine";
+import { GetValidMoveCellsSignal } from "@shared/models/signals/GetValidMoveCellsSignal";
+import { GetValidMoveRoutesSignal } from "@shared/models/signals/GetValidMoveRoutesSignal";
 import { ICellLoc } from "@shared/types";
 import { locationToKey } from "@shared/utils";
 import { gameManager, interactionManager } from "../..";
 import { getComponents } from "../../components/component-helper";
-import { queueCommand } from "../../utils/game-helper";
+import { getEngine, queueCommand } from "../../utils/game-helper";
 import { IMEventType, MovingShipIMEvent } from "../interaction-manager/types";
 import { ClickHandler } from "./ClickHandler";
 import { SelectRouteClickHandler } from "./SelectRouteClickHandler";
@@ -22,12 +23,14 @@ export class MoveShipClickHandler extends ClickHandler {
         const { shipId } = this.event;
         const playerId = gameManager.getCurrentPlayerId();
 
-        const gameEngine = new GameEngine(gameManager.state.gameState);
-        const { validCells, origin } = gameEngine.prime.moveShip({ playerId, shipId });
+        const result = getEngine().query(
+            new GetValidMoveCellsSignal({ targetId: shipId, payload: { shipId, playerId } }),
+        );
+        const validCells = result?.validCells ?? [];
 
         queueCommand(new FEHighlightLocationsCommand(getComponents().div.gameBoard, validCells));
         this.validCells = validCells;
-        this.origin = origin;
+        this.origin = result?.origin ?? this.origin;
 
         return {
             nextClickhandler: async (e: MouseEvent) => await this.handler(e),
@@ -60,8 +63,10 @@ export class MoveShipClickHandler extends ClickHandler {
         const playerId = gameManager.getCurrentPlayerId();
         const tile = this.selectables[destinationTileId];
         const gameState = gameManager.state.gameState;
-        const gameEngine = new GameEngine(gameState);
-        const routes = gameEngine.prime.moveShipRoutes({ playerId, shipId }, destinationTileId);
+        const routesResult = getEngine().query(
+            new GetValidMoveRoutesSignal({ targetId: shipId, payload: { shipId, playerId, destinationTileId } }),
+        );
+        const routes = routesResult?.routes ?? [];
 
         if (routes.length === 0) return;
 

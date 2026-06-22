@@ -169,7 +169,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
         iconImgName: "flagship0",
     },
     [SHIP_REF_NO.tudf_frigate0]: {
-        refNo: SHIP_REF_NO.frigate0,
+        refNo: SHIP_REF_NO.tudf_frigate0,
         name: "Frigate",
         description: "A nimble scout. Short range but quick to reposition, ideal for screening and harassing.",
         deployed: false,
@@ -187,7 +187,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
         iconImgName: "tudf_frigate0",
     },
     [SHIP_REF_NO.tudf_flagship0]: {
-        refNo: SHIP_REF_NO.flagship0,
+        refNo: SHIP_REF_NO.tudf_flagship0,
         name: "Flagship",
         description: "The TUDF's most reliable flagship design - it boasts a high caliber and long ranged main cannon.",
         deployed: false,

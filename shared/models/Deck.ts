@@ -9,7 +9,7 @@ export interface IDeckCreateProps {
     playerId: string;
     faction: TFaction;
     cards: ICard[];
-    pinnedRefNo?: string;
+    pinnedCardId?: string;
     rng?: RandomFn;
 }
 
@@ -28,10 +28,11 @@ export class Deck extends DeckEntity {
     /**
      * Creates a brand-new deck and shuffles it exactly once.
      *
-     * `pinnedRefNo`, if provided, holds matching cards at the top of the deck
-     * (preserving their relative order) so they are guaranteed to be among
-     * the first cards drawn — used to satisfy the "flagship always starts in
-     * hand" rule without coupling Deck to Ship.
+     * `pinnedCardId`, if provided, holds the matching card at the top of the
+     * deck so it is guaranteed to be among the first cards drawn — used to
+     * satisfy the "flagship always starts in hand" rule. Pinning by card id
+     * (not refNo) keeps Deck decoupled from Ship config: the caller decides
+     * which concrete card is the flagship.
      */
     public static create(props: IDeckCreateProps): Deck {
         const deck = new Deck({
@@ -41,7 +42,7 @@ export class Deck extends DeckEntity {
             cards: props.cards,
             played: [],
         });
-        deck.shuffleOnce(props.pinnedRefNo, props.rng ?? Math.random);
+        deck.shuffleOnce(props.pinnedCardId, props.rng ?? Math.random);
         return deck;
     }
 
@@ -65,10 +66,10 @@ export class Deck extends DeckEntity {
      * Fisher–Yates shuffle, with optional pinning. Private so the only way to
      * trigger it is via `Deck.create()` — guaranteeing one shuffle per deck.
      */
-    private shuffleOnce(pinnedRefNo: string | undefined, rng: RandomFn): void {
+    private shuffleOnce(pinnedCardId: string | undefined, rng: RandomFn): void {
         const pinned: Card[] = [];
         const rest: Card[] = [];
-        this.cards.forEach((c) => (c.refNo === pinnedRefNo ? pinned.push(c) : rest.push(c)));
+        this.cards.forEach((c) => (c.id === pinnedCardId ? pinned.push(c) : rest.push(c)));
 
         for (let i = rest.length - 1; i > 0; i--) {
             const j = Math.floor(rng() * (i + 1));

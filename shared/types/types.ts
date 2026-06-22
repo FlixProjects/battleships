@@ -6,6 +6,16 @@ import {
     IGameProjectVisibilitySignalPayload,
     IGameRefillHandsSignalPayload,
     IGameRemoveSubmissionCommandPointsSignalPayload,
+    IGetValidAttackCellsQueryPayload,
+    IGetValidAttackCellsQueryResult,
+    IGetValidDeployCellsQueryPayload,
+    IGetValidDeployCellsQueryResult,
+    IGetValidMoveCellsQueryPayload,
+    IGetValidMoveCellsQueryResult,
+    IGetValidMoveRoutesQueryPayload,
+    IGetValidMoveRoutesQueryResult,
+    IGetValidSupportCellsQueryPayload,
+    IGetValidSupportCellsQueryResult,
     IHullDestroyedSignalPayload,
     IHullMoveSignalPayload,
     IHullReceiveAttackSignalPayload,
@@ -183,7 +193,7 @@ export interface IHull extends IHullTemplate {
 export interface IGameObjectEntity {
     id: string;
     update(entity: Partial<IGameObjectEntity>): void;
-    receiveSignal(ctx: ISignalHandleCtx): void;
+    receiveSignal(ctx: ISignalHandleCtxBase): void;
 }
 
 export type IDeckTemplateEntry = IShipDeckTemplateEntry | ISupportDeckTemplateEntry;
@@ -499,11 +509,42 @@ export interface IGameObjectSignalHandlerOptions {
     onDeploy?: (signal: ISignal, gsm: IGameStateManager) => void;
 }
 
-export interface ISignalHandleCtx {
+// Common base every handler ctx shares. Listener wiring (predicates, receiveSignal)
+// only needs `signal`; mutation vs. query capabilities are added by the subtypes.
+export interface ISignalHandleCtxBase {
     signal: ISignal;
     gsm: IGameStateManager;
+}
+
+export interface ISignalHandleCtx extends ISignalHandleCtxBase {
     saveNewState: (newState: IGameState) => void;
     emitter: (signals: ISignal[]) => void;
+}
+
+// Read-only ctx for query signals. No saveNewState/emitter — single-hop is
+// enforced by the type: a handler physically cannot mutate state or emit.
+export interface IQuerySignalHandleCtx<T> extends ISignalHandleCtxBase {
+    resolve: (result: T) => void;
+}
+
+export interface IGetValidDeployCellsQueryCtx extends IQuerySignalHandleCtx<IGetValidDeployCellsQueryResult> {
+    signal: ISignal & { payload: IGetValidDeployCellsQueryPayload };
+}
+
+export interface IGetValidMoveCellsQueryCtx extends IQuerySignalHandleCtx<IGetValidMoveCellsQueryResult> {
+    signal: ISignal & { payload: IGetValidMoveCellsQueryPayload };
+}
+
+export interface IGetValidMoveRoutesQueryCtx extends IQuerySignalHandleCtx<IGetValidMoveRoutesQueryResult> {
+    signal: ISignal & { payload: IGetValidMoveRoutesQueryPayload };
+}
+
+export interface IGetValidAttackCellsQueryCtx extends IQuerySignalHandleCtx<IGetValidAttackCellsQueryResult> {
+    signal: ISignal & { payload: IGetValidAttackCellsQueryPayload };
+}
+
+export interface IGetValidSupportCellsQueryCtx extends IQuerySignalHandleCtx<IGetValidSupportCellsQueryResult> {
+    signal: ISignal & { payload: IGetValidSupportCellsQueryPayload };
 }
 
 export interface IBasicShipAttackSignalHandleCtx extends ISignalHandleCtx {

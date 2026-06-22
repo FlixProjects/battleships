@@ -19,12 +19,13 @@ import { DeployShipValidator, MoveShipValidator, PlayCardValidator } from "../ut
 import { IValidator } from "../utils/validator/types";
 import { GameObjectEntity } from "./entities/GameObjectEntity";
 import { Signal } from "./signals/Signal";
-import { ISignal } from "./signals/types";
+import { ISignal, IQuerySignal, SignalResultMap, TQuerySignalType, TQueryResult } from "./signals/types";
 
 export class GameEngine {
     private currentAction: IPlayerAction | null = null;
     private gameObjects: Map<string, IGameObjectEntity> = new Map();
     private signalStacks: Map<string, Signal[]> = new Map();
+    private queryResolve: (result: TQueryResult) => void = () => {};
     private signalCreators: ActionSignalCreator[] = [
         new BasicShipAttackActionSignalCreator(),
         new BasicShipMoveActionSignalCreator(),
@@ -57,6 +58,20 @@ export class GameEngine {
         this.emit(signal);
         this.sendSignals();
         return this.gameState;
+    }
+
+    // Read-only query path, never call saveNewState.
+    public query<K extends TQuerySignalType>(signal: IQuerySignal<K>): SignalResultMap[K] | undefined {
+        this.resetRun();
+        let captured: SignalResultMap[K] | undefined;
+        const previousResolve = this.queryResolve;
+        this.queryResolve = (result: TQueryResult) => {
+            captured = result as SignalResultMap[K];
+        };
+        this.emit(signal);
+        this.sendSignals();
+        this.queryResolve = previousResolve;
+        return captured;
     }
 
     // Re-point the engine at the latest state and rebuild the game-object view.
@@ -155,7 +170,7 @@ export class GameEngine {
     }
 
     private getSignalContext(signal: ISignal): ISignalHandleCtx {
-        return {
+        const ctx = {
             signal,
             gsm: new this.GSM(this.gameState),
             saveNewState: (newState: IGameState) => {
@@ -164,7 +179,11 @@ export class GameEngine {
             emitter: (signals: ISignal[]) => {
                 signals.forEach((s) => this.emit(s));
             },
+            resolve: (result: TQueryResult) => {
+                this.queryResolve(result);
+            },
         };
+        return ctx;
     }
 
     private loadGameObjects() {

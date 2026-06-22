@@ -1,7 +1,7 @@
 import { ASSET_PATHS, CELL_SEPARATOR, COLOR, COLOR_FILTER, Z_INDEX } from "@shared/constants";
 import { FEHighlightLocationsCommand } from "@shared/models/commands/FEHighlightLocationsCommand";
 import { FEShipAttackCommand } from "@shared/models/commands/FEShipAttackCommand";
-import { GameEngine } from "@shared/models/GameEngine";
+import { GetValidAttackCellsSignal } from "@shared/models/signals/GetValidAttackCellsSignal";
 import { ICellLoc } from "@shared/types";
 import { locationToKey } from "@shared/utils";
 import { gameManager } from "../..";
@@ -9,7 +9,7 @@ import { getComponents } from "../../components/component-helper";
 import { HTMLImage } from "../../components/native/Image";
 import { Selectable } from "../../components/Selectable";
 import { Icon } from "../../components/ships/Icon";
-import { queueCommand } from "../../utils/game-helper";
+import { getEngine, queueCommand } from "../../utils/game-helper";
 import { ShipAttackActionIMEvent } from "../interaction-manager/types";
 import { ClickHandler } from "./ClickHandler";
 
@@ -26,8 +26,11 @@ export class ShipAttackClickHandler extends ClickHandler {
         const { shipId } = this.event;
         const playerId = gameManager.getPlayer().id;
 
-        const gameEngine = new GameEngine(gameManager.state.gameState);
-        const { validCells, origin } = gameEngine.prime.shipAttack({ playerId, shipId });
+        const result = getEngine().query(
+            new GetValidAttackCellsSignal({ targetId: shipId, payload: { shipId, playerId } }),
+        );
+        const validCells = result?.validCells ?? [];
+        const origin = result?.origin ?? this.origin;
 
         const onSelectable = (selectable: Selectable) => {
             this.loadRedStyle(selectable);

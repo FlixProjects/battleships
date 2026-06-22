@@ -1,4 +1,4 @@
-import { IGameObjectEntity, ISignalHandleCtx } from "@shared/types/types";
+import { IGameObjectEntity, ISignalHandleCtxBase } from "@shared/types/types";
 import { ListenerManager } from "../listeners/ListenerManager";
 import { IListener, IListenerManager, IListenerOptions } from "../listeners/types";
 import { Entity } from "./Entity";
@@ -13,7 +13,7 @@ export class GameObjectEntity<T extends GameObjectEntity<T>> extends Entity<T> i
         this.loadDefaultListeners();
     }
 
-    public receiveSignal(ctx: ISignalHandleCtx) {
+    public receiveSignal(ctx: ISignalHandleCtxBase) {
         this.#listenerManager.listeners.forEach(({ listener, options }) => {
             listener.handleSignal(ctx);
             if (options.removeOnSignalHandled) {
@@ -36,7 +36,7 @@ export class GameObjectEntity<T extends GameObjectEntity<T>> extends Entity<T> i
         return this;
     }
 
-    protected defaultHandlerShouldHandleSignal = (ctx: ISignalHandleCtx) => {
+    protected defaultHandlerShouldHandleSignal = (ctx: ISignalHandleCtxBase) => {
         return ctx.signal.targetId === this.id;
     };
 

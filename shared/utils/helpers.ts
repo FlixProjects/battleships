@@ -209,6 +209,9 @@ export const buildPlayerStartingState = (playerId: string, faction: TFaction): I
 
     const allCards: IPlainCard[] = [...shipCards, ...supportCards];
 
+    const flagshipShip = ships.find((s) => s.isFlagship);
+    const flagshipCardId = shipCards.find((c) => c.instanceId === flagshipShip?.id)?.id;
+
     // Build a transient Deck domain object to leverage the one-time shuffle
     // and the draw mechanic — the result is then projected back to plain.
     // Deck.create encapsulates the only path that shuffles a deck.
@@ -217,7 +220,7 @@ export const buildPlayerStartingState = (playerId: string, faction: TFaction): I
         playerId,
         faction,
         cards: allCards,
-        pinnedRefNo: findFlagshipRefNo(template),
+        pinnedCardId: flagshipCardId,
     });
     const drawn = deckDomain.draw(MAX_HAND_SIZE);
 
@@ -236,14 +239,6 @@ export const buildPlayerStartingState = (playerId: string, faction: TFaction): I
         deck: plainDeck,
         hand: drawn.map((c) => c.id),
     };
-};
-
-const findFlagshipRefNo = (template: IDeckTemplateEntry[]): TShipRefNo | undefined => {
-    return template.find((entry) => {
-        if (entry.kind !== CardKind.Ship) return false;
-        const shipConfig = SHIPS_CONFIG[entry.refNo as TShipRefNo];
-        return !!shipConfig?.isFlagship;
-    })?.refNo as TShipRefNo | undefined;
 };
 
 export const applyStartingStateToPlayer = (player: IPlainPlayer, starting: IPlayerStartingState): IPlainPlayer => {

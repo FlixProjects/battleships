@@ -6,6 +6,10 @@ import { IListener } from "../listeners/types";
 import { BasicShipAttackSignalHandler } from "../signal-handlers/BasicShipAttackSignalHandler";
 import { BasicShipDeploySignalHandler } from "../signal-handlers/BasicShipDeploySignalHandler";
 import { BasicShipMoveSignalHandler } from "../signal-handlers/BasicShipMoveSignalHandler";
+import { GetValidAttackCellsSignalHandler } from "../signal-handlers/GetValidAttackCellsSignalHandler";
+import { GetValidDeployCellsSignalHandler } from "../signal-handlers/GetValidDeployCellsSignalHandler";
+import { GetValidMoveCellsSignalHandler } from "../signal-handlers/GetValidMoveCellsSignalHandler";
+import { GetValidMoveRoutesSignalHandler } from "../signal-handlers/GetValidMoveRoutesSignalHandler";
 import { HullDestroyedSignalHandler } from "../signal-handlers/HullDestroyedSignalHandler";
 import { ReceiveShipAttackSignalHandler } from "../signal-handlers/ReceiveShipAttackSignalHandler";
 import { SignalType } from "../signals/types";
@@ -118,8 +122,52 @@ export class ShipEntity extends GameObjectWithVisibilityEntity<ShipEntity> imple
             this.createReceiveShipAttackListener(),
             this.createBasicShipMoveListener(),
             this.createBasicShipDeployListener(),
-            this.createHullDestroyedListener(),            
+            this.createHullDestroyedListener(),
+            this.createGetValidMoveCellsListener(),
+            this.createGetValidMoveRoutesListener(),
+            this.createGetValidAttackCellsListener(),
+            this.createGetValidDeployCellsListener(),
         ];
+    }
+
+    protected createGetValidAttackCellsListener() {
+        return new Listener(
+            [SignalType.GetValidAttackCells],
+            (ctx) => {
+                new GetValidAttackCellsSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
+    protected createGetValidDeployCellsListener() {
+        return new Listener(
+            [SignalType.GetValidDeployCells],
+            (ctx) => {
+                new GetValidDeployCellsSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
+    protected createGetValidMoveCellsListener() {
+        return new Listener(
+            [SignalType.GetValidMoveCells],
+            (ctx) => {
+                new GetValidMoveCellsSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
+    protected createGetValidMoveRoutesListener() {
+        return new Listener(
+            [SignalType.GetValidMoveRoutes],
+            (ctx) => {
+                new GetValidMoveRoutesSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
     }
 
     protected createBasicShipAttackListener() {
