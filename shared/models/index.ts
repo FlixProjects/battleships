@@ -2,7 +2,6 @@ export * from "./Card";
 export * from "./Deck";
 export * from "./ShipCard";
 export * from "./SupportCard";
-export * from "./GameEngine";
 export * from "./GameStateManager";
 export * from "./GameState";
 export * from "./Player";
