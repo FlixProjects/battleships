@@ -5,7 +5,7 @@ import { PlayerBuilder } from "../../factories/player-builder";
 import { ShipBuilder } from "../../factories/ship-builder";
 import { EffectAnchor, ICellLoc, IHullTemplate } from "../../types";
 import { locationToKey } from "../../utils/helpers";
-import { GameEngine as GameEngineV2 } from "../GameEngineV2";
+import { GameEngine as GameEngineV2 } from "../GameEngine";
 import { GameStateManager } from "../GameStateManager";
 import { SupportCard } from "../SupportCard";
 import { GetValidAttackCellsSignal } from "../signals/GetValidAttackCellsSignal";
@@ -103,7 +103,11 @@ describe("GameEngineV2 query path", () => {
         });
         const player1 = new PlayerBuilder({ id: "player1", name: "P1" }).build({ ships: [undeployedShip] });
         const player2 = new PlayerBuilder({ id: "player2", name: "P2", order: 1 }).build({ ships: [] });
-        const gameState = new GameStateBuilder().build({ players: [player1, player2], ships: [undeployedShip], hulls: [] });
+        const gameState = new GameStateBuilder().build({
+            players: [player1, player2],
+            ships: [undeployedShip],
+            hulls: [],
+        });
 
         const result = new GameEngineV2(gameState, GameStateManager).query(
             new GetValidDeployCellsSignal({ targetId: "shipD", payload: { shipId: "shipD", playerId: "player1" } }),

@@ -1,6 +1,6 @@
 import { MAX_HAND_SIZE } from "../../config/constants";
 import { GameStateManager } from "../../models";
-import { GameEngine as GameEngineV2 } from "../../models/GameEngineV2";
+import { GameEngine as GameEngineV2 } from "../../models/GameEngine";
 import { GamePersistentEffectsTickSignal } from "../../models/signals/GamePersistentEffectsTickSignal";
 import { GameProjectVisibilitySignal } from "../../models/signals/GameProjectVisibilitySignal";
 import { GameRefillHandsSignal } from "../../models/signals/GameRefillHandsSignal";
