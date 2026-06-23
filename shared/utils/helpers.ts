@@ -35,7 +35,7 @@ import {
     TEffectRefNo,
     TFaction,
     TMapRefNo,
-    TShipRefNo
+    TShipRefNo,
 } from "../types/types";
 import { buildInactiveEffect } from "./effect-helper";
 
@@ -311,4 +311,11 @@ export const keyToLocation = (key: string): ICellLoc => {
 export const getOccupiedLocations = (gameState: IGameState) => {
     const occuipiedLocations: ICellLoc[] = gameState.hulls?.filter((h) => !h.destroyed).map((h) => h.location) ?? [];
     return occuipiedLocations;
+};
+
+export const reduceToZero = (value: number, toReduceBy: number) => {
+    return {
+        value: value > toReduceBy ? value - toReduceBy : 0,
+        leftover: value > toReduceBy ? 0 : toReduceBy - value,
+    };
 };
