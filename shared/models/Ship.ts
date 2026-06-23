@@ -16,12 +16,7 @@ import {
 } from "@shared/types";
 import { LocationHelper } from "@shared/utils";
 import { boardToPathCellNodes } from "@shared/utils/cell-node-helper";
-import {
-    cellLocToNodeId,
-    nodeIdToCellLoc,
-    PathFinder,
-    routeToCellLocs,
-} from "@shared/utils/path-finder";
+import { cellLocToNodeId, nodeIdToCellLoc, PathFinder, routeToCellLocs } from "@shared/utils/path-finder";
 import { computeDeployedHullLocation, HullCalculator } from "@shared/utils/hull-helper";
 import { getHull, locationToKey } from "@shared/utils/helpers";
 import { SegmentBuilder } from "@shared/utils/segment-builder";
@@ -211,6 +206,7 @@ export class Ship extends ShipEntity {
         const validCells = PathFinder.getCellsWithinRange({
             start: currentLoc,
             range: attackRange,
+            minRange: this.attackMinRange,
             filterFn: (loc: ICellLoc) => !locArr.includes(locationToKey(loc)),
         });
 

@@ -199,7 +199,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
         attackCommandPointCost: 1,
         attackRange: 5,
         attackDamage: 1,
-        attackMinRange: 2,
+        attackMinRange: 3,
         hullTemplates: HULLS_CONFIG[SHIP_REF_NO.tudf_flagship0],
         isFlagship: true,
         iconImgName: "tudf_flagship0",
