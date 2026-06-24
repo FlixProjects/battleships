@@ -9,6 +9,8 @@ interface Props {
     imgSrc: string;
     color?: TColor;
     rotation?: number;
+    scale?: number;
+    translate?: { x: number; y: number };
 }
 
 export class HullIcon extends Selectable {
@@ -37,6 +39,11 @@ export class HullIcon extends Selectable {
         this.ref.style.transition = "all 0.2s ease";
         this.ref.style.filter = getColorFilter(this.props.color ?? COLOR.PINK);
 
-        this.ref.style.transform = `rotate(${this.props.rotation}deg)`;
+        // translate (toward ship centroid) keeps multi-hull pieces connected when
+        // scaled down; rotate + scale are about the img centre so the sprite spins in
+        // place. Order: translate first (layout space), then rotate, then scale.
+        const scale = this.props.scale ?? 1;
+        const { x = 0, y = 0 } = this.props.translate ?? {};
+        this.ref.style.transform = `translate(${x}px, ${y}px) rotate(${this.props.rotation}deg) scale(${scale})`;
     }
 }

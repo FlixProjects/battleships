@@ -470,6 +470,8 @@ export interface IShipTemplate {
     hullTemplates: IHullTemplate[];
     isFlagship: boolean;
     iconImgName: string;
+    /** Visual scale applied to the deployed hull sprites (1 = full tile size). Defaults to 1. */
+    renderScale?: number;
 }
 
 export interface IHullTemplate extends Omit<IGOWithVisibility, "id"> {

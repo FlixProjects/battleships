@@ -39,6 +39,7 @@ export class ShipEntity extends GameObjectWithVisibilityEntity<ShipEntity> imple
     hullTemplates: IHullTemplate[];
     isFlagship: boolean;
     iconImgName: string;
+    renderScale?: number;
     isVisible: boolean;
 
     constructor(props: Readonly<IShip>) {

@@ -12,6 +12,8 @@ interface Props {
     color?: TColor;
     refNo?: string;
     rotation?: number;
+    scale?: number;
+    translate?: { x: number; y: number };
     mouseEnter?: (hullIconRef?: HTMLElement, defaultMouseEnter?: () => void) => void;
     mouseLeave?: (hullIconRef?: HTMLElement, defaultMouseLeave?: () => void) => void;
 }
