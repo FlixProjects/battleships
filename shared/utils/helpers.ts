@@ -203,6 +203,7 @@ export const buildPlayerStartingState = (playerId: string, faction: TFaction): I
                 description: supportConfig.description,
                 commandPointCost: supportConfig.commandPointCost,
                 effects: effectConfigs,
+                imgSrc: supportConfig.imgSrc,
             };
         }),
     );

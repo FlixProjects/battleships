@@ -24,6 +24,7 @@ import {
     IGameRemoveSubmissionCommandPointsSignalHandleCtx,
     ISignalHandleCtx,
     ISignalHandleCtxBase,
+    IPlayerGainCommandPointsSignalHandleCtx,
 } from "@shared/types/types";
 import { SignalType } from "../signals/types";
 
@@ -38,6 +39,7 @@ export type SignalCtxMap = {
     [SignalType.HullDestroyed]: IHullDestroyedSignalHandleCtx;
     [SignalType.GameCreateHull]: IGameCreateHullSignalHandleCtx;
     [SignalType.PlayerSpendCommandPoints]: IPlayerSpendCommandPointsSignalHandleCtx;
+    [SignalType.PlayerGainCommandPoints]: IPlayerGainCommandPointsSignalHandleCtx;
     [SignalType.PlayCard]: IPlayCardSignalHandleCtx;
     [SignalType.PlayerRemoveCardFromHand]: IPlayerRemoveCardFromHandSignalHandleCtx;
     [SignalType.DeckAddToPlayed]: IDeckAddToPlayedSignalHandleCtx;

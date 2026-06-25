@@ -21,6 +21,7 @@ import {
     IHullReceiveAttackSignalPayload,
     IHullReceiveDamageSignalPayload,
     IPlayCardSignalPayload,
+    IPlayerGainCommandPointsSignalPayload,
     IPlayerRemoveCardFromHandSignalPayload,
     IPlayerSpendCommandPointsSignalPayload,
     IShipAttackSignalPayload,
@@ -294,6 +295,7 @@ export interface ISupportConfig {
     /** Effect refNos this Support produces, in selection order. Each refNo
      *  must exist in `EFFECTS_CONFIG`. */
     effects: string[];
+    imgSrc?: string;
 }
 
 export interface ICard {
@@ -311,6 +313,8 @@ export interface ICard {
      *  selection order. Drives FE targeting; the live Effect instances are
      *  pre-created in GameState and linked by `sourceCardId`. */
     effects?: IEffectConfig[];
+    /** SupportCard only: resolved sprite path for the card's hand icon. */
+    imgSrc?: string;
 }
 
 export type TAppStatus = (typeof AppStatus)[keyof typeof AppStatus];
@@ -583,6 +587,10 @@ export interface IHullDestroyedSignalHandleCtx extends ISignalHandleCtx {
 
 export interface IPlayerSpendCommandPointsSignalHandleCtx extends ISignalHandleCtx {
     signal: ISignal & { payload: IPlayerSpendCommandPointsSignalPayload };
+}
+
+export interface IPlayerGainCommandPointsSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IPlayerGainCommandPointsSignalPayload };
 }
 
 export interface IGameCreateHullSignalHandleCtx extends ISignalHandleCtx {

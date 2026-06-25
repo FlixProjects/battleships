@@ -5,6 +5,7 @@ import { BaseComponent } from "../BaseComponent";
 interface Props {
     cardId: string;
     refNo: string;
+    imgSrc?: string;
     color?: TColor;
 }
 
@@ -21,7 +22,7 @@ export class SupportIcon extends BaseComponent {
         this.ref = document.createElement("img");
         this.id = this.props.cardId;
         (this.ref as HTMLImageElement).id = this.props.cardId;
-        (this.ref as HTMLImageElement).src = `./assets/support/${this.props.refNo}.png`;
+        (this.ref as HTMLImageElement).src = `./assets/support/${this.props.imgSrc}` || `./assets/support/${this.props.refNo}.png`;
         (this.ref as HTMLImageElement).alt = this.props.refNo;
         (this.ref as HTMLImageElement).style.objectFit = "contain";
         this.addStyles();

@@ -22,6 +22,7 @@ export const SignalType = {
     HullDestroyed: "HullDestroyed",
     GameCreateHull: "GameStateCreateHull",
     PlayerSpendCommandPoints: "PlayerSpendCommandPoints",
+    PlayerGainCommandPoints: "PlayerGainCommandPoints",
     PlayCard: "PlayCard",
     PlayerRemoveCardFromHand: "PlayerRemoveCardFromHand",
     DeckAddToPlayed: "DeckAddToPlayed",
@@ -93,6 +94,11 @@ export interface IGameCreateHullSignalPayload extends ISignalPayload {
 }
 
 export interface IPlayerSpendCommandPointsSignalPayload extends ISignalPayload {
+    playerId: string;
+    amount: number;
+}
+
+export interface IPlayerGainCommandPointsSignalPayload extends ISignalPayload {
     playerId: string;
     amount: number;
 }

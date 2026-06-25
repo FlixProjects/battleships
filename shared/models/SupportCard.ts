@@ -26,6 +26,7 @@ export class SupportCard extends Card {
     public readonly description: string;
     public readonly commandPointCost: number;
     public readonly effects: IEffectConfig[];
+    public readonly imgSrc: string;
 
     constructor(props: Readonly<ICard>) {
         super(props);
@@ -35,6 +36,7 @@ export class SupportCard extends Card {
         this.description = props.description ?? "";
         this.commandPointCost = props.commandPointCost ?? 0;
         this.effects = props.effects ?? [];
+        this.imgSrc = props.imgSrc ?? "";
     }
 
     public play(ctx: IPlayCardSignalHandleCtx): IGameState {
@@ -192,6 +194,7 @@ export class SupportCard extends Card {
             description: this.description,
             commandPointCost: this.commandPointCost,
             effects: this.effects,
+            imgSrc: this.imgSrc,
         };
     }
 

@@ -3,3 +3,4 @@ export * from "./Effect";
 // hydrating GameState (transformers, server entry points) needs this import
 // path loaded so `createEffect(plain)` knows about the concrete classes.
 export * from "./FlareEffect";
+export * from "./GainCommandPointEffect";
