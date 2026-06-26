@@ -3,7 +3,7 @@ import {
     EffectAnchor,
     EffectKind,
     IBoardConfig,
-    IEffectConfig,
+    IEffectTemplate,
     IHullTemplate,
     IShipTemplate,
     ISupportConfig,
@@ -211,7 +211,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
     },
 };
 
-export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectConfig> = {
+export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectTemplate> = {
     [EFFECT_REF_NO.flare]: {
         refNo: EFFECT_REF_NO.flare,
         kind: EffectKind.Vision,
@@ -226,7 +226,7 @@ export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectConfig> = {
         anchor: EffectAnchor.AnyTile,
         range: 2,
         // Duration of 2 means: granted on action resolve, plus persists
-        // through the next round's tick (expiresAfterRound = createdOnRound + 1).
+        // through the next round's tick (expiresAfterRound = createdOnRound + 2).
         duration: 2,
         existsOnBoard: true,
     },
@@ -237,6 +237,7 @@ export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectConfig> = {
         range: 0,
         duration: 0,
         existsOnBoard: false,
+        commandPointAmount: 1,
     },
 };
 
@@ -246,7 +247,7 @@ export const SUPPORTS_CONFIG: Record<TSupportRefNo, ISupportConfig> = {
         name: "Flare",
         description: "Illuminate a target area, revealing enemy ships within range for a couple of rounds.",
         commandPointCost: 1,
-        effects: [EFFECT_REF_NO.flarePersistent],
+        effectTemplates: [{ refNo: EFFECT_REF_NO.flarePersistent, kind: EffectKind.Vision }],
         imgSrc: "flare.png",
     },
     [SUPPORT_REF_NO.inspire]: {
@@ -255,7 +256,7 @@ export const SUPPORTS_CONFIG: Record<TSupportRefNo, ISupportConfig> = {
         description:
             "TUDF commanders go through the toughest leadership training to ensure they can lead under pressure.",
         commandPointCost: 0,
-        effects: [EFFECT_REF_NO.gainCommandPoint],
+        effectTemplates: [{ refNo: EFFECT_REF_NO.gainCommandPoint, kind: EffectKind.CommandPoint, }],
         imgSrc: "inspire.png",
     },
 };

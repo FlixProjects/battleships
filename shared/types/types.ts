@@ -1,6 +1,5 @@
 import {
     IDeckAddToPlayedSignalPayload,
-    IGameActivateEffectSignalPayload,
     IGameCreateEffectSignalPayload,
     IGameCreateHullSignalPayload,
     IGameProjectVisibilitySignalPayload,
@@ -282,19 +281,56 @@ export interface IEffectConfig {
     /** 0 = no targeting needed (untargeted / confirm-only). */
     range: number;
     /** 0 = one-shot; otherwise rounds the effect persists for after creation
-     *  (expiresAfterRound = createdOnRound + duration - 1). */
+     *  (expiresAfterRound = createdOnRound + duration). */
     duration: number;
     existsOnBoard: boolean;
 }
+
+/** Vision effects (Flare) reveal `range` tiles around their target — no extra
+ *  fields, only a narrowed `kind` so the template union stays discriminable. */
+export interface IVisionEffectConfig extends IEffectConfig {
+    kind: typeof EffectKind.Vision;
+}
+
+/** Command-point effects (Inspire) grant `commandPointAmount` to the owner. */
+export interface ICommandPointEffectConfig extends IEffectConfig {
+    kind: typeof EffectKind.CommandPoint;
+    commandPointAmount: number;
+}
+
+/** A resolved, per-kind effect config — an `EFFECTS_CONFIG` default merged with
+ *  a Support's overrides, persisted on the SupportCard at creation and used to
+ *  mint live Effects when the card is played. */
+export type IEffectTemplate = IVisionEffectConfig | ICommandPointEffectConfig;
+
+/** Fields a Support may override on an effect — identity (`refNo`, `kind`) is
+ *  owned by the effect itself, so it is excluded. */
+type TEffectOverrideFields<T extends IEffectConfig> = Partial<Omit<T, "refNo" | "kind">>;
+
+export interface IVisionEffectOverride {
+    refNo: string;
+    kind: typeof EffectKind.Vision;
+    overrides?: TEffectOverrideFields<IVisionEffectConfig>;
+}
+
+export interface ICommandPointEffectOverride {
+    refNo: string;
+    kind: typeof EffectKind.CommandPoint;
+    overrides?: TEffectOverrideFields<ICommandPointEffectConfig>;
+}
+
+/** A Support's reference to one effect it produces, carrying kind-typed
+ *  overrides so a Support can never set a field the effect's kind doesn't have. */
+export type IEffectOverride = IVisionEffectOverride | ICommandPointEffectOverride;
 
 export interface ISupportConfig {
     refNo: string;
     name: string;
     description: string;
     commandPointCost: number;
-    /** Effect refNos this Support produces, in selection order. Each refNo
-     *  must exist in `EFFECTS_CONFIG`. */
-    effects: string[];
+    /** The effects this Support produces, in selection order, each layered over
+     *  its `EFFECTS_CONFIG` default. */
+    effectTemplates: IEffectOverride[];
     imgSrc?: string;
 }
 
@@ -309,10 +345,10 @@ export interface ICard {
     // from *_CONFIG at hydration). Populated for SupportCards.
     description?: string;
     commandPointCost?: number;
-    /** SupportCard only: the resolved Effect configs this card produces, in
-     *  selection order. Drives FE targeting; the live Effect instances are
-     *  pre-created in GameState and linked by `sourceCardId`. */
-    effects?: IEffectConfig[];
+    /** SupportCard only: the resolved per-kind effect templates this card
+     *  produces, in selection order. Drives FE targeting and mints live Effects
+     *  when the card is played. */
+    effectTemplates?: IEffectTemplate[];
     /** SupportCard only: resolved sprite path for the card's hand icon. */
     imgSrc?: string;
 }
@@ -611,10 +647,6 @@ export interface IDeckAddToPlayedSignalHandleCtx extends ISignalHandleCtx {
 
 export interface IGameCreateEffectSignalHandleCtx extends ISignalHandleCtx {
     signal: ISignal & { payload: IGameCreateEffectSignalPayload };
-}
-
-export interface IGameActivateEffectSignalHandleCtx extends ISignalHandleCtx {
-    signal: ISignal & { payload: IGameActivateEffectSignalPayload };
 }
 
 export interface IGameRemoveSubmissionCommandPointsSignalHandleCtx extends ISignalHandleCtx {

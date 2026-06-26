@@ -9,3 +9,4 @@ export * from "./Ship";
 export * from "./Hull";
 export * from "./actions";
 export * from "./effects";
+export * from "./support-cards";

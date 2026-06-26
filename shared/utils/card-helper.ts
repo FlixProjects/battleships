@@ -1,25 +1,20 @@
 import { CardKind } from "../config/constants";
 import { Card } from "../models/Card";
 import { ShipCard } from "../models/ShipCard";
-import { SupportCard } from "../models/SupportCard";
-import { ICard, TCardKind } from "../types";
-
-type CardConstructor = new (props: Readonly<ICard>) => Card;
+import { ICard } from "../types";
+import { createSupportCard } from "./support-card-helper";
 
 /**
- * Registry mapping each persisted `kind` to its concrete Card subclass. New
- * card kinds (Spell, Effect, …) register themselves here without changing
- * Card itself — keeps the system open for extension, closed for modification.
+ * Hydrate a persisted card into its concrete domain class. Ship cards have a
+ * single class; Support cards dispatch by `refNo` through their own registry
+ * (FlareCard, InspireCard, …) so new Supports are added without editing here.
  */
-const cardConstructors: Record<TCardKind, CardConstructor> = {
-    [CardKind.Ship]: ShipCard,
-    [CardKind.Support]: SupportCard,
-};
-
 export const createCard = (props: Readonly<ICard>): Card => {
-    const Ctor = cardConstructors[props.kind];
-    if (!Ctor) {
-        throw new Error(`Unknown card kind '${props.kind}' for card ${props.id}`);
+    if (props.kind === CardKind.Support) {
+        return createSupportCard(props);
     }
-    return new Ctor(props);
+    if (props.kind === CardKind.Ship) {
+        return new ShipCard(props);
+    }
+    throw new Error(`Unknown card kind '${props.kind}' for card ${props.id}`);
 };

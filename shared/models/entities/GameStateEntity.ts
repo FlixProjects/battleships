@@ -9,7 +9,6 @@ import { Listener } from "../listeners/Listener";
 import { IListener } from "../listeners/types";
 import type { Player } from "../Player";
 import type { Ship } from "../Ship";
-import { GameActivateEffectSignalHandler } from "../signal-handlers/GameActivateEffectSignalHandler";
 import { GameCreateEffectSignalHandler } from "../signal-handlers/GameCreateEffectSignalHandler";
 import { GameCreateHullSignalHandler } from "../signal-handlers/GameCreateHullSignalHandler";
 import { GamePersistentEffectsTickSignalHandler } from "../signal-handlers/GamePersistentEffectsTickSignalHandler";
@@ -40,7 +39,6 @@ export class GameStateEntity extends GameObjectEntity<GameState> {
         return [
             this.createGameStateCreateHullListener(),
             this.createGameStateCreateEffectListener(),
-            this.createGameStateActivateEffectListener(),
             this.createPersistentEffectsTickListener(),
             this.createWinnerDeterminedListener(),
             this.createRotateInitiativeListener(),
@@ -61,12 +59,6 @@ export class GameStateEntity extends GameObjectEntity<GameState> {
     protected createGameStateCreateEffectListener() {
         return new Listener([SignalType.GameCreateEffect], (ctx) => {
             new GameCreateEffectSignalHandler().handle(ctx);
-        });
-    }
-
-    protected createGameStateActivateEffectListener() {
-        return new Listener([SignalType.GameActivateEffect], (ctx) => {
-            new GameActivateEffectSignalHandler().handle(ctx);
         });
     }
 

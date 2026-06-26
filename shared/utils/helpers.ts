@@ -5,7 +5,6 @@ import {
     CardKind,
     CELL_CONFIG,
     CELL_NODE_REF_NO,
-    EFFECTS_CONFIG,
     Faction,
     FACTION_CONFIG,
     MAP_REF_NO,
@@ -20,7 +19,6 @@ import {
     ICellLoc,
     ICellNode,
     IDeckTemplateEntry,
-    IEffectConfig,
     IGameState,
     IHull,
     IHullTemplate,
@@ -32,12 +30,11 @@ import {
     IPlainShip,
     ISupportDeckTemplateEntry,
     TCellNodeRefNo,
-    TEffectRefNo,
     TFaction,
     TMapRefNo,
     TShipRefNo,
 } from "../types/types";
-import { buildInactiveEffect } from "./effect-helper";
+import { resolveEffectTemplate } from "./effect-helper";
 
 export const parseCookies = (cookieStr: string) => {
     const cookies = {} as Record<string, string>;
@@ -169,40 +166,24 @@ export const buildPlayerStartingState = (playerId: string, faction: TFaction): I
         name: ship.name,
     }));
 
-    const effects: IPlainEffect[] = [];
-
     const supportCards: IPlainCard[] = supportEntries.flatMap((entry: ISupportDeckTemplateEntry) =>
         Array.from({ length: entry.count }, () => {
             const cardId = uuidv7();
             const supportConfig = SUPPORTS_CONFIG[entry.refNo];
-
-            const effectConfigs: IEffectConfig[] = supportConfig.effects.map((effectRefNo) => {
-                const effectConfig = EFFECTS_CONFIG[effectRefNo as TEffectRefNo];
-                if (!effectConfig) {
-                    throw new Error(
-                        `buildPlayerStartingState: Support '${entry.refNo}' references unknown Effect '${effectRefNo}'`,
-                    );
-                }
-                return effectConfig;
-            });
-
-            const cardEffects = effectConfigs.map((effectConfig) =>
-                buildInactiveEffect({ effectConfig, playerId, cardId }).toPlain(),
-            );
-            effects.push(...cardEffects);
+            const effectTemplates = supportConfig.effectTemplates.map(resolveEffectTemplate);
 
             return {
                 id: cardId,
                 deckId,
-                // SupportCard points at its primary pre-created Effect (mirrors
-                // ShipCard → Ship). Effects link back via `sourceCardId`.
-                instanceId: cardEffects[0]?.id ?? cardId,
+                // Support cards own no entity up front — Effects are minted only
+                // when the card is played — so instanceId just points at itself.
+                instanceId: cardId,
                 kind: CardKind.Support,
                 refNo: entry.refNo,
                 name: supportConfig.name,
                 description: supportConfig.description,
                 commandPointCost: supportConfig.commandPointCost,
-                effects: effectConfigs,
+                effectTemplates,
                 imgSrc: supportConfig.imgSrc,
             };
         }),
@@ -236,7 +217,8 @@ export const buildPlayerStartingState = (playerId: string, faction: TFaction): I
     return {
         ships,
         cards: allCards,
-        effects,
+        // Effects are minted on play, not at game creation, so a fresh game has none.
+        effects: [],
         deck: plainDeck,
         hand: drawn.map((c) => c.id),
     };

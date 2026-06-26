@@ -337,15 +337,6 @@ export class GameState extends GameStateEntity implements IGameState {
         return this;
     }
 
-    /**
-     * Toggle a pre-created Effect active (its source card was played), stamping
-     * the target/round/expiry. Counterpart to `deactivateExpiredEffects`.
-     */
-    activateEffect(effectId: string, targetCell?: ICellLoc): Effect | undefined {
-        const effect = this.effects.find((e) => e.id === effectId);
-        effect?.activate(targetCell, this.currentRound);
-        return effect;
-    }
 
     /**
      * Returns Effects that are currently in play on this round, optionally
@@ -521,16 +512,12 @@ export class GameState extends GameStateEntity implements IGameState {
     }
 
     /**
-     * Effects are owned like Ships — never dropped from state. An expired effect
-     * is simply deactivated (kept around, `isActive: false`) so it stops being
-     * resolved / contributing vision.
+     * Effects are minted when their Support is played and destroyed once their
+     * duration is up — an expired effect is dropped from state entirely so it
+     * stops being resolved / contributing vision.
      */
-    deactivateExpiredEffects() {
-        this.effects.forEach((e) => {
-            if (e.isActive && e.hasExpired(this.currentRound)) {
-                e.isActive = false;
-            }
-        });
+    removeExpiredEffects() {
+        this.effects = this.effects.filter((e) => !e.hasExpired(this.currentRound));
         return this;
     }
 
