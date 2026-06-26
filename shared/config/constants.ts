@@ -14,6 +14,7 @@ import {
     TMapRefNo,
     TShipRefNo,
     TSupportRefNo,
+    TSupportConfig,
 } from "../types";
 
 export const CELL_SEPARATOR = "/";
@@ -241,13 +242,13 @@ export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectTemplate> = {
     },
 };
 
-export const SUPPORTS_CONFIG: Record<TSupportRefNo, ISupportConfig> = {
+export const SUPPORTS_CONFIG: Record<TSupportRefNo, TSupportConfig> = {
     [SUPPORT_REF_NO.flare]: {
         refNo: SUPPORT_REF_NO.flare,
         name: "Flare",
         description: "Illuminate a target area, revealing enemy ships within range for a couple of rounds.",
         commandPointCost: 1,
-        effectTemplates: [{ refNo: EFFECT_REF_NO.flarePersistent, kind: EffectKind.Vision }],
+        effectTemplates: [{ refNo: EFFECT_REF_NO.flarePersistent }],
         imgSrc: "flare.png",
     },
     [SUPPORT_REF_NO.inspire]: {
@@ -256,7 +257,7 @@ export const SUPPORTS_CONFIG: Record<TSupportRefNo, ISupportConfig> = {
         description:
             "TUDF commanders go through the toughest leadership training to ensure they can lead under pressure.",
         commandPointCost: 0,
-        effectTemplates: [{ refNo: EFFECT_REF_NO.gainCommandPoint, kind: EffectKind.CommandPoint, }],
+        effectTemplates: [{ refNo: EFFECT_REF_NO.gainCommandPoint, commandPointAmount: 1 }],
         imgSrc: "inspire.png",
     },
 };

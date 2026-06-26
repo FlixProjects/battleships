@@ -1,4 +1,4 @@
-import { IEffect, IGameState, ISignalHandleCtx } from "../../types";
+import { EffectKind, IEffect, IGameState, ISignalHandleCtx, IVisionEffect } from "../../types";
 import { registerEffect } from "../../utils/effect-helper";
 import { EFFECT_REF_NO } from "../../config/constants";
 import { Effect } from "./Effect";
@@ -10,6 +10,8 @@ import { Effect } from "./Effect";
  * lifecycle (add on commit, drop on expiry) is handled by ActionResolver.
  */
 export class FlareEffect extends Effect {
+    public range: number;
+
     constructor(props: Readonly<IEffect>) {
         super(props);
     }
@@ -20,6 +22,10 @@ export class FlareEffect extends Effect {
 
     public resolveTick(_gameState: IGameState): void {
         // Same as resolve — passive vision, no per-round mutation.
+    }
+
+    public toPlain(): IVisionEffect {
+        return { ...super.toPlain(), kind: EffectKind.Vision, range: this.range };
     }
 }
 

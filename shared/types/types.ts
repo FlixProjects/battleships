@@ -236,47 +236,56 @@ export const EffectAnchor = {
 
 export type TEffectAnchor = (typeof EffectAnchor)[keyof typeof EffectAnchor];
 
-export interface IVisionEffectPayload {
-    kind: typeof EffectKind.Vision;
-    /** Set when the effect is activated (targeted). Undefined while the effect
-     *  is pre-created but inactive. */
-    center?: ICellLoc;
-    range: number;
-}
-
-export interface ICommandPointEffectPayload {
-    kind: typeof EffectKind.CommandPoint;
-    amount: number;
-}
-
-export type TEffectPayload = IVisionEffectPayload | ICommandPointEffectPayload;
-
 export interface IEffect {
     id: string;
     refNo: string;
     kind: TEffectKind;
     sourceCardId: string;
     playerId: string;
-    /** Rounds the effect persists once activated. `expiresAfterRound` is derived
-     *  from this at activation (`createdOnRound + duration`). 0 = one-shot. */
+    /** Rounds the effect persists once created. `expiresAfterRound` is derived
+     *  from this (`createdOnRound + duration`). 0 = one-shot (never persisted). */
     duration: number;
-    /** Pre-created effects start inactive; playing the source card activates
-     *  them. Only active effects are resolved / contribute vision. */
     isActive: boolean;
     createdOnRound: number;
-    /** undefined until activated; otherwise persists through and including this
-     *  round number. Expired effects are deactivated (kept in state) at round-end. */
+    /** Persists through and including this round number; once the round passes
+     *  it the effect is removed from state. Undefined for one-shots. */
     expiresAfterRound?: number;
-    payload: TEffectPayload;
     existsOnBoard: boolean;
+    /** The targeted cell, stamped at creation. Vision radiates from here. */
     location?: ICellLoc;
 }
+
+/** Vision effects (Flare) reveal `range` tiles around their `location`. */
+export interface IVisionEffect extends IEffect {
+    kind: typeof EffectKind.Vision;
+    range: number;
+}
+
+export interface IFlareEffect extends IVisionEffect {
+    refNo: typeof EFFECT_REF_NO.flare;
+}
+
+export interface IFlarePersistentEffect extends IVisionEffect {
+    refNo: typeof EFFECT_REF_NO.flarePersistent;
+}
+
+/** Command-point effects (Inspire) grant `commandPointAmount` to the owner. */
+export interface ICommandPointEffect extends IEffect {
+    kind: typeof EffectKind.CommandPoint;
+    commandPointAmount: number;
+}
+
+export interface IGainCommandPointEffect extends ICommandPointEffect {
+    refNo: typeof EFFECT_REF_NO.gainCommandPoint;
+}
+
+export const isVisionEffect = (effect: IEffect): effect is IVisionEffect => effect.kind === EffectKind.Vision;
 
 export type IPlainEffect = IEffect;
 
 export interface IEffectConfig {
     refNo: string;
-    kind: TEffectKind;
+    kind?: TEffectKind;
     anchor: TEffectAnchor;
     /** 0 = no targeting needed (untargeted / confirm-only). */
     range: number;
@@ -303,28 +312,20 @@ export interface ICommandPointEffectConfig extends IEffectConfig {
  *  mint live Effects when the card is played. */
 export type IEffectTemplate = IVisionEffectConfig | ICommandPointEffectConfig;
 
-/** Fields a Support may override on an effect — identity (`refNo`, `kind`) is
- *  owned by the effect itself, so it is excluded. */
-type TEffectOverrideFields<T extends IEffectConfig> = Partial<Omit<T, "refNo" | "kind">>;
-
-export interface IVisionEffectOverride {
+/** A Support's reference to one effect it produces: the effect's `refNo` plus
+ *  any kind-typed field overrides layered over its `EFFECTS_CONFIG` default. */
+export type IVisionEffectOverride = Partial<IVisionEffectConfig> & {
     refNo: string;
-    kind: typeof EffectKind.Vision;
-    overrides?: TEffectOverrideFields<IVisionEffectConfig>;
-}
+};
 
-export interface ICommandPointEffectOverride {
+export type ICommandPointEffectOverride = Partial<ICommandPointEffectConfig> & {
     refNo: string;
-    kind: typeof EffectKind.CommandPoint;
-    overrides?: TEffectOverrideFields<ICommandPointEffectConfig>;
-}
+};
 
-/** A Support's reference to one effect it produces, carrying kind-typed
- *  overrides so a Support can never set a field the effect's kind doesn't have. */
 export type IEffectOverride = IVisionEffectOverride | ICommandPointEffectOverride;
 
 export interface ISupportConfig {
-    refNo: string;
+    refNo: TSupportRefNo;
     name: string;
     description: string;
     commandPointCost: number;
@@ -333,6 +334,20 @@ export interface ISupportConfig {
     effectTemplates: IEffectOverride[];
     imgSrc?: string;
 }
+
+/** Per-Support configs narrow `effectTemplates` to the override kind that
+ *  Support actually produces, so its config can't reference a mismatched kind. */
+export interface IFlareSupportConfig extends ISupportConfig {
+    refNo: typeof SUPPORT_REF_NO.flare;
+    effectTemplates: IVisionEffectOverride[];
+}
+
+export interface IInspireSupportConfig extends ISupportConfig {
+    refNo: typeof SUPPORT_REF_NO.inspire;
+    effectTemplates: ICommandPointEffectOverride[];
+}
+
+export type TSupportConfig = IFlareSupportConfig | IInspireSupportConfig;
 
 export interface ICard {
     id: string;

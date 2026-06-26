@@ -14,7 +14,6 @@ export class FlareCard extends SupportCard {
         return this.effectTemplates.map((template) =>
             buildEffect({
                 template,
-                payload: { kind: EffectKind.Vision, range: template.range, center: targetCell },
                 playerId,
                 sourceCardId: this.id,
                 currentRound,

@@ -1,6 +1,5 @@
 import clone from "lodash.clonedeep";
 import {
-    EffectKind,
     IBoard,
     ICard,
     ICellLoc,
@@ -17,7 +16,7 @@ import {
     IPlayer,
     IPlayerAction,
     IShip,
-    IVisionEffectPayload,
+    isVisionEffect,
 } from "../types";
 import { mergeSets } from "../utils";
 import { createCard } from "../utils/card-helper";
@@ -397,13 +396,13 @@ export class GameState extends GameStateEntity implements IGameState {
     private getVisionFromEffectsForPlayer(playerId: string): Set<string> {
         const tiles = new Set<string>();
 
-        this.getActiveEffects(playerId)
-            .filter((e) => e.kind === EffectKind.Vision)
+        const activeEffects: IEffect[] = this.getActiveEffects(playerId);
+        activeEffects
+            .filter(isVisionEffect)
             .forEach((e) => {
-                const payload = e.payload as IVisionEffectPayload;
-                if (!payload.center) return; // inactive/untargeted — contributes no vision
-                tiles.add(locationToKey(payload.center));
-                PathFinder.getCellsWithinRange({ start: payload.center, range: payload.range }).forEach((cell) =>
+                if (!e.location) return; // untargeted — contributes no vision
+                tiles.add(locationToKey(e.location));
+                PathFinder.getCellsWithinRange({ start: e.location, range: e.range }).forEach((cell) =>
                     tiles.add(locationToKey(cell)),
                 );
             });

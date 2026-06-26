@@ -42,6 +42,10 @@ export class Effect extends EffectEntity {
         return this;
     }
 
+    /** Base effect fields only. Concrete effects override to append their
+     *  flattened kind-specific fields (range, commandPointAmount, …). We list
+     *  fields explicitly rather than spread `this` to keep entity internals
+     *  (listeners, visibility) out of the persisted shape. */
     public toPlain(): IPlainEffect {
         return {
             id: this.id,
@@ -53,7 +57,6 @@ export class Effect extends EffectEntity {
             isActive: this.isActive,
             createdOnRound: this.createdOnRound,
             expiresAfterRound: this.expiresAfterRound,
-            payload: this.payload,
             existsOnBoard: this.existsOnBoard,
             location: this.location,
         };

@@ -1,7 +1,7 @@
 import { v7 as uuidv7 } from "uuid";
 import { EFFECTS_CONFIG } from "../config/constants";
 import { Effect } from "../models/effects/Effect";
-import { ICellLoc, IEffect, IEffectOverride, IEffectTemplate, TEffectPayload, TEffectRefNo } from "../types";
+import { ICellLoc, IEffect, IEffectOverride, IEffectTemplate, TEffectRefNo } from "../types";
 
 type EffectConstructor = new (props: Readonly<IEffect>) => Effect;
 
@@ -28,21 +28,14 @@ export const createEffect = (props: Readonly<IEffect>): Effect => {
 export const hasEffect = (refNo: string): boolean => effectConstructors.has(refNo);
 
 /**
- * Resolve a Support's effect reference into a concrete template: the
- * `EFFECTS_CONFIG` default merged with the Support's kind-typed overrides.
- * Persisted on the SupportCard at game creation.
+ * Only used at game creation time to create plain effects
  */
 export const resolveEffectTemplate = (override: IEffectOverride): IEffectTemplate => {
     const base = EFFECTS_CONFIG[override.refNo as TEffectRefNo];
     if (!base) {
         throw new Error(`resolveEffectTemplate: unknown effect refNo '${override.refNo}'`);
     }
-    if (base.kind !== override.kind) {
-        throw new Error(
-            `resolveEffectTemplate: effect '${override.refNo}' is kind '${base.kind}' but its override declares '${override.kind}'`,
-        );
-    }
-    return { ...base, ...override.overrides } as IEffectTemplate;
+    return { ...base, ...override } as IEffectTemplate;
 };
 
 /**
@@ -52,27 +45,22 @@ export const resolveEffectTemplate = (override: IEffectOverride): IEffectTemplat
  */
 export const buildEffect = (args: {
     template: IEffectTemplate;
-    payload: TEffectPayload;
     playerId: string;
     sourceCardId: string;
     currentRound: number;
     targetCell?: ICellLoc;
 }): Effect => {
-    const { template, payload, playerId, sourceCardId, currentRound, targetCell } = args;
+    const { template, playerId, sourceCardId, currentRound, targetCell } = args;
 
     const plain: IEffect = {
         id: uuidv7(),
-        refNo: template.refNo,
-        kind: template.kind,
         sourceCardId,
         playerId,
-        duration: template.duration,
         isActive: true,
         createdOnRound: currentRound,
         expiresAfterRound: template.duration > 0 ? currentRound + template.duration : undefined,
-        existsOnBoard: template.existsOnBoard,
-        payload,
         location: targetCell,
+        ...template,
     };
     return createEffect(plain);
 };

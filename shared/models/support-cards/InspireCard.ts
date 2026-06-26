@@ -19,7 +19,6 @@ export class InspireCard extends SupportCard {
             }
             return buildEffect({
                 template,
-                payload: { kind: EffectKind.CommandPoint, amount: template.commandPointAmount },
                 playerId,
                 sourceCardId: this.id,
                 currentRound,
