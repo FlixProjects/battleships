@@ -1,235 +1,242 @@
-import { HullCalculator as _HullCalculator } from "@shared/utils/hull-helper";
-import { GameStateManager } from "../models";
+import { ActionSignalCreator } from "@shared/models/signal-creators/ActionSignalCreator";
+import { BasicShipAttackActionSignalCreator } from "@shared/models/signal-creators/BasicShipAttackActionSignalCreator";
+import { BasicShipDeployActionSignalCreator } from "@shared/models/signal-creators/BasicShipDeployActionSignalCreator";
+import { BasicShipMoveActionSignalCreator } from "@shared/models/signal-creators/BasicShipMoveActionSignalCreator";
+import { PlayCardActionSignalCreator } from "@shared/models/signal-creators/PlayCardActionSignalCreator";
 import {
-    EffectAnchor,
-    ICellLoc,
-    IEffectConfig,
+    ActionTypes,
+    IDeployAction,
+    IGameObjectEntity,
     IGameState,
-    IGetValidAttackCellsAction,
-    IGetValidDeployCellsAction,
-    IGetValidDeployCellsResult,
-    IGetValidMoveCellsAction,
-    IGetValidMoveCellsResult,
-    IGetValidSupportCellsAction,
-    IGetValidSupportCellsResult,
+    IGameStateManager,
+    IMoveAction,
+    IPlayCardAction,
+    IPlayerAction,
+    ISignalHandleCtx,
     ResultType,
-    THullCalculatorConstructor,
-} from "../types";
-import { keyToLocation, LocationHelper, locationToKey } from "../utils";
-import { boardToPathCellNodes } from "../utils/cell-node-helper";
-import { cellLocToNodeId, nodeIdToCellLoc, PathFinder, routeToCellLocs } from "../utils/path-finder";
-import { Movement } from "./Movement";
-import { SupportCard } from "./SupportCard";
+} from "..";
+import { DeployShipValidator, MoveShipValidator, PlayCardValidator } from "../utils/validator";
+import { IValidator } from "../utils/validator/types";
+import { GameObjectEntity } from "./entities/GameObjectEntity";
+import { Signal } from "./signals/Signal";
+import { ISignal, IQuerySignal, SignalResultMap, TQuerySignalType, TQueryResult } from "./signals/types";
 
-// TODO: move prime methods into FE Entity classes?
-// TODO: eventually deprecate this
 export class GameEngine {
-    private gsm: GameStateManager;
-    private HullCalculator: THullCalculatorConstructor = _HullCalculator;
-    constructor(public gameState: IGameState) {
-        this.gsm = new GameStateManager(gameState);
+    private currentAction: IPlayerAction | null = null;
+    private gameObjects: Map<string, IGameObjectEntity> = new Map();
+    private signalStacks: Map<string, Signal[]> = new Map();
+    private queryResolve: (result: TQueryResult) => void = () => {};
+    private signalCreators: ActionSignalCreator[] = [
+        new BasicShipAttackActionSignalCreator(),
+        new BasicShipMoveActionSignalCreator(),
+        new BasicShipDeployActionSignalCreator(),
+        new PlayCardActionSignalCreator(),
+    ];
+
+    constructor(
+        private gameState: IGameState,
+        private GSM: new (_gameState: IGameState) => IGameStateManager,
+    ) {
+        this.loadGameObjects();
     }
 
-    get prime() {
-        return {
-            deployShip: (action: IGetValidDeployCellsAction) => this.primeDeployShip(action),
-            moveShip: (action: IGetValidMoveCellsAction) => this.primeMoveShip(action),
-            moveShipRoutes: (action: IGetValidMoveCellsAction, destinationTileId: string) =>
-                this.primeMoveShipRoutes(action, destinationTileId),
-            shipAttack: (action: IGetValidAttackCellsAction) => this.primeAttack(action),
-            playSupport: (action: IGetValidSupportCellsAction) => this.primePlaySupport(action),
-        };
-    }
-
-    private primeDeployShip(action: IGetValidDeployCellsAction): IGetValidDeployCellsResult {
-        const { playerId, shipId } = action;
-
-        const availableCells: ICellLoc[] = [];
-        const ship = this.gsm.getShip(shipId);
-        const { rows, cols } = this.gsm.getBoardDimensions();
-        const isFirstPlayer = this.isFirstPlayer(playerId);
-
-        for (let i = 0; i < cols; i++) {
-            availableCells.push([i, isFirstPlayer ? 0 : rows - 1]);
+    // process an action
+    // an Action represents a decision made by a player
+    public run(action: IPlayerAction) {
+        this.resetRun();
+        this.currentAction = action;
+        if (this.isValidAction()) {
+            this.recordAction();
+            this.loadInitialSignals(action);
+            this.sendSignals();
         }
+        return this.gameState;
+    }
 
-        const validCells = new this.HullCalculator(this.gsm, isFirstPlayer).getValidDeploymentLocations(
-            availableCells,
-            ship.hullTemplates.map((ht) => ht.templateLocation),
+    public runWithSignal(signal: ISignal) {
+        this.resetRun();
+        this.emit(signal);
+        this.sendSignals();
+        return this.gameState;
+    }
+
+    // Read-only query path, never call saveNewState.
+    public query<K extends TQuerySignalType>(signal: IQuerySignal<K>): SignalResultMap[K] | undefined {
+        this.resetRun();
+        let captured: SignalResultMap[K] | undefined;
+        const previousResolve = this.queryResolve;
+        this.queryResolve = (result: TQueryResult) => {
+            captured = result as SignalResultMap[K];
+        };
+        this.emit(signal);
+        this.sendSignals();
+        this.queryResolve = previousResolve;
+        return captured;
+    }
+
+    // Re-point the engine at the latest state and rebuild the game-object view.
+    public setGameState(gameState: IGameState) {
+        this.gameState = gameState;
+        this.gameObjects.clear();
+        this.loadGameObjects();
+        return this;
+    }
+
+    private resetRun() {
+        this.currentAction = null;
+    }
+
+    private clearProcessedSignal(originId: string, signalId: string) {
+        const signals = this.signalStacks.get(originId);
+        if (!signals) return;
+
+        this.signalStacks.set(
+            originId,
+            signals.filter((s) => s.id !== signalId),
         );
 
-        return {
-            type: ResultType.SUCCESS,
-            playerId,
-            validCells,
-        };
+        if (this.signalStacks.get(originId)?.length === 0) {
+            this.signalStacks.delete(originId);
+        }
     }
 
-    private primeMoveShip(action: IGetValidMoveCellsAction): IGetValidMoveCellsResult {
-        const { playerId, shipId } = action;
-        const ship = this.gsm.getPlayer(playerId).getShip(shipId);
+    private sendSignals() {
+        do {
+            const signalStack = this.signalStacks.entries().next().value;
+            if (!signalStack) break;
+            const [originId, signals] = signalStack;
+            const signal = signals[0];
 
-        const currentLoc = ship.getFrontHull().location;
-        const movementRange = ship.remainingMovement || 0;
-
-        const pathFinder = this.buildMoveShipPathFinder(shipId);
-        const startNode = pathFinder.getNode(cellLocToNodeId(currentLoc));
-
-        const validCells = pathFinder
-            .getReachableCells({
-                current: startNode,
-                movement: new Movement({ originalMovementCost: 1, unitsOfMovementLeft: movementRange }),
-            })
-            .map(nodeIdToCellLoc);
-
-        return {
-            type: ResultType.SUCCESS,
-            playerId,
-            validCells,
-            origin: currentLoc,
-        };
+            this.sendSignalToGameObjects(signal);
+            this.clearProcessedSignal(originId, signal.id);
+        } while (true);
     }
 
-    private primeMoveShipRoutes(action: IGetValidMoveCellsAction, destinationTileId: string): ICellLoc[][] {
-        const { playerId, shipId } = action;
-        const ship = this.gsm.getPlayer(playerId).getShip(shipId);
-        if (!ship?.hulls?.[0]) return [];
+    private sendSignalToGameObjects(signal: Signal) {
+        this.gameObjects.forEach((obj) => {
+            obj.receiveSignal(this.getSignalContext(signal));
+        });
+    }
 
-        const currentLoc = ship.getFrontHull().location;
-        const movementRange = ship.remainingMovement || 0;
+    private emit(signal: Signal) {
+        if (this.signalStacks.has(signal.originId)) {
+            this.signalStacks.get(signal.originId)?.push(signal);
+        } else {
+            this.signalStacks.set(signal.originId, [signal]);
+        }
+    }
 
-        const pathFinder = this.buildMoveShipPathFinder(shipId);
-        const startNode = pathFinder.getNode(cellLocToNodeId(currentLoc));
+    private emitter(signals: Signal[]) {
+        if (signals.length === 0) return;
+        signals.forEach((s) => this.emit(s));
+    }
 
-        const routes = pathFinder.getPathToNode(
-            {
-                current: startNode,
-                movement: new Movement({ originalMovementCost: 1, unitsOfMovementLeft: movementRange }),
+    private loadInitialSignals(action: IPlayerAction) {
+        // map AttackSignal, MoveSignal, DeploySignal, etc. to a Signal with appropriate payload
+
+        this.signalCreators.forEach((handler) => {
+            const signals = handler.createIfValid(action);
+            this.emitter(signals);
+        });
+    }
+
+    private recordAction() {
+        if (!this.currentAction) return;
+        const action = this.currentAction;
+        const gsm = new this.GSM(this.gameState);
+        gsm.addPendingAction(action).addAction(action);
+        this.gameState = gsm.gameState;
+    }
+
+    private isValidAction() {
+        if (!this.currentAction) return false;
+        const validator = this.getValidator(this.currentAction);
+        // no validator wired for this action type yet → assume valid (validated upstream)
+        if (!validator) return true;
+        return validator.validate().type === ResultType.SUCCESS;
+    }
+
+    private getValidator(action: IPlayerAction): IValidator | null {
+        if (action.type === ActionTypes.MOVE) {
+            return new MoveShipValidator(this.gameState, action as IMoveAction);
+        }
+        if (action.type === ActionTypes.DEPLOY) {
+            return new DeployShipValidator(this.gameState, action as IDeployAction);
+        }
+        if (action.type === ActionTypes.PLAY_CARD) {
+            return new PlayCardValidator(this.gameState, action as IPlayCardAction);
+        }
+        return null;
+    }
+
+    private getSignalContext(signal: ISignal): ISignalHandleCtx {
+        const ctx = {
+            signal,
+            gsm: new this.GSM(this.gameState),
+            saveNewState: (newState: IGameState) => {
+                this.gameState = newState;
             },
-            destinationTileId,
-        );
-
-        return routes.map(routeToCellLocs);
-    }
-
-    public buildMoveShipPathFinder(_shipId: string): PathFinder {
-        // FIXME: we should only take into account 'visible' ships
-        const locationHelper = new LocationHelper(this.gsm.getPlayers());
-
-        const pathFinder = new PathFinder();
-        pathFinder.initialiseNodes(
-            (loc: ICellLoc) => !locationHelper.isLocationOccupied(loc),
-            boardToPathCellNodes(this.gsm.gameState.board),
-        );
-        return pathFinder;
-    }
-
-    private primeAttack(action: IGetValidAttackCellsAction) {
-        const { playerId, shipId } = action;
-
-        const ship = this.gsm.getShip(shipId);
-
-        // Block targeting only on tiles occupied by the player's own *live*
-        // hulls. Destroyed hulls leave the tile effectively empty — they
-        // shouldn't block the attacker from targeting through their wreck.
-        const ownShipIds = this.gsm.getPlayer(playerId).ships?.map((s) => s.id) ?? [];
-        const locArr = this.gsm.gameState.hulls
-            .filter((h) => !h.destroyed && ownShipIds.includes(h.shipId))
-            .map((h) => locationToKey(h.location));
-
-        const currentLoc = ship.hulls?.find((h) => h.shipId === shipId && h.front)?.location ?? [0, 0];
-        const attackRange = ship.attackRange || 0;
-
-        const reachableCells = PathFinder.getCellsWithinRange({
-            start: currentLoc,
-            range: attackRange,
-            filterFn: (loc: ICellLoc) => !locArr.includes(locationToKey(loc)),
-        });
-
-        return {
-            type: ResultType.SUCCESS,
-            playerId,
-            validCells: reachableCells,
-            origin: currentLoc,
+            emitter: (signals: ISignal[]) => {
+                signals.forEach((s) => this.emit(s));
+            },
+            resolve: (result: TQueryResult) => {
+                this.queryResolve(result);
+            },
         };
+        return ctx;
     }
 
-    private primePlaySupport(action: IGetValidSupportCellsAction): IGetValidSupportCellsResult {
-        const { playerId, cardId, effectIndex } = action;
-        const card = this.gsm.gameState.cards.find((c) => c.id === cardId);
-        if (!(card instanceof SupportCard)) {
-            throw new Error(`primePlaySupport: support card ${cardId} not found`);
+    private loadGameObjects() {
+        const visited = new WeakSet<object>(); // for recognizing objects + prevent cyclical paths
+        for (let key in this.gameState) {
+            const value = this.gameState[key as TGameStatePropKey];
+            this.registerGameObjects(value, visited);
         }
-        // Read the resolved Effect config persisted on the card at creation —
-        // never re-derive from SUPPORTS_CONFIG / EFFECTS_CONFIG at prime time.
-        const effectConfig = card.effects[effectIndex];
-        if (!effectConfig) {
-            throw new Error(`primePlaySupport: effectIndex ${effectIndex} out of range for ${card.refNo}`);
+        // GameState is itself a game object (the entity-lifecycle owner). The
+        // property walk above never reaches it, so register it explicitly.
+        if (this.gameState instanceof GameObjectEntity) {
+            this.gameState.registerGameObject(this.register);
         }
-
-        if (effectConfig.range === 0) {
-            return { type: ResultType.SUCCESS, playerId, validCells: [], requiresTarget: false };
-        }
-
-        const validCells = this.computeAnchoredCells(playerId, effectConfig);
-        return { type: ResultType.SUCCESS, playerId, validCells, requiresTarget: true };
     }
 
-    /**
-     * Manhattan-distance reachable cells from the configured anchor. For
-     * `any_tile` we treat the whole board as the seed set (no anchor cell).
-     */
-    private computeAnchoredCells(playerId: string, effectConfig: IEffectConfig): ICellLoc[] {
-        if (effectConfig.anchor === EffectAnchor.AnyTile) {
-            const all: ICellLoc[] = [];
-            const { rows, cols } = this.gsm.getBoardDimensions();
-            for (let x = 0; x < cols; x++) {
-                for (let y = 0; y < rows; y++) {
-                    all.push([x, y]);
-                }
+    private registerGameObjects = (value: any, visited: WeakSet<object>): any => {
+        if (this.isPrimitive(value) || this.isNullOrUndefined(value)) {
+            return;
+        }
+        if (visited.has(value)) return;
+        visited.add(value);
+
+        if (Array.isArray(value)) {
+            value.forEach((val) => this.registerGameObjects(val, visited));
+            return;
+        }
+        if (value instanceof GameObjectEntity) {
+            if (this.gameObjects.has(value.id)) return;
+            return value.registerGameObject(this.register);
+        }
+        if (typeof value === "object") {
+            for (let key in value) {
+                this.registerGameObjects(value[key], visited);
             }
-            return all;
+            return;
         }
+    };
 
-        const anchorCells = this.getAnchorCells(playerId, effectConfig.anchor);
-        const reached = new Set<string>();
-        anchorCells.forEach((origin) => {
-            reached.add(locationToKey(origin));
-            PathFinder.getCellsWithinRange({ start: origin, range: effectConfig.range }).forEach((cell) =>
-                reached.add(locationToKey(cell)),
-            );
-        });
+    private register = (id: string, go: GameObjectEntity<any>) => {
+        this.gameObjects.set(id, go);
+    };
 
-        return Array.from(reached).map((key) => keyToLocation(key));
+    private isPrimitive(value: any) {
+        return (
+            typeof value === "string" ||
+            typeof value === "boolean" ||
+            typeof value === "number" ||
+            typeof value === "function"
+        );
     }
 
-    private getAnchorCells(playerId: string, anchor: IEffectConfig["anchor"]): ICellLoc[] {
-        if (anchor === EffectAnchor.Flagship) {
-            const ownShips = this.gsm.getPlayerShips(playerId);
-            const flagship = ownShips.find((s) => s.isFlagship && s.deployed && !s.destroyed);
-            if (!flagship) return [];
-            return (flagship.hulls ?? []).map((h) => h.location);
-        }
-        if (anchor === EffectAnchor.AnyFriendlyHull) {
-            return this.gsm.gameState.hulls
-                .filter((h) => !h.destroyed)
-                .filter((h) => this.gsm.gameState.ships.find((s) => s.id === h.shipId)?.playerId === playerId)
-                .map((h) => h.location);
-        }
-        if (anchor === EffectAnchor.DeploymentRow) {
-            const isFirstPlayer = this.gsm.gameState.isFirstPlayer(playerId);
-            const { rows, cols } = this.gsm.getBoardDimensions();
-            const row = isFirstPlayer ? 0 : rows - 1;
-            const cells: ICellLoc[] = [];
-            for (let x = 0; x < cols; x++) cells.push([x, row]);
-            return cells;
-        }
-        return [];
-    }
-
-    // ================= Helpers =================
-
-    private isFirstPlayer(playerId: string) {
-        return this.gsm.gameState.getFirstPlayerId() === playerId;
+    private isNullOrUndefined(value: any) {
+        return value === null || value === undefined;
     }
 }
+type TGameStatePropKey = keyof IGameState;

@@ -12,6 +12,8 @@ interface Props {
     color?: TColor;
     refNo?: string;
     rotation?: number;
+    scale?: number;
+    translate?: { x: number; y: number };
     mouseEnter?: (hullIconRef?: HTMLElement, defaultMouseEnter?: () => void) => void;
     mouseLeave?: (hullIconRef?: HTMLElement, defaultMouseLeave?: () => void) => void;
 }
@@ -28,8 +30,18 @@ export class DeployedHullIcon extends Selectable {
 
         const hullIcon = new HullIcon(this.props);
 
-        hullContainer.appendChild(hullIcon.build());
-        
+        // The scale/centroid-nudge lives on a wrapper around the sprite (not the
+        // container) so the ActionMenu — appended directly to the container — is never
+        // scaled, and the move animation (which clones the sprite by id) reads the
+        // scaled size via the bounding rect without re-applying the transform.
+        const scale = this.props.scale ?? 1;
+        const { x = 0, y = 0 } = this.props.translate ?? {};
+        const scaleWrapper = document.createElement("div");
+        scaleWrapper.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+        scaleWrapper.appendChild(hullIcon.build());
+
+        hullContainer.appendChild(scaleWrapper);
+
         this.isSelectable = true;
         this.setState();
 

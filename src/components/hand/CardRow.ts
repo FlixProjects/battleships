@@ -11,6 +11,7 @@ import { Icon } from "../ships/Icon";
 import { ShipIcon } from "../ships/ShipIcon";
 import { StatBadge } from "../ships/StatBadge";
 import { SupportIcon } from "../supports/SupportIcon";
+import { SupportCard } from "@shared/models/SupportCard";
 import { CardKind } from "@shared/config/constants";
 
 interface Props {
@@ -91,9 +92,13 @@ export class CardRow extends Selectable {
     }
 
     private renderSupportContent(cardId: string, refNo: string, gsm: IGameStateManager) {
+        const card = gsm.getCard(cardId);
+        const imgSrc = card instanceof SupportCard ? card.imgSrc : undefined;
+
         const supportIcon = new SupportIcon({
             cardId,
             refNo,
+            imgSrc,
             color: gsm.gameState.getFirstPlayerId() === gameManager.getCurrentPlayerId() ? COLOR.TEAL : COLOR.ORANGE,
         });
         this.addChild(supportIcon);

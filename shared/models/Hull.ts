@@ -4,7 +4,7 @@ import {
     IHullReceiveAttackSignalHandleCtx,
     IHullReceiveDamageSignalHandleCtx,
 } from "../types";
-import { locationToKey } from "../utils";
+import { locationToKey, reduceToZero } from "../utils";
 import { HullEntity } from "./entities/HullEntity";
 import { Resolver } from "./resolvers/Resolver";
 import { HullDestroyedSignal } from "./signals/HullDestroyedSignal";
@@ -20,11 +20,14 @@ export class Hull extends HullEntity {
         return this.isVisible;
     }
 
-    getDamaged(incomingDamage: number) {
-        this.remainingHealth -= incomingDamage;
+    getDamaged(_incomingDamage: number) {
+        let incomingDamage = _incomingDamage;
+        const armorResult = reduceToZero(this.armor, incomingDamage);
+        this.armor = armorResult.value;
+        incomingDamage = armorResult.leftover;
+        this.remainingHealth = reduceToZero(this.remainingHealth, incomingDamage).value;
         if (this.remainingHealth <= 0) {
             this.destroyed = true;
-            this.remainingHealth = 0;
         }
     }
 

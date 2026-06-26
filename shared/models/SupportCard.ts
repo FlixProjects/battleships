@@ -1,7 +1,11 @@
 import {
+    EffectAnchor,
     ICard,
+    ICellLoc,
     IEffectConfig,
     IGameState,
+    IGameStateManager,
+    IGetValidSupportCellsQueryCtx,
     IMEvent,
     IMEventType,
     IPlainCard,
@@ -10,6 +14,8 @@ import {
     PlaySupportConfirmIMEvent,
     PlaySupportTargetIMEvent,
 } from "../types";
+import { keyToLocation, locationToKey } from "../utils/helpers";
+import { PathFinder } from "../utils/path-finder";
 import { Card, ICardSelectionHandlers } from "./Card";
 import { DeckAddToPlayedSignal } from "./signals/DeckAddToPlayedSignal";
 import { GameActivateEffectSignal } from "./signals/GameActivateEffectSignal";
@@ -20,6 +26,7 @@ export class SupportCard extends Card {
     public readonly description: string;
     public readonly commandPointCost: number;
     public readonly effects: IEffectConfig[];
+    public readonly imgSrc: string;
 
     constructor(props: Readonly<ICard>) {
         super(props);
@@ -29,6 +36,7 @@ export class SupportCard extends Card {
         this.description = props.description ?? "";
         this.commandPointCost = props.commandPointCost ?? 0;
         this.effects = props.effects ?? [];
+        this.imgSrc = props.imgSrc ?? "";
     }
 
     public play(ctx: IPlayCardSignalHandleCtx): IGameState {
@@ -82,6 +90,81 @@ export class SupportCard extends Card {
         return gsm.gameState;
     }
 
+    // ===============================================================================
+    // query functions (read-only — lifted from the legacy GameEngine.prime.playSupport)
+    // ===============================================================================
+
+    public getValidTargetCells(ctx: IGetValidSupportCellsQueryCtx) {
+        const { gsm, resolve } = ctx;
+        const { playerId, effectIndex } = ctx.signal.payload;
+
+        // Read the resolved Effect config persisted on the card at creation —
+        // never re-derive from SUPPORTS_CONFIG / EFFECTS_CONFIG at query time.
+        const effectConfig = this.effects[effectIndex];
+        if (!effectConfig) {
+            throw new Error(`getValidTargetCells: effectIndex ${effectIndex} out of range for ${this.refNo}`);
+        }
+
+        if (effectConfig.range === 0) {
+            return resolve({ validCells: [], requiresTarget: false });
+        }
+
+        const validCells = this.computeAnchoredCells(gsm, playerId, effectConfig);
+        resolve({ validCells, requiresTarget: true });
+    }
+
+    /**
+     * Manhattan-distance reachable cells from the configured anchor. For
+     * `any_tile` we treat the whole board as the seed set (no anchor cell).
+     */
+    private computeAnchoredCells(gsm: IGameStateManager, playerId: string, effectConfig: IEffectConfig): ICellLoc[] {
+        if (effectConfig.anchor === EffectAnchor.AnyTile) {
+            const all: ICellLoc[] = [];
+            const { rows, cols } = gsm.getBoardDimensions();
+            for (let x = 0; x < cols; x++) {
+                for (let y = 0; y < rows; y++) {
+                    all.push([x, y]);
+                }
+            }
+            return all;
+        }
+
+        const anchorCells = this.getAnchorCells(gsm, playerId, effectConfig.anchor);
+        const reached = new Set<string>();
+        anchorCells.forEach((origin) => {
+            reached.add(locationToKey(origin));
+            PathFinder.getCellsWithinRange({ start: origin, range: effectConfig.range }).forEach((cell) =>
+                reached.add(locationToKey(cell)),
+            );
+        });
+
+        return Array.from(reached).map((key) => keyToLocation(key));
+    }
+
+    private getAnchorCells(gsm: IGameStateManager, playerId: string, anchor: IEffectConfig["anchor"]): ICellLoc[] {
+        if (anchor === EffectAnchor.Flagship) {
+            const ownShips = gsm.getPlayerShips(playerId);
+            const flagship = ownShips.find((s) => s.isFlagship && s.deployed && !s.destroyed);
+            if (!flagship) return [];
+            return (flagship.hulls ?? []).map((h) => h.location);
+        }
+        if (anchor === EffectAnchor.AnyFriendlyHull) {
+            return gsm.gameState.hulls
+                .filter((h) => !h.destroyed)
+                .filter((h) => gsm.gameState.ships.find((s) => s.id === h.shipId)?.playerId === playerId)
+                .map((h) => h.location);
+        }
+        if (anchor === EffectAnchor.DeploymentRow) {
+            const isFirstPlayer = gsm.gameState.isFirstPlayer(playerId);
+            const { rows, cols } = gsm.getBoardDimensions();
+            const row = isFirstPlayer ? 0 : rows - 1;
+            const cells: ICellLoc[] = [];
+            for (let x = 0; x < cols; x++) cells.push([x, row]);
+            return cells;
+        }
+        return [];
+    }
+
     public getSelectionEvent(handlers: ICardSelectionHandlers): IMEvent {
         const firstEffect = this.effects[0];
 
@@ -111,6 +194,7 @@ export class SupportCard extends Card {
             description: this.description,
             commandPointCost: this.commandPointCost,
             effects: this.effects,
+            imgSrc: this.imgSrc,
         };
     }
 

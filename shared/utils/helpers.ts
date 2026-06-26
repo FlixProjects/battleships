@@ -35,7 +35,7 @@ import {
     TEffectRefNo,
     TFaction,
     TMapRefNo,
-    TShipRefNo
+    TShipRefNo,
 } from "../types/types";
 import { buildInactiveEffect } from "./effect-helper";
 
@@ -203,11 +203,15 @@ export const buildPlayerStartingState = (playerId: string, faction: TFaction): I
                 description: supportConfig.description,
                 commandPointCost: supportConfig.commandPointCost,
                 effects: effectConfigs,
+                imgSrc: supportConfig.imgSrc,
             };
         }),
     );
 
     const allCards: IPlainCard[] = [...shipCards, ...supportCards];
+
+    const flagshipShip = ships.find((s) => s.isFlagship);
+    const flagshipCardId = shipCards.find((c) => c.instanceId === flagshipShip?.id)?.id;
 
     // Build a transient Deck domain object to leverage the one-time shuffle
     // and the draw mechanic — the result is then projected back to plain.
@@ -217,7 +221,7 @@ export const buildPlayerStartingState = (playerId: string, faction: TFaction): I
         playerId,
         faction,
         cards: allCards,
-        pinnedRefNo: findFlagshipRefNo(template),
+        pinnedCardId: flagshipCardId,
     });
     const drawn = deckDomain.draw(MAX_HAND_SIZE);
 
@@ -236,14 +240,6 @@ export const buildPlayerStartingState = (playerId: string, faction: TFaction): I
         deck: plainDeck,
         hand: drawn.map((c) => c.id),
     };
-};
-
-const findFlagshipRefNo = (template: IDeckTemplateEntry[]): TShipRefNo | undefined => {
-    return template.find((entry) => {
-        if (entry.kind !== CardKind.Ship) return false;
-        const shipConfig = SHIPS_CONFIG[entry.refNo as TShipRefNo];
-        return !!shipConfig?.isFlagship;
-    })?.refNo as TShipRefNo | undefined;
 };
 
 export const applyStartingStateToPlayer = (player: IPlainPlayer, starting: IPlayerStartingState): IPlainPlayer => {
@@ -316,4 +312,11 @@ export const keyToLocation = (key: string): ICellLoc => {
 export const getOccupiedLocations = (gameState: IGameState) => {
     const occuipiedLocations: ICellLoc[] = gameState.hulls?.filter((h) => !h.destroyed).map((h) => h.location) ?? [];
     return occuipiedLocations;
+};
+
+export const reduceToZero = (value: number, toReduceBy: number) => {
+    return {
+        value: value > toReduceBy ? value - toReduceBy : 0,
+        leftover: value > toReduceBy ? 0 : toReduceBy - value,
+    };
 };

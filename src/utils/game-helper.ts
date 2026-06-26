@@ -1,10 +1,26 @@
-import { COLOR, COLOR_FILTER, COMPONENT_ID, FP_CURRENT_PLAYER, FP_GAME_CODE, TColor, TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
+import {
+    COLOR,
+    COLOR_FILTER,
+    COMPONENT_ID,
+    FP_CURRENT_PLAYER,
+    FP_GAME_CODE,
+    TColor,
+    TILE_GAP_PX,
+    TILE_SIZE_PX,
+} from "@shared/constants";
 import { GameConfig } from "@shared/index";
 import { FECommand } from "@shared/models/commands/FECommand";
+import { GameEngine as GameEngineV2 } from "@shared/models/GameEngine";
 import { ICellLoc } from "@shared/types";
 import { game, gameManager } from "..";
 import { getGame } from "../apis/get-game";
 import { getComponents, updateComponents } from "../components/component-helper";
+import { FEGameStateManager } from "../models/FEGameStateManager";
+
+// engine-v2 over the current FE state. FEGameStateManager rehydrates into FE
+// domain entities (FEShipEntity etc.) so faction mixins / FE behaviour apply
+// when query (and action) signals are delivered.
+export const getEngine = () => new GameEngineV2(gameManager.state.gameState, FEGameStateManager);
 
 // client functions
 export const getGameCode = () => {
@@ -77,7 +93,7 @@ export const getPxFromCellLocation = (cell: ICellLoc): { top: number; left: numb
 };
 
 export const getElementsFromIds = (ids: string[]) => {
-    const gameBoardContainer = document.getElementById(COMPONENT_ID.GAME_BOARD_CONTAINER)
+    const gameBoardContainer = document.getElementById(COMPONENT_ID.GAME_BOARD_CONTAINER);
     const elements = ids
         .map((id) => {
             return gameBoardContainer.querySelector(`[id="${id}"]`);

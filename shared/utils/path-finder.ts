@@ -20,6 +20,7 @@ interface IPathFinderProps {
 export interface ICellsWithinRangeOptions {
     start: ICellLoc;
     range: number;
+    minRange?: number;
     filterFn?: NodeFilterFn;
 }
 
@@ -75,13 +76,13 @@ export class PathFinder {
         return Array.from(this.routes.keys()).filter((id) => id !== startId);
     }
 
-    public static getCellsWithinRange({ start, range, filterFn }: ICellsWithinRangeOptions): ICellLoc[] {
+    public static getCellsWithinRange({ start, range, minRange, filterFn }: ICellsWithinRangeOptions): ICellLoc[] {
         const pathFinder = new PathFinder();
         pathFinder.initialiseNodes(filterFn);
-        return pathFinder.cellsWithinRange(start, range);
+        return pathFinder.cellsWithinRange(start, range, minRange);
     }
 
-    public cellsWithinRange(start: ICellLoc, range: number): ICellLoc[] {
+    public cellsWithinRange(start: ICellLoc, range: number, minRange = 1): ICellLoc[] {
         const startNode = this.nodes.get(cellLocToNodeId(start));
         if (!startNode) return [];
 
@@ -95,7 +96,9 @@ export class PathFinder {
                 node.nextTo.forEach((neighbour) => {
                     if (visited.has(neighbour.id) || !neighbour.isEnterable()) return;
                     visited.add(neighbour.id);
-                    reachable.push(neighbour.id);
+                    if (step >= minRange - 1) {
+                        reachable.push(neighbour.id);
+                    }
                     next.push(neighbour);
                 });
             });

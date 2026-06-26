@@ -47,10 +47,12 @@ export const CardKind = {
 export const EFFECT_REF_NO = {
     flare: "flare",
     flarePersistent: "flare_persistent",
+    gainCommandPoint: "gain_command_point",
 } as const;
 
 export const SUPPORT_REF_NO = {
     flare: "flare",
+    inspire: "inspire",
 } as const;
 
 export const MAP_REF_NO = {
@@ -167,9 +169,10 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
         hullTemplates: HULLS_CONFIG[SHIP_REF_NO.flagship0],
         isFlagship: true,
         iconImgName: "flagship0",
+        renderScale: 0.8,
     },
     [SHIP_REF_NO.tudf_frigate0]: {
-        refNo: SHIP_REF_NO.frigate0,
+        refNo: SHIP_REF_NO.tudf_frigate0,
         name: "Frigate",
         description: "A nimble scout. Short range but quick to reposition, ideal for screening and harassing.",
         deployed: false,
@@ -185,9 +188,10 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
         hullTemplates: HULLS_CONFIG[SHIP_REF_NO.tudf_frigate0],
         isFlagship: false,
         iconImgName: "tudf_frigate0",
+        renderScale: 0.3,
     },
     [SHIP_REF_NO.tudf_flagship0]: {
-        refNo: SHIP_REF_NO.flagship0,
+        refNo: SHIP_REF_NO.tudf_flagship0,
         name: "Flagship",
         description: "The TUDF's most reliable flagship design - it boasts a high caliber and long ranged main cannon.",
         deployed: false,
@@ -199,10 +203,11 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
         attackCommandPointCost: 1,
         attackRange: 5,
         attackDamage: 1,
-        attackMinRange: 2,
+        attackMinRange: 3,
         hullTemplates: HULLS_CONFIG[SHIP_REF_NO.tudf_flagship0],
         isFlagship: true,
         iconImgName: "tudf_flagship0",
+        renderScale: 0.8,
     },
 };
 
@@ -225,6 +230,14 @@ export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectConfig> = {
         duration: 2,
         existsOnBoard: true,
     },
+    [EFFECT_REF_NO.gainCommandPoint]: {
+        refNo: EFFECT_REF_NO.gainCommandPoint,
+        kind: EffectKind.CommandPoint,
+        anchor: EffectAnchor.Flagship,
+        range: 0,
+        duration: 0,
+        existsOnBoard: false,
+    },
 };
 
 export const SUPPORTS_CONFIG: Record<TSupportRefNo, ISupportConfig> = {
@@ -234,6 +247,16 @@ export const SUPPORTS_CONFIG: Record<TSupportRefNo, ISupportConfig> = {
         description: "Illuminate a target area, revealing enemy ships within range for a couple of rounds.",
         commandPointCost: 1,
         effects: [EFFECT_REF_NO.flarePersistent],
+        imgSrc: "flare.png",
+    },
+    [SUPPORT_REF_NO.inspire]: {
+        refNo: SUPPORT_REF_NO.inspire,
+        name: "Inspire",
+        description:
+            "TUDF commanders go through the toughest leadership training to ensure they can lead under pressure.",
+        commandPointCost: 0,
+        effects: [EFFECT_REF_NO.gainCommandPoint],
+        imgSrc: "inspire.png",
     },
 };
 
@@ -246,6 +269,7 @@ export const FACTION_CONFIG: Record<TFaction, DeckTemplate> = {
         { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_frigate0, count: 4 },
         // Supports
         { kind: CardKind.Support, refNo: SUPPORT_REF_NO.flare, count: 2 },
+        { kind: CardKind.Support, refNo: SUPPORT_REF_NO.inspire, count: 2 },
     ],
 };
 

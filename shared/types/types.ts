@@ -6,11 +6,22 @@ import {
     IGameProjectVisibilitySignalPayload,
     IGameRefillHandsSignalPayload,
     IGameRemoveSubmissionCommandPointsSignalPayload,
+    IGetValidAttackCellsQueryPayload,
+    IGetValidAttackCellsQueryResult,
+    IGetValidDeployCellsQueryPayload,
+    IGetValidDeployCellsQueryResult,
+    IGetValidMoveCellsQueryPayload,
+    IGetValidMoveCellsQueryResult,
+    IGetValidMoveRoutesQueryPayload,
+    IGetValidMoveRoutesQueryResult,
+    IGetValidSupportCellsQueryPayload,
+    IGetValidSupportCellsQueryResult,
     IHullDestroyedSignalPayload,
     IHullMoveSignalPayload,
     IHullReceiveAttackSignalPayload,
     IHullReceiveDamageSignalPayload,
     IPlayCardSignalPayload,
+    IPlayerGainCommandPointsSignalPayload,
     IPlayerRemoveCardFromHandSignalPayload,
     IPlayerSpendCommandPointsSignalPayload,
     IShipAttackSignalPayload,
@@ -183,7 +194,7 @@ export interface IHull extends IHullTemplate {
 export interface IGameObjectEntity {
     id: string;
     update(entity: Partial<IGameObjectEntity>): void;
-    receiveSignal(ctx: ISignalHandleCtx): void;
+    receiveSignal(ctx: ISignalHandleCtxBase): void;
 }
 
 export type IDeckTemplateEntry = IShipDeckTemplateEntry | ISupportDeckTemplateEntry;
@@ -284,6 +295,7 @@ export interface ISupportConfig {
     /** Effect refNos this Support produces, in selection order. Each refNo
      *  must exist in `EFFECTS_CONFIG`. */
     effects: string[];
+    imgSrc?: string;
 }
 
 export interface ICard {
@@ -301,6 +313,8 @@ export interface ICard {
      *  selection order. Drives FE targeting; the live Effect instances are
      *  pre-created in GameState and linked by `sourceCardId`. */
     effects?: IEffectConfig[];
+    /** SupportCard only: resolved sprite path for the card's hand icon. */
+    imgSrc?: string;
 }
 
 export type TAppStatus = (typeof AppStatus)[keyof typeof AppStatus];
@@ -460,6 +474,8 @@ export interface IShipTemplate {
     hullTemplates: IHullTemplate[];
     isFlagship: boolean;
     iconImgName: string;
+    /** Visual scale applied to the deployed hull sprites (1 = full tile size). Defaults to 1. */
+    renderScale?: number;
 }
 
 export interface IHullTemplate extends Omit<IGOWithVisibility, "id"> {
@@ -499,11 +515,42 @@ export interface IGameObjectSignalHandlerOptions {
     onDeploy?: (signal: ISignal, gsm: IGameStateManager) => void;
 }
 
-export interface ISignalHandleCtx {
+// Common base every handler ctx shares. Listener wiring (predicates, receiveSignal)
+// only needs `signal`; mutation vs. query capabilities are added by the subtypes.
+export interface ISignalHandleCtxBase {
     signal: ISignal;
     gsm: IGameStateManager;
+}
+
+export interface ISignalHandleCtx extends ISignalHandleCtxBase {
     saveNewState: (newState: IGameState) => void;
     emitter: (signals: ISignal[]) => void;
+}
+
+// Read-only ctx for query signals. No saveNewState/emitter — single-hop is
+// enforced by the type: a handler physically cannot mutate state or emit.
+export interface IQuerySignalHandleCtx<T> extends ISignalHandleCtxBase {
+    resolve: (result: T) => void;
+}
+
+export interface IGetValidDeployCellsQueryCtx extends IQuerySignalHandleCtx<IGetValidDeployCellsQueryResult> {
+    signal: ISignal & { payload: IGetValidDeployCellsQueryPayload };
+}
+
+export interface IGetValidMoveCellsQueryCtx extends IQuerySignalHandleCtx<IGetValidMoveCellsQueryResult> {
+    signal: ISignal & { payload: IGetValidMoveCellsQueryPayload };
+}
+
+export interface IGetValidMoveRoutesQueryCtx extends IQuerySignalHandleCtx<IGetValidMoveRoutesQueryResult> {
+    signal: ISignal & { payload: IGetValidMoveRoutesQueryPayload };
+}
+
+export interface IGetValidAttackCellsQueryCtx extends IQuerySignalHandleCtx<IGetValidAttackCellsQueryResult> {
+    signal: ISignal & { payload: IGetValidAttackCellsQueryPayload };
+}
+
+export interface IGetValidSupportCellsQueryCtx extends IQuerySignalHandleCtx<IGetValidSupportCellsQueryResult> {
+    signal: ISignal & { payload: IGetValidSupportCellsQueryPayload };
 }
 
 export interface IBasicShipAttackSignalHandleCtx extends ISignalHandleCtx {
@@ -540,6 +587,10 @@ export interface IHullDestroyedSignalHandleCtx extends ISignalHandleCtx {
 
 export interface IPlayerSpendCommandPointsSignalHandleCtx extends ISignalHandleCtx {
     signal: ISignal & { payload: IPlayerSpendCommandPointsSignalPayload };
+}
+
+export interface IPlayerGainCommandPointsSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IPlayerGainCommandPointsSignalPayload };
 }
 
 export interface IGameCreateHullSignalHandleCtx extends ISignalHandleCtx {

@@ -7,6 +7,11 @@ import {
     IGameCreateEffectSignalHandleCtx,
     IGameCreateHullSignalHandleCtx,
     IGameProjectVisibilitySignalHandleCtx,
+    IGetValidAttackCellsQueryCtx,
+    IGetValidDeployCellsQueryCtx,
+    IGetValidMoveCellsQueryCtx,
+    IGetValidMoveRoutesQueryCtx,
+    IGetValidSupportCellsQueryCtx,
     IHullDestroyedSignalHandleCtx,
     IHullMoveSignalHandleCtx,
     IHullReceiveAttackSignalHandleCtx,
@@ -18,6 +23,8 @@ import {
     IGameRefillHandsSignalHandleCtx,
     IGameRemoveSubmissionCommandPointsSignalHandleCtx,
     ISignalHandleCtx,
+    ISignalHandleCtxBase,
+    IPlayerGainCommandPointsSignalHandleCtx,
 } from "@shared/types/types";
 import { SignalType } from "../signals/types";
 
@@ -32,6 +39,7 @@ export type SignalCtxMap = {
     [SignalType.HullDestroyed]: IHullDestroyedSignalHandleCtx;
     [SignalType.GameCreateHull]: IGameCreateHullSignalHandleCtx;
     [SignalType.PlayerSpendCommandPoints]: IPlayerSpendCommandPointsSignalHandleCtx;
+    [SignalType.PlayerGainCommandPoints]: IPlayerGainCommandPointsSignalHandleCtx;
     [SignalType.PlayCard]: IPlayCardSignalHandleCtx;
     [SignalType.PlayerRemoveCardFromHand]: IPlayerRemoveCardFromHandSignalHandleCtx;
     [SignalType.DeckAddToPlayed]: IDeckAddToPlayedSignalHandleCtx;
@@ -44,6 +52,11 @@ export type SignalCtxMap = {
     [SignalType.GameRemoveExpiredEffects]: ISignalHandleCtx;
     [SignalType.GameRefillHands]: IGameRefillHandsSignalHandleCtx;
     [SignalType.GameProjectVisibility]: IGameProjectVisibilitySignalHandleCtx;
+    [SignalType.GetValidDeployCells]: IGetValidDeployCellsQueryCtx;
+    [SignalType.GetValidMoveCells]: IGetValidMoveCellsQueryCtx;
+    [SignalType.GetValidMoveRoutes]: IGetValidMoveRoutesQueryCtx;
+    [SignalType.GetValidAttackCells]: IGetValidAttackCellsQueryCtx;
+    [SignalType.GetValidSupportCells]: IGetValidSupportCellsQueryCtx;
 };
 
 export type TListenerCallback<T extends SignalType = SignalType> = (ctx: SignalCtxMap[T]) => void;
@@ -51,7 +64,7 @@ export type TListenerCallback<T extends SignalType = SignalType> = (ctx: SignalC
 export interface IListener<T extends SignalType = SignalType> {
     id: string;
     signalTypes: SignalType[];
-    handleSignal(ctx: ISignalHandleCtx): void;
+    handleSignal(ctx: ISignalHandleCtxBase): void;
     overrideCallback(fn: TListenerCallback<T>): void;
 }
 

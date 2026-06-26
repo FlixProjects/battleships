@@ -8,12 +8,6 @@ export const ActionTypes = {
     SELECT_FLEET: "select_fleet",
     MOVE: "move",
     SUPPORT: "support",
-
-    // server actions
-    GET_VALID_DEPLOY_CELLS: "get_valid_deploy_cells",
-    GET_VALID_MOVE_CELLS: "get_valid_move_cells",
-    GET_VALID_ATTACK_CELLS: "get_valid_attack_cells",
-    GET_VALID_SUPPORT_CELLS: "get_valid_support_cells",
 } as const;
 
 export type TActionTypes = (typeof ActionTypes)[keyof typeof ActionTypes];
@@ -87,35 +81,6 @@ export interface IPlayCardAction extends IPlayerAction {
  * (id/order/round/playerId/cost). Mirrors IPlayerAction minus `type`.
  */
 export type TActionMeta = Pick<IPlayerAction, "id" | "order" | "round" | "playerId" | "commandPointCost">;
-
-// ================= Server Actions =================
-
-export interface IGetValidDeployCellsAction {
-    type?: typeof ActionTypes.GET_VALID_DEPLOY_CELLS;
-    playerId: string;
-    shipId: string;
-}
-
-export interface IGetValidMoveCellsAction {
-    type?: typeof ActionTypes.GET_VALID_MOVE_CELLS;
-    playerId: string;
-    shipId: string;
-}
-
-export interface IGetValidAttackCellsAction {
-    type?: typeof ActionTypes.GET_VALID_ATTACK_CELLS;
-    playerId: string;
-    shipId: string;
-}
-
-export interface IGetValidSupportCellsAction {
-    type?: typeof ActionTypes.GET_VALID_SUPPORT_CELLS;
-    playerId: string;
-    cardId: string;
-    /** Index of the Effect in the SupportConfig.effects array. Multi-effect
-     *  cards step through one Effect at a time. */
-    effectIndex: number;
-}
 
 export type TCommitDeployShipParams = Pick<IDeployAction, "shipId" | "location" | "commandPointCost">;
 export type TCommitMoveShipParams = Pick<IMoveAction, "shipId" | "targetCell" | "route" | "commandPointCost">;

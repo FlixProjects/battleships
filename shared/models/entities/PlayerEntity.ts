@@ -3,6 +3,7 @@ import { Action } from "../actions/Action";
 import { Listener } from "../listeners/Listener";
 import { IListener } from "../listeners/types";
 import { Ship } from "../Ship";
+import { PlayerGainCommandPointsSignalHandler } from "../signal-handlers/PlayerGainCommandPointsSignalHandler";
 import { PlayerRemoveCardFromHandSignalHandler } from "../signal-handlers/PlayerRemoveCardFromHandSignalHandler";
 import { PlayerSpendCommandPointsSignalHandler } from "../signal-handlers/PlayerSpendCommandPointsSignalHandler";
 import { SignalType } from "../signals/types";
@@ -53,7 +54,11 @@ export class PlayerEntity extends GameObjectEntity<PlayerEntity> implements IPla
     }
 
     protected getDefaultListeners(): IListener[] {
-        return [this.createPlayerSpendCommandPointsListener(), this.createPlayerRemoveCardFromHandListener()];
+        return [
+            this.createPlayerSpendCommandPointsListener(),
+            this.createPlayerGainCommandPointsListener(),
+            this.createPlayerRemoveCardFromHandListener(),
+        ];
     }
 
     protected createPlayerSpendCommandPointsListener() {
@@ -61,6 +66,16 @@ export class PlayerEntity extends GameObjectEntity<PlayerEntity> implements IPla
             [SignalType.PlayerSpendCommandPoints],
             (ctx) => {
                 new PlayerSpendCommandPointsSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
+    protected createPlayerGainCommandPointsListener() {
+        return new Listener(
+            [SignalType.PlayerGainCommandPoints],
+            (ctx) => {
+                new PlayerGainCommandPointsSignalHandler().handle(ctx);
             },
             this.defaultHandlerShouldHandleSignal,
         );
@@ -78,6 +93,11 @@ export class PlayerEntity extends GameObjectEntity<PlayerEntity> implements IPla
 
     public spendCommandPoints(amount: number) {
         this.commandPoints -= amount;
+        return this;
+    }
+
+    public gainCommandPoints(amount: number) {
+        this.commandPoints += amount;
         return this;
     }
 

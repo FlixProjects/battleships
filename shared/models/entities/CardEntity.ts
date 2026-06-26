@@ -1,6 +1,7 @@
 import { ICard, TCardKind } from "../../types";
 import { Listener } from "../listeners/Listener";
 import { IListener } from "../listeners/types";
+import { GetValidSupportCellsSignalHandler } from "../signal-handlers/GetValidSupportCellsSignalHandler";
 import { PlayCardSignalHandler } from "../signal-handlers/PlayCardSignalHandler";
 import { SignalType } from "../signals/types";
 import { GameObjectEntity } from "./GameObjectEntity";
@@ -24,7 +25,7 @@ export class CardEntity extends GameObjectEntity<CardEntity> implements ICard {
     }
 
     protected getDefaultListeners(): IListener[] {
-        return [this.createPlayCardListener()];
+        return [this.createPlayCardListener(), this.createGetValidSupportCellsListener()];
     }
 
     protected createPlayCardListener() {
@@ -32,6 +33,16 @@ export class CardEntity extends GameObjectEntity<CardEntity> implements ICard {
             [SignalType.PlayCard],
             (ctx) => {
                 new PlayCardSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
+    protected createGetValidSupportCellsListener() {
+        return new Listener(
+            [SignalType.GetValidSupportCells],
+            (ctx) => {
+                new GetValidSupportCellsSignalHandler().handle(ctx);
             },
             this.defaultHandlerShouldHandleSignal,
         );

@@ -1,4 +1,4 @@
-import { COLOR } from "@shared/constants";
+import { COLOR, TILE_SIZE_PX } from "@shared/constants";
 import { ISelectable } from "@shared/types/fe-types";
 import { DeployedHullIcon } from "../../../src/components/ships/DeployedHullIcon";
 import { FERenderCommand } from "./FERenderCommand";
@@ -29,6 +29,20 @@ export class FERenderHullCommand extends FERenderCommand {
 
         const color = isFirstPlayer ? COLOR.TEAL : COLOR.ORANGE;
 
+        // A ship may render smaller than its tiles (ship.renderScale). Scaling each
+        // hull about its own centre would open gaps between a multi-hull ship's
+        // pieces, so we also nudge every hull toward the ship's centroid by the slack
+        // the scale frees up — keeping the hulls anchored together. (Translate is in
+        // layout space, independent of each hull's own rotation.)
+        const scale = ship.renderScale ?? 1;
+        const hulls = ship.getHulls();
+        const centroidCol = hulls.reduce((sum, h) => sum + h.location[0], 0) / hulls.length;
+        const centroidRow = hulls.reduce((sum, h) => sum + h.location[1], 0) / hulls.length;
+        const translate = {
+            x: (centroidCol - hull.location[0]) * TILE_SIZE_PX * (1 - scale),
+            y: (centroidRow - hull.location[1]) * TILE_SIZE_PX * (1 - scale),
+        };
+
         const hullIcon = new DeployedHullIcon({
             hullId: hull.id,
             shipId: hull.shipId,
@@ -36,6 +50,8 @@ export class FERenderHullCommand extends FERenderCommand {
             imgSrc: hull.imgSrc ?? "",
             playerId,
             rotation: hull.orientation,
+            scale,
+            translate,
             mouseEnter: this.props.onMouseEnter,
             mouseLeave: this.props.onMouseLeave,
         });

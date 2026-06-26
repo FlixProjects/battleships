@@ -1,11 +1,11 @@
 import { FEHighlightLocationsCommand } from "@shared/models/commands/FEHighlightLocationsCommand";
 import { FEPlayCardCommand } from "@shared/models/commands/FEPlayCardCommand";
-import { GameEngine } from "@shared/models/GameEngine";
-import { ICellLoc, ResultType } from "@shared/types";
+import { GetValidDeployCellsSignal } from "@shared/models/signals/GetValidDeployCellsSignal";
+import { ICellLoc } from "@shared/types";
 import { locationToKey } from "@shared/utils/helpers";
 import { gameManager } from "../..";
 import { getComponents } from "../../components/component-helper";
-import { queueCommand } from "../../utils/game-helper";
+import { getEngine, queueCommand } from "../../utils/game-helper";
 import { DeployingShipIMEvent } from "../interaction-manager/types";
 import { ClickHandler } from "./ClickHandler";
 
@@ -19,14 +19,10 @@ export class DeployShipClickHandler extends ClickHandler {
         const { shipId } = this.event;
         const playerId = gameManager.getPlayer().id;
 
-        const gameEngine = new GameEngine(gameManager.state.gameState);
-        const result = gameEngine.prime.deployShip({ playerId, shipId });
-
-        if (result.type === ResultType.ERROR) {
-            throw new Error(result.message || "[Error] Failed to get valid deploy cells");
-        }
-
-        const { validCells } = result;
+        const result = getEngine().query(
+            new GetValidDeployCellsSignal({ targetId: shipId, payload: { shipId, playerId } }),
+        );
+        const validCells = result?.validCells ?? [];
 
         queueCommand(new FEHighlightLocationsCommand(getComponents().div.gameBoard, validCells));
         this.validCells = validCells;

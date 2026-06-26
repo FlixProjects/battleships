@@ -4,17 +4,25 @@ import {
     IBasicShipMoveSignalHandleCtx,
     ICellLoc,
     IGameState,
+    IGameStateManager,
+    IGetValidAttackCellsQueryCtx,
+    IGetValidDeployCellsQueryCtx,
+    IGetValidMoveCellsQueryCtx,
+    IGetValidMoveRoutesQueryCtx,
     IHull,
     IPlainShip,
     IReceiveShipAttackSignalHandleCtx,
     IShip,
 } from "@shared/types";
-import { PathFinder } from "@shared/utils/path-finder";
-import { computeDeployedHullLocation } from "@shared/utils/hull-helper";
+import { LocationHelper } from "@shared/utils";
+import { boardToPathCellNodes } from "@shared/utils/cell-node-helper";
+import { cellLocToNodeId, nodeIdToCellLoc, PathFinder, routeToCellLocs } from "@shared/utils/path-finder";
+import { computeDeployedHullLocation, HullCalculator } from "@shared/utils/hull-helper";
 import { getHull, locationToKey } from "@shared/utils/helpers";
 import { SegmentBuilder } from "@shared/utils/segment-builder";
 import { mergician } from "mergician";
 import { ShipEntity } from "./entities/ShipEntity";
+import { Movement } from "./Movement";
 import { Resolver } from "./resolvers/Resolver";
 import { GameCreateHullSignal } from "./signals/GameCreateHullSignal";
 import { HullMoveSignal } from "./signals/HullMoveSignal";
@@ -132,6 +140,109 @@ export class Ship extends ShipEntity {
         const segments = segmentBuilder.buildSegments(oldFrontLocation, endCell, startingOrientation);
         const finalOrientation = segments.reduce((sum, curr) => sum + curr.rotateDegrees, startingOrientation);
         return { finalOrientation, backLocation: oldFrontLocation };
+    }
+
+    // ===============================================================================
+    // query functions (read-only — lifted from the legacy GameEngine.prime.*)
+    // ===============================================================================
+
+    getValidMoveCells(ctx: IGetValidMoveCellsQueryCtx) {
+        const { gsm, resolve } = ctx;
+
+        const currentLoc = this.getFrontHull().location;
+        const movementRange = this.remainingMovement || 0;
+
+        const pathFinder = this.buildMoveShipPathFinder(gsm);
+        const startNode = pathFinder.getNode(cellLocToNodeId(currentLoc));
+
+        const validCells = pathFinder
+            .getReachableCells({
+                current: startNode,
+                movement: new Movement({ originalMovementCost: 1, unitsOfMovementLeft: movementRange }),
+            })
+            .map(nodeIdToCellLoc);
+
+        resolve({ validCells, origin: currentLoc });
+    }
+
+    getValidMoveRoutes(ctx: IGetValidMoveRoutesQueryCtx) {
+        const { gsm, resolve } = ctx;
+        const { destinationTileId } = ctx.signal.payload;
+
+        if (!this.hulls?.[0]) return resolve({ routes: [] });
+
+        const currentLoc = this.getFrontHull().location;
+        const movementRange = this.remainingMovement || 0;
+
+        const pathFinder = this.buildMoveShipPathFinder(gsm);
+        const startNode = pathFinder.getNode(cellLocToNodeId(currentLoc));
+
+        const routes = pathFinder.getPathToNode(
+            {
+                current: startNode,
+                movement: new Movement({ originalMovementCost: 1, unitsOfMovementLeft: movementRange }),
+            },
+            destinationTileId,
+        );
+
+        resolve({ routes: routes.map(routeToCellLocs) });
+    }
+
+    getValidAttackCells(ctx: IGetValidAttackCellsQueryCtx) {
+        const { gsm, resolve } = ctx;
+        const { playerId } = ctx.signal.payload;
+
+        // Block targeting only on tiles occupied by the player's own *live* hulls.
+        // Destroyed hulls leave the tile effectively empty — they shouldn't block
+        // the attacker from targeting through their wreck.
+        const ownShipIds = gsm.getPlayer(playerId).ships?.map((s) => s.id) ?? [];
+        const locArr = gsm.gameState.hulls
+            .filter((h) => !h.destroyed && ownShipIds.includes(h.shipId))
+            .map((h) => locationToKey(h.location));
+
+        const currentLoc = this.hulls?.find((h) => h.shipId === this.id && h.front)?.location ?? [0, 0];
+        const attackRange = this.attackRange || 0;
+
+        const validCells = PathFinder.getCellsWithinRange({
+            start: currentLoc,
+            range: attackRange,
+            minRange: this.attackMinRange,
+            filterFn: (loc: ICellLoc) => !locArr.includes(locationToKey(loc)),
+        });
+
+        resolve({ validCells, origin: currentLoc });
+    }
+
+    getValidDeployCells(ctx: IGetValidDeployCellsQueryCtx) {
+        const { gsm, resolve } = ctx;
+        const { playerId } = ctx.signal.payload;
+
+        const availableCells: ICellLoc[] = [];
+        const { rows, cols } = gsm.getBoardDimensions();
+        const isFirstPlayer = gsm.gameState.getFirstPlayerId() === playerId;
+
+        for (let i = 0; i < cols; i++) {
+            availableCells.push([i, isFirstPlayer ? 0 : rows - 1]);
+        }
+
+        const validCells = new HullCalculator(gsm, isFirstPlayer).getValidDeploymentLocations(
+            availableCells,
+            this.hullTemplates.map((ht) => ht.templateLocation),
+        );
+
+        resolve({ validCells });
+    }
+
+    private buildMoveShipPathFinder(gsm: IGameStateManager): PathFinder {
+        // FIXME: we should only take into account 'visible' ships
+        const locationHelper = new LocationHelper(gsm.getPlayers());
+
+        const pathFinder = new PathFinder();
+        pathFinder.initialiseNodes(
+            (loc: ICellLoc) => !locationHelper.isLocationOccupied(loc),
+            boardToPathCellNodes(gsm.gameState.board),
+        );
+        return pathFinder;
     }
 
     // ===============================================================================

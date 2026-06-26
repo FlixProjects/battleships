@@ -1,13 +1,13 @@
 import { FEHighlightLocationsCommand } from "@shared/models/commands/FEHighlightLocationsCommand";
 import { FEPlayCardCommand } from "@shared/models/commands/FEPlayCardCommand";
-import { GameEngine } from "@shared/models/GameEngine";
+import { GetValidSupportCellsSignal } from "@shared/models/signals/GetValidSupportCellsSignal";
 import { SupportCard } from "@shared/models";
-import { ICellLoc, PlaySupportTargetIMEvent, ResultType } from "@shared/types";
+import { ICellLoc, PlaySupportTargetIMEvent } from "@shared/types";
 import { keyToLocation, locationToKey } from "@shared/utils/helpers";
 import { gameManager, interactionManager } from "../..";
 import { getComponents } from "../../components/component-helper";
 import { Toast } from "../../components/Toast";
-import { queueCommand } from "../../utils/game-helper";
+import { getEngine, queueCommand } from "../../utils/game-helper";
 import { FEEffect } from "../effects";
 import { ClickHandler } from "./ClickHandler";
 
@@ -31,13 +31,11 @@ export class SelectTargetClickHandler extends ClickHandler {
         const { cardId, effectIndex } = this.event;
         const playerId = gameManager.getCurrentPlayerId();
 
-        const gameEngine = new GameEngine(gameManager.state.gameState);
-        const result = gameEngine.prime.playSupport({ playerId, cardId, effectIndex });
-        if (result.type === ResultType.ERROR) {
-            throw new Error(result.message || "[Error] Failed to prime SupportCard target");
-        }
+        const result = getEngine().query(
+            new GetValidSupportCellsSignal({ targetId: cardId, payload: { cardId, playerId, effectIndex } }),
+        );
 
-        this.validCells = result.validCells;
+        this.validCells = result?.validCells ?? [];
         this.announceCurrentEffect();
         queueCommand(new FEHighlightLocationsCommand(getComponents().div.gameBoard, this.validCells));
 
