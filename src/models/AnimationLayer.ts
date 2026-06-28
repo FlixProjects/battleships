@@ -66,10 +66,8 @@ export class AnimationLayer {
     public copyToLayer(animationId: string, elementToAnimate: HTMLElement, customRect?: DOMRect): HTMLElement {
         this.initialiseLayer();
 
-        const { top, left } = this.calculateRelativePosition(
-            customRect ?? elementToAnimate.getBoundingClientRect(),
-            this.layer.getBoundingClientRect(),
-        );
+        const sourceRect = customRect ?? elementToAnimate.getBoundingClientRect();
+        const { top, left } = this.calculateRelativePosition(sourceRect, this.layer.getBoundingClientRect());
 
         const clone = elementToAnimate.cloneNode(true) as HTMLElement;
         this.addToAnimationMap(animationId, clone);
@@ -78,6 +76,9 @@ export class AnimationLayer {
         clone.style.position = "absolute";
         clone.style.top = `${top}px`;
         clone.style.left = `${left}px`;
+
+        clone.style.width = `${sourceRect.width}px`;
+        clone.style.height = `${sourceRect.height}px`;
 
         return clone;
     }
