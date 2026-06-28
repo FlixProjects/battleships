@@ -1,13 +1,13 @@
-import { v7 as uuidv7 } from "uuid";
+import { EFFECTS_CONFIG } from "../config/constants";
 import { Effect } from "../models/effects/Effect";
-import { EffectKind, IEffect, IEffectConfig, IVisionEffectPayload } from "../types";
+import { IEffect, IEffectOverride, IEffectTemplate, TEffectRefNo } from "../types";
 
 type EffectConstructor = new (props: Readonly<IEffect>) => Effect;
 
 /**
  * Registry mapping each persisted Effect `refNo` to its concrete Effect
  * subclass. Concrete Effects register themselves here so the system stays
- * open for extension (Flare, FlarePersistent, GrantCommandPoint, …) without
+ * open for extension (Flare, FlarePersistent, GainCommandPoint, …) without
  * touching the base Effect class.
  */
 const effectConstructors = new Map<string, EffectConstructor>();
@@ -26,31 +26,13 @@ export const createEffect = (props: Readonly<IEffect>): Effect => {
 
 export const hasEffect = (refNo: string): boolean => effectConstructors.has(refNo);
 
-export const buildInactiveEffect = (args: {
-    effectConfig: IEffectConfig;
-    playerId: string;
-    cardId: string;
-}): Effect => {
-    const { effectConfig, playerId, cardId } = args;
-
-    const payload =
-        effectConfig.kind === EffectKind.Vision
-            ? ({ kind: EffectKind.Vision, range: effectConfig.range } as IVisionEffectPayload)
-            : ({ kind: EffectKind.CommandPoint, amount: 0 } as const);
-
-    const plain: IEffect = {
-        id: uuidv7(),
-        refNo: effectConfig.refNo,
-        kind: effectConfig.kind,
-        sourceCardId: cardId,
-        playerId,
-        duration: effectConfig.duration,
-        isActive: false,
-        createdOnRound: 0,
-        expiresAfterRound: undefined,
-        existsOnBoard: effectConfig.existsOnBoard,
-        payload,
-        location: undefined,
-    };
-    return createEffect(plain);
+/**
+ * Only used at game creation time to create plain effects
+ */
+export const resolveEffectTemplate = (override: IEffectOverride): IEffectTemplate => {
+    const base = EFFECTS_CONFIG[override.refNo as TEffectRefNo];
+    if (!base) {
+        throw new Error(`resolveEffectTemplate: unknown effect refNo '${override.refNo}'`);
+    }
+    return { ...base, ...override } as IEffectTemplate;
 };

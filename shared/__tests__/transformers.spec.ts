@@ -9,7 +9,16 @@ import {
     transformPlainAppStateToDomain,
     transformPlainGameStateToDomain,
 } from "../transformers";
-import { IAppState, IGameStateData, IHull, IPlainAppState, IPlainGameState, IShip, TShipRefNo } from "../types/types";
+import {
+    IAppState,
+    IGameStateData,
+    IHull,
+    IPlainAppState,
+    IPlainGameState,
+    IShip,
+    IVisionEffect,
+    TShipRefNo,
+} from "../types/types";
 
 const playerBuilder = new PlayerBuilder({
     id: "player1",
@@ -54,9 +63,30 @@ describe("transformGameStateToPlain", () => {
     });
 
     it("flattens deck.cards and deck.played to ID arrays via Deck.toPlain", () => {
-        const card1 = { id: "card-1", deckId: "deck-1", instanceId: "ship-1", kind: CardKind.Ship, refNo: "frigate0", name: "Frigate" };
-        const card2 = { id: "card-2", deckId: "deck-1", instanceId: "ship-2", kind: CardKind.Ship, refNo: "flagship0", name: "Flagship" };
-        const card3 = { id: "card-3", deckId: "deck-1", instanceId: "ship-3", kind: CardKind.Ship, refNo: "frigate0", name: "Frigate" };
+        const card1 = {
+            id: "card-1",
+            deckId: "deck-1",
+            instanceId: "ship-1",
+            kind: CardKind.Ship,
+            refNo: "frigate0",
+            name: "Frigate",
+        };
+        const card2 = {
+            id: "card-2",
+            deckId: "deck-1",
+            instanceId: "ship-2",
+            kind: CardKind.Ship,
+            refNo: "flagship0",
+            name: "Flagship",
+        };
+        const card3 = {
+            id: "card-3",
+            deckId: "deck-1",
+            instanceId: "ship-3",
+            kind: CardKind.Ship,
+            refNo: "frigate0",
+            name: "Frigate",
+        };
 
         const gs = new GameState({
             code: "GAME123",
@@ -138,6 +168,20 @@ describe("transformPlainGameStateToDomain", () => {
     });
 
     it("round-trips a vision Effect through plain and domain forms", () => {
+        const visionEffect: IVisionEffect = {
+            id: "effect-1",
+            refNo: "flare_persistent",
+            kind: "vision",
+            sourceCardId: "card-flare",
+            playerId: "player1",
+            duration: 2,
+            isActive: true,
+            createdOnRound: 1,
+            expiresAfterRound: 2,
+            existsOnBoard: true,
+            location: [1, 1],
+            range: 2,
+        };
         const plain: IPlainGameState = {
             code: "GAME123",
             currentRound: 2,
@@ -146,21 +190,7 @@ describe("transformPlainGameStateToDomain", () => {
             hulls: [],
             cards: [],
             decks: [],
-            effects: [
-                {
-                    id: "effect-1",
-                    refNo: "flare_persistent",
-                    kind: "vision",
-                    sourceCardId: "card-flare",
-                    playerId: "player1",
-                    duration: 2,
-                    isActive: true,
-                    createdOnRound: 1,
-                    expiresAfterRound: 2,
-                    payload: { kind: "vision", center: [1, 1], range: 2 },
-                    existsOnBoard: true,
-                },
-            ],
+            effects: [visionEffect],
             winners: [],
             isOver: false,
         };
@@ -174,9 +204,30 @@ describe("transformPlainGameStateToDomain", () => {
 
     it("rehydrates deck.cards and deck.played from the flat cards list", () => {
         const cards = [
-            { id: "card-1", deckId: "deck-1", instanceId: "ship-1", kind: CardKind.Ship, refNo: "frigate0", name: "Frigate" },
-            { id: "card-2", deckId: "deck-1", instanceId: "ship-2", kind: CardKind.Ship, refNo: "flagship0", name: "Flagship" },
-            { id: "card-3", deckId: "deck-1", instanceId: "ship-3", kind: CardKind.Ship, refNo: "frigate0", name: "Frigate" },
+            {
+                id: "card-1",
+                deckId: "deck-1",
+                instanceId: "ship-1",
+                kind: CardKind.Ship,
+                refNo: "frigate0",
+                name: "Frigate",
+            },
+            {
+                id: "card-2",
+                deckId: "deck-1",
+                instanceId: "ship-2",
+                kind: CardKind.Ship,
+                refNo: "flagship0",
+                name: "Flagship",
+            },
+            {
+                id: "card-3",
+                deckId: "deck-1",
+                instanceId: "ship-3",
+                kind: CardKind.Ship,
+                refNo: "frigate0",
+                name: "Frigate",
+            },
         ];
         const plain: IPlainGameState = {
             code: "GAME123",

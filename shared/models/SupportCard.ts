@@ -3,6 +3,7 @@ import {
     ICard,
     ICellLoc,
     IEffectConfig,
+    IEffectTemplate,
     IGameState,
     IGameStateManager,
     IGetValidSupportCellsQueryCtx,
@@ -17,25 +18,31 @@ import {
 import { keyToLocation, locationToKey } from "../utils/helpers";
 import { PathFinder } from "../utils/path-finder";
 import { Card, ICardSelectionHandlers } from "./Card";
+import { Effect } from "./effects/Effect";
 import { DeckAddToPlayedSignal } from "./signals/DeckAddToPlayedSignal";
-import { GameActivateEffectSignal } from "./signals/GameActivateEffectSignal";
+import { GameCreateEffectSignal } from "./signals/GameCreateEffectSignal";
 import { PlayerRemoveCardFromHandSignal } from "./signals/PlayerRemoveCardFromHandSignal";
 import { PlayerSpendCommandPointsSignal } from "./signals/PlayerSpendCommandPointsSignal";
+
+export interface ICreateEffectsArgs {
+    playerId: string;
+    currentRound: number;
+    targetCell?: ICellLoc;
+}
 
 export class SupportCard extends Card {
     public readonly description: string;
     public readonly commandPointCost: number;
-    public readonly effects: IEffectConfig[];
+    public readonly effectTemplates: IEffectTemplate[];
     public readonly imgSrc: string;
 
     constructor(props: Readonly<ICard>) {
         super(props);
         // Resolved data is persisted on the card at creation (buildPlayerStartingState).
-        // Never re-derive from SUPPORTS_CONFIG / EFFECTS_CONFIG here. `name` lives
-        // on the Card base.
+        // Never re-derive from SUPPORTS_CONFIG. `name` lives on the Card base.
         this.description = props.description ?? "";
         this.commandPointCost = props.commandPointCost ?? 0;
-        this.effects = props.effects ?? [];
+        this.effectTemplates = props.effectTemplates ?? [];
         this.imgSrc = props.imgSrc ?? "";
     }
 
@@ -50,22 +57,11 @@ export class SupportCard extends Card {
         }
         const { targetCell } = cardPayload as ISupportCardPayload;
 
-        // Activate this card's pre-created Effects (they already live in GameState,
-        // minted inactive at game creation) — mirrors how a ShipCard deploys its Ship.
-        // GameState owns the toggle (symmetric with expiry-deactivation).
-        const activateSignals = gsm.gameState.effects
-            .filter((e) => e.sourceCardId === this.id)
-            .map(
-                (effect) =>
-                    new GameActivateEffectSignal({
-                        senderId: this.id,
-                        originId: signal.id,
-                        payload: { effectId: effect.id, targetCell },
-                    }),
-            );
+        // Mint this card's live Effects and hand each to GameState to add + resolve.
+        const effects = this.createEffects({ playerId, targetCell, currentRound: gsm.gameState.currentRound });
 
         emitter([
-            ...activateSignals,
+            ...effects.map((effect) => this.toCreateEffectSignal(effect, signal.id)),
             new PlayerSpendCommandPointsSignal({
                 targetId: playerId,
                 senderId: this.id,
@@ -90,6 +86,23 @@ export class SupportCard extends Card {
         return gsm.gameState;
     }
 
+    /**
+     * Build the live Effects this card produces from its templates. Concrete
+     * cards (FlareCard, InspireCard) override this; the base only exists so an
+     * unregistered Support fails loudly rather than silently doing nothing.
+     */
+    protected createEffects(_args: ICreateEffectsArgs): Effect[] {
+        throw new Error(`SupportCard ${this.id} (refNo=${this.refNo}) does not implement createEffects`);
+    }
+
+    private toCreateEffectSignal(effect: Effect, originId: string): GameCreateEffectSignal {
+        return new GameCreateEffectSignal({
+            senderId: this.id,
+            originId,
+            payload: { effect: effect.toPlain() },
+        });
+    }
+
     // ===============================================================================
     // query functions (read-only — lifted from the legacy GameEngine.prime.playSupport)
     // ===============================================================================
@@ -98,18 +111,18 @@ export class SupportCard extends Card {
         const { gsm, resolve } = ctx;
         const { playerId, effectIndex } = ctx.signal.payload;
 
-        // Read the resolved Effect config persisted on the card at creation —
+        // Read the resolved template persisted on the card at creation —
         // never re-derive from SUPPORTS_CONFIG / EFFECTS_CONFIG at query time.
-        const effectConfig = this.effects[effectIndex];
-        if (!effectConfig) {
+        const template = this.effectTemplates[effectIndex];
+        if (!template) {
             throw new Error(`getValidTargetCells: effectIndex ${effectIndex} out of range for ${this.refNo}`);
         }
 
-        if (effectConfig.range === 0) {
+        if (template.range === 0) {
             return resolve({ validCells: [], requiresTarget: false });
         }
 
-        const validCells = this.computeAnchoredCells(gsm, playerId, effectConfig);
+        const validCells = this.computeAnchoredCells(gsm, playerId, template);
         resolve({ validCells, requiresTarget: true });
     }
 
@@ -117,8 +130,8 @@ export class SupportCard extends Card {
      * Manhattan-distance reachable cells from the configured anchor. For
      * `any_tile` we treat the whole board as the seed set (no anchor cell).
      */
-    private computeAnchoredCells(gsm: IGameStateManager, playerId: string, effectConfig: IEffectConfig): ICellLoc[] {
-        if (effectConfig.anchor === EffectAnchor.AnyTile) {
+    private computeAnchoredCells(gsm: IGameStateManager, playerId: string, template: IEffectConfig): ICellLoc[] {
+        if (template.anchor === EffectAnchor.AnyTile) {
             const all: ICellLoc[] = [];
             const { rows, cols } = gsm.getBoardDimensions();
             for (let x = 0; x < cols; x++) {
@@ -129,11 +142,11 @@ export class SupportCard extends Card {
             return all;
         }
 
-        const anchorCells = this.getAnchorCells(gsm, playerId, effectConfig.anchor);
+        const anchorCells = this.getAnchorCells(gsm, playerId, template.anchor);
         const reached = new Set<string>();
         anchorCells.forEach((origin) => {
             reached.add(locationToKey(origin));
-            PathFinder.getCellsWithinRange({ start: origin, range: effectConfig.range }).forEach((cell) =>
+            PathFinder.getCellsWithinRange({ start: origin, range: template.range }).forEach((cell) =>
                 reached.add(locationToKey(cell)),
             );
         });
@@ -166,7 +179,7 @@ export class SupportCard extends Card {
     }
 
     public getSelectionEvent(handlers: ICardSelectionHandlers): IMEvent {
-        const firstEffect = this.effects[0];
+        const firstEffect = this.effectTemplates[0];
 
         if (firstEffect && firstEffect.range > 0) {
             const event: PlaySupportTargetIMEvent = {
@@ -193,7 +206,7 @@ export class SupportCard extends Card {
             ...super.toPlain(),
             description: this.description,
             commandPointCost: this.commandPointCost,
-            effects: this.effects,
+            effectTemplates: this.effectTemplates,
             imgSrc: this.imgSrc,
         };
     }

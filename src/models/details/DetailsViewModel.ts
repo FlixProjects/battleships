@@ -1,5 +1,5 @@
 import { ASSET_PATHS, TColor } from "@shared/constants";
-import { EffectKind, IEffect, IShip, IVisionEffectPayload } from "@shared/types";
+import { IEffect, IShip, isVisionEffect } from "@shared/types";
 
 export interface DetailsStat {
     iconSrc: string;
@@ -55,9 +55,8 @@ export const buildEffectDetails = (
     source: { name: string; description: string },
 ): DetailsViewModel => {
     const stats: DetailsStat[] = [];
-    if (effect.kind === EffectKind.Vision) {
-        const payload = effect.payload as IVisionEffectPayload;
-        stats.push({ iconSrc: ASSET_PATHS.VISION_ICON, label: "Vision range", value: payload.range });
+    if (isVisionEffect(effect)) {
+        stats.push({ iconSrc: ASSET_PATHS.VISION_ICON, label: "Vision range", value: effect.range });
     }
     stats.push({ iconSrc: ASSET_PATHS.DURATION_ICON, label: "Duration", value: `${effect.duration} rounds` });
 

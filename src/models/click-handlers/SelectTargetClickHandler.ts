@@ -93,14 +93,14 @@ export class SelectTargetClickHandler extends ClickHandler {
     private hasMoreEffects(): boolean {
         const card = this.getCard();
         if (!card) return false;
-        return this.event.effectIndex + 1 < card.effects.length;
+        return this.event.effectIndex + 1 < card.effectTemplates.length;
     }
 
     private dispatchNextEffect() {
         const card = this.getCard();
         if (!card) return;
         const nextIndex = this.event.effectIndex + 1;
-        const nextEffectConfig = card.effects[nextIndex];
+        const nextEffectConfig = card.effectTemplates[nextIndex];
         if (!nextEffectConfig) return;
 
         const nextFEEffect = new FEEffect(card.id, nextIndex, nextEffectConfig);
@@ -114,8 +114,8 @@ export class SelectTargetClickHandler extends ClickHandler {
 
     private announceCurrentEffect() {
         const card = this.getCard();
-        if (!card || card.effects.length <= 1) return;
-        const effectConfig = card.effects[this.event.effectIndex];
+        if (!card || card.effectTemplates.length <= 1) return;
+        const effectConfig = card.effectTemplates[this.event.effectIndex];
         if (!effectConfig) return;
         Toast.show({
             message: `${card.name}: pick a tile for "${effectConfig.refNo}"`,

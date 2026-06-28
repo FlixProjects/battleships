@@ -1,5 +1,5 @@
 import { locationToKey } from "@shared/utils";
-import { EffectKind, ICellLoc, IEffect, IGameState, IPlainEffect, ISignalHandleCtx, IVisionEffectPayload } from "../../types";
+import { IEffect, IGameState, IPlainEffect, ISignalHandleCtx } from "../../types";
 import { EffectEntity } from "../entities/EffectEntity";
 
 /**
@@ -11,25 +11,6 @@ import { EffectEntity } from "../entities/EffectEntity";
 export class Effect extends EffectEntity {
     constructor(props: Readonly<IEffect>) {
         super(props);
-    }
-
-    /**
-     * Activate a pre-created Effect when its source card is played: stamp the
-     * target, the round it was created, and the derived expiry, and mark it
-     * active so it starts contributing to resolution/vision.
-     */
-    public activate(targetCell: ICellLoc | undefined, currentRound: number): this {
-        this.isActive = true;
-        this.createdOnRound = currentRound;
-        this.expiresAfterRound = this.duration > 0 ? currentRound + this.duration : undefined;
-        if (targetCell) {
-            this.location = targetCell;
-        }
-        if (this.kind === EffectKind.Vision && targetCell) {
-            const vision = this.payload as IVisionEffectPayload;
-            this.payload = { kind: EffectKind.Vision, range: vision.range, center: targetCell };
-        }
-        return this;
     }
 
     public resolve(_ctx: ISignalHandleCtx): void {
@@ -61,6 +42,10 @@ export class Effect extends EffectEntity {
         return this;
     }
 
+    /** Base effect fields only. Concrete effects override to append their
+     *  flattened kind-specific fields (range, commandPointAmount, …). We list
+     *  fields explicitly rather than spread `this` to keep entity internals
+     *  (listeners, visibility) out of the persisted shape. */
     public toPlain(): IPlainEffect {
         return {
             id: this.id,
@@ -72,9 +57,7 @@ export class Effect extends EffectEntity {
             isActive: this.isActive,
             createdOnRound: this.createdOnRound,
             expiresAfterRound: this.expiresAfterRound,
-            payload: this.payload,
             existsOnBoard: this.existsOnBoard,
-            location: this.location,
         };
     }
 }

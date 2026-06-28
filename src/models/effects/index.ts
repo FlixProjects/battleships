@@ -9,5 +9,5 @@ export { FEEffect };
  * chain via `onSuccessfulSelect`.
  */
 export const buildFEEffects = (card: SupportCard): FEEffect[] => {
-    return card.effects.map((cfg, idx) => new FEEffect(card.id, idx, cfg));
+    return card.effectTemplates.map((cfg, idx) => new FEEffect(card.id, idx, cfg));
 };

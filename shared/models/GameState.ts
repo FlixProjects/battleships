@@ -1,6 +1,5 @@
 import clone from "lodash.clonedeep";
 import {
-    EffectKind,
     IBoard,
     ICard,
     ICellLoc,
@@ -17,7 +16,7 @@ import {
     IPlayer,
     IPlayerAction,
     IShip,
-    IVisionEffectPayload,
+    isVisionEffect,
 } from "../types";
 import { mergeSets } from "../utils";
 import { createCard } from "../utils/card-helper";
@@ -337,15 +336,6 @@ export class GameState extends GameStateEntity implements IGameState {
         return this;
     }
 
-    /**
-     * Toggle a pre-created Effect active (its source card was played), stamping
-     * the target/round/expiry. Counterpart to `deactivateExpiredEffects`.
-     */
-    activateEffect(effectId: string, targetCell?: ICellLoc): Effect | undefined {
-        const effect = this.effects.find((e) => e.id === effectId);
-        effect?.activate(targetCell, this.currentRound);
-        return effect;
-    }
 
     /**
      * Returns Effects that are currently in play on this round, optionally
@@ -406,13 +396,13 @@ export class GameState extends GameStateEntity implements IGameState {
     private getVisionFromEffectsForPlayer(playerId: string): Set<string> {
         const tiles = new Set<string>();
 
-        this.getActiveEffects(playerId)
-            .filter((e) => e.kind === EffectKind.Vision)
+        const activeEffects: IEffect[] = this.getActiveEffects(playerId);
+        activeEffects
+            .filter(isVisionEffect)
             .forEach((e) => {
-                const payload = e.payload as IVisionEffectPayload;
-                if (!payload.center) return; // inactive/untargeted — contributes no vision
-                tiles.add(locationToKey(payload.center));
-                PathFinder.getCellsWithinRange({ start: payload.center, range: payload.range }).forEach((cell) =>
+                if (!e.location) return; // untargeted — contributes no vision
+                tiles.add(locationToKey(e.location));
+                PathFinder.getCellsWithinRange({ start: e.location, range: e.range }).forEach((cell) =>
                     tiles.add(locationToKey(cell)),
                 );
             });
@@ -521,16 +511,12 @@ export class GameState extends GameStateEntity implements IGameState {
     }
 
     /**
-     * Effects are owned like Ships — never dropped from state. An expired effect
-     * is simply deactivated (kept around, `isActive: false`) so it stops being
-     * resolved / contributing vision.
+     * Effects are minted when their Support is played and destroyed once their
+     * duration is up — an expired effect is dropped from state entirely so it
+     * stops being resolved / contributing vision.
      */
-    deactivateExpiredEffects() {
-        this.effects.forEach((e) => {
-            if (e.isActive && e.hasExpired(this.currentRound)) {
-                e.isActive = false;
-            }
-        });
+    removeExpiredEffects() {
+        this.effects = this.effects.filter((e) => !e.hasExpired(this.currentRound));
         return this;
     }
 

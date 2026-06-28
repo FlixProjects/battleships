@@ -4,10 +4,10 @@ import { HullBuilder } from "../../../factories/hull-builder";
 import { PlayerBuilder } from "../../../factories/player-builder";
 import { ShipBuilder } from "../../../factories/ship-builder";
 import {
+    EffectAnchor,
     ICard,
     IDeck,
     IDeployAction,
-    IEffect,
     IHullTemplate,
     IMoveAction,
     IPlayCardAction,
@@ -736,31 +736,28 @@ describe("ActionResolver", () => {
     });
 
     describe("resolveAction (PlayCard: Support card → Flare)", () => {
-        // Effects are minted up-front and live in GameState inactive; playing the
-        // card activates them. Mirrors what buildPlayerStartingState produces.
+        // Support cards carry effectTemplates; playing one mints + persists the
+        // Effect. Mirrors what buildPlayerStartingState produces.
         const buildFlareCardEntities = () => {
-            const effect: IEffect = {
-                id: "effect-flare",
-                refNo: "flare_persistent",
-                kind: "vision",
-                sourceCardId: "card-flare",
-                playerId: "player1",
-                duration: 2,
-                isActive: false,
-                createdOnRound: 0,
-                expiresAfterRound: undefined,
-                payload: { kind: "vision", range: 2 },
-                existsOnBoard: true,
-            };
             const card: ICard = {
                 id: "card-flare",
                 deckId: "deck-1",
-                instanceId: "effect-flare",
+                instanceId: "card-flare",
                 kind: CardKind.Support,
                 refNo: "flare",
                 name: "Flare",
                 description: "Reveal a target area.",
                 commandPointCost: 1,
+                effectTemplates: [
+                    {
+                        refNo: "flare_persistent",
+                        kind: "vision",
+                        anchor: EffectAnchor.AnyTile,
+                        range: 2,
+                        duration: 2,
+                        existsOnBoard: true,
+                    },
+                ],
             };
             const deck: IDeck = {
                 id: "deck-1",
@@ -769,11 +766,11 @@ describe("ActionResolver", () => {
                 cards: [],
                 played: [],
             };
-            return { card, deck, effect };
+            return { card, deck };
         };
 
         it("plays Flare, persists a vision Effect, deducts CP, and reveals the target tile to the playing player", () => {
-            const { card, deck, effect: preEffect } = buildFlareCardEntities();
+            const { card, deck } = buildFlareCardEntities();
             // Place an opponent hull at [1,1] so we can verify visibility leakage
             // through the persisted Flare Effect.
             const opponentHull = hullBuilder.build({
@@ -801,7 +798,6 @@ describe("ActionResolver", () => {
                 ships: [opponentShip],
                 hulls: [opponentHull],
                 cards: [card],
-                effects: [preEffect],
                 decks: [deck],
             });
 
@@ -843,8 +839,8 @@ describe("ActionResolver", () => {
             expect(visibleTiles.has("1/1")).toBe(true);
         });
 
-        it("expires the persistent Flare Effect after its lifetime is up", () => {
-            const { card, deck, effect } = buildFlareCardEntities();
+        it("removes the persistent Flare Effect after its lifetime is up", () => {
+            const { card, deck } = buildFlareCardEntities();
             const player1 = buildPlayer1({
                 hand: ["card-flare"],
                 deck: "deck-1",
@@ -856,7 +852,6 @@ describe("ActionResolver", () => {
             const gameState = gameStateBuilder.build({
                 players: [player1, player2],
                 cards: [card],
-                effects: [effect],
                 decks: [deck],
             });
 
@@ -876,13 +871,82 @@ describe("ActionResolver", () => {
             expect(resolver.gameState.effects).toHaveLength(1);
             expect(resolver.gameState.effects[0].isActive).toBe(true);
 
-            // Simulate the round advancing past expiry. Effects are owned like
-            // Ships — kept in state but deactivated once expired.
+            // Simulate the round advancing past expiry. Effects are minted on
+            // play and destroyed once their duration is up.
             resolver.gameState.update({});
             resolver.gameState.currentRound = 4;
             resolver.resolveExpiredEffects();
-            expect(resolver.gameState.effects).toHaveLength(1);
-            expect(resolver.gameState.effects[0].isActive).toBe(false);
+            expect(resolver.gameState.effects).toHaveLength(0);
+        });
+    });
+
+    describe("resolveAction (PlayCard: Support card → Inspire)", () => {
+        const buildInspireCardEntities = () => {
+            const card: ICard = {
+                id: "card-inspire",
+                deckId: "deck-1",
+                instanceId: "card-inspire",
+                kind: CardKind.Support,
+                refNo: "inspire",
+                name: "Inspire",
+                description: "Gain command points.",
+                commandPointCost: 0,
+                effectTemplates: [
+                    {
+                        refNo: "gain_command_point",
+                        kind: "command_point",
+                        anchor: EffectAnchor.Flagship,
+                        range: 0,
+                        duration: 0,
+                        existsOnBoard: false,
+                        commandPointAmount: 1,
+                    },
+                ],
+            };
+            const deck: IDeck = {
+                id: "deck-1",
+                playerId: "player1",
+                faction: Faction.THE_UNITED_DEFENSE_FLEET,
+                cards: [],
+                played: [],
+            };
+            return { card, deck };
+        };
+
+        it("plays Inspire, grants command points, and persists no Effect (one-shot)", () => {
+            const { card, deck } = buildInspireCardEntities();
+            const player1 = buildPlayer1({
+                hand: ["card-inspire"],
+                deck: "deck-1",
+                commandPoints: 1,
+                maxCommandPoints: 5,
+            });
+            const player2 = buildPlayer2();
+
+            const gameState = gameStateBuilder.build({
+                players: [player1, player2],
+                cards: [card],
+                decks: [deck],
+            });
+
+            const action: IPlayCardAction = {
+                id: "play-inspire-1",
+                type: ActionTypes.PLAY_CARD,
+                playerId: "player1",
+                round: 1,
+                order: 0,
+                commandPointCost: 0,
+                cardId: "card-inspire",
+                payload: { kind: "Support" },
+            };
+
+            const next = new ActionResolver("player1", gameState).resolveAction(action);
+
+            // CP granted (1 + amount 1), card moved hand → played, no lingering Effect.
+            expect(next.players.find((p) => p.id === "player1")?.commandPoints).toBe(2);
+            expect(next.players.find((p) => p.id === "player1")?.hand).toEqual([]);
+            expect(next.decks.find((d) => d.id === "deck-1")?.played.map((c) => c.id)).toEqual(["card-inspire"]);
+            expect(next.effects).toHaveLength(0);
         });
     });
 });

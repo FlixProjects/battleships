@@ -126,7 +126,7 @@ describe("GameEngineV2 query path", () => {
             name: "Flare",
             description: "Reveal a target area.",
             commandPointCost: 1,
-            effects: [
+            effectTemplates: [
                 {
                     refNo: "flare_persistent",
                     kind: "vision",

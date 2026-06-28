@@ -1,10 +1,10 @@
-import { IEffect, TEffectKind, TEffectPayload } from "../../types";
+import { IEffect, TEffectKind, TEffectRefNo } from "../../types";
 import { locationToKey } from "../../utils/helpers";
 import { GameObjectWithVisibilityEntity } from "./GameObjectWithVisibilityEntity";
 
 export class EffectEntity extends GameObjectWithVisibilityEntity<EffectEntity> implements IEffect {
     id: string;
-    refNo: string;
+    refNo: TEffectRefNo;
     kind: TEffectKind;
     sourceCardId: string;
     playerId: string;
@@ -12,7 +12,6 @@ export class EffectEntity extends GameObjectWithVisibilityEntity<EffectEntity> i
     isActive: boolean;
     createdOnRound: number;
     expiresAfterRound?: number;
-    payload: TEffectPayload;
     existsOnBoard: boolean;
 
     constructor(props: Readonly<IEffect>) {
