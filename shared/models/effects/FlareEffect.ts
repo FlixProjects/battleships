@@ -25,7 +25,7 @@ export class FlareEffect extends Effect {
     }
 
     public toPlain(): IVisionEffect {
-        return { ...super.toPlain(), kind: EffectKind.Vision, range: this.range };
+        return { ...super.toPlain(), kind: EffectKind.Vision, location: this.location, range: this.range };
     }
 }
 

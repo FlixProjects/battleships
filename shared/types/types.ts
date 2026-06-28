@@ -251,13 +251,11 @@ export interface IEffect {
      *  it the effect is removed from state. Undefined for one-shots. */
     expiresAfterRound?: number;
     existsOnBoard: boolean;
-    /** The targeted cell, stamped at creation. Vision radiates from here. */
-    location?: ICellLoc;
 }
 
-/** Vision effects (Flare) reveal `range` tiles around their `location`. */
 export interface IVisionEffect extends IEffect {
     kind: typeof EffectKind.Vision;
+    location: ICellLoc;
     range: number;
 }
 

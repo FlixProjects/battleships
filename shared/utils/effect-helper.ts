@@ -59,7 +59,8 @@ export const buildEffect = (args: {
         isActive: true,
         createdOnRound: currentRound,
         expiresAfterRound: template.duration > 0 ? currentRound + template.duration : undefined,
-        location: targetCell,
+        // Only on-board (targeted) effects carry a location.
+        ...(targetCell ? { location: targetCell } : {}),
         ...template,
     };
     return createEffect(plain);

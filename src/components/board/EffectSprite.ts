@@ -1,5 +1,5 @@
 import { TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
-import { ICellLoc, IEffect } from "@shared/types";
+import { ICellLoc, IEffect, isVisionEffect } from "@shared/types";
 import { BaseComponent } from "../BaseComponent";
 import FlickerCssAnimStyle from "../../css-anim-styles/models/flicker-style";
 
@@ -30,7 +30,8 @@ export class EffectSprite extends BaseComponent {
     }
 
     private getCenter(): ICellLoc | undefined {
-        return this.props.effect.location;
+        const { effect } = this.props;
+        return isVisionEffect(effect) ? effect.location : undefined;
     }
 
     private applyPositioning(center: ICellLoc) {
