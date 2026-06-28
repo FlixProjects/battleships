@@ -1,9 +1,10 @@
+import { v7 as uuidv7 } from "uuid";
 import { SUPPORT_REF_NO } from "../../config/constants";
 import { EffectKind } from "../../types";
-import { buildEffect } from "../../utils/effect-helper";
 import { registerSupportCard } from "../../utils/support-card-helper";
 import { Effect } from "../effects/Effect";
 import { ICreateEffectsArgs, SupportCard } from "../SupportCard";
+import { createEffect } from "@shared/utils/effect-helper";
 
 /**
  * Support that grants command points: each template mints a one-shot
@@ -17,11 +18,13 @@ export class InspireCard extends SupportCard {
                     `InspireCard ${this.id} expects a command-point effect, got '${template.kind}' (${template.refNo})`,
                 );
             }
-            return buildEffect({
-                template,
-                playerId,
+            return createEffect({
+                id: uuidv7(),
                 sourceCardId: this.id,
-                currentRound,
+                playerId,
+                isActive: true,
+                createdOnRound: currentRound,
+                ...template,
             });
         });
     }

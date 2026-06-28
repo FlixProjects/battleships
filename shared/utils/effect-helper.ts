@@ -1,7 +1,6 @@
-import { v7 as uuidv7 } from "uuid";
 import { EFFECTS_CONFIG } from "../config/constants";
 import { Effect } from "../models/effects/Effect";
-import { ICellLoc, IEffect, IEffectOverride, IEffectTemplate, TEffectRefNo } from "../types";
+import { IEffect, IEffectOverride, IEffectTemplate, TEffectRefNo } from "../types";
 
 type EffectConstructor = new (props: Readonly<IEffect>) => Effect;
 
@@ -36,32 +35,4 @@ export const resolveEffectTemplate = (override: IEffectOverride): IEffectTemplat
         throw new Error(`resolveEffectTemplate: unknown effect refNo '${override.refNo}'`);
     }
     return { ...base, ...override } as IEffectTemplate;
-};
-
-/**
- * Mint a live, active Effect from a resolved template when its Support card is
- * played. The caller (a SupportCard subclass) supplies the kind-specific
- * payload; expiry is derived from the template's duration (0 = one-shot).
- */
-export const buildEffect = (args: {
-    template: IEffectTemplate;
-    playerId: string;
-    sourceCardId: string;
-    currentRound: number;
-    targetCell?: ICellLoc;
-}): Effect => {
-    const { template, playerId, sourceCardId, currentRound, targetCell } = args;
-
-    const plain: IEffect = {
-        id: uuidv7(),
-        sourceCardId,
-        playerId,
-        isActive: true,
-        createdOnRound: currentRound,
-        expiresAfterRound: template.duration > 0 ? currentRound + template.duration : undefined,
-        // Only on-board (targeted) effects carry a location.
-        ...(targetCell ? { location: targetCell } : {}),
-        ...template,
-    };
-    return createEffect(plain);
 };
