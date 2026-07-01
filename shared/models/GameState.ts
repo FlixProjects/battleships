@@ -1,3 +1,4 @@
+import { createCellNodeByRefNo } from "@shared/utils/cell-node-helper";
 import clone from "lodash.clonedeep";
 import {
     IBoard,
@@ -17,6 +18,8 @@ import {
     IPlayerAction,
     IShip,
     isVisionEffect,
+    TEffectKind,
+    TEffectRefNo
 } from "../types";
 import { mergeSets } from "../utils";
 import { createCard } from "../utils/card-helper";
@@ -27,13 +30,12 @@ import { getFactionMixin } from "../utils/ship-helper";
 import { Action } from "./actions";
 import { Deck } from "./Deck";
 import { Effect } from "./effects/Effect";
+import { CellNodeEntity } from "./entities/CellNodeEntity";
 import { Entity } from "./entities/Entity";
 import { GameStateEntity } from "./entities/GameStateEntity";
 import { Hull } from "./Hull";
 import { Player } from "./Player";
 import { Ship } from "./Ship";
-import { createCellNodeByRefNo } from "@shared/utils/cell-node-helper";
-import { CellNodeEntity } from "./entities/CellNodeEntity";
 
 // GameObjects should not be nested within other GameObjects unless they have their equivalent on this layer
 export class GameState extends GameStateEntity implements IGameState {
@@ -344,7 +346,6 @@ export class GameState extends GameStateEntity implements IGameState {
         this.effects = this.effects.filter((e) => e.id !== effectId);
         return this;
     }
-
 
     /**
      * Returns Effects that are currently in play on this round, optionally

@@ -3,7 +3,6 @@ import {
     ICellLoc,
     IEffect,
     IGameState,
-    IGameStateData,
     IGameStateManager,
     IHull,
     IPlainAction,
@@ -11,7 +10,9 @@ import {
     IPlayer,
     IPlayerAction,
     IShip,
-    TGameStateInput,
+    TEffectKind,
+    TEffectRefNo,
+    TGameStateInput
 } from "../types";
 import { ActionResolver } from "../utils/action-handler/ActionResolver";
 import { GameState } from "./GameState";
@@ -182,6 +183,10 @@ export class GameStateManager implements IGameStateManager {
 
     getActiveEffects(playerId?: string) {
         return this.gameState.getActiveEffects(playerId);
+    }
+
+    getEffects(filter: { ids?: string[]; effectKinds?: TEffectKind[]; effectRefNos?: TEffectRefNo[] }) {
+        return this.gameState.getEffects(filter);
     }
 
     isFlagshipDeployed(playerId: string): boolean {

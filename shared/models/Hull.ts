@@ -5,6 +5,7 @@ import {
     IHullReceiveDamageSignalHandleCtx,
 } from "../types";
 import { locationToKey, reduceToZero } from "../utils";
+import type { Attack } from "./Attack";
 import { HullEntity } from "./entities/HullEntity";
 import { Resolver } from "./resolvers/Resolver";
 import { HullDestroyedSignal } from "./signals/HullDestroyedSignal";
@@ -20,36 +21,40 @@ export class Hull extends HullEntity {
         return this.isVisible;
     }
 
-    getDamaged(_incomingDamage: number) {
-        let incomingDamage = _incomingDamage;
-        const armorResult = reduceToZero(this.armor, incomingDamage);
-        this.armor = armorResult.value;
-        incomingDamage = armorResult.leftover;
-        this.remainingHealth = reduceToZero(this.remainingHealth, incomingDamage).value;
+    getDamaged(attack: Attack) {
+        const damageToHealth = attack.isIgnoreArmor ? attack.damage : this.absorbWithArmor(attack.damage);
+        this.remainingHealth = reduceToZero(this.remainingHealth, damageToHealth).value;
         if (this.remainingHealth <= 0) {
             this.destroyed = true;
         }
+    }
+
+    // Armor soaks damage first; returns the overflow that reaches the hull's health.
+    private absorbWithArmor(incomingDamage: number): number {
+        const armorResult = reduceToZero(this.armor, incomingDamage);
+        this.armor = armorResult.value;
+        return armorResult.leftover;
     }
 
     // ===============================================================================
     // signal functions
     // ===============================================================================
 
-    // The attack reaches this hull — the interceptable moment (armor / shields /
-    // wards would transform the incoming damage here). Default behaviour passes
-    // the damage straight through to a HullReceiveDamage signal.
+    // The attack reaches this hull — the interceptable moment (shields / wards
+    // would transform the incoming Attack here). Default behaviour forwards the
+    // Attack unchanged to a HullReceiveDamage signal.
     receiveAttack(ctx: IHullReceiveAttackSignalHandleCtx) {
         const { gsm, signal, emitter } = ctx;
 
         const resolver = new Resolver(gsm.gameState, () => {
-            const { attackDamage } = signal.payload;
+            const { attack } = signal.payload;
 
             emitter([
                 new HullReceiveDamageSignal({
                     targetId: this.id,
                     senderId: this.id,
                     originId: signal.id,
-                    payload: { hullId: this.id, amount: attackDamage },
+                    payload: { hullId: this.id, attack },
                 }),
             ]);
 
@@ -65,9 +70,9 @@ export class Hull extends HullEntity {
         const { gsm, signal, emitter } = ctx;
 
         const resolver = new Resolver(gsm.gameState, () => {
-            const { amount } = signal.payload;
+            const { attack } = signal.payload;
 
-            this.getDamaged(amount);
+            this.getDamaged(attack);
 
             if (this.destroyed) {
                 emitter([

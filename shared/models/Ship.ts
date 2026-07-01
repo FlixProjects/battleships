@@ -20,7 +20,10 @@ import { cellLocToNodeId, nodeIdToCellLoc, PathFinder, routeToCellLocs } from "@
 import { computeDeployedHullLocation, HullCalculator } from "@shared/utils/hull-helper";
 import { getHull, locationToKey } from "@shared/utils/helpers";
 import { SegmentBuilder } from "@shared/utils/segment-builder";
+import { EFFECT_REF_NO } from "@shared/config/constants";
 import { mergician } from "mergician";
+import { Attack } from "./Attack";
+import { ArmorPiercingRoundsEffect } from "./effects/ArmorPiercingRoundsEffect";
 import { ShipEntity } from "./entities/ShipEntity";
 import { Movement } from "./Movement";
 import { Resolver } from "./resolvers/Resolver";
@@ -274,23 +277,24 @@ export class Ship extends ShipEntity {
                 shipsHit[hull.shipId].push(hull.id);
             });
 
+            const armorPiercingEffects = this.getArmorPiercingEffects(gsm);
+
             Object.entries(shipsHit).forEach(([attackedShipId, hullIds]) => {
-                const attackDamage = this.attackDamage;
-                const payload = {
-                    attackingShipId: this.id,
-                    attackedShipId,
-                    attacks: hullIds.map((hullId) => ({
-                        shipId: attackedShipId,
-                        hullId,
-                        attackDamage,
-                    })),
-                };
+                const attacks = hullIds.map(
+                    (hullId) =>
+                        new Attack({
+                            originId: this.id,
+                            targetId: hullId,
+                            damage: this.attackDamage,
+                            isIgnoreArmor: armorPiercingEffects.length > 0,
+                        }),
+                );
                 emitter([
                     new ReceiveShipAttackSignal({
                         targetId: attackedShipId,
-                        payload,
                         senderId: this.id,
                         originId: signal.id,
+                        payload: { attackingShipId: this.id, attackedShipId, attacks },
                     }),
                 ]);
             });
@@ -299,6 +303,14 @@ export class Ship extends ShipEntity {
         });
 
         return resolver.resolve();
+    }
+
+    // Armor-piercing buffs attached to this ship (innate, e.g. tudf_destroyer0).
+    private getArmorPiercingEffects(gsm: IGameStateManager): ArmorPiercingRoundsEffect[] {
+        return gsm
+            .getEffects({ effectRefNos: [EFFECT_REF_NO.armorPiercingRounds] })
+            .filter((effect): effect is ArmorPiercingRoundsEffect => effect instanceof ArmorPiercingRoundsEffect)
+            .filter((effect) => effect.appliesToAttacker(this.id));
     }
 
     deploy(ctx: IBasicShipDeploySignalHandleCtx) {
@@ -320,7 +332,7 @@ export class Ship extends ShipEntity {
                     }),
                 ]);
             });
-
+            this.onDeploy(ctx);
             emitter([
                 new PlayerSpendCommandPointsSignal({
                     targetId: this.playerId,
@@ -334,6 +346,11 @@ export class Ship extends ShipEntity {
         });
 
         return resolver.resolve();
+    }
+
+    protected onDeploy(ctx: IBasicShipDeploySignalHandleCtx) {
+        // overriden
+        return;
     }
 
     move(ctx: IBasicShipMoveSignalHandleCtx) {
@@ -377,13 +394,13 @@ export class Ship extends ShipEntity {
         const resolver = new Resolver(gsm.gameState, () => {
             const { attacks } = signal.payload;
 
-            attacks.forEach(({ hullId, attackDamage }) => {
+            attacks.forEach((attack) => {
                 emitter([
                     new HullReceiveAttackSignal({
-                        targetId: hullId,
+                        targetId: attack.targetId,
                         senderId: this.id,
                         originId: signal.id,
-                        payload: { hullId, attackDamage },
+                        payload: { hullId: attack.targetId, attack },
                     }),
                 ]);
             });
