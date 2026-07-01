@@ -74,7 +74,7 @@ export class CardRow extends Selectable {
         this.contentWrapper.style.alignItems = "center";
         this.contentWrapper.style.gap = "10px";
         this.contentWrapper.style.padding = "12px 0 12px 12px ";
-
+        this.contentWrapper.style.height = "64px";
         let tooltipPayload: { shipId?: string; effectId?: string } = {};
         if (card.kind === GameConfig.CardKind.Ship) {
             this.renderShipContent(card.instanceId, card.refNo, gsm);

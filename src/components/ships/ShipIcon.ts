@@ -34,6 +34,7 @@ export class ShipIcon extends BaseComponent {
 
     protected addStyles() {
         this.ref.style.maxWidth = "40px";
+        this.ref.style.width = "40px";
         this.ref.style.maxHeight = "100%";
         this.ref.style.cursor = "pointer";
         this.ref.style.transition = "all 0.2s ease";

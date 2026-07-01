@@ -38,6 +38,7 @@ export const SHIP_REF_NO = {
     flagship0: "flagship0",
     tudf_frigate0: "tudf_frigate0",
     tudf_flagship0: "tudf_flagship0",
+    tudf_destroyer0: "tudf_destroyer0",
 } as const;
 
 export const CardKind = {
@@ -49,6 +50,7 @@ export const EFFECT_REF_NO = {
     flare: "flare",
     flarePersistent: "flare_persistent",
     gainCommandPoint: "gain_command_point",
+    armorPiercingRounds: "armor_piercing_rounds",
 } as const;
 
 export const SUPPORT_REF_NO = {
@@ -116,7 +118,7 @@ export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
     [SHIP_REF_NO.tudf_flagship0]: [
         {
             templateLocation: [0, 0],
-            maxHealth: 1,
+            maxHealth: 2,
             armor: 1,
             visionRange: 2,
             imgSrc: "assets/ships/tudf_flagship0-0.png",
@@ -124,10 +126,21 @@ export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
         },
         {
             templateLocation: [0, 1],
-            maxHealth: 1,
+            maxHealth: 2,
             armor: 1,
             visionRange: 2,
             imgSrc: "assets/ships/tudf_flagship0-1.png",
+            front: true,
+            orientation: 0,
+        },
+    ],
+    [SHIP_REF_NO.tudf_destroyer0]: [
+        {
+            templateLocation: [0, 0],
+            maxHealth: 2,
+            armor: 1,
+            visionRange: 2,
+            imgSrc: "assets/ships/tudf_destroyer0-0.png",
             front: true,
             orientation: 0,
         },
@@ -174,7 +187,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
     },
     [SHIP_REF_NO.tudf_frigate0]: {
         refNo: SHIP_REF_NO.tudf_frigate0,
-        name: "Frigate",
+        name: "S12-Warrior",
         description: "A nimble scout. Short range but quick to reposition, ideal for screening and harassing.",
         deployed: false,
         dimensions: [1, 1],
@@ -193,7 +206,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
     },
     [SHIP_REF_NO.tudf_flagship0]: {
         refNo: SHIP_REF_NO.tudf_flagship0,
-        name: "Flagship",
+        name: "L03-Kingmaker",
         description: "The TUDF's most reliable flagship design - it boasts a high caliber and long ranged main cannon.",
         deployed: false,
         dimensions: [1, 1],
@@ -203,11 +216,31 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
         attackCountMax: 1,
         attackCommandPointCost: 1,
         attackRange: 5,
-        attackDamage: 1,
+        attackDamage: 2,
         attackMinRange: 3,
         hullTemplates: HULLS_CONFIG[SHIP_REF_NO.tudf_flagship0],
         isFlagship: true,
         iconImgName: "tudf_flagship0",
+        renderScale: 0.8,
+    },
+    [SHIP_REF_NO.tudf_destroyer0]: {
+        refNo: SHIP_REF_NO.tudf_destroyer0,
+        name: "M07-Knight",
+        description:
+            "The Knight class is the workhorse of the TUDF - armed with Armor-piercing rounds and thick Titasteel plating, they deliver their escorted ships to their destination without fail",
+        deployed: false,
+        dimensions: [1, 1],
+        commandPointCost: 0,
+        movementRange: 2,
+        movementCommandPointCost: 1,
+        attackCountMax: 1,
+        attackCommandPointCost: 1,
+        attackRange: 3,
+        attackDamage: 1,
+        attackMinRange: 1,
+        hullTemplates: HULLS_CONFIG[SHIP_REF_NO.tudf_destroyer0],
+        isFlagship: false,
+        iconImgName: "tudf_destroyer0",
         renderScale: 0.8,
     },
 };
@@ -238,7 +271,12 @@ export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectTemplate> = {
         range: 0,
         duration: 0,
         existsOnBoard: false,
-        commandPointAmount: 1,
+    },
+    [EFFECT_REF_NO.armorPiercingRounds]: {
+        refNo: EFFECT_REF_NO.armorPiercingRounds,
+        kind: EffectKind.AttackBuff,
+        duration: 999,
+        existsOnBoard: false,
     },
 };
 

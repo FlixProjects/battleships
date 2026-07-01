@@ -32,7 +32,7 @@ export class HullIcon extends Selectable {
 
     protected addStyles() {
         this.ref.style.maxWidth = `${TILE_SIZE_PX}px`;
-        this.ref.style.maxHeight = "100%";
+        this.ref.style.maxHeight = `${TILE_SIZE_PX}px`;
         this.ref.style.cursor = "pointer";
         this.ref.style.transition = "all 0.2s ease";
         this.ref.style.filter = getColorFilter(this.props.color ?? COLOR.PINK);

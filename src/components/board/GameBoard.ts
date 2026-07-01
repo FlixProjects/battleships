@@ -5,7 +5,7 @@ import {
     GAME_BOARD_ID,
     TILE_GAP_PX,
     TILE_SIZE_PX,
-    Z_INDEX
+    Z_INDEX,
 } from "@shared/constants";
 import { GameState } from "@shared/models";
 import { FERenderShipCommand } from "@shared/models/commands/FERenderShipCommand";
@@ -181,10 +181,13 @@ export class GameBoard extends BaseComponent {
 
     private renderEffects() {
         const gameState = new this.GSM(gameManager.state.gameState).gameState;
-        gameState.getActiveEffects().forEach((effect) => {
-            const sprite = new EffectSprite({ effect });
-            this.addChild(sprite);
-            this.ref.appendChild(sprite.build());
-        });
+        gameState
+            .getActiveEffects()
+            .filter((e) => e.existsOnBoard)
+            .forEach((effect) => {
+                const sprite = new EffectSprite({ effect });
+                this.addChild(sprite);
+                this.ref.appendChild(sprite.build());
+            });
     }
 }
