@@ -331,6 +331,15 @@ export class GameState extends GameStateEntity implements IGameState {
         return this;
     }
 
+    getEffects(filter: { ids?: string[]; effectKinds?: TEffectKind[]; effectRefNos?: TEffectRefNo[] }) {
+        let effects = this.effects;
+        const { ids, effectKinds, effectRefNos } = filter;
+        if (ids) effects = effects.filter((e) => ids.includes(e.id));
+        if (effectKinds) effects = effects.filter((e) => effectKinds.includes(e.kind));
+        if (effectRefNos) effects = effects.filter((e) => effectRefNos.includes(e.refNo));
+        return effects;
+    }
+
     removeEffect(effectId: string) {
         this.effects = this.effects.filter((e) => e.id !== effectId);
         return this;

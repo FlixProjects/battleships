@@ -113,8 +113,12 @@ export class GameEngine {
     }
 
     private sendSignalToGameObjects(signal: Signal) {
+        // IMPT: passing in this.getSignalContext(signal) directly into obj.receiveSignal
+        // causes timeout due to new GSM() cloning in getSignalContext
+        // FIXME: change to getGSM() instead 
+        const ctx = this.getSignalContext(signal);
         this.gameObjects.forEach((obj) => {
-            obj.receiveSignal(this.getSignalContext(signal));
+            obj.receiveSignal(ctx);
         });
     }
 

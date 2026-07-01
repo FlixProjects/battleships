@@ -259,8 +259,6 @@ export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectTemplate> = {
         kind: EffectKind.Vision,
         anchor: EffectAnchor.AnyTile,
         range: 2,
-        // Duration of 2 means: granted on action resolve, plus persists
-        // through the next round's tick (expiresAfterRound = createdOnRound + 2).
         duration: 2,
         existsOnBoard: true,
     },
@@ -268,7 +266,7 @@ export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectTemplate> = {
         refNo: EFFECT_REF_NO.gainCommandPoint,
         kind: EffectKind.CommandPoint,
         anchor: EffectAnchor.Flagship,
-        range: 0,
+        commandPointAmount: 1,
         duration: 0,
         existsOnBoard: false,
     },
@@ -307,9 +305,10 @@ export const FACTION_CONFIG: Record<TFaction, DeckTemplate> = {
         // Ships
         { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_flagship0, count: 1 },
         { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_frigate0, count: 4 },
+        { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_destroyer0, count: 2 },
         // Supports
         { kind: CardKind.Support, refNo: SUPPORT_REF_NO.flare, count: 2 },
-        { kind: CardKind.Support, refNo: SUPPORT_REF_NO.inspire, count: 2 },
+        { kind: CardKind.Support, refNo: SUPPORT_REF_NO.inspire, count: 1 },
     ],
 };
 

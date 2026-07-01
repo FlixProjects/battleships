@@ -6,7 +6,7 @@ export class EffectEntity extends GameObjectWithVisibilityEntity<EffectEntity> i
     id: string;
     refNo: TEffectRefNo;
     kind: TEffectKind;
-    sourceCardId: string;
+    sourceCardId?: string;
     playerId: string;
     duration: number;
     isActive: boolean;

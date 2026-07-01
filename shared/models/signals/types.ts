@@ -1,5 +1,6 @@
 import { TPlayCardPayload } from "@shared/types/action-types";
 import { ICellLoc, IEffect, IHull } from "@shared/types/types";
+import type { Attack } from "../Attack";
 import type { Ship } from "../Ship";
 
 export interface ISignal {
@@ -52,7 +53,7 @@ export interface IShipAttackSignalPayload extends ISignalPayload {
 export interface IShipReceiveAttackSignalPayload extends ISignalPayload {
     attackingShipId: string;
     attackedShipId: string;
-    attacks: IAttackPayload[];
+    attacks: Attack[];
 }
 
 export interface IShipMoveSignalPayload extends ISignalPayload {
@@ -68,12 +69,12 @@ export interface IShipDeploySignalPayload extends ISignalPayload {
 
 export interface IHullReceiveAttackSignalPayload extends ISignalPayload {
     hullId: string;
-    attackDamage: number;
+    attack: Attack;
 }
 
 export interface IHullReceiveDamageSignalPayload extends ISignalPayload {
     hullId: string;
-    amount: number;
+    attack: Attack;
 }
 
 export interface IHullMoveSignalPayload extends ISignalPayload {

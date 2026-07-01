@@ -98,6 +98,11 @@ export interface IGameStateManager {
     addAction(action: IPlainAction): this;
     addEffect(effect: IEffect): this;
     addEffects(effects: IEffect[]): this;
+    getEffects(filter: {
+        ids?: string[];
+        effectKinds?: TEffectKind[] | undefined;
+        effectRefNos?: TEffectRefNo[];
+    }): IEffect[];
     removeEffect(effectId: string): this;
     getActiveEffects(playerId?: string): IEffect[];
     resolveLocalActionsForPlayer(playerId: string): this;
@@ -223,6 +228,7 @@ export const EffectKind = {
     CommandPoint: "command_point",
     Damage: "damage",
     MovementBuff: "movement_buff",
+    AttackBuff: "attack_buff",
 } as const;
 
 export type TEffectKind = (typeof EffectKind)[keyof typeof EffectKind];
@@ -236,11 +242,26 @@ export const EffectAnchor = {
 
 export type TEffectAnchor = (typeof EffectAnchor)[keyof typeof EffectAnchor];
 
+export interface IVisionEffectPayload {
+    kind: typeof EffectKind.Vision;
+    /** Set when the effect is activated (targeted). Undefined while the effect
+     *  is pre-created but inactive. */
+    center?: ICellLoc;
+    range: number;
+}
+
+export interface ICommandPointEffectPayload {
+    kind: typeof EffectKind.CommandPoint;
+    amount: number;
+}
+
+export type TEffectPayload = IVisionEffectPayload | ICommandPointEffectPayload;
+
 export interface IEffect {
     id: string;
     refNo: string;
     kind: TEffectKind;
-    sourceCardId: string;
+    sourceCardId?: string;
     playerId: string;
     /** Rounds the effect persists once created. `expiresAfterRound` is derived
      *  from this (`createdOnRound + duration`). 0 = one-shot (never persisted). */
@@ -284,9 +305,9 @@ export type IPlainEffect = IEffect;
 export interface IEffectConfig {
     refNo: string;
     kind?: TEffectKind;
-    anchor: TEffectAnchor;
+    anchor?: TEffectAnchor;
     /** 0 = no targeting needed (untargeted / confirm-only). */
-    range: number;
+    range?: number;
     /** 0 = one-shot; otherwise rounds the effect persists for after creation
      *  (expiresAfterRound = createdOnRound + duration). */
     duration: number;
@@ -305,10 +326,14 @@ export interface ICommandPointEffectConfig extends IEffectConfig {
     commandPointAmount: number;
 }
 
+export interface IAttackBuffEffectconfig extends IEffectConfig {
+    kind: typeof EffectKind.AttackBuff;
+}
+
 /** A resolved, per-kind effect config — an `EFFECTS_CONFIG` default merged with
  *  a Support's overrides, persisted on the SupportCard at creation and used to
  *  mint live Effects when the card is played. */
-export type IEffectTemplate = IVisionEffectConfig | ICommandPointEffectConfig;
+export type IEffectTemplate = IVisionEffectConfig | ICommandPointEffectConfig | IAttackBuffEffectconfig;
 
 /** A Support's reference to one effect it produces: the effect's `refNo` plus
  *  any kind-typed field overrides layered over its `EFFECTS_CONFIG` default. */
