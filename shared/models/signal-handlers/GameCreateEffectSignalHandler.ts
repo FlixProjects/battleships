@@ -13,7 +13,7 @@ export class GameCreateEffectSignalHandler extends SignalHandler {
         const effect = createEffect(ctx.signal.payload.effect);
 
         effect.resolve(ctx);
-        if (effect.isPersistent()) {
+        if (effect.isPersistent() || effect.isPermanent()) {
             gsm.addEffect(effect);
         }
 

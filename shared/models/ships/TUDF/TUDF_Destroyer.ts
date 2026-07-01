@@ -12,15 +12,15 @@ export function TUDF_Destroyer<TBase extends ShipConstructor>(Base: TBase) {
         protected onDeploy(ctx: IBasicShipDeploySignalHandleCtx) {
             const { emitter, gsm } = ctx;
 
+            const createdOnRound = gsm.getCurrentRound();
             const effect = new ArmorPiercingRoundsEffect({
                 id: uuidv7(),
                 attachedEntityId: this.id,
                 refNo: EFFECT_REF_NO.armorPiercingRounds,
                 kind: EffectKind.AttackBuff,
                 playerId: this.playerId,
-                duration: 999,
                 isActive: true,
-                createdOnRound: gsm.getCurrentRound(),
+                createdOnRound,
                 existsOnBoard: false,
             });
             emitter([new GameCreateEffectSignal({ payload: { effect } })]);

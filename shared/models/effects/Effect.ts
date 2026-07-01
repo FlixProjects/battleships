@@ -26,6 +26,10 @@ export class Effect extends EffectEntity {
         return this.expiresAfterRound !== undefined;
     }
 
+    public isPermanent(): boolean {
+        return this.duration === undefined;
+    }
+
     public hasExpired(currentRound: number): boolean {
         return this.expiresAfterRound !== undefined && currentRound > this.expiresAfterRound;
     }

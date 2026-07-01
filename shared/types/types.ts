@@ -265,7 +265,7 @@ export interface IEffect {
     playerId: string;
     /** Rounds the effect persists once created. `expiresAfterRound` is derived
      *  from this (`createdOnRound + duration`). 0 = one-shot (never persisted). */
-    duration: number;
+    duration?: number;
     isActive: boolean;
     createdOnRound: number;
     /** Persists through and including this round number; once the round passes
@@ -310,7 +310,7 @@ export interface IEffectConfig {
     range?: number;
     /** 0 = one-shot; otherwise rounds the effect persists for after creation
      *  (expiresAfterRound = createdOnRound + duration). */
-    duration: number;
+    duration?: number;
     existsOnBoard: boolean;
 }
 

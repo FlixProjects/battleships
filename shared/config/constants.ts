@@ -273,7 +273,6 @@ export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectTemplate> = {
     [EFFECT_REF_NO.armorPiercingRounds]: {
         refNo: EFFECT_REF_NO.armorPiercingRounds,
         kind: EffectKind.AttackBuff,
-        duration: 999,
         existsOnBoard: false,
     },
 };
