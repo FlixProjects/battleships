@@ -17,6 +17,7 @@ import {
     IPlayer,
     IPlayerAction,
     IShip,
+    ISignalHandleCtx,
     isVisionEffect,
     TEffectKind,
     TEffectRefNo
@@ -478,8 +479,8 @@ export class GameState extends GameStateEntity implements IGameState {
     // The mutation behind each non-action (turn-lifecycle) signal. Handlers call
     // these; GameStateEntity holds the matching listeners.
 
-    tickPersistentEffects() {
-        this.getActiveEffects().forEach((effect) => effect.resolveTick(this));
+    tickPersistentEffects(ctx: ISignalHandleCtx) {
+        this.getActiveEffects().forEach((effect) => effect.resolveTick(ctx));
         return this;
     }
 

@@ -1,5 +1,5 @@
 import { locationToKey } from "@shared/utils";
-import { IEffect, IGameState, IPlainEffect, ISignalHandleCtx } from "../../types";
+import { IEffect, IPlainEffect, ISignalHandleCtx } from "../../types";
 import { EffectEntity } from "../entities/EffectEntity";
 
 /**
@@ -17,7 +17,7 @@ export class Effect extends EffectEntity {
         throw new Error(`Effect ${this.id} (refNo=${this.refNo}) does not implement resolve`);
     }
 
-    public resolveTick(_gameState: IGameState): void {
+    public resolveTick(_ctx: ISignalHandleCtx): void {
         // Default no-op. Persistent Effects override. Driven per-turn by the
         // GamePersistentEffectsTick signal → GameState.tickPersistentEffects.
     }
