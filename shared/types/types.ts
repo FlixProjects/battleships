@@ -1,5 +1,7 @@
 import {
     IDeckAddToPlayedSignalPayload,
+    IEffectAttackLocationSignalPayload,
+    IReceiveEffectAttackLocationSignalPayload,
     IGameCreateEffectSignalPayload,
     IGameCreateHullSignalPayload,
     IGameProjectVisibilitySignalPayload,
@@ -272,6 +274,7 @@ export interface IEffect {
      *  it the effect is removed from state. Undefined for one-shots. */
     expiresAfterRound?: number;
     existsOnBoard: boolean;
+    imgSrc?: string;
 }
 
 export interface IVisionEffect extends IEffect {
@@ -298,7 +301,22 @@ export interface IGainCommandPointEffect extends ICommandPointEffect {
     refNo: typeof EFFECT_REF_NO.gainCommandPoint;
 }
 
+/** Delayed board-damage effects (Airstrike): a warning marker on a tile that
+ *  detonates on the next persistent-effects tick, dealing `damage` to any hull
+ *  standing on `location`. */
+export interface IDamageEffect extends IEffect {
+    kind: typeof EffectKind.Damage;
+    location: ICellLoc;
+    damage: number;
+}
+
+export interface IAirstrikeEffect extends IDamageEffect {
+    refNo: typeof EFFECT_REF_NO.airstrike;
+}
+
 export const isVisionEffect = (effect: IEffect): effect is IVisionEffect => effect.kind === EffectKind.Vision;
+
+export const isDamageEffect = (effect: IEffect): effect is IDamageEffect => effect.kind === EffectKind.Damage;
 
 export type IPlainEffect = IEffect;
 
@@ -312,6 +330,7 @@ export interface IEffectConfig {
      *  (expiresAfterRound = createdOnRound + duration). */
     duration?: number;
     existsOnBoard: boolean;
+    imgSrc?: string;
 }
 
 /** Vision effects (Flare) reveal `range` tiles around their target — no extra
@@ -330,10 +349,22 @@ export interface IAttackBuffEffectconfig extends IEffectConfig {
     kind: typeof EffectKind.AttackBuff;
 }
 
+/** Damage effects (Airstrike) carry the per-tile `damage` they deal on
+ *  detonation; `range` (> 0) makes the card require a target tile. */
+export interface IDamageEffectConfig extends IEffectConfig {
+    kind: typeof EffectKind.Damage;
+    damage: number;
+    range: number;
+}
+
 /** A resolved, per-kind effect config — an `EFFECTS_CONFIG` default merged with
  *  a Support's overrides, persisted on the SupportCard at creation and used to
  *  mint live Effects when the card is played. */
-export type IEffectTemplate = IVisionEffectConfig | ICommandPointEffectConfig | IAttackBuffEffectconfig;
+export type IEffectTemplate =
+    | IVisionEffectConfig
+    | ICommandPointEffectConfig
+    | IAttackBuffEffectconfig
+    | IDamageEffectConfig;
 
 /** A Support's reference to one effect it produces: the effect's `refNo` plus
  *  any kind-typed field overrides layered over its `EFFECTS_CONFIG` default. */
@@ -345,7 +376,11 @@ export type ICommandPointEffectOverride = Partial<ICommandPointEffectConfig> & {
     refNo: string;
 };
 
-export type IEffectOverride = IVisionEffectOverride | ICommandPointEffectOverride;
+export type IDamageEffectOverride = Partial<IDamageEffectConfig> & {
+    refNo: string;
+};
+
+export type IEffectOverride = IVisionEffectOverride | ICommandPointEffectOverride | IDamageEffectOverride;
 
 export interface ISupportConfig {
     refNo: TSupportRefNo;
@@ -370,7 +405,12 @@ export interface IInspireSupportConfig extends ISupportConfig {
     effectTemplates: ICommandPointEffectOverride[];
 }
 
-export type TSupportConfig = IFlareSupportConfig | IInspireSupportConfig;
+export interface IAirstrikeSupportConfig extends ISupportConfig {
+    refNo: typeof SUPPORT_REF_NO.airstrike;
+    effectTemplates: IDamageEffectOverride[];
+}
+
+export type TSupportConfig = IFlareSupportConfig | IInspireSupportConfig | IAirstrikeSupportConfig;
 
 export interface ICard {
     id: string;
@@ -697,4 +737,12 @@ export interface IGameRefillHandsSignalHandleCtx extends ISignalHandleCtx {
 
 export interface IGameProjectVisibilitySignalHandleCtx extends ISignalHandleCtx {
     signal: ISignal & { payload: IGameProjectVisibilitySignalPayload };
+}
+
+export interface IEffectAttackLocationSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IEffectAttackLocationSignalPayload };
+}
+
+export interface IReceiveEffectAttackLocationSignalHandleCtx extends ISignalHandleCtx {
+    signal: ISignal & { payload: IReceiveEffectAttackLocationSignalPayload };
 }

@@ -3,6 +3,8 @@ import {
     IBasicShipDeploySignalHandleCtx,
     IBasicShipMoveSignalHandleCtx,
     IDeckAddToPlayedSignalHandleCtx,
+    IEffectAttackLocationSignalHandleCtx,
+    IReceiveEffectAttackLocationSignalHandleCtx,
     IGameCreateEffectSignalHandleCtx,
     IGameCreateHullSignalHandleCtx,
     IGameProjectVisibilitySignalHandleCtx,
@@ -50,6 +52,8 @@ export type SignalCtxMap = {
     [SignalType.GameRemoveExpiredEffects]: ISignalHandleCtx;
     [SignalType.GameRefillHands]: IGameRefillHandsSignalHandleCtx;
     [SignalType.GameProjectVisibility]: IGameProjectVisibilitySignalHandleCtx;
+    [SignalType.EffectAttackLocation]: IEffectAttackLocationSignalHandleCtx;
+    [SignalType.ReceiveEffectAttackLocation]: IReceiveEffectAttackLocationSignalHandleCtx;
     [SignalType.GetValidDeployCells]: IGetValidDeployCellsQueryCtx;
     [SignalType.GetValidMoveCells]: IGetValidMoveCellsQueryCtx;
     [SignalType.GetValidMoveRoutes]: IGetValidMoveRoutesQueryCtx;

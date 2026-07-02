@@ -11,6 +11,7 @@ import {
     IGetValidMoveRoutesQueryCtx,
     IHull,
     IPlainShip,
+    IReceiveEffectAttackLocationSignalHandleCtx,
     IReceiveShipAttackSignalHandleCtx,
     IShip,
 } from "@shared/types";
@@ -404,6 +405,27 @@ export class Ship extends ShipEntity {
                     }),
                 ]);
             });
+
+            return gsm.gameState;
+        });
+
+        return resolver.resolve();
+    }
+
+    receiveEffectAttack(ctx: IReceiveEffectAttackLocationSignalHandleCtx) {
+        const { gsm, signal, emitter } = ctx;
+
+        const resolver = new Resolver(gsm.gameState, () => {
+            const { attack } = signal.payload;
+
+            emitter([
+                new HullReceiveAttackSignal({
+                    targetId: attack.targetId,
+                    senderId: this.id,
+                    originId: signal.id,
+                    payload: { hullId: attack.targetId, attack },
+                }),
+            ]);
 
             return gsm.gameState;
         });

@@ -6,6 +6,7 @@ import { IListener } from "../listeners/types";
 import { BasicShipAttackSignalHandler } from "../signal-handlers/BasicShipAttackSignalHandler";
 import { BasicShipDeploySignalHandler } from "../signal-handlers/BasicShipDeploySignalHandler";
 import { BasicShipMoveSignalHandler } from "../signal-handlers/BasicShipMoveSignalHandler";
+import { ReceiveEffectAttackLocationSignalHandler } from "../signal-handlers/ReceiveEffectAttackLocationSignalHandler";
 import { GetValidAttackCellsSignalHandler } from "../signal-handlers/GetValidAttackCellsSignalHandler";
 import { GetValidDeployCellsSignalHandler } from "../signal-handlers/GetValidDeployCellsSignalHandler";
 import { GetValidMoveCellsSignalHandler } from "../signal-handlers/GetValidMoveCellsSignalHandler";
@@ -124,6 +125,7 @@ export class ShipEntity extends GameObjectWithVisibilityEntity<ShipEntity> imple
             this.createBasicShipMoveListener(),
             this.createBasicShipDeployListener(),
             this.createHullDestroyedListener(),
+            this.createReceiveEffectAttackLocationListener(),
             this.createGetValidMoveCellsListener(),
             this.createGetValidMoveRoutesListener(),
             this.createGetValidAttackCellsListener(),
@@ -216,6 +218,16 @@ export class ShipEntity extends GameObjectWithVisibilityEntity<ShipEntity> imple
             [SignalType.HullDestroyed],
             (ctx) => {
                 new HullDestroyedSignalHandler().handle(ctx);
+            },
+            this.defaultHandlerShouldHandleSignal,
+        );
+    }
+
+    protected createReceiveEffectAttackLocationListener() {
+        return new Listener(
+            [SignalType.ReceiveEffectAttackLocation],
+            (ctx) => {
+                new ReceiveEffectAttackLocationSignalHandler().handle(ctx);
             },
             this.defaultHandlerShouldHandleSignal,
         );
