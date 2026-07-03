@@ -47,6 +47,9 @@ export const Z_INDEX = {
     PROJECTILE: "100",
     ACTION_MENU: "1000",
     TARGET_ATTACK_ICON: "10",
+    // Airstrike warning markers sit below ships/hulls (which live in the static
+    // layer) but above the board grid.
+    EFFECT_WARNING: "0",
 };
 
 export const COLOR = {

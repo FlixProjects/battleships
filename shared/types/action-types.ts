@@ -63,10 +63,28 @@ export interface IShipCardPayload {
     location: ICellLoc; // anchor tile for the deploy
 }
 
+export const LineOrientation = {
+    Horizontal: "horizontal",
+    Vertical: "vertical",
+} as const;
+
+export type TLineOrientation = (typeof LineOrientation)[keyof typeof LineOrientation];
+
 export interface ISupportCardPayload {
     kind: "Support";
     targetCell?: ICellLoc;
+    /** For line-targeted supports (Airstrike): which way the 3-tile line runs
+     *  through `targetCell`. Ignored by single-tile supports. */
+    orientation?: TLineOrientation;
 }
+
+/**
+ * The card-specific targeting portion of a Support play, minus the discriminant.
+ * The generic FE play-card commands carry this opaquely and forward it into the
+ * payload — they never read individual fields (e.g. `orientation`), so a new
+ * support that needs new selection data only extends `ISupportCardPayload`.
+ */
+export type TSupportSelection = Omit<ISupportCardPayload, "kind">;
 
 export type TPlayCardPayload = IShipCardPayload | ISupportCardPayload;
 

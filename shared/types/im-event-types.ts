@@ -11,6 +11,7 @@ export const IMEventType = {
     SELECT_SHIP: "Select_Ship",
     SHIP_ATTACK: "Ship_Attack",
     PLAY_SUPPORT_TARGET: "Play_Support_Target",
+    PLAY_SUPPORT_LINE: "Play_Support_Line",
     PLAY_SUPPORT_CONFIRM: "Play_Support_Confirm",
     SHOW_SHIP_DETAILS: "Show_Ship_Details",
 } as const;
@@ -55,6 +56,14 @@ export interface PlaySupportTargetIMEvent extends IMEvent {
 
 export interface PlaySupportConfirmIMEvent extends IMEvent {
     type: typeof IMEventType.PLAY_SUPPORT_CONFIRM;
+    cardId: string;
+    effectIndex: number;
+}
+
+/** Like PLAY_SUPPORT_TARGET, but after the center tile is picked the player also
+ *  chooses a line orientation (H/V) via the route-picker overlay (Airstrike). */
+export interface PlaySupportLineIMEvent extends IMEvent {
+    type: typeof IMEventType.PLAY_SUPPORT_LINE;
     cardId: string;
     effectIndex: number;
 }

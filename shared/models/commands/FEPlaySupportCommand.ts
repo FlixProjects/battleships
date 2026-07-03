@@ -1,4 +1,4 @@
-import { ICellLoc } from "../../types";
+import { TSupportSelection } from "../../types";
 import { ISelectable } from "../../types/fe-types";
 import { SupportCard } from "../SupportCard";
 import { FECommand } from "./FECommand";
@@ -16,7 +16,9 @@ export class FEPlaySupportCommand extends FECommand {
         private props: {
             cardId: string;
             playerId: string;
-            targetCell?: ICellLoc;
+            /** Opaque card-specific targeting data, forwarded verbatim into the
+             *  Support payload. This command never inspects its fields. */
+            selection?: TSupportSelection;
             locationElement?: ISelectable;
             onSuccessCb?: () => void;
         },
@@ -25,7 +27,7 @@ export class FEPlaySupportCommand extends FECommand {
     }
 
     public async execute(params: ICommandExecutionParams): Promise<ICommand[]> {
-        const { cardId, playerId, targetCell, locationElement, onSuccessCb } = this.props;
+        const { cardId, playerId, selection, locationElement, onSuccessCb } = this.props;
         const { gsm } = params;
 
         const card = gsm.gameState.cards.find((c) => c.id === cardId);
@@ -41,7 +43,7 @@ export class FEPlaySupportCommand extends FECommand {
                 playerId,
                 cardId: card.id,
                 commandPointCost: card.commandPointCost,
-                payload: { kind: "Support", targetCell },
+                payload: { kind: "Support", ...selection },
             }),
             new FEFinalizeSelectionCommand({ locationElement, onSuccessCb }),
         ];

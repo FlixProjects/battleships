@@ -1,5 +1,5 @@
 import { CardKind } from "../../config/constants";
-import { ICard, ICellLoc, TCardKind } from "../../types";
+import { ICard, TCardKind, TSupportSelection } from "../../types";
 import { ISelectable } from "../../types/fe-types";
 import { FECommand } from "./FECommand";
 import { FEDeployShipCommand } from "./FEDeployShipCommand";
@@ -19,7 +19,9 @@ export interface IFEPlayCardCommandProps {
         locationElement: ISelectable;
     };
     support?: {
-        targetCell?: ICellLoc;
+        /** Opaque card-specific targeting data (e.g. target cell, line
+         *  orientation). Forwarded to FEPlaySupportCommand without inspection. */
+        selection?: TSupportSelection;
         locationElement?: ISelectable;
     };
     onSuccessCb?: () => void;
@@ -46,7 +48,7 @@ const CARD_KIND_FACTORIES: Partial<Record<TCardKind, CardCommandFactory>> = {
         new FEPlaySupportCommand({
             cardId: props.cardId,
             playerId: props.playerId,
-            targetCell: props.support?.targetCell,
+            selection: props.support?.selection,
             locationElement: props.support?.locationElement,
             onSuccessCb: props.onSuccessCb,
         }),
