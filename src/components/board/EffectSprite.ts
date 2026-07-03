@@ -1,7 +1,8 @@
-import { TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
-import { ICellLoc, IEffect, isVisionEffect } from "@shared/types";
+import { TILE_GAP_PX, TILE_SIZE_PX, Z_INDEX } from "@shared/constants";
+import { ICellLoc, IEffect, isDamageEffect, isVisionEffect } from "@shared/types";
 import { BaseComponent } from "../BaseComponent";
 import FlickerCssAnimStyle from "../../css-anim-styles/models/flicker-style";
+import PulseCssAnimStyle from "../../css-anim-styles/models/pulse-style";
 
 interface Props {
     effect: IEffect;
@@ -13,6 +14,7 @@ export class EffectSprite extends BaseComponent {
     }
 
     public build() {
+        const { effect } = this.props;
         this.ref = document.createElement("img");
         const center = this.getCenter();
         if (!center) {
@@ -22,8 +24,12 @@ export class EffectSprite extends BaseComponent {
             return this.ref;
         }
 
-        (this.ref as HTMLImageElement).src =
-            `./assets/sprites/${this.props.effect.refNo.replace(/_persistent$/, "")}.png`;
+        // FIXME: remove persistent patch
+        (this.ref as HTMLImageElement).src = effect.imgSrc
+            ? `./assets/sprites/${effect.imgSrc}`
+            : this.props.effect.refNo.includes("_persistent")
+              ? `./assets/sprites/${this.props.effect.refNo.replace(/_persistent$/, "")}.png`
+              : `./assets/sprites/${this.props.effect.refNo}.png`;
         (this.ref as HTMLImageElement).alt = this.props.effect.refNo;
         this.applyPositioning(center);
         return this.ref;
@@ -31,7 +37,9 @@ export class EffectSprite extends BaseComponent {
 
     private getCenter(): ICellLoc | undefined {
         const { effect } = this.props;
-        return isVisionEffect(effect) ? effect.location : undefined;
+        if (isVisionEffect(effect)) return effect.location;
+        if (isDamageEffect(effect)) return effect.location;
+        return undefined;
     }
 
     private applyPositioning(center: ICellLoc) {
@@ -44,8 +52,16 @@ export class EffectSprite extends BaseComponent {
         this.ref.style.height = `${TILE_SIZE_PX}px`;
         this.ref.style.objectFit = "contain";
         this.ref.style.pointerEvents = "none";
-        this.ref.style.zIndex = "5";
 
+        // Damage warnings (Airstrike) are terrain-like: they render beneath ships
+        // and pulse. Vision markers keep their prior on-top flicker.
+        if (isDamageEffect(this.props.effect)) {
+            this.ref.style.zIndex = Z_INDEX.EFFECT_WARNING;
+            new PulseCssAnimStyle().attachTo(this.ref);
+            return;
+        }
+
+        this.ref.style.zIndex = "5";
         new FlickerCssAnimStyle().attachTo(this.ref);
     }
 }

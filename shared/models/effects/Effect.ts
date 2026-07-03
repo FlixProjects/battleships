@@ -62,6 +62,7 @@ export class Effect extends EffectEntity {
             createdOnRound: this.createdOnRound,
             expiresAfterRound: this.expiresAfterRound,
             existsOnBoard: this.existsOnBoard,
+            imgSrc: this.imgSrc,
         };
     }
 }
