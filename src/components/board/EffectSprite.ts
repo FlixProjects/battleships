@@ -1,4 +1,4 @@
-import { TILE_GAP_PX, TILE_SIZE_PX, Z_INDEX } from "@shared/constants";
+import { COLOR, COLOR_FILTER, TILE_GAP_PX, TILE_SIZE_PX, Z_INDEX } from "@shared/constants";
 import { ICellLoc, IEffect, isDamageEffect, isVisionEffect } from "@shared/types";
 import { BaseComponent } from "../BaseComponent";
 import FlickerCssAnimStyle from "../../css-anim-styles/models/flicker-style";
@@ -24,15 +24,21 @@ export class EffectSprite extends BaseComponent {
             return this.ref;
         }
 
-        // FIXME: remove persistent patch
-        (this.ref as HTMLImageElement).src = effect.imgSrc
-            ? `./assets/sprites/${effect.imgSrc}`
-            : this.props.effect.refNo.includes("_persistent")
-              ? `./assets/sprites/${this.props.effect.refNo.replace(/_persistent$/, "")}.png`
-              : `./assets/sprites/${this.props.effect.refNo}.png`;
-        (this.ref as HTMLImageElement).alt = this.props.effect.refNo;
+        const spriteUrl = this.getSpriteUrl();
+        (this.ref as HTMLImageElement).src = spriteUrl;
+        (this.ref as HTMLImageElement).alt = effect.refNo;
         this.applyPositioning(center);
         return this.ref;
+    }
+
+    private getSpriteUrl(): string {
+        const { effect } = this.props;
+        // FIXME: remove persistent patch
+        if (effect.imgSrc) return `./assets/sprites/${effect.imgSrc}`;
+        if (effect.refNo.includes("_persistent")) {
+            return `./assets/sprites/${effect.refNo.replace(/_persistent$/, "")}.png`;
+        }
+        return `./assets/sprites/${effect.refNo}.png`;
     }
 
     private getCenter(): ICellLoc | undefined {
@@ -53,10 +59,9 @@ export class EffectSprite extends BaseComponent {
         this.ref.style.objectFit = "contain";
         this.ref.style.pointerEvents = "none";
 
-        // Damage warnings (Airstrike) are terrain-like: they render beneath ships
-        // and pulse. Vision markers keep their prior on-top flicker.
         if (isDamageEffect(this.props.effect)) {
             this.ref.style.zIndex = Z_INDEX.EFFECT_WARNING;
+            this.ref.style.filter = COLOR_FILTER[COLOR.RED];
             new PulseCssAnimStyle().attachTo(this.ref);
             return;
         }

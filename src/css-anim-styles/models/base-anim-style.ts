@@ -1,6 +1,11 @@
 export class BaseAnimStyle {
     name: string = "";
-    id = this.name + "-style";
+    // Getter, not a field: a field initializer runs during *base* construction,
+    // before the subclass assigns `name`, so every style would collapse to the
+    // same id ("-style") and only the first would ever `load()`.
+    get id(): string {
+        return `${this.name}-style`;
+    }
     textContent: string = "";
     load() {
         if (this.name.length === 0) {

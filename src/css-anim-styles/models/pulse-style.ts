@@ -8,18 +8,18 @@ export default class PulseCssAnimStyle extends BaseAnimStyle {
     textContent: string = `
         @keyframes ${CSS_ANIMATION_NAMES.PULSE} {
             0% {
-                transform: scale(0.9);
-                opacity: 0.65;
+                transform: scale(0.8);
+                opacity: 0.35;
             }
 
             50% {
-                transform: scale(1.05);
-                opacity: 1;
+                transform: scale(1.0);
+                opacity: 0.7;
             }
 
             100% {
-                transform: scale(0.9);
-                opacity: 0.65;
+                transform: scale(0.8);
+                opacity: 0.35;
             }
         }`;
 }
