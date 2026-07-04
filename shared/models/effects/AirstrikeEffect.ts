@@ -1,3 +1,4 @@
+import { COLOR, EffectAnimation, IEffectRenderSpec, Z_INDEX } from "../../constants";
 import { EffectKind, ICellLoc, IDamageEffect, IEffect, ISignalHandleCtx } from "../../types";
 import { EFFECT_REF_NO } from "../../config/constants";
 import { registerEffect } from "../../utils/effect-helper";
@@ -38,6 +39,11 @@ export class AirstrikeEffect extends Effect {
 
     public resolve(_ctx: ISignalHandleCtx): void {
         // No on-play impact — the strike is telegraphed now and lands on the tick.
+    }
+
+    /** Terrain-like warning marker: sits beneath ships, pulses, tinted red. */
+    public getRenderSpec(): IEffectRenderSpec {
+        return { tint: COLOR.RED, zIndex: Z_INDEX.EFFECT_WARNING, animation: EffectAnimation.PULSE };
     }
 
     public resolveTick(ctx: ISignalHandleCtx): void {
