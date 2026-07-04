@@ -3,6 +3,7 @@ import type { ClickHandler } from "./ClickHandler";
 import { ConfirmEffectClickHandler } from "./ConfirmEffectClickHandler";
 import { DeployShipClickHandler } from "./DeployShipClickHandler";
 import { MoveShipClickHandler } from "./MoveShipClickHandler";
+import { SelectLineTargetClickHandler } from "./SelectLineTargetClickHandler";
 import { SelectShipClickHandler } from "./SelectShipClickHandler";
 import { SelectTargetClickHandler } from "./SelectTargetClickHandler";
 import { ShipAttackClickHandler } from "./ShipAttackClickHandler";
@@ -15,6 +16,7 @@ const clickHandlerMap: Record<TIMEventType, new (event: never) => ClickHandler> 
     [IMEventType.SELECT_SHIP]: SelectShipClickHandler,
     [IMEventType.SHIP_ATTACK]: ShipAttackClickHandler,
     [IMEventType.PLAY_SUPPORT_TARGET]: SelectTargetClickHandler,
+    [IMEventType.PLAY_SUPPORT_LINE]: SelectLineTargetClickHandler,
     [IMEventType.PLAY_SUPPORT_CONFIRM]: ConfirmEffectClickHandler,
     [IMEventType.SHOW_SHIP_DETAILS]: ShowShipDetailsClickHandler,
 };

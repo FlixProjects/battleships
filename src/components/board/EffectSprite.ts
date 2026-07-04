@@ -1,11 +1,20 @@
-import { TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
-import { ICellLoc, IEffect, isVisionEffect } from "@shared/types";
+import { COLOR_FILTER, EffectAnimation, TEffectAnimation, TILE_GAP_PX, TILE_SIZE_PX } from "@shared/constants";
+import { ICellLoc, isDamageEffect, isVisionEffect } from "@shared/types";
+import type { Effect } from "@shared/models/effects";
 import { BaseComponent } from "../BaseComponent";
+import { BaseAnimStyle } from "../../css-anim-styles/models/base-anim-style";
 import FlickerCssAnimStyle from "../../css-anim-styles/models/flicker-style";
+import PulseCssAnimStyle from "../../css-anim-styles/models/pulse-style";
 
 interface Props {
-    effect: IEffect;
+    effect: Effect;
 }
+
+/** Maps an Effect's semantic animation token → the concrete CSS anim style. */
+const ANIMATION_STYLES: Record<TEffectAnimation, () => BaseAnimStyle> = {
+    [EffectAnimation.PULSE]: () => new PulseCssAnimStyle(),
+    [EffectAnimation.FLICKER]: () => new FlickerCssAnimStyle(),
+};
 
 export class EffectSprite extends BaseComponent {
     constructor(private props: Props) {
@@ -13,6 +22,7 @@ export class EffectSprite extends BaseComponent {
     }
 
     public build() {
+        const { effect } = this.props;
         this.ref = document.createElement("img");
         const center = this.getCenter();
         if (!center) {
@@ -22,16 +32,27 @@ export class EffectSprite extends BaseComponent {
             return this.ref;
         }
 
-        (this.ref as HTMLImageElement).src =
-            `./assets/sprites/${this.props.effect.refNo.replace(/_persistent$/, "")}.png`;
-        (this.ref as HTMLImageElement).alt = this.props.effect.refNo;
+        (this.ref as HTMLImageElement).src = this.getSpriteUrl();
+        (this.ref as HTMLImageElement).alt = effect.refNo;
         this.applyPositioning(center);
         return this.ref;
     }
 
+    private getSpriteUrl(): string {
+        const { effect } = this.props;
+        // FIXME: remove persistent patch
+        if (effect.imgSrc) return `./assets/sprites/${effect.imgSrc}`;
+        if (effect.refNo.includes("_persistent")) {
+            return `./assets/sprites/${effect.refNo.replace(/_persistent$/, "")}.png`;
+        }
+        return `./assets/sprites/${effect.refNo}.png`;
+    }
+
     private getCenter(): ICellLoc | undefined {
         const { effect } = this.props;
-        return isVisionEffect(effect) ? effect.location : undefined;
+        if (isVisionEffect(effect)) return effect.location;
+        if (isDamageEffect(effect)) return effect.location;
+        return undefined;
     }
 
     private applyPositioning(center: ICellLoc) {
@@ -44,8 +65,14 @@ export class EffectSprite extends BaseComponent {
         this.ref.style.height = `${TILE_SIZE_PX}px`;
         this.ref.style.objectFit = "contain";
         this.ref.style.pointerEvents = "none";
-        this.ref.style.zIndex = "5";
 
-        new FlickerCssAnimStyle().attachTo(this.ref);
+        // The Effect declares its own look (layer / tint / animation); the sprite
+        // just applies it — no per-effect branching here.
+        const spec = this.props.effect.getRenderSpec();
+        this.ref.style.zIndex = spec.zIndex;
+        if (spec.tint) {
+            this.ref.style.filter = COLOR_FILTER[spec.tint];
+        }
+        ANIMATION_STYLES[spec.animation]().attachTo(this.ref);
     }
 }

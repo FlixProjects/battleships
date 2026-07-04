@@ -13,6 +13,7 @@ export class EffectEntity extends GameObjectWithVisibilityEntity<EffectEntity> i
     createdOnRound: number;
     expiresAfterRound?: number;
     existsOnBoard: boolean;
+    imgSrc?: string;
 
     constructor(props: Readonly<IEffect>) {
         super();

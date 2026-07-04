@@ -47,6 +47,11 @@ export const Z_INDEX = {
     PROJECTILE: "100",
     ACTION_MENU: "1000",
     TARGET_ATTACK_ICON: "10",
+    // Vision markers (Flare) sit above the board grid, in the on-board overlay.
+    EFFECT_VISION: "5",
+    // Airstrike warning markers sit below ships/hulls (which live in the static
+    // layer) but above the board grid.
+    EFFECT_WARNING: "0",
 };
 
 export const COLOR = {
@@ -67,6 +72,22 @@ export const COLOR_FILTER = {
     [COLOR.RED]:
         "brightness(0) saturate(100%) invert(27%) sepia(98%) saturate(7426%) hue-rotate(358deg) brightness(98%) contrast(118%)",
 };
+
+// Board effect presentation. Each Effect declares its own render spec via
+// `Effect.getRenderSpec()`; these semantic tokens keep raw CSS/DOM concerns in
+// the FE (EffectSprite maps `animation` → a CSS anim style, `tint` → COLOR_FILTER).
+export const EffectAnimation = {
+    PULSE: "pulse",
+    FLICKER: "flicker",
+} as const;
+export type TEffectAnimation = (typeof EffectAnimation)[keyof typeof EffectAnimation];
+
+export interface IEffectRenderSpec {
+    /** Tint applied to a (black) sprite silhouette via COLOR_FILTER. Omit for none. */
+    tint?: TColor;
+    zIndex: string;
+    animation: TEffectAnimation;
+}
 
 export const COLOR_RGB_VALUE = {
     [COLOR.TEAL]: "110, 231, 183",

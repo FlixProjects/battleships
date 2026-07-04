@@ -63,9 +63,19 @@ export interface IShipCardPayload {
     location: ICellLoc; // anchor tile for the deploy
 }
 
+export const LineOrientation = {
+    Horizontal: "horizontal",
+    Vertical: "vertical",
+} as const;
+
+export type TLineOrientation = (typeof LineOrientation)[keyof typeof LineOrientation];
+
 export interface ISupportCardPayload {
     kind: "Support";
     targetCell?: ICellLoc;
+    /** For line-targeted supports (Airstrike): which way the 3-tile line runs
+     *  through `targetCell`. Ignored by single-tile supports. */
+    orientation?: TLineOrientation;
 }
 
 export type TPlayCardPayload = IShipCardPayload | ISupportCardPayload;

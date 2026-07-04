@@ -1,5 +1,6 @@
 import { locationToKey } from "@shared/utils";
-import { IEffect, IGameState, IPlainEffect, ISignalHandleCtx } from "../../types";
+import { EffectAnimation, IEffectRenderSpec, Z_INDEX } from "../../constants";
+import { IEffect, IPlainEffect, ISignalHandleCtx } from "../../types";
 import { EffectEntity } from "../entities/EffectEntity";
 
 /**
@@ -17,9 +18,20 @@ export class Effect extends EffectEntity {
         throw new Error(`Effect ${this.id} (refNo=${this.refNo}) does not implement resolve`);
     }
 
-    public resolveTick(_gameState: IGameState): void {
+    public resolveTick(_ctx: ISignalHandleCtx): void {
         // Default no-op. Persistent Effects override. Driven per-turn by the
         // GamePersistentEffectsTick signal → GameState.tickPersistentEffects.
+    }
+
+    /**
+     * How this Effect draws on the board. Returns semantic tokens (not raw CSS)
+     * so the FE (`EffectSprite`) owns the DOM/animation mapping — mirrors how
+     * `SupportCard.getSelectionEvent` returns an FE event shape from shared.
+     * The default suits an on-board overlay marker (vision/Flare); concrete
+     * Effects override for their own look (e.g. AirstrikeEffect pulses in red).
+     */
+    public getRenderSpec(): IEffectRenderSpec {
+        return { zIndex: Z_INDEX.EFFECT_VISION, animation: EffectAnimation.FLICKER };
     }
 
     public isPersistent(): boolean {
@@ -62,6 +74,7 @@ export class Effect extends EffectEntity {
             createdOnRound: this.createdOnRound,
             expiresAfterRound: this.expiresAfterRound,
             existsOnBoard: this.existsOnBoard,
+            imgSrc: this.imgSrc,
         };
     }
 }

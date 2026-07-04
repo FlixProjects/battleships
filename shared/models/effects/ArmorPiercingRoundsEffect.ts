@@ -1,4 +1,4 @@
-import type { IGameState, IPlainEffect, ISignalHandleCtx } from "../../types";
+import type { IPlainEffect, ISignalHandleCtx } from "../../types";
 import { EFFECT_REF_NO } from "../../config/constants";
 import { registerEffect } from "../../utils/effect-helper";
 import { Effect } from "./Effect";
@@ -32,7 +32,7 @@ export class ArmorPiercingRoundsEffect extends Effect {
         // Passive — no on-play impact to emit.
     }
 
-    public resolveTick(_gameState: IGameState): void {
+    public resolveTick(_ctx: ISignalHandleCtx): void {
         // Passive — applied at attack time, no per-round mutation.
     }
 

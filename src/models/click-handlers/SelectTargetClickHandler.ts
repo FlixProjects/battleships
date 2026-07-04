@@ -6,6 +6,7 @@ import { ICellLoc, PlaySupportTargetIMEvent } from "@shared/types";
 import { keyToLocation, locationToKey } from "@shared/utils/helpers";
 import { gameManager, interactionManager } from "../..";
 import { getComponents } from "../../components/component-helper";
+import { Selectable } from "../../components/Selectable";
 import { Toast } from "../../components/Toast";
 import { getEngine, queueCommand } from "../../utils/game-helper";
 import { FEEffect } from "../effects";
@@ -43,7 +44,7 @@ export class SelectTargetClickHandler extends ClickHandler {
     }
 
     protected async handler(e: MouseEvent) {
-        const { onGlobalDeselect, onSuccessfulSelect } = this.event;
+        const { onGlobalDeselect } = this.event;
         const target = e.target as HTMLElement;
 
         // Resolve the underlying tile id even when the user clicks through a
@@ -74,13 +75,23 @@ export class SelectTargetClickHandler extends ClickHandler {
             return;
         }
 
+        await this.onCenterSelected(targetCell, tile);
+    }
+
+    /**
+     * Final step once a valid target tile is picked. The default plays the card
+     * immediately; subclasses (line-targeted supports) override to insert an
+     * extra selection step before dispatching FEPlayCardCommand.
+     */
+    protected async onCenterSelected(targetCell: ICellLoc, tile: Selectable) {
         const playerId = gameManager.getCurrentPlayerId();
         queueCommand(
             new FEPlayCardCommand({
                 cardId: this.event.cardId,
                 playerId,
-                support: { targetCell, locationElement: tile },
-                onSuccessCb: onSuccessfulSelect,
+                loadPlayParams: { kind: "Support", targetCell },
+                locationElement: tile,
+                onSuccessCb: this.event.onSuccessfulSelect,
             }),
         );
     }

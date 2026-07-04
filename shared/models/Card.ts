@@ -1,4 +1,4 @@
-import { ICard, IGameState, IMEvent, IPlainCard, IPlayCardSignalHandleCtx } from "../types";
+import { ICard, IGameState, IGameStateManager, IMEvent, IPlainCard, IPlayCardSignalHandleCtx } from "../types";
 import { CardEntity } from "./entities/CardEntity";
 
 export interface ICardPlaySink {
@@ -48,6 +48,12 @@ export class Card extends CardEntity {
 
     public getSelectionEvent(_handlers: ICardSelectionHandlers): IMEvent {
         throw new Error(`Card ${this.id} (kind=${this.kind}) does not implement getSelectionEvent`);
+    }
+
+    /** CP cost of playing this card. Kind-specific: a ShipCard's cost lives on
+     *  the Ship it deploys, a SupportCard carries its own. */
+    public getCommandPointCost(_gsm: IGameStateManager): number {
+        throw new Error(`Card ${this.id} (kind=${this.kind}) does not implement getCommandPointCost`);
     }
 
     public toPlain(): IPlainCard {

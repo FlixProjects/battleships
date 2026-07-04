@@ -1,4 +1,5 @@
 import FlickerCssAnimStyle from "./flicker-style";
+import PulseCssAnimStyle from "./pulse-style";
 import WobbleCssAnimStyle from "./wobble-style";
 
-export { FlickerCssAnimStyle, WobbleCssAnimStyle };
+export { FlickerCssAnimStyle, PulseCssAnimStyle, WobbleCssAnimStyle };

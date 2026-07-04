@@ -14,6 +14,7 @@ import {
     ISupportCardPayload,
     PlaySupportConfirmIMEvent,
     PlaySupportTargetIMEvent,
+    TLineOrientation,
 } from "../types";
 import { keyToLocation, locationToKey } from "../utils/helpers";
 import { PathFinder } from "../utils/path-finder";
@@ -28,6 +29,10 @@ export interface ICreateEffectsArgs {
     playerId: string;
     currentRound: number;
     targetCell?: ICellLoc;
+    /** Line supports (Airstrike) expand the target into a 3-tile line in this
+     *  direction; single-tile supports ignore it. */
+    orientation?: TLineOrientation;
+    boardDimensions: { rows: number; cols: number };
 }
 
 export class SupportCard extends Card {
@@ -46,6 +51,10 @@ export class SupportCard extends Card {
         this.imgSrc = props.imgSrc ?? "";
     }
 
+    public getCommandPointCost(): number {
+        return this.commandPointCost;
+    }
+
     public play(ctx: IPlayCardSignalHandleCtx): IGameState {
         const { gsm, signal, emitter } = ctx;
         const { playerId, cardPayload } = signal.payload;
@@ -55,10 +64,16 @@ export class SupportCard extends Card {
                 `SupportCard ${this.id} received non-Support payload (kind=${cardPayload.kind}); cannot play`,
             );
         }
-        const { targetCell } = cardPayload as ISupportCardPayload;
+        const { targetCell, orientation } = cardPayload as ISupportCardPayload;
 
         // Mint this card's live Effects and hand each to GameState to add + resolve.
-        const effects = this.createEffects({ playerId, targetCell, currentRound: gsm.gameState.currentRound });
+        const effects = this.createEffects({
+            playerId,
+            targetCell,
+            orientation,
+            currentRound: gsm.gameState.currentRound,
+            boardDimensions: gsm.getBoardDimensions(),
+        });
 
         emitter([
             ...effects.map((effect) => this.toCreateEffectSignal(effect, signal.id)),

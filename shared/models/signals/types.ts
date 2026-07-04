@@ -35,6 +35,8 @@ export const SignalType = {
     GameRemoveExpiredEffects: "GameRemoveExpiredEffects",
     GameRefillHands: "GameRefillHands",
     GameProjectVisibility: "GameProjectVisibility",
+    EffectAttackLocation: "EffectAttackLocation",
+    ReceiveEffectAttackLocation: "ReceiveEffectAttackLocation",
     GetValidDeployCells: "GetValidDeployCells",
     GetValidMoveCells: "GetValidMoveCells",
     GetValidMoveRoutes: "GetValidMoveRoutes",
@@ -132,6 +134,19 @@ export interface IGameRefillHandsSignalPayload extends ISignalPayload {
 
 export interface IGameProjectVisibilitySignalPayload extends ISignalPayload {
     visibleTiles: Set<string>;
+}
+
+export interface IEffectAttackLocationSignalPayload extends ISignalPayload {
+    location: ICellLoc;
+    damage: number;
+    /** The Effect that fired the strike — used as the Attack's originId so the
+     *  damage cascade has a stable source id (the effect is gone by then). */
+    sourceEffectId: string;
+}
+
+export interface IReceiveEffectAttackLocationSignalPayload extends ISignalPayload {
+    shipId: string;
+    attack: Attack;
 }
 
 export interface IAttackPayload {

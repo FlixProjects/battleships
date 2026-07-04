@@ -51,11 +51,13 @@ export const EFFECT_REF_NO = {
     flarePersistent: "flare_persistent",
     gainCommandPoint: "gain_command_point",
     armorPiercingRounds: "armor_piercing_rounds",
+    airstrike: "airstrike",
 } as const;
 
 export const SUPPORT_REF_NO = {
     flare: "flare",
     inspire: "inspire",
+    airstrike: "airstrike",
 } as const;
 
 export const MAP_REF_NO = {
@@ -275,6 +277,20 @@ export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectTemplate> = {
         kind: EffectKind.AttackBuff,
         existsOnBoard: false,
     },
+    [EFFECT_REF_NO.airstrike]: {
+        refNo: EFFECT_REF_NO.airstrike,
+        kind: EffectKind.Damage,
+        // Targeting is gated to the player's visible tiles by AirstrikeCard;
+        // range only needs to be > 0 so the FE mounts the target-picker flow.
+        anchor: EffectAnchor.AnyTile,
+        range: 1,
+        damage: 1,
+        // Survives the round it is played, detonates on the next resolve's
+        // persistent-effects tick, then removes itself (fires exactly once).
+        duration: 1,
+        existsOnBoard: true,
+        imgSrc: "warning-icon.png",
+    },
 };
 
 export const SUPPORTS_CONFIG: Record<TSupportRefNo, TSupportConfig> = {
@@ -295,6 +311,15 @@ export const SUPPORTS_CONFIG: Record<TSupportRefNo, TSupportConfig> = {
         effectTemplates: [{ refNo: EFFECT_REF_NO.gainCommandPoint, commandPointAmount: 1 }],
         imgSrc: "inspire.png",
     },
+    [SUPPORT_REF_NO.airstrike]: {
+        refNo: SUPPORT_REF_NO.airstrike,
+        name: "Airstrike",
+        description:
+            "Paint a 3-tile line for orbital bombardment. The strike lands next turn, dealing 1 damage to any ship caught under the markers — friend or foe.",
+        commandPointCost: 1,
+        effectTemplates: [{ refNo: EFFECT_REF_NO.airstrike }],
+        imgSrc: "airstrike.png",
+    },
 };
 
 export const MAX_HAND_SIZE = 4;
@@ -308,6 +333,7 @@ export const FACTION_CONFIG: Record<TFaction, DeckTemplate> = {
         // Supports
         { kind: CardKind.Support, refNo: SUPPORT_REF_NO.flare, count: 2 },
         { kind: CardKind.Support, refNo: SUPPORT_REF_NO.inspire, count: 1 },
+        { kind: CardKind.Support, refNo: SUPPORT_REF_NO.airstrike, count: 1 },
     ],
 };
 
