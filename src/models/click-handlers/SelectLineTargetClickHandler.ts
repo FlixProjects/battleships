@@ -32,7 +32,8 @@ export class SelectLineTargetClickHandler extends SelectTargetClickHandler {
                     new FEPlayCardCommand({
                         cardId: this.event.cardId,
                         playerId,
-                        support: { selection: { targetCell, orientation }, locationElement: tile },
+                        loadPlayParams: { kind: "Support", targetCell, orientation },
+                        locationElement: tile,
                         onSuccessCb: onSuccessfulSelect,
                     }),
                 );

@@ -89,7 +89,8 @@ export class SelectTargetClickHandler extends ClickHandler {
             new FEPlayCardCommand({
                 cardId: this.event.cardId,
                 playerId,
-                support: { selection: { targetCell }, locationElement: tile },
+                loadPlayParams: { kind: "Support", targetCell },
+                locationElement: tile,
                 onSuccessCb: this.event.onSuccessfulSelect,
             }),
         );

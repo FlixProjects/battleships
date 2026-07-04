@@ -51,7 +51,7 @@ export class ConfirmEffectClickHandler extends ClickHandler {
             new FEPlayCardCommand({
                 cardId: this.event.cardId,
                 playerId,
-                support: {},
+                loadPlayParams: { kind: "Support" },
                 onSuccessCb: () => {
                     updateComponents();
                     onGlobalDeselect?.();

@@ -2,7 +2,7 @@ import { FEHighlightLocationsCommand } from "@shared/models/commands/FEHighlight
 import { FEPlayCardCommand } from "@shared/models/commands/FEPlayCardCommand";
 import { GetValidDeployCellsSignal } from "@shared/models/signals/GetValidDeployCellsSignal";
 import { ICellLoc } from "@shared/types";
-import { locationToKey } from "@shared/utils/helpers";
+import { keyToLocation, locationToKey } from "@shared/utils/helpers";
 import { gameManager } from "../..";
 import { getComponents } from "../../components/component-helper";
 import { getEngine, queueCommand } from "../../utils/game-helper";
@@ -75,10 +75,9 @@ export class DeployShipClickHandler extends ClickHandler {
             new FEPlayCardCommand({
                 cardId: card.id,
                 playerId,
-                deploy: {
-                    tileId,
-                    locationElement: tile,
-                },
+                // Send only the anchor tile (intent); the domain derives hull placements.
+                loadPlayParams: { kind: "Ship", location: keyToLocation(tileId) },
+                locationElement: tile,
                 onSuccessCb,
             }),
         );

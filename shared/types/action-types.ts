@@ -78,14 +78,6 @@ export interface ISupportCardPayload {
     orientation?: TLineOrientation;
 }
 
-/**
- * The card-specific targeting portion of a Support play, minus the discriminant.
- * The generic FE play-card commands carry this opaquely and forward it into the
- * payload — they never read individual fields (e.g. `orientation`), so a new
- * support that needs new selection data only extends `ISupportCardPayload`.
- */
-export type TSupportSelection = Omit<ISupportCardPayload, "kind">;
-
 export type TPlayCardPayload = IShipCardPayload | ISupportCardPayload;
 
 export interface IPlayCardAction extends IPlayerAction {

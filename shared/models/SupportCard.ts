@@ -51,6 +51,10 @@ export class SupportCard extends Card {
         this.imgSrc = props.imgSrc ?? "";
     }
 
+    public getCommandPointCost(): number {
+        return this.commandPointCost;
+    }
+
     public play(ctx: IPlayCardSignalHandleCtx): IGameState {
         const { gsm, signal, emitter } = ctx;
         const { playerId, cardPayload } = signal.payload;

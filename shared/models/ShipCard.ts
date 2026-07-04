@@ -2,6 +2,7 @@ import {
     DeployingShipIMEvent,
     ICard,
     IGameState,
+    IGameStateManager,
     IMEventType,
     IPlainCard,
     IPlayCardSignalHandleCtx,
@@ -57,6 +58,11 @@ export class ShipCard extends Card {
         ]);
 
         return gsm.gameState;
+    }
+
+    /** Deploy cost lives on the Ship this card deploys, not on the card. */
+    public getCommandPointCost(gsm: IGameStateManager): number {
+        return gsm.getShip(this.instanceId).commandPointCost;
     }
 
     public getSelectionEvent(handlers: ICardSelectionHandlers): DeployingShipIMEvent {
