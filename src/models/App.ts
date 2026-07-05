@@ -50,6 +50,7 @@ export class App {
             }
 
             const currentPlayerId = getCookie(FP_AUTH_TOKEN);
+            gameManager.trackRoundSnapshots(currentPlayerId, response.gameState);
             const gsm = new this.GSM(response.gameState);
             // Server speaks plain. Run local re-resolution (only fires if player has already submitted)
             gsm.resolveLocalActionsForPlayer(currentPlayerId);

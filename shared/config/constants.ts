@@ -232,7 +232,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
             "The Knight class is the workhorse of the TUDF - armed with Armor-piercing rounds and thick Titasteel plating, they deliver their escorted ships to their destination without fail",
         deployed: false,
         dimensions: [1, 1],
-        commandPointCost: 0,
+        commandPointCost: 1,
         movementRange: 2,
         movementCommandPointCost: 1,
         attackCountMax: 1,

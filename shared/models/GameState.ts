@@ -50,6 +50,10 @@ export class GameState extends GameStateEntity implements IGameState {
         this.winners = props.winners;
         this.isOver = props.isOver;
         this.currentRound = props.currentRound;
+        // Plain data, but cloned: obscured projections (`new GameState(this)`)
+        // rewrite events per viewer and must not touch the source's copies.
+        this.lastTurnEvents = clone(props.lastTurnEvents ?? []);
+        this.lastResolvedRound = props.lastResolvedRound;
 
         // Construction is always rehydration: the input is plain or
         // domain-shaped data, never an already-built class instance. The
@@ -160,6 +164,8 @@ export class GameState extends GameStateEntity implements IGameState {
             decks: this.decks.map((d) => d.toPlain()),
             effects: this.effects.map((e) => e.toPlain()),
             players: this.players.map((p) => p.toPlain()),
+            lastTurnEvents: this.lastTurnEvents,
+            lastResolvedRound: this.lastResolvedRound,
         };
     }
 

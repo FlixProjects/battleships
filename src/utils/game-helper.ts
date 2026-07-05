@@ -16,6 +16,7 @@ import { game, gameManager } from "..";
 import { getGame } from "../apis/get-game";
 import { getComponents, updateComponents } from "../components/component-helper";
 import { FEGameStateManager } from "../models/FEGameStateManager";
+import { playbackRunner } from "../models/PlaybackRunner";
 
 // engine-v2 over the current FE state. FEGameStateManager rehydrates into FE
 // domain entities (FEShipEntity etc.) so faction mixins / FE behaviour apply
@@ -60,6 +61,10 @@ export const getColorFilter = (color: TColor) => {
 export const refresh = async () => {
     try {
         const response = await getGame(getGameCode());
+
+        if (response?.gameState) {
+            gameManager.trackRoundSnapshots(gameManager.getCurrentPlayerId(), response.gameState);
+        }
 
         const { status, currentPlayer } = gameManager.state;
 

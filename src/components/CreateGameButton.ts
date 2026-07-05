@@ -56,6 +56,8 @@ export class CreateGameButton extends HTMLButton {
             };
 
             if (playerId) {
+                // Seed the round-start snapshot so round 1's playback can rewind.
+                gameManager.trackRoundSnapshots(playerId, gameState);
                 gameManager.saveAppState(newState);
             }
 
