@@ -112,6 +112,7 @@ export const ASSET_PATHS = {
     TARGET_ICON: "./assets/attack-icon.png",
     MOVE_ICON: "./assets/move-icon.svg",
     HEALTH_ICON: "./assets/health-icon.svg",
+    ARMOR_ICON: "./assets/armor-icon.png",
     INFO_ICON: "./assets/info-icon.svg",
     VISION_ICON: "./assets/vision-icon.svg",
     DURATION_ICON: "./assets/duration-icon.svg",

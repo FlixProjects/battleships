@@ -4,7 +4,12 @@ import { ShowShipDetailsIMEvent } from "@shared/types";
 import { gameManager } from "../..";
 import { getComponents } from "../../components/component-helper";
 import { FEGameStateManager } from "../FEGameStateManager";
-import { buildEffectDetails, buildShipDetails, DetailsViewModel } from "../details/DetailsViewModel";
+import {
+    buildEffectDetails,
+    buildShipDetails,
+    buildSupportCardDetails,
+    DetailsViewModel,
+} from "../details/DetailsViewModel";
 import { ClickHandler } from "./ClickHandler";
 
 /**
@@ -34,6 +39,13 @@ export class ShowShipDetailsClickHandler extends ClickHandler {
             const ship = gsm.gameState.ships.find((s) => s.id === this.event.shipId);
             if (!ship) return undefined;
             return buildShipDetails(ship, colorFor(ship.playerId));
+        }
+
+        if (this.event.cardId) {
+            const card = gsm.gameState.cards.find((c) => c.id === this.event.cardId);
+            if (!card) return undefined;
+            const ownerId = gsm.gameState.decks.find((d) => d.id === card.deckId)?.playerId;
+            return buildSupportCardDetails(card, colorFor(ownerId ?? gameManager.getCurrentPlayerId()));
         }
 
         if (this.event.effectId) {
