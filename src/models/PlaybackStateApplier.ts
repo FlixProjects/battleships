@@ -43,6 +43,7 @@ export class PlaybackStateApplier {
         const event = this.events[index];
         switch (event.kind) {
             case TurnEventKind.ShipMoved:
+            case TurnEventKind.ShipAttacked:
             case TurnEventKind.HullDamaged:
             case TurnEventKind.ShipDestroyed:
                 return this.spawnShipIfMissing(playback, event.shipId, event.playerId, index);
@@ -66,10 +67,12 @@ export class PlaybackStateApplier {
             case TurnEventKind.EffectDetonated:
                 this.applyDetonation(playback, event);
                 return;
+            case TurnEventKind.ShipAttacked:
             case TurnEventKind.HullDamaged:
             case TurnEventKind.CardPlayed:
-                // No board-arrangement change: the hit is a flash on an
-                // existing sprite; hand changes aren't animated (v1).
+                // No board-arrangement change: the shot and the hit are
+                // flashes over existing sprites; hand changes aren't
+                // animated (v1).
                 return;
         }
     }

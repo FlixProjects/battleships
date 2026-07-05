@@ -3,6 +3,7 @@ import { FEEffectDetonationAnimationCommand } from "@shared/models/commands/FEEf
 import { FEPlaybackAnimationCommand } from "@shared/models/commands/FEPlaybackAnimationCommand";
 import { FEPlaybackMoveShipCommand } from "@shared/models/commands/FEPlaybackMoveShipCommand";
 import { INewOldHullLocMap, IShipMovedEvent, ITurnEvent, TurnEventKind } from "@shared/types";
+import { Projectile } from "../components/projectiles/Projectile";
 import { DestroyedAnimation } from "../models/animations";
 import { HitAnimation } from "../models/animations/HitAnimation";
 import { getElementsFromIds } from "./game-helper";
@@ -21,14 +22,20 @@ export const turnEventToCommand = (event: ITurnEvent): FECommand | undefined => 
                 hullMap: toHullMap(event),
                 route: event.route,
             });
+        case TurnEventKind.ShipAttacked:
+            return new FEPlaybackAnimationCommand(() =>
+                event.targetLocations.map((target) =>
+                    new Projectile({ origin: event.origin, target }).createAnimation(),
+                ),
+            );
         case TurnEventKind.HullDamaged:
-            return new FEPlaybackAnimationCommand(
-                () => new HitAnimation({ id: event.shipId, elements: getElementsFromIds([event.hullId]) }),
-            );
+            return new FEPlaybackAnimationCommand(() => [
+                new HitAnimation({ id: event.shipId, elements: getElementsFromIds([event.hullId]) }),
+            ]);
         case TurnEventKind.ShipDestroyed:
-            return new FEPlaybackAnimationCommand(
-                () => new DestroyedAnimation({ id: event.shipId, elements: getElementsFromIds(event.hullIds) }),
-            );
+            return new FEPlaybackAnimationCommand(() => [
+                new DestroyedAnimation({ id: event.shipId, elements: getElementsFromIds(event.hullIds) }),
+            ]);
         case TurnEventKind.EffectDetonated:
             return new FEEffectDetonationAnimationCommand({ location: event.location });
         case TurnEventKind.ShipDeployed:

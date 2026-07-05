@@ -4,6 +4,7 @@ import {
     isCardPlayedEvent,
     isEffectDetonatedEvent,
     isHullDamagedEvent,
+    isShipAttackedEvent,
     isShipDeployedEvent,
     isShipDestroyedEvent,
     isShipMovedEvent,
@@ -29,6 +30,14 @@ const sampleEvents: ITurnEvent[] = [
             [0, 1],
         ],
         visibleRouteByPlayer: { p2: [[0, 1]] },
+    },
+    {
+        kind: TurnEventKind.ShipAttacked,
+        playerId: "p2",
+        visibleToPlayerIds: ["p2"],
+        shipId: "s2",
+        origin: [3, 3],
+        targetLocations: [[0, 1]],
     },
     {
         kind: TurnEventKind.HullDamaged,
@@ -74,6 +83,7 @@ describe("turn-event-types", () => {
         const guards = [
             isShipDeployedEvent,
             isShipMovedEvent,
+            isShipAttackedEvent,
             isHullDamagedEvent,
             isShipDestroyedEvent,
             isEffectDetonatedEvent,
@@ -94,6 +104,8 @@ describe("turn-event-types", () => {
                     return event.shipId;
                 case TurnEventKind.ShipMoved:
                     return event.shipId;
+                case TurnEventKind.ShipAttacked:
+                    return event.shipId;
                 case TurnEventKind.HullDamaged:
                     return event.hullId;
                 case TurnEventKind.ShipDestroyed:
@@ -111,6 +123,6 @@ describe("turn-event-types", () => {
             }
         };
 
-        expect(sampleEvents.map(describeEvent)).toEqual(["s1", "s1", "h1", "s1", "airstrike", "c1"]);
+        expect(sampleEvents.map(describeEvent)).toEqual(["s1", "s1", "s2", "h1", "s1", "airstrike", "c1"]);
     });
 });

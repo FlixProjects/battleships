@@ -5,6 +5,7 @@ import { PlayerBuilder } from "../../../factories/player-builder";
 import { ShipBuilder } from "../../../factories/ship-builder";
 import { GameEngine } from "../../../models/GameEngine";
 import { GameStateManager } from "../../../models/GameStateManager";
+import { BasicShipAttackSignal } from "../../../models/signals/BasicShipAttackSignal";
 import { BasicShipMoveSignal } from "../../../models/signals/BasicShipMoveSignal";
 import { GamePersistentEffectsTickSignal } from "../../../models/signals/GamePersistentEffectsTickSignal";
 import { PlayCardSignal } from "../../../models/signals/PlayCardSignal";
@@ -187,6 +188,64 @@ describe("TurnEventRecorder — ship movement", () => {
         recorder.stampVisibility({ player1: new Set(), player2: new Set() });
 
         expect(recorder.collect()[0].visibleToPlayerIds).toEqual(["player1", "player2"]);
+    });
+});
+
+describe("TurnEventRecorder — ship attack", () => {
+    const buildAttackState = () => {
+        const attackerHull = hullBuilder.build({ id: "aHull", shipId: "attacker", location: [2, 1], front: true });
+        const attacker = shipBuilder.build({
+            id: "attacker",
+            playerId: "player1",
+            hulls: [attackerHull],
+            remainingAttacks: 1,
+        });
+        const victimHull = hullBuilder.build({ id: "vHull", shipId: "victim", location: [2, 3], front: true });
+        const victim = shipBuilder.build({ id: "victim", playerId: "player2", hulls: [victimHull] });
+        return gameStateBuilder.build({
+            players: [buildPlayer1.build({ ships: [attacker] }), buildPlayer2.build({ ships: [victim] })],
+            ships: [attacker, victim],
+            hulls: [attackerHull, victimHull],
+        });
+    };
+
+    const runAttack = (engine: GameEngine) =>
+        engine.runWithSignal(
+            new BasicShipAttackSignal({
+                targetId: "attacker",
+                payload: { attackingShipId: "attacker", attackLocations: [[2, 3]] },
+            }),
+        );
+
+    it("records ShipAttacked (with the shooter's origin) before the damage it causes", () => {
+        const { recorder, engine } = buildRecordingEngine(buildAttackState());
+
+        runAttack(engine);
+
+        const events = recorder.collect();
+        expect(events.map((e) => e.kind)).toEqual([
+            TurnEventKind.ShipAttacked,
+            TurnEventKind.HullDamaged,
+            TurnEventKind.ShipDestroyed,
+        ]);
+        expect(events[0]).toMatchObject({
+            playerId: "player1",
+            shipId: "attacker",
+            origin: [2, 1],
+            targetLocations: [[2, 3]],
+        });
+    });
+
+    it("is stamped visible only to viewers who can see the shooter", () => {
+        const { recorder, engine } = buildRecordingEngine(buildAttackState());
+        runAttack(engine);
+
+        // player2 sees the target tile but not the shooter's tile.
+        recorder.stampVisibility({ player1: new Set(["2/1", "2/3"]), player2: new Set(["2/3"]) });
+
+        const [attacked, damaged] = recorder.collect();
+        expect(attacked.visibleToPlayerIds).toEqual(["player1"]); // no projectile reveal
+        expect(damaged.visibleToPlayerIds).toEqual(["player1", "player2"]); // the hit still shows
     });
 });
 

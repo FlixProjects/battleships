@@ -10,6 +10,7 @@ import { ICellLoc, TEffectRefNo } from "./types";
 export const TurnEventKind = {
     ShipDeployed: "ShipDeployed",
     ShipMoved: "ShipMoved",
+    ShipAttacked: "ShipAttacked",
     HullDamaged: "HullDamaged",
     ShipDestroyed: "ShipDestroyed",
     EffectDetonated: "EffectDetonated",
@@ -55,6 +56,19 @@ export interface IShipMovedEvent extends ITurnEventBase {
     visibleRouteByPlayer?: Record<string, ICellLoc[]>;
 }
 
+/** A ship firing — drives the playback projectile. Stamped visible only to
+ *  viewers who can see the *shooter* (`origin`): a viewer who only sees the
+ *  target tile still gets the `HullDamaged` flash, but no projectile that
+ *  would reveal where the shot came from. */
+export interface IShipAttackedEvent extends ITurnEventBase {
+    kind: typeof TurnEventKind.ShipAttacked;
+    /** The attacker. */
+    shipId: string;
+    /** Attacker's front-hull tile at fire time. */
+    origin: ICellLoc;
+    targetLocations: ICellLoc[];
+}
+
 export interface IHullDamagedEvent extends ITurnEventBase {
     kind: typeof TurnEventKind.HullDamaged;
     shipId: string;
@@ -86,6 +100,7 @@ export interface ICardPlayedEvent extends ITurnEventBase {
 export type ITurnEvent =
     | IShipDeployedEvent
     | IShipMovedEvent
+    | IShipAttackedEvent
     | IHullDamagedEvent
     | IShipDestroyedEvent
     | IEffectDetonatedEvent
@@ -94,6 +109,8 @@ export type ITurnEvent =
 export const isShipDeployedEvent = (e: ITurnEvent): e is IShipDeployedEvent =>
     e.kind === TurnEventKind.ShipDeployed;
 export const isShipMovedEvent = (e: ITurnEvent): e is IShipMovedEvent => e.kind === TurnEventKind.ShipMoved;
+export const isShipAttackedEvent = (e: ITurnEvent): e is IShipAttackedEvent =>
+    e.kind === TurnEventKind.ShipAttacked;
 export const isHullDamagedEvent = (e: ITurnEvent): e is IHullDamagedEvent =>
     e.kind === TurnEventKind.HullDamaged;
 export const isShipDestroyedEvent = (e: ITurnEvent): e is IShipDestroyedEvent =>

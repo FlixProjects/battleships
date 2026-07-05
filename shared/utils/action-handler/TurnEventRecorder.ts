@@ -1,5 +1,6 @@
 import { SignalType } from "../../models/signals/types";
 import {
+    IBasicShipAttackSignalHandleCtx,
     IBasicShipDeploySignalHandleCtx,
     IBasicShipMoveSignalHandleCtx,
     ICellLoc,
@@ -41,6 +42,8 @@ export class TurnEventRecorder {
                 return this.recordShipDeployed(ctx as IBasicShipDeploySignalHandleCtx);
             case SignalType.BasicShipMove:
                 return this.recordShipMoved(ctx as IBasicShipMoveSignalHandleCtx);
+            case SignalType.BasicShipAttack:
+                return this.recordShipAttacked(ctx as IBasicShipAttackSignalHandleCtx);
             case SignalType.HullMove:
                 return this.fillHullDestination(ctx as IHullMoveSignalHandleCtx);
             case SignalType.HullReceiveDamage:
@@ -123,6 +126,19 @@ export class TurnEventRecorder {
         return undefined;
     }
 
+    private recordShipAttacked(ctx: IBasicShipAttackSignalHandleCtx): void {
+        const { attackingShipId, attackLocations } = ctx.signal.payload;
+        const ship = ctx.gsm.getShip(attackingShipId);
+        this.events.push({
+            kind: TurnEventKind.ShipAttacked,
+            playerId: ship.playerId,
+            visibleToPlayerIds: [],
+            shipId: attackingShipId,
+            origin: ship.getFrontHull().location,
+            targetLocations: attackLocations,
+        });
+    }
+
     private recordHullDamaged(ctx: IHullReceiveDamageSignalHandleCtx): void {
         const { hullId } = ctx.signal.payload;
         const hull = ctx.gsm.getHull(hullId);
@@ -189,6 +205,11 @@ export class TurnEventRecorder {
                 return [event.location];
             case TurnEventKind.ShipMoved:
                 return event.route ?? event.hulls.flatMap((h) => (h.to ? [h.from, h.to] : [h.from]));
+            case TurnEventKind.ShipAttacked:
+                // Only the shooter's tile: a viewer who merely sees the target
+                // gets the HullDamaged flash, not a projectile that would
+                // reveal where the shot came from.
+                return [event.origin];
             case TurnEventKind.HullDamaged:
                 return [event.location];
             case TurnEventKind.ShipDestroyed:
