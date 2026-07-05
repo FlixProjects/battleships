@@ -47,3 +47,7 @@ export interface IHullBaseAnimationProps extends IAnimationProps {
     id?: string;
     elements?: { el: HTMLElement; rect: DOMRect }[];
 }
+
+export interface IExplosionAnimationProps extends IAnimationProps {
+    location: ICellLoc;
+}

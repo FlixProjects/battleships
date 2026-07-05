@@ -16,6 +16,7 @@ import { game, gameManager } from "..";
 import { getGame } from "../apis/get-game";
 import { getComponents, updateComponents } from "../components/component-helper";
 import { FEGameStateManager } from "../models/FEGameStateManager";
+import { playbackRunner } from "../models/PlaybackRunner";
 
 // engine-v2 over the current FE state. FEGameStateManager rehydrates into FE
 // domain entities (FEShipEntity etc.) so faction mixins / FE behaviour apply
@@ -61,6 +62,10 @@ export const refresh = async () => {
     try {
         const response = await getGame(getGameCode());
 
+        if (response?.gameState) {
+            gameManager.trackRoundSnapshots(gameManager.getCurrentPlayerId(), response.gameState);
+        }
+
         const { status, currentPlayer } = gameManager.state;
 
         const newState = {
@@ -71,6 +76,9 @@ export const refresh = async () => {
         };
 
         gameManager.saveAppState(newState);
+        // First submitter learns the resolved round here — rewind and replay
+        // it (watermark-guarded) before the final board settles in.
+        await playbackRunner.playIfUnseen();
         updateComponents();
     } catch (error) {
         updateComponents({ status: GameConfig.AppStatus.Error });

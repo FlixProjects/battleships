@@ -9,6 +9,7 @@ import { deleteAuthCookie, getCookie } from "../utils/cookie-helper";
 import { getGameCode, isWaitingForOtherPlayer, removeGameCode } from "../utils/game-helper";
 import { transformPlainAppStateToFEDomain } from "../utils/transformers";
 import { FEGameStateManager } from "./FEGameStateManager";
+import { playbackRunner } from "./PlaybackRunner";
 
 export class App {
     private _state: IAppState = transformPlainAppStateToFEDomain(DEFAULT_APP_STATE);
@@ -50,6 +51,7 @@ export class App {
             }
 
             const currentPlayerId = getCookie(FP_AUTH_TOKEN);
+            gameManager.trackRoundSnapshots(currentPlayerId, response.gameState);
             const gsm = new this.GSM(response.gameState);
             // Server speaks plain. Run local re-resolution (only fires if player has already submitted)
             gsm.resolveLocalActionsForPlayer(currentPlayerId);
@@ -68,6 +70,9 @@ export class App {
             );
             gameManager.setCurrentPlayer(currentPlayerId);
 
+            // Watermark-guarded catch-up: a resolve that landed while this
+            // client was away plays back once on boot.
+            await playbackRunner.playIfUnseen();
             updateComponents();
         } catch (error) {
             if (error.code === 404) {

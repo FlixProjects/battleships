@@ -4,6 +4,7 @@ import { gameManager } from "../..";
 import { BaseComponent } from "../BaseComponent";
 import { Hand } from "../hand/Hand";
 import { InitiativeDisplay } from "./InitiativeDisplay";
+import { PlaybackButton } from "./PlaybackButton";
 import { SubmitMoveButton } from "./SubmitMoveButton";
 
 export class ActionPanel extends BaseComponent {
@@ -56,6 +57,10 @@ export class ActionPanel extends BaseComponent {
         const submitBtn = new SubmitMoveButton();
         this.addChild(submitBtn);
         this.ref.appendChild(submitBtn.build());
+
+        const playbackBtn = new PlaybackButton();
+        this.addChild(playbackBtn);
+        this.ref.appendChild(playbackBtn.build());
     }
 
     private renderCommandPoints() {

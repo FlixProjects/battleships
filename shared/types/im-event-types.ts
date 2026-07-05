@@ -71,5 +71,8 @@ export interface PlaySupportLineIMEvent extends IMEvent {
 export interface ShowShipDetailsIMEvent extends IMEvent {
     type: typeof IMEventType.SHOW_SHIP_DETAILS;
     shipId?: string;
+    /** A live, minted Effect (on-board). In-hand Support cards have no Effect
+     *  yet (minted on play) — use `cardId` for those. */
     effectId?: string;
+    cardId?: string;
 }

@@ -1,34 +1,75 @@
-import { IHull } from "../types";
 import {
     ITurnEvent,
     TurnEventKind,
     isCardPlayedEvent,
-    isEffectAppliedEvent,
-    isHullsDamagedEvent,
+    isEffectDetonatedEvent,
+    isHullDamagedEvent,
+    isShipAttackedEvent,
     isShipDeployedEvent,
     isShipDestroyedEvent,
     isShipMovedEvent,
 } from "../turn-event-types";
 
-// Minimal serializable hull stub — this is a types test, not a domain test.
-const hullStub = { id: "h1", shipId: "s1", location: [0, 0], destroyed: false } as unknown as IHull;
-
 const sampleEvents: ITurnEvent[] = [
-    { kind: TurnEventKind.ShipDeployed, playerId: "p1", shipId: "s1", hulls: [hullStub] },
+    {
+        kind: TurnEventKind.ShipDeployed,
+        playerId: "p1",
+        visibleToPlayerIds: ["p1"],
+        shipId: "s1",
+        location: [0, 0],
+    },
     {
         kind: TurnEventKind.ShipMoved,
         playerId: "p1",
+        visibleToPlayerIds: ["p1", "p2"],
         shipId: "s1",
+        startingOrientation: 0,
         hulls: [{ hullId: "h1", from: [0, 0], to: [0, 1] }],
         route: [
             [0, 0],
             [0, 1],
         ],
+        visibleRouteByPlayer: { p2: [[0, 1]] },
     },
-    { kind: TurnEventKind.HullsDamaged, playerId: "p2", shipsHit: { s1: ["h1", "h2"] } },
-    { kind: TurnEventKind.ShipDestroyed, playerId: "p2", shipId: "s1" },
-    { kind: TurnEventKind.EffectApplied, playerId: "p1", effectId: "e1", refNo: "flare" },
-    { kind: TurnEventKind.CardPlayed, playerId: "p1", cardId: "c1" },
+    {
+        kind: TurnEventKind.ShipAttacked,
+        playerId: "p2",
+        visibleToPlayerIds: ["p2"],
+        shipId: "s2",
+        origin: [3, 3],
+        targetLocations: [[0, 1]],
+    },
+    {
+        kind: TurnEventKind.HullDamaged,
+        playerId: "p2",
+        visibleToPlayerIds: ["p1", "p2"],
+        shipId: "s1",
+        hullId: "h1",
+        location: [0, 1],
+    },
+    {
+        kind: TurnEventKind.ShipDestroyed,
+        playerId: "p2",
+        visibleToPlayerIds: ["p1", "p2"],
+        shipId: "s1",
+        hullIds: ["h1"],
+        locations: [[0, 1]],
+    },
+    {
+        kind: TurnEventKind.EffectDetonated,
+        playerId: "p1",
+        visibleToPlayerIds: ["p1", "p2"],
+        effectId: "e1",
+        refNo: "airstrike",
+        location: [2, 3],
+    },
+    {
+        kind: TurnEventKind.CardPlayed,
+        playerId: "p1",
+        visibleToPlayerIds: ["p1"],
+        cardId: "c1",
+        cardName: "Airstrike",
+    },
 ];
 
 describe("turn-event-types", () => {
@@ -42,9 +83,10 @@ describe("turn-event-types", () => {
         const guards = [
             isShipDeployedEvent,
             isShipMovedEvent,
-            isHullsDamagedEvent,
+            isShipAttackedEvent,
+            isHullDamagedEvent,
             isShipDestroyedEvent,
-            isEffectAppliedEvent,
+            isEffectDetonatedEvent,
             isCardPlayedEvent,
         ];
         // sampleEvents is ordered to match the guard order one-to-one.
@@ -62,11 +104,13 @@ describe("turn-event-types", () => {
                     return event.shipId;
                 case TurnEventKind.ShipMoved:
                     return event.shipId;
-                case TurnEventKind.HullsDamaged:
-                    return Object.keys(event.shipsHit).join();
+                case TurnEventKind.ShipAttacked:
+                    return event.shipId;
+                case TurnEventKind.HullDamaged:
+                    return event.hullId;
                 case TurnEventKind.ShipDestroyed:
                     return event.shipId;
-                case TurnEventKind.EffectApplied:
+                case TurnEventKind.EffectDetonated:
                     return event.refNo;
                 case TurnEventKind.CardPlayed:
                     return event.cardId;
@@ -79,6 +123,6 @@ describe("turn-event-types", () => {
             }
         };
 
-        expect(sampleEvents.map(describeEvent)).toEqual(["s1", "s1", "s1", "s1", "flare", "c1"]);
+        expect(sampleEvents.map(describeEvent)).toEqual(["s1", "s1", "s2", "h1", "s1", "airstrike", "c1"]);
     });
 });

@@ -26,7 +26,9 @@ export const handleActions = (
 const resolveActions = (thisPlayer: string, gameState: IGameState): ActionHandlerResult => {
     // TODO: validate command points
 
-    const { results, gameState: newGameState, obscuredGameState } = new ActionResolver(thisPlayer, gameState).resolve();
+    const { results, gameState: newGameState, obscuredGameState } = new ActionResolver(thisPlayer, gameState, {
+        recordTurnEvents: true,
+    }).resolve();
 
     return {
         results,

@@ -10,6 +10,7 @@ export const FP_GAME_CODE = "fp-game-code";
 
 export const FP_CURRENT_PLAYER = "fp-current-player";
 export const FP_PLAYER_STATES = "fp-player-states";
+export const FP_ROUND_SNAPSHOTS = "fp-round-snapshots";
 
 export const LOCAL_TEMP_PLAYER_ID = "temp-id";
 
@@ -111,6 +112,7 @@ export const ASSET_PATHS = {
     TARGET_ICON: "./assets/attack-icon.png",
     MOVE_ICON: "./assets/move-icon.svg",
     HEALTH_ICON: "./assets/health-icon.svg",
+    ARMOR_ICON: "./assets/armor-icon.png",
     INFO_ICON: "./assets/info-icon.svg",
     VISION_ICON: "./assets/vision-icon.svg",
     DURATION_ICON: "./assets/duration-icon.svg",

@@ -50,6 +50,10 @@ export class JoinGameButton extends HTMLButton {
             gameManager.setCurrentPlayer(playerId);
 
             setGameCode(gameCode);
+            if (gameState) {
+                // Seed the round-start snapshot so round 1's playback can rewind.
+                gameManager.trackRoundSnapshots(playerId, gameState);
+            }
             gameManager.saveAppState(newState);
 
             updateComponents();

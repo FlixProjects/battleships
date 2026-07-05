@@ -1,9 +1,10 @@
-import { COLOR_RGBA, SELECTABLE_ID, Z_INDEX } from "@shared/constants";
+import { ASSET_PATHS, COLOR_RGBA, SELECTABLE_ID, Z_INDEX } from "@shared/constants";
 import { IAppState } from "@shared/types";
 import { interactionManager } from "../..";
 import { BaseComponent } from "../BaseComponent";
+import { Icon } from "../ships/Icon";
 import { StatBadge } from "../ships/StatBadge";
-import { DetailsViewModel } from "../../models/details/DetailsViewModel";
+import { DetailsHullRow, DetailsHullValue, DetailsViewModel } from "../../models/details/DetailsViewModel";
 
 const HIDDEN_TRANSFORM = "translateY(-50%) translateX(115%)";
 const SHOWN_TRANSFORM = "translateY(-50%) translateX(0)";
@@ -61,8 +62,8 @@ export class DetailsPanel extends BaseComponent {
         if (vm.stats.length > 0) {
             this.ref.appendChild(this.renderStats(vm));
         }
-        if (vm.healthRows && vm.healthRows.length > 0) {
-            this.ref.appendChild(this.renderHealth(vm));
+        if (vm.hullRows && vm.hullRows.length > 0) {
+            this.ref.appendChild(this.renderHullRows(vm.hullRows));
         }
     }
 
@@ -143,37 +144,75 @@ export class DetailsPanel extends BaseComponent {
         return row;
     }
 
-    private renderHealth(vm: DetailsViewModel): HTMLElement {
+    /** Per-hull section: `Hull 1/2   <armor> [armor] | <health> [health]`. */
+    private renderHullRows(rows: DetailsHullRow[]): HTMLElement {
         const section = document.createElement("div");
         section.style.display = "flex";
         section.style.flexDirection = "column";
         section.style.gap = "4px";
 
         const heading = document.createElement("span");
-        heading.textContent = "Health";
+        heading.textContent = "Health & Armor";
         heading.style.color = "rgba(255, 255, 255, 0.5)";
         heading.style.fontSize = "10px";
         heading.style.textTransform = "uppercase";
         section.appendChild(heading);
 
-        (vm.healthRows ?? []).forEach((hp) => {
+        rows.forEach((hull) => {
             const row = document.createElement("div");
             row.style.display = "flex";
             row.style.justifyContent = "space-between";
+            row.style.alignItems = "center";
             row.style.color = "#ffffff";
             row.style.fontSize = "12px";
 
             const label = document.createElement("span");
-            label.textContent = hp.label;
-            const value = document.createElement("span");
-            value.textContent = `${hp.current}/${hp.max}`;
-            value.style.fontWeight = "bold";
+            label.textContent = hull.label;
+
+            const values = document.createElement("div");
+            values.style.display = "flex";
+            values.style.alignItems = "center";
+            values.style.gap = "6px";
+            values.appendChild(this.renderValueWithIcon(hull.armor, ASSET_PATHS.ARMOR_ICON));
+            values.appendChild(this.renderValueDivider());
+            values.appendChild(this.renderValueWithIcon(hull.health, ASSET_PATHS.HEALTH_ICON));
 
             row.appendChild(label);
-            row.appendChild(value);
+            row.appendChild(values);
             section.appendChild(row);
         });
         return section;
+    }
+
+    /** `<current/max> <icon>` pair (StatBadge is icon-first, this format is value-first). */
+    private renderValueWithIcon(value: DetailsHullValue, iconSrc: string): HTMLElement {
+        const wrap = document.createElement("div");
+        wrap.style.display = "flex";
+        wrap.style.alignItems = "center";
+        wrap.style.gap = "3px";
+
+        const text = document.createElement("span");
+        text.textContent = `${value.current}/${value.max}`;
+        text.style.fontWeight = "bold";
+        wrap.appendChild(text);
+
+        const icon = new Icon({
+            src: iconSrc,
+            addStyles: (img) => {
+                img.ref.style.width = "14px";
+                img.ref.style.height = "14px";
+            },
+        });
+        this.addChild(icon);
+        wrap.appendChild(icon.build());
+        return wrap;
+    }
+
+    private renderValueDivider(): HTMLElement {
+        const divider = document.createElement("span");
+        divider.textContent = "|";
+        divider.style.color = "rgba(255, 255, 255, 0.3)";
+        return divider;
     }
 
     protected addStyles(): void {

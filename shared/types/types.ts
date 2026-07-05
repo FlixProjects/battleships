@@ -1,3 +1,6 @@
+// Type-only: turn-event-types imports types from this module, so a runtime
+// import here would create a require cycle.
+import type { ITurnEvent } from "./turn-event-types";
 import {
     IDeckAddToPlayedSignalPayload,
     IEffectAttackLocationSignalPayload,
@@ -126,6 +129,11 @@ export interface IGameStateData {
     board?: IBoard;
     winners: string[];
     isOver: boolean;
+    /** What happened in the most recent authoritative resolve — drives the FE
+     *  rewind-and-replay playback. Overwritten wholesale each resolve. */
+    lastTurnEvents?: ITurnEvent[];
+    /** The round `lastTurnEvents` describes (stamped pre-round-increment). */
+    lastResolvedRound?: number;
 }
 
 export interface IGameState extends IGameStateData {
@@ -491,6 +499,8 @@ export interface IPlainGameState {
     board?: IBoard;
     winners: string[];
     isOver: boolean;
+    lastTurnEvents?: ITurnEvent[];
+    lastResolvedRound?: number;
 }
 
 export interface IPlainPlayer {

@@ -55,7 +55,13 @@ export class AirstrikeEffect extends Effect {
                     targetId: this.id,
                     senderId: this.id,
                     originId: signal.originId,
-                    payload: { location: this.location, damage: this.damage, sourceEffectId: this.id },
+                    payload: {
+                        location: this.location,
+                        damage: this.damage,
+                        sourceEffectId: this.id,
+                        sourceEffectRefNo: this.refNo,
+                        playerId: this.playerId,
+                    },
                 }),
             ]);
         }

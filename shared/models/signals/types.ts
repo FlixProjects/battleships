@@ -1,5 +1,5 @@
 import { TPlayCardPayload } from "@shared/types/action-types";
-import { ICellLoc, IEffect, IHull } from "@shared/types/types";
+import { ICellLoc, IEffect, IHull, TEffectRefNo } from "@shared/types/types";
 import type { Attack } from "../Attack";
 import type { Ship } from "../Ship";
 
@@ -142,6 +142,10 @@ export interface IEffectAttackLocationSignalPayload extends ISignalPayload {
     /** The Effect that fired the strike — used as the Attack's originId so the
      *  damage cascade has a stable source id (the effect is gone by then). */
     sourceEffectId: string;
+    /** Self-describing origin for consumers that run after the effect removed
+     *  itself from state (e.g. the TurnEventRecorder). */
+    sourceEffectRefNo: TEffectRefNo;
+    playerId: string;
 }
 
 export interface IReceiveEffectAttackLocationSignalPayload extends ISignalPayload {

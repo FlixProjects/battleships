@@ -4,7 +4,7 @@ import { TGameStateManagerCtor } from "@shared/types";
 import { IAppState, IGameStateManager, IShip } from "@shared/types";
 import { gameManager, interactionManager } from "../..";
 import { FEGameStateManager } from "../../models/FEGameStateManager";
-import { sumShipHealth } from "../../models/details/DetailsViewModel";
+import { shipArmor, sumShipHealth } from "../../models/details/DetailsViewModel";
 import { IMEventType } from "../../models/interaction-manager/types";
 import { Selectable } from "../Selectable";
 import { Icon } from "../ships/Icon";
@@ -75,14 +75,15 @@ export class CardRow extends Selectable {
         this.contentWrapper.style.gap = "10px";
         this.contentWrapper.style.padding = "12px 0 12px 12px ";
         this.contentWrapper.style.height = "64px";
-        let tooltipPayload: { shipId?: string; effectId?: string } = {};
+        let tooltipPayload: { shipId?: string; cardId?: string } = {};
         if (card.kind === GameConfig.CardKind.Ship) {
             this.renderShipContent(card.instanceId, card.refNo, gsm);
             tooltipPayload = { shipId: card.instanceId };
         } else if (card.kind === GameConfig.CardKind.Support) {
             this.renderSupportContent(card.id, card.refNo, gsm);
-            // Support cards point instanceId at their primary pre-created Effect.
-            tooltipPayload = { effectId: card.instanceId };
+            // Support cards own no Effect until played — details come from the
+            // card itself (its effectTemplates), not from gameState.effects.
+            tooltipPayload = { cardId: card.id };
         } else {
             return;
         }
@@ -122,7 +123,7 @@ export class CardRow extends Selectable {
         }
     }
 
-    /** (Health | Attack | Move) shown beside a Ship card. */
+    /** (Health | Armor | Attack | Move) shown beside a Ship card. */
     private buildShipStats(ship: IShip): HTMLElement {
         const container = document.createElement("div");
         container.style.display = "flex";
@@ -131,6 +132,7 @@ export class CardRow extends Selectable {
 
         const stats: Array<{ iconSrc: string; value: string | number }> = [
             { iconSrc: ASSET_PATHS.HEALTH_ICON, value: sumShipHealth(ship) },
+            { iconSrc: ASSET_PATHS.ARMOR_ICON, value: shipArmor(ship) },
             { iconSrc: ASSET_PATHS.TARGET_ICON, value: ship.attackDamage },
             { iconSrc: ASSET_PATHS.MOVE_ICON, value: ship.movementRange },
         ];
