@@ -10,6 +10,14 @@ import { GameRotateInitiativeSignal } from "../../models/signals/GameRotateIniti
 import { GameWinnerDeterminedSignal } from "../../models/signals/GameWinnerDeterminedSignal";
 import { ISignal } from "../../models/signals/types";
 import { IGameState, IPlayerAction, IResult } from "../../types";
+import { TurnEventRecorder, TVisibleTilesByPlayer } from "./TurnEventRecorder";
+
+export interface IActionResolverOptions {
+    /** Arm the TurnEventRecorder — authoritative resolves only. The optimistic
+     *  local re-resolve must stay recorder-less (it only knows half the turn
+     *  and re-runs on every app mount). */
+    recordTurnEvents?: boolean;
+}
 
 export class ActionResolver {
     public currentTurn: IPlayerAction[] = [];
@@ -17,18 +25,25 @@ export class ActionResolver {
     public player1Actions: IPlayerAction[];
     public player2Actions: IPlayerAction[];
     private engine: GameEngineV2;
+    private recorder?: TurnEventRecorder;
 
     constructor(
         public playerId: string, // for the perspective the ActionResolver is resolving for
         public gameState: IGameState,
+        options: IActionResolverOptions = {},
     ) {
         this.player1Actions = [...(gameState.players[0]?.pendingActions ?? [])];
         this.player2Actions = [...(gameState.players[1]?.pendingActions ?? [])];
         this.engine = new GameEngineV2(this.gameState, GameStateManager);
+        if (options.recordTurnEvents) {
+            this.recorder = new TurnEventRecorder();
+            this.engine.setSignalObserver(this.recorder.observe);
+        }
     }
 
     public resolve() {
         this.resolvePersistentEffectsTick();
+        this.stampTurnEventVisibility();
 
         do {
             this.resolveTurn();
@@ -40,6 +55,7 @@ export class ActionResolver {
         this.resolvePostSubmissionCommandPointRemoval();
         this.resolveExpiredEffects();
         this.resolveHandRefill();
+        this.commitTurnEvents();
         const { obscuredGameState } = this.resolveVisibility();
 
         return { gameState: this.gameState, obscuredGameState, results: this.results };
@@ -79,9 +95,30 @@ export class ActionResolver {
         this.currentTurn.forEach((action) => {
             const newState = this.resolveAction(action);
             this.gameState = newState;
+            // Visibility can shift with every action; stamp its events with what
+            // each player could see *at this moment*, not at turn end.
+            this.stampTurnEventVisibility();
         });
 
         this.currentTurn = [];
+    }
+
+    private stampTurnEventVisibility() {
+        if (!this.recorder) return;
+        const visibleTilesByPlayer: TVisibleTilesByPlayer = {};
+        this.gameState.players.forEach((player) => {
+            visibleTilesByPlayer[player.id] = this.gameState.getVisibleTilesforPlayer(player.id);
+        });
+        this.recorder.stampVisibility(visibleTilesByPlayer);
+    }
+
+    /** Stamp the recorded story onto the state so it rides the normal
+     *  toPlain/S3/response transport. `currentRound` has not been incremented
+     *  yet (that happens in `refreshPlayers`), so this is the resolved round. */
+    private commitTurnEvents() {
+        if (!this.recorder) return;
+        this.gameState.lastTurnEvents = this.recorder.collect();
+        this.gameState.lastResolvedRound = this.gameState.currentRound;
     }
 
     private resolveIntiative(

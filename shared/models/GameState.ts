@@ -18,7 +18,9 @@ import {
     IPlayerAction,
     IShip,
     ISignalHandleCtx,
+    isShipMovedEvent,
     isVisionEffect,
+    ITurnEvent,
     TEffectKind,
     TEffectRefNo
 } from "../types";
@@ -406,8 +408,43 @@ export class GameState extends GameStateEntity implements IGameState {
         // Keep the current player's own Effects (active or pre-created/inactive);
         // prune only the opponent's Effects they can't see.
         obscured.effects = obscured.effects.filter((e) => e.playerId === currentPlayerId || e.isVisible);
+        obscured.lastTurnEvents = obscured.lastTurnEvents
+            .filter((event) => event.visibleToPlayerIds.includes(currentPlayerId))
+            .map((event) => GameState.toViewerTurnEvent(event, currentPlayerId));
         obscured.linkPlayerShips({ reverse: true }).linkShipHulls({ reverse: true });
         return obscured;
+    }
+
+    /**
+     * A viewer's rendition of a turn event. Moves the viewer only partially saw
+     * are truncated to their stamped visible segment (route + hull endpoints
+     * clamped onto it); the per-viewer map itself never leaves the server —
+     * it reveals what the *other* player could see.
+     */
+    private static toViewerTurnEvent(event: ITurnEvent, viewerId: string): ITurnEvent {
+        if (!isShipMovedEvent(event)) return event;
+
+        const { visibleRouteByPlayer, ...moved } = event;
+        const segment = visibleRouteByPlayer?.[viewerId];
+        if (!segment || segment.length === 0) return moved;
+
+        return {
+            ...moved,
+            route: segment,
+            hulls: moved.hulls.map((hull) => ({
+                hullId: hull.hullId,
+                from: GameState.clampToSegment(hull.from, segment, "start"),
+                to: hull.to ? GameState.clampToSegment(hull.to, segment, "end") : undefined,
+            })),
+        };
+    }
+
+    /** Keep a hull endpoint the viewer saw; snap an unseen one to the segment edge. */
+    private static clampToSegment(location: ICellLoc, segment: ICellLoc[], edge: "start" | "end"): ICellLoc {
+        const seen = segment.some((cell) => locationToKey(cell) === locationToKey(location));
+        if (seen) return location;
+        if (edge === "start") return segment[0];
+        return segment[segment.length - 1];
     }
 
     private getVisionFromEffectsForPlayer(playerId: string): Set<string> {

@@ -21,10 +21,16 @@ import { GameObjectEntity } from "./entities/GameObjectEntity";
 import { Signal } from "./signals/Signal";
 import { ISignal, IQuerySignal, SignalResultMap, TQuerySignalType, TQueryResult } from "./signals/types";
 
+/** Passive tap on the signal stream: called once per drained signal, before the
+ *  entity fan-out, with the same ctx the entities receive (so `ctx.gsm` is the
+ *  pre-mutation state). Must not mutate or emit — observation only. */
+export type TSignalObserver = (ctx: ISignalHandleCtx) => void;
+
 export class GameEngine {
     private currentAction: IPlayerAction | null = null;
     private gameObjects: Map<string, IGameObjectEntity> = new Map();
     private signalStacks: Map<string, Signal[]> = new Map();
+    private signalObserver?: TSignalObserver;
     private queryResolve: (result: TQueryResult) => void = () => {};
     private signalCreators: ActionSignalCreator[] = [
         new BasicShipAttackActionSignalCreator(),
@@ -74,6 +80,11 @@ export class GameEngine {
         return captured;
     }
 
+    public setSignalObserver(observer: TSignalObserver | undefined) {
+        this.signalObserver = observer;
+        return this;
+    }
+
     // Re-point the engine at the latest state and rebuild the game-object view.
     public setGameState(gameState: IGameState) {
         this.gameState = gameState;
@@ -117,6 +128,7 @@ export class GameEngine {
         // causes timeout due to new GSM() cloning in getSignalContext
         // FIXME: change to getGSM() instead 
         const ctx = this.getSignalContext(signal);
+        this.signalObserver?.(ctx);
         this.gameObjects.forEach((obj) => {
             obj.receiveSignal(ctx);
         });
