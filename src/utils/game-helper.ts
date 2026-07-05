@@ -76,6 +76,9 @@ export const refresh = async () => {
         };
 
         gameManager.saveAppState(newState);
+        // First submitter learns the resolved round here — rewind and replay
+        // it (watermark-guarded) before the final board settles in.
+        await playbackRunner.playIfUnseen();
         updateComponents();
     } catch (error) {
         updateComponents({ status: GameConfig.AppStatus.Error });

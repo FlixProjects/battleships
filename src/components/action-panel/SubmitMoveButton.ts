@@ -5,6 +5,7 @@ import { gameManager } from "../..";
 import { submitAction } from "../../apis/submit-action";
 import { isLocal } from "../../config/app-config";
 import { FEGameStateManager } from "../../models/FEGameStateManager";
+import { playbackRunner } from "../../models/PlaybackRunner";
 import { isWaitingForOtherPlayer } from "../../utils/game-helper";
 import { updateComponents } from "../component-helper";
 import { HTMLButton } from "../native/Button";
@@ -57,6 +58,10 @@ export class SubmitMoveButton extends HTMLButton {
             }
             const { gameState, gameStateForLocal } = res;
 
+            // Snapshot the as-received state before the optimistic re-resolve
+            // touches it — it is the playback rewind target for next round.
+            gameManager.trackRoundSnapshots(gameManager.getCurrentPlayerId(), gameState);
+
             // Re-resolve locally so the player sees the resolved board while
             // they wait for the opponent. Server's stored state stays raw.
             const gsm = new this.GSM(gameState);
@@ -78,6 +83,9 @@ export class SubmitMoveButton extends HTMLButton {
                 { saveWithMerge: false },
             );
 
+            // Second submitter: the response is the resolved round — rewind
+            // and replay it before the final board settles in.
+            await playbackRunner.playIfUnseen();
             updateComponents();
         } catch (error) {
             console.log("[Error] Submission failed", error);
