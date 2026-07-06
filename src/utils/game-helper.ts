@@ -85,6 +85,8 @@ export const refresh = async () => {
     }
 };
 
+export const isCompactViewport = () => window.matchMedia("(max-width: 768px)").matches;
+
 export const toDegrees = (radians: number) => {
     return radians * (180 / Math.PI);
 };

@@ -3,6 +3,7 @@ import { SupportCard } from "@shared/models";
 import { ICard, IPlayer, IGameStateManager, TGameStateManagerCtor } from "@shared/types";
 import { gameManager, interactionManager } from "../..";
 import { FEGameStateManager } from "../../models/FEGameStateManager";
+import { isCompactViewport } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 import { getComponents } from "../component-helper";
 import { Toast } from "../Toast";
@@ -104,12 +105,17 @@ export class Hand extends BaseComponent {
         this.selectedCardId = cardId;
         this.cardRows.forEach((row) => row.setSelected(row.props.cardId === cardId));
         interactionManager.handleEvent(card.getSelectionEvent({ onGlobalDeselect: () => this.clearSelection() }));
+
+        if (isCompactViewport()) {
+            getComponents().div.actionPanel.close();
+        }
     }
 
     private clearSelection() {
         this.selectedCardId = undefined;
         this.cardRows.forEach((row) => row.setSelected(false));
         getComponents().div.gameBoard.updateSelectableTiles([]);
+        getComponents().div.actionPanel.open();
     }
 
     protected addStyles(): void {
