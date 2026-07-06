@@ -1,6 +1,7 @@
 const path = require("path");
 const webpack = require("webpack");
 const Dotenv = require("dotenv-webpack");
+const { version } = require("./package.json");
 
 module.exports = {
     entry: "./src/index.ts",
@@ -44,6 +45,9 @@ module.exports = {
         }),
         new Dotenv({
             systemvars: true,
+        }),
+        new webpack.DefinePlugin({
+            APP_VERSION: JSON.stringify(version),
         }),
     ],
 };
