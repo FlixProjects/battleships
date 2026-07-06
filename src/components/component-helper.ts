@@ -14,9 +14,11 @@ import { RefreshButton } from "./RefreshButton";
 import { ResetLocalGameButton } from "./ResetLocalGameButton";
 import { StatusText } from "./StatusText";
 import { SwitchPlayerButton } from "./SwitchPlayerButton";
+import { HeroSection } from "./HeroSection";
 
 export const loadComponents = () => {
     return {
+        heroSection: new HeroSection(),
         statusText: new StatusText(),
         gameCodeText: new GameCodeText(),
 
@@ -76,6 +78,7 @@ const getStaticComponents = () => {
             playerName: _components.playerNameInput,
         },
         div: {
+            heroSection: _components.heroSection,
             playerCards: _components.playerCardsContainer,
             gameBoard: _components.gameBoard,
             actionPanel: _components.actionPanel,
