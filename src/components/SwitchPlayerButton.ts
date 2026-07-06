@@ -33,7 +33,7 @@ export class SwitchPlayerButton extends HTMLButton {
         this.addClickEventListener();
 
         switchPlayerButtonContainer.appendChild(switchPlayerButton);
-        document.getElementById("controls").appendChild(switchPlayerButtonContainer);
+        document.getElementById("status-bar").appendChild(switchPlayerButtonContainer);
         return this.ref;
     }
 
