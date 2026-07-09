@@ -4,6 +4,7 @@ import LoginInCssAnimStyle from "../css-anim-styles/models/login-in-style";
 import { getAppScreen, setAppScreen } from "../utils/screen-helper";
 import { BaseComponent } from "./BaseComponent";
 import { getComponents, updateComponents } from "./component-helper";
+import { applyButtonStyles, applyInputStyles } from "./styles/inline-styles";
 
 export class LoginPage extends BaseComponent {
     private card: HTMLDivElement;
@@ -92,8 +93,7 @@ export class LoginPage extends BaseComponent {
         style.left = "0";
         style.right = "0";
         style.height = "2px";
-        style.background =
-            "linear-gradient(90deg, transparent, var(--accent) 30%, var(--accent-2) 70%, transparent)";
+        style.background = "linear-gradient(90deg, transparent, var(--accent) 30%, var(--accent-2) 70%, transparent)";
         style.opacity = "0.85";
 
         this.card.appendChild(strip);
@@ -139,8 +139,8 @@ export class LoginPage extends BaseComponent {
 
         const loginBtn = document.createElement("button");
         loginBtn.id = "loginBtn";
-        loginBtn.classList.add("btn");
         loginBtn.textContent = "Log In";
+        applyButtonStyles(loginBtn);
         loginBtn.style.width = "100%";
         loginBtn.style.padding = "12px";
         loginBtn.style.marginTop = "4px";
@@ -204,8 +204,8 @@ export class LoginPage extends BaseComponent {
     private buildGuestButton() {
         const guestBtn = document.createElement("button");
         guestBtn.id = "guestBtn";
-        guestBtn.classList.add("btn", "primary");
         guestBtn.textContent = "Continue as Guest";
+        applyButtonStyles(guestBtn, { primary: true });
         guestBtn.style.width = "100%";
         guestBtn.style.padding = "13px";
         guestBtn.style.fontSize = "15px";
@@ -219,9 +219,9 @@ export class LoginPage extends BaseComponent {
         const input = document.createElement("input");
         input.id = id;
         input.type = type;
-        input.classList.add("input");
         input.placeholder = placeholder;
         input.maxLength = 20;
+        applyInputStyles(input);
         input.style.width = "100%";
 
         return input;
