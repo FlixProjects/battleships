@@ -18,11 +18,14 @@ import { RefreshButton } from "./RefreshButton";
 import { ResetLocalGameButton } from "./ResetLocalGameButton";
 import { StatusText } from "./StatusText";
 import { SwitchPlayerButton } from "./SwitchPlayerButton";
+import { HamburgerMenu } from "./HamburgerMenu";
 import { HeroSection } from "./HeroSection";
 
 export const loadComponents = () => {
     return {
         heroSection: new HeroSection(),
+        // Mounts into #hero-section, so it must stay right after heroSection.
+        hamburgerMenu: new HamburgerMenu(),
         loginPage: new LoginPage(),
         gameView: new GameView(),
         gameActions: new GameActions(),
@@ -88,6 +91,7 @@ const getStaticComponents = () => {
         },
         div: {
             heroSection: _components.heroSection,
+            hamburgerMenu: _components.hamburgerMenu,
             loginPage: _components.loginPage,
             gameView: _components.gameView,
             gameActions: _components.gameActions,
