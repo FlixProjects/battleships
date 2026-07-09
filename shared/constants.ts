@@ -8,6 +8,7 @@ export const FP_USER_ID = "fp-user-id";
 export const FP_GAME_STATE = "fp-game-state";
 export const FP_GAME_CODE = "fp-game-code";
 
+export const FP_APP_SCREEN = "fp-app-screen";
 export const FP_CURRENT_PLAYER = "fp-current-player";
 export const FP_PLAYER_STATES = "fp-player-states";
 export const FP_ROUND_SNAPSHOTS = "fp-round-snapshots";

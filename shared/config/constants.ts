@@ -33,6 +33,13 @@ export const AppStatus = {
     GameOver: "GameOver",
 } as const;
 
+// Top-level FE view routing — orthogonal to AppStatus (game/network lifecycle).
+export const AppScreen = {
+    Login: "Login",
+    Lobby: "Lobby",
+    InGame: "InGame",
+} as const;
+
 export const SHIP_REF_NO = {
     frigate0: "frigate0",
     flagship0: "flagship0",

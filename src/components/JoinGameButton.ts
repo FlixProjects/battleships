@@ -5,6 +5,7 @@ import { gameManager } from "..";
 import { joinGame } from "../apis/join-game";
 import { appConfig } from "../config/app-config";
 import { checkIfNameIsFilled, setGameCode } from "../utils/game-helper";
+import { setAppScreen } from "../utils/screen-helper";
 import { getComponents, updateComponents } from "./component-helper";
 import { HTMLButton } from "./native/Button";
 
@@ -56,6 +57,7 @@ export class JoinGameButton extends HTMLButton {
             }
             gameManager.saveAppState(newState);
 
+            setAppScreen(GameConfig.AppScreen.InGame);
             updateComponents();
         } catch (error) {
             this.setDisabled(false);

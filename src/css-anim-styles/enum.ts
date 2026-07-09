@@ -3,4 +3,5 @@ export const CSS_ANIMATION_NAMES = {
     WOBBLE: "css-wobble-anim",
     PULSE: "css-pulse-anim",
     EXPLOSION: "css-explosion-anim",
+    LOGIN_IN: "css-login-in-anim",
 };

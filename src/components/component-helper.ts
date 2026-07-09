@@ -3,8 +3,12 @@ import { IAppState } from "@shared/types";
 import { ActionPanel } from "./action-panel/ActionPanel";
 import { GameBoard } from "./board/GameBoard";
 import { DetailsPanel } from "./details-panel/DetailsPanel";
+import { getAppScreen } from "../utils/screen-helper";
 import { CreateGameButton } from "./CreateGameButton";
+import { GameActions } from "./GameActions";
 import { GameCodeText } from "./GameCodeText";
+import { GameView } from "./GameView";
+import { LoginPage } from "./LoginPage";
 import { GameOverToast } from "./GameOverToast";
 import { JoinGameButton } from "./JoinGameButton";
 import { JoinGameInput } from "./JoinGameInput";
@@ -19,6 +23,9 @@ import { HeroSection } from "./HeroSection";
 export const loadComponents = () => {
     return {
         heroSection: new HeroSection(),
+        loginPage: new LoginPage(),
+        gameView: new GameView(),
+        gameActions: new GameActions(),
         statusText: new StatusText(),
         gameCodeText: new GameCodeText(),
 
@@ -51,7 +58,9 @@ export const getComponents = () => {
 
 // TODO: We should be automating updateComponent calls instead of manually calling updateComponents()
 export const updateComponents = (incomingState: Partial<IAppState> = {}) => {
-    const _state = { ...gameManager.state, ...incomingState };
+    // screen is UI routing state, kept outside the per-player app state (see
+    // screen-helper) and injected here so every component sees it.
+    const _state = { ...gameManager.state, screen: getAppScreen(), ...incomingState };
 
     Object.values(getComponents()).forEach((typeOfComponent) => {
         Object.values(typeOfComponent).forEach((component) => {
@@ -79,6 +88,9 @@ const getStaticComponents = () => {
         },
         div: {
             heroSection: _components.heroSection,
+            loginPage: _components.loginPage,
+            gameView: _components.gameView,
+            gameActions: _components.gameActions,
             playerCards: _components.playerCardsContainer,
             gameBoard: _components.gameBoard,
             actionPanel: _components.actionPanel,

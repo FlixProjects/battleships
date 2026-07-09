@@ -35,6 +35,7 @@ import {
     ISignal,
 } from "@shared/models/signals/types";
 import {
+    AppScreen,
     AppStatus,
     CardKind,
     CELL_NODE_REF_NO,
@@ -440,6 +441,7 @@ export interface ICard {
 }
 
 export type TAppStatus = (typeof AppStatus)[keyof typeof AppStatus];
+export type TAppScreen = (typeof AppScreen)[keyof typeof AppScreen];
 export type TShipRefNo = (typeof SHIP_REF_NO)[keyof typeof SHIP_REF_NO];
 export type TMapRefNo = (typeof MAP_REF_NO)[keyof typeof MAP_REF_NO];
 export type TCellNodeRefNo = (typeof CELL_NODE_REF_NO)[keyof typeof CELL_NODE_REF_NO];
@@ -469,6 +471,10 @@ export type IPlainDeck = Omit<IDeck, "cards" | "played"> & { cards: string[]; pl
 
 export interface IAppState {
     status: TAppStatus;
+    // Injected at fan-out time by updateComponents() from sessionStorage
+    // (fp-app-screen) — never persisted inside the per-player app state,
+    // because that store is keyed by player id, which doesn't exist pre-game.
+    screen?: TAppScreen;
     loading: boolean;
     gameState: IGameState;
     currentPlayer?: string;
