@@ -1,6 +1,8 @@
 import { ASSET_PATHS, COLOR_RGBA, SELECTABLE_ID, Z_INDEX } from "@shared/constants";
+import { GameConfig } from "@shared/index";
 import { IAppState } from "@shared/types";
 import { interactionManager } from "../..";
+import { getAppScreen } from "../../utils/screen-helper";
 import { BaseComponent } from "../BaseComponent";
 import { Icon } from "../ships/Icon";
 import { StatBadge } from "../ships/StatBadge";
@@ -19,6 +21,14 @@ export class DetailsPanel extends BaseComponent {
 
     public updateState(_state?: IAppState): void {
         if (!this.built) this.build();
+
+        // Body-mounted like ActionPanel: close when leaving the InGame screen
+        // so an open panel doesn't linger over the lobby.
+        const screen = _state?.screen ?? getAppScreen();
+
+        if (screen !== GameConfig.AppScreen.InGame) {
+            this.close();
+        }
     }
 
     public build(): HTMLElement {

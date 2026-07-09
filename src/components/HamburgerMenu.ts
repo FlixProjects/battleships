@@ -1,7 +1,7 @@
 import { GameConfig } from "@shared/index";
 import { IAppState } from "@shared/types";
 import { deleteAuthCookie } from "../utils/cookie-helper";
-import { removeGameCode } from "../utils/game-helper";
+import { getGameCode, removeGameCode } from "../utils/game-helper";
 import { getAppScreen, setAppScreen } from "../utils/screen-helper";
 import { BaseComponent } from "./BaseComponent";
 import { updateComponents } from "./component-helper";
@@ -111,6 +111,7 @@ export class HamburgerMenu extends BaseComponent {
         style.zIndex = "1000";
 
         this.dropdown.append(
+            this.buildMenuItem("Game", () => this.onGameClick()),
             this.buildMenuItem("Lobby", () => this.onLobbyClick()),
             this.buildMenuItem(this.getExitLabel(), () => this.onExitClick(), { danger: true }),
         );
@@ -183,6 +184,16 @@ export class HamburgerMenu extends BaseComponent {
 
         this.isOpen = false;
         this.dropdown.style.display = "none";
+    }
+
+    private onGameClick() {
+        // Nothing to return to without a joined game.
+        if (!getGameCode()) {
+            return;
+        }
+
+        setAppScreen(GameConfig.AppScreen.InGame);
+        updateComponents();
     }
 
     private onLobbyClick() {

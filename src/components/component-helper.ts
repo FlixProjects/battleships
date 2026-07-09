@@ -8,6 +8,7 @@ import { CreateGameButton } from "./CreateGameButton";
 import { GameActions } from "./GameActions";
 import { GameCodeText } from "./GameCodeText";
 import { GameView } from "./GameView";
+import { JoinedGames } from "./JoinedGames";
 import { LoginPage } from "./LoginPage";
 import { GameOverToast } from "./GameOverToast";
 import { JoinGameButton } from "./JoinGameButton";
@@ -29,6 +30,8 @@ export const loadComponents = () => {
         loginPage: new LoginPage(),
         gameView: new GameView(),
         gameActions: new GameActions(),
+        // Mounts below #controls, so it must stay after gameActions.
+        joinedGames: new JoinedGames(),
         statusText: new StatusText(),
         gameCodeText: new GameCodeText(),
 
@@ -95,6 +98,7 @@ const getStaticComponents = () => {
             loginPage: _components.loginPage,
             gameView: _components.gameView,
             gameActions: _components.gameActions,
+            joinedGames: _components.joinedGames,
             playerCards: _components.playerCardsContainer,
             gameBoard: _components.gameBoard,
             actionPanel: _components.actionPanel,

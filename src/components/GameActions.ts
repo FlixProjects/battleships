@@ -28,10 +28,9 @@ export class GameActions extends BaseComponent {
     updateState(_state?: IAppState): void {
         this.build();
 
-        // Visible on Lobby and InGame (the game code lives here); never
-        // unmounted — children hold refs into this subtree.
+        // Lobby-only; never unmounted — children hold refs into this subtree.
         const screen = _state?.screen ?? getAppScreen();
-        this.ref.style.display = screen === GameConfig.AppScreen.Login ? "none" : "flex";
+        this.ref.style.display = screen === GameConfig.AppScreen.Lobby ? "flex" : "none";
     }
 
     build() {
