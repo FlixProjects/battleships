@@ -1,7 +1,7 @@
 import { GameConfig } from "@shared/index";
 import { IAppState } from "@shared/types";
 import { deleteAuthCookie } from "../utils/cookie-helper";
-import { getGameCode } from "../utils/game-helper";
+import { getGameCode, isUnjoinedLocalPlayer } from "../utils/game-helper";
 import { getAppScreen, setAppScreen } from "../utils/screen-helper";
 import { BaseComponent } from "./BaseComponent";
 import { updateComponents } from "./component-helper";
@@ -188,7 +188,7 @@ export class HamburgerMenu extends BaseComponent {
 
     private onGameClick() {
         // Nothing to return to without a joined game.
-        if (!getGameCode()) {
+        if (!getGameCode() || isUnjoinedLocalPlayer()) {
             return;
         }
 

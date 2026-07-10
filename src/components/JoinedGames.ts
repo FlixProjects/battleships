@@ -1,6 +1,6 @@
 import { GameConfig } from "@shared/index";
 import { IAppState } from "@shared/types";
-import { getGameCode } from "../utils/game-helper";
+import { getGameCode, isUnjoinedLocalPlayer } from "../utils/game-helper";
 import { getAppScreen, setAppScreen } from "../utils/screen-helper";
 import { BaseComponent } from "./BaseComponent";
 import { updateComponents } from "./component-helper";
@@ -89,7 +89,7 @@ export class JoinedGames extends BaseComponent {
 
         const gameCode = getGameCode();
 
-        if (gameCode) {
+        if (gameCode && !isUnjoinedLocalPlayer()) {
             this.list.appendChild(this.buildGameRow(gameCode));
         } else {
             this.list.appendChild(this.buildEmptyState());
