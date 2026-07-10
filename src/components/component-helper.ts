@@ -6,7 +6,6 @@ import { DetailsPanel } from "./details-panel/DetailsPanel";
 import { getAppScreen } from "../utils/screen-helper";
 import { CreateGameButton } from "./CreateGameButton";
 import { GameActions } from "./GameActions";
-import { GameCodeText } from "./GameCodeText";
 import { GameView } from "./GameView";
 import { JoinedGames } from "./JoinedGames";
 import { LoginPage } from "./LoginPage";
@@ -33,7 +32,6 @@ export const loadComponents = () => {
         // Mounts below #controls, so it must stay after gameActions.
         joinedGames: new JoinedGames(),
         statusText: new StatusText(),
-        gameCodeText: new GameCodeText(),
 
         playerNameInput: new PlayerNameInput(),
         joinCodeInput: new JoinGameInput(),
@@ -85,7 +83,6 @@ const getStaticComponents = () => {
             refresh: _components.refreshBtn,
         },
         span: {
-            gameCode: _components.gameCodeText,
             status: _components.statusText,
         },
         input: {

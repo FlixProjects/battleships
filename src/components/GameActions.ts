@@ -2,21 +2,13 @@ import { GameConfig } from "@shared/index";
 import { IAppState } from "@shared/types";
 import { getAppScreen } from "../utils/screen-helper";
 import { BaseComponent } from "./BaseComponent";
+import { GameCodeText } from "./GameCodeText";
 import { applyButtonStyles, applyInputStyles } from "./styles/inline-styles";
 
-/**
- * The create/join controls, extracted from static index.html markup.
- * Builds its own DOM but keeps the original element ids ("createGameBtn",
- * "gameCode", "playerName", "joinCode", "joinGameBtn") — the child button/input
- * components locate their refs by id, so GameActions must be constructed
- * before them and must never rebuild once mounted.
- *
- * Styling is fully inline (no stylesheet classes); the stylesheet's ≤520px
- * media query is emulated via matchMedia in watchViewportWidth().
- */
 export class GameActions extends BaseComponent {
     private left: HTMLDivElement;
     private right: HTMLDivElement;
+    private gameCode: GameCodeText;
     private buttons: HTMLButtonElement[] = [];
     private inputs: HTMLInputElement[] = [];
 
@@ -31,6 +23,8 @@ export class GameActions extends BaseComponent {
         // Lobby-only; never unmounted — children hold refs into this subtree.
         const screen = _state?.screen ?? getAppScreen();
         this.ref.style.display = screen === GameConfig.AppScreen.Lobby ? "flex" : "none";
+
+        this.gameCode.updateState(_state);
     }
 
     build() {
@@ -69,13 +63,8 @@ export class GameActions extends BaseComponent {
         applyButtonStyles(createGameBtn, { primary: true });
         this.buttons.push(createGameBtn);
 
-        const gameCode = document.createElement("h1");
-        gameCode.id = "gameCode";
-        // Only the margin reset lived on the old `title` class; the rest of
-        // the game-code look comes from the #gameCode id rules in styles.css.
-        gameCode.style.margin = "0";
-
-        this.left.append(createGameBtn, gameCode);
+        this.left.appendChild(createGameBtn);
+        this.gameCode = new GameCodeText(this.left);
 
         return this.left;
     }

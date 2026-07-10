@@ -278,52 +278,6 @@ body {
         transform var(--transition);
 }
 
-/* small-screen layout for the controls now lives in
-   GameActions.watchViewportWidth() (matchMedia) */
-
-#gameCode {
-    font-size: 20px;
-    letter-spacing: 3px;
-    font-weight: 700;
-    margin-left: 16px;
-    color: var(--accent);
-    text-shadow:
-        0 0 10px rgba(110, 231, 183, 0.6),
-        0 0 20px rgba(110, 231, 183, 0.2);
-    cursor: pointer;
-    user-select: all;
-    transition:
-        transform 0.25s ease,
-        color 0.25s ease,
-        text-shadow 0.25s ease;
-    display: inline-block;
-    min-width: 80px;
-    text-align: center;
-}
-
-#gameCode:hover {
-    transform: scale(1.1);
-    color: var(--accent-2);
-    text-shadow:
-        0 0 16px rgba(96, 165, 250, 0.8),
-        0 0 26px rgba(96, 165, 250, 0.4);
-}
-
-/* subtle pulse animation when a code first appears */
-@keyframes pulseCode {
-    0% {
-        text-shadow: 0 0 0px rgba(110, 231, 183, 0.4);
-        transform: scale(1);
-    }
-    50% {
-        text-shadow: 0 0 18px rgba(110, 231, 183, 0.8);
-        transform: scale(1.05);
-    }
-    100% {
-        text-shadow: 0 0 0px rgba(110, 231, 183, 0.4);
-        transform: scale(1);
-    }
-}
 
 @keyframes shake {
     0%,
@@ -363,10 +317,6 @@ input:disabled {
     border: 1px solid #ccc; /* subtle border */
     cursor: not-allowed;
     opacity: 0.8;
-}
-
-#gameCode.appear {
-    animation: pulseCode 1.4s ease-in-out;
 }
 
 .toast {
