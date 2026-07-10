@@ -8,6 +8,8 @@
 
 const BTN_REST_SHADOW = "0 6px 18px rgba(2, 6, 23, 0.45)";
 const BTN_HOVER_SHADOW = "0 18px 40px rgba(3, 7, 18, 0.65)";
+const BTN_HOVER_SCALE = "scale(1.03)";
+const BTN_PRESS_SCALE = "scale(1.06)";
 const BTN_BACKGROUND = "linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01))";
 const BTN_PRIMARY_BACKGROUND = "linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%)";
 
@@ -84,7 +86,7 @@ const addButtonStateListeners = (btn: HTMLButtonElement) => {
         if (btn.disabled) {
             return;
         }
-        btn.style.transform = "translateY(-4px)";
+        btn.style.transform = BTN_HOVER_SCALE;
         btn.style.boxShadow = BTN_HOVER_SHADOW;
     });
 
@@ -100,14 +102,14 @@ const addButtonStateListeners = (btn: HTMLButtonElement) => {
         if (btn.disabled) {
             return;
         }
-        btn.style.transform = "translateY(-1px)";
+        btn.style.transform = BTN_PRESS_SCALE;
     });
 
     btn.addEventListener("mouseup", () => {
         if (btn.disabled) {
             return;
         }
-        btn.style.transform = "translateY(-4px)";
+        btn.style.transform = BTN_HOVER_SCALE;
     });
 };
 

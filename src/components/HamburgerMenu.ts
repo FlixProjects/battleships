@@ -1,7 +1,7 @@
 import { GameConfig } from "@shared/index";
 import { IAppState } from "@shared/types";
 import { deleteAuthCookie } from "../utils/cookie-helper";
-import { getGameCode, removeGameCode } from "../utils/game-helper";
+import { getGameCode } from "../utils/game-helper";
 import { getAppScreen, setAppScreen } from "../utils/screen-helper";
 import { BaseComponent } from "./BaseComponent";
 import { updateComponents } from "./component-helper";
@@ -113,7 +113,7 @@ export class HamburgerMenu extends BaseComponent {
         this.dropdown.append(
             this.buildMenuItem("Game", () => this.onGameClick()),
             this.buildMenuItem("Lobby", () => this.onLobbyClick()),
-            this.buildMenuItem(this.getExitLabel(), () => this.onExitClick(), { danger: true }),
+            this.buildMenuItem(this.getExitLabel(), async () => await this.onExitClick(), { danger: true }),
         );
 
         return this.dropdown;
@@ -201,11 +201,9 @@ export class HamburgerMenu extends BaseComponent {
         updateComponents();
     }
 
-    // Ends the guest session the same way App.clearExistingSession does, then
-    // returns to the login screen. NewGame status re-enables the create/join
-    // buttons for the next guest run.
-    private onExitClick() {
-        removeGameCode();
+    private async onExitClick() {
+        await sessionStorage.clear();
+        await location.reload();
         deleteAuthCookie();
         setAppScreen(GameConfig.AppScreen.Login);
         updateComponents({ status: GameConfig.AppStatus.NewGame, loading: false });
