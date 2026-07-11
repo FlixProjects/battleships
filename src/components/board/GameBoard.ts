@@ -187,7 +187,7 @@ export class GameBoard extends BaseComponent {
             .forEach((effect) => {
                 const sprite = new EffectSprite({ effect });
                 this.addChild(sprite);
-                this.ref.appendChild(sprite.build());
+                this.staticLayer.appendChild(sprite.build());
             });
     }
 }

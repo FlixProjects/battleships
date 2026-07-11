@@ -49,11 +49,13 @@ export const Z_INDEX = {
     PROJECTILE: "100",
     ACTION_MENU: "1000",
     TARGET_ATTACK_ICON: "10",
-    // Vision markers (Flare) sit above the board grid, in the on-board overlay.
+    // Effect sprites mount INSIDE the static layer (GameBoard.renderEffects), so
+    // these compare against its other children: hulls (z auto) and ACTION_MENU.
+    // Vision markers (Flare) sit above ships but below the ActionMenu.
     EFFECT_VISION: "5",
-    // Airstrike warning markers sit below ships/hulls (which live in the static
-    // layer) but above the board grid.
-    EFFECT_WARNING: "0",
+    // Airstrike warning markers sit below ships/hulls (z auto beats negative)
+    // but still above the board grid, since the whole static layer is.
+    EFFECT_WARNING: "-1",
 };
 
 export const COLOR = {
