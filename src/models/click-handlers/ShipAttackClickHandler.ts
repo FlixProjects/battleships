@@ -59,9 +59,8 @@ export class ShipAttackClickHandler extends ClickHandler {
     protected async handler(e: MouseEvent) {
         const { shipId, onGlobalDeselect, onSuccessfulSelect } = this.event;
         
-        const elements = document.elementsFromPoint(e.clientX, e.clientY);
-        const id = elements.find((el) => el.className === "tile")?.id;
-        
+        const id = this.getTileIdAtPoint(e);
+
         const validCellIndices = this.validCells.map((cell) => locationToKey(cell));
 
         const isInvalidClick =

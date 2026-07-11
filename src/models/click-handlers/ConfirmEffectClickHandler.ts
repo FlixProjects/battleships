@@ -32,7 +32,8 @@ export class ConfirmEffectClickHandler extends ClickHandler {
     protected async handler(e: MouseEvent) {
         const { onGlobalDeselect, onSuccessfulSelect } = this.event;
         const target = e.target as HTMLElement;
-        const isBoardClick = !!target.closest(`#${CSS.escape(GAME_BOARD_ID)}`);
+
+        const isBoardClick = !!target.closest(`#${CSS.escape(GAME_BOARD_ID)}`) || !!this.getTileIdAtPoint(e);
 
         if (!isBoardClick) {
             return this.handleInvalidClick(onGlobalDeselect);

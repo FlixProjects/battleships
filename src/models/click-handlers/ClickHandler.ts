@@ -57,4 +57,9 @@ export class ClickHandler {
         const target = e.target as HTMLElement;
         return target.id;
     };
+
+    protected getTileIdAtPoint(e: MouseEvent): string {
+        const elements = document.elementsFromPoint(e.clientX, e.clientY);
+        return elements.find((el) => el.classList.contains("tile"))?.id ?? "";
+    }
 }

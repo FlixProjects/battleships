@@ -47,10 +47,10 @@ export class SelectTargetClickHandler extends ClickHandler {
         const { onGlobalDeselect } = this.event;
         const target = e.target as HTMLElement;
 
-        // Resolve the underlying tile id even when the user clicks through a
-        // child element (e.g. a hull image). A primed Support target takes
+        // Resolve the underlying tile even when a hull sprite (static layer,
+        // not a child of the tile) covers it. A primed Support target takes
         // precedence over hull/ship handlers — the tile underneath wins.
-        const tileId = target.closest(".tile")?.id ?? "";
+        const tileId = this.getTileIdAtPoint(e);
         const clickedCardRow = target.closest(".card-row");
         const validCellIndices = this.validCells.map((cell) => locationToKey(cell));
 
