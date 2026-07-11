@@ -1,5 +1,5 @@
 import { COLOR, TColor } from "@shared/constants";
-import { getColorFilter } from "../../utils/game-helper";
+import { getColorGlow } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 
 interface Props {
@@ -39,7 +39,7 @@ export class ShipIcon extends BaseComponent {
         this.ref.style.cursor = "pointer";
         this.ref.style.transition = "all 0.2s ease";
 
-        this.ref.style.filter = getColorFilter(this.props.color ?? COLOR.PINK);
+        this.ref.style.filter = getColorGlow(this.props.color ?? COLOR.PINK);
 
         if (this.props.invert) {
             this.ref.style.transform = "scaleY(-1)";

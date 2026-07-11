@@ -1,6 +1,7 @@
 import {
     COLOR,
     COLOR_FILTER,
+    COLOR_GLOW,
     COMPONENT_ID,
     FP_CURRENT_PLAYER,
     FP_GAME_CODE,
@@ -49,6 +50,12 @@ export const setCurrentPlayer = (playerId: string) => {
 export const checkIfNameIsFilled = () => {
     const playerNameInput = getComponents().input.playerName;
     return !!playerNameInput.value;
+};
+
+/** Player-color glow under a sprite; doubled drop-shadow = tight core + soft halo. */
+export const getColorGlow = (color: TColor) => {
+    const glow = COLOR_GLOW[color];
+    return `drop-shadow(0 0 3px ${glow}) drop-shadow(0 0 6px ${glow})`;
 };
 
 export const getColorFilter = (color: TColor) => {

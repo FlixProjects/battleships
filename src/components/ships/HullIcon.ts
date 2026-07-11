@@ -1,6 +1,6 @@
 import { Selectable } from "../Selectable";
 import { COLOR, TColor, TILE_SIZE_PX } from "@shared/constants";
-import { getColorFilter } from "../../utils/game-helper";
+import { getColorGlow } from "../../utils/game-helper";
 
 interface Props {
     hullId: string;
@@ -35,7 +35,7 @@ export class HullIcon extends Selectable {
         this.ref.style.maxHeight = `${TILE_SIZE_PX}px`;
         this.ref.style.cursor = "pointer";
         this.ref.style.transition = "all 0.2s ease";
-        this.ref.style.filter = getColorFilter(this.props.color ?? COLOR.PINK);
+        this.ref.style.filter = getColorGlow(this.props.color ?? COLOR.PINK);
 
         this.ref.style.transform = `rotate(${this.props.rotation}deg)`;
     }

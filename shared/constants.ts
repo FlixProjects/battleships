@@ -66,6 +66,13 @@ export const COLOR = {
 } as const;
 export type TColor = (typeof COLOR)[keyof typeof COLOR];
 
+export const COLOR_GLOW: Record<TColor, string> = {
+    [COLOR.TEAL]: "#2dd4bf",
+    [COLOR.ORANGE]: "#fb923c",
+    [COLOR.PINK]: "#f472b6",
+    [COLOR.RED]: "#f87171",
+};
+
 export const COLOR_FILTER = {
     [COLOR.TEAL]:
         "brightness(0) saturate(100%) invert(83%) sepia(10%) saturate(1623%) hue-rotate(101deg) brightness(97%) contrast(91%)",
