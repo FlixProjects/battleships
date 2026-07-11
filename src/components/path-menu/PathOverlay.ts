@@ -60,7 +60,7 @@ export class PathOverlay {
         const polyline = document.createElementNS(SVG_NS, "polyline") as SVGPolylineElement;
         polyline.setAttribute("points", points.map((p) => `${p.x},${p.y}`).join(" "));
         polyline.setAttribute("fill", "none");
-        polyline.setAttribute("stroke", "rgba(110, 231, 183, 0.9)");
+        polyline.setAttribute("stroke", "rgba(255, 255, 255, 0.40)");
         polyline.setAttribute("stroke-width", "3");
         polyline.setAttribute("stroke-linecap", "round");
         polyline.setAttribute("stroke-linejoin", "round");
@@ -73,7 +73,7 @@ export class PathOverlay {
         circle.setAttribute("cx", `${point.x}`);
         circle.setAttribute("cy", `${point.y}`);
         circle.setAttribute("r", isEnd ? "6" : "3");
-        circle.setAttribute("fill", isEnd ? "rgba(110, 231, 183, 1)" : "rgba(110, 231, 183, 0.7)");
+        circle.setAttribute("fill", isEnd ? "rgb(255, 255, 255)" : "rgba(255, 255, 255, 0.7)");
         return circle;
     }
 }
