@@ -1,3 +1,4 @@
+import { IEffectRenderSpec } from "../../constants";
 import { EffectKind, IEffect, ISignalHandleCtx, IVisionEffect } from "../../types";
 import { registerEffect } from "../../utils/effect-helper";
 import { EFFECT_REF_NO } from "../../config/constants";
@@ -22,6 +23,13 @@ export class FlareEffect extends Effect {
 
     public resolveTick(_ctx: ISignalHandleCtx): void {
         // Same as resolve — passive vision, no per-round mutation.
+    }
+
+    public getRenderSpec(): IEffectRenderSpec {
+        return {
+            ...super.getRenderSpec(),
+            frames: ["flare/flare-0.png", "flare/flare-1.png", "flare/flare-2.png"],
+        };
     }
 
     public toPlain(): IVisionEffect {

@@ -98,6 +98,9 @@ export interface IEffectRenderSpec {
     tint?: TColor;
     zIndex: string;
     animation: TEffectAnimation;
+    /** Sprite frame files under ./assets/sprites/, cycled continuously via CSS
+     *  background-image keyframes (EffectSprite). Omit for a static image. */
+    frames?: string[];
 }
 
 export const COLOR_RGB_VALUE = {
