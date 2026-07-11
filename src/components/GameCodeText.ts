@@ -3,17 +3,45 @@ import { IAppState } from "@shared/types";
 import { HTMLSpan } from "./native/Span";
 
 export class GameCodeText extends HTMLSpan {
-    constructor() {
+    constructor(parent: HTMLElement) {
         super();
-        this.ref = document.getElementById("gameCode") as HTMLSpanElement;
+        this.ref = document.createElement("span");
+        this.ref.title = "Copy game code";
+        this.addStyles();
+        this.addHoverListeners();
+        this.addClickEventListener();
+
+        parent.appendChild(this.ref);
     }
 
-    enableGameCodeCopy() {
-        const element = this.ref;
+    addStyles() {
+        const style = this.ref.style;
+        style.display = "inline-block";
+        style.minWidth = "80px";
+        style.textAlign = "center";
+        style.fontSize = "20px";
+        style.fontWeight = "700";
+        style.letterSpacing = "3px";
+        style.color = "var(--accent)";
+        style.textShadow = "0 0 10px rgba(110, 231, 183, 0.6), 0 0 20px rgba(110, 231, 183, 0.2)";
+        style.cursor = "pointer";
+        style.userSelect = "all";
+        style.transition = "transform 0.25s ease, color 0.25s ease, text-shadow 0.25s ease";
+    }
 
-        if (!element) return;
+    private addHoverListeners() {
+        const style = this.ref.style;
 
-        this.addClickEventListener();
+        this.ref.addEventListener("mouseenter", () => {
+            style.transform = "scale(1.1)";
+            style.color = "var(--accent-2)";
+            style.textShadow = "0 0 16px rgba(96, 165, 250, 0.8), 0 0 26px rgba(96, 165, 250, 0.4)";
+        });
+        this.ref.addEventListener("mouseleave", () => {
+            style.transform = "";
+            style.color = "var(--accent)";
+            style.textShadow = "0 0 10px rgba(110, 231, 183, 0.6), 0 0 20px rgba(110, 231, 183, 0.2)";
+        });
     }
 
     onClickFeedback() {
@@ -42,7 +70,8 @@ export class GameCodeText extends HTMLSpan {
 
     updateState(_state?: IAppState): void {
         const element = this.ref;
-        const { status, gameState } = _state;
+        const gameState = _state?.gameState;
+        const status = _state?.status;
 
         if (!gameState) {
             return;
@@ -56,10 +85,6 @@ export class GameCodeText extends HTMLSpan {
                 element.innerHTML = "error";
             default:
                 element.innerText = gameState.code;
-
-                if (gameState.code) {
-                    this.enableGameCodeCopy();
-                }
                 break;
         }
     }

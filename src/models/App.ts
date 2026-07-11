@@ -7,6 +7,7 @@ import { updateComponents } from "../components/component-helper";
 import { loadStyles } from "../css-anim-styles";
 import { deleteAuthCookie, getCookie } from "../utils/cookie-helper";
 import { getGameCode, isWaitingForOtherPlayer, removeGameCode } from "../utils/game-helper";
+import { getAppScreen, setAppScreen } from "../utils/screen-helper";
 import { transformPlainAppStateToFEDomain } from "../utils/transformers";
 import { FEGameStateManager } from "./FEGameStateManager";
 import { playbackRunner } from "./PlaybackRunner";
@@ -16,12 +17,13 @@ export class App {
     private GSM: TGameStateManagerCtor = FEGameStateManager;
     public async start() {
         loadStyles();
-        updateComponents(this._state);
 
         if (!this.hasExistingSession()) {
-            return this.clearExistingSession();
+            this.clearExistingSession();
+            return updateComponents(this._state);
         }
 
+        updateComponents(this._state);
         await this.fetchExistingSession();
     }
 
@@ -37,6 +39,12 @@ export class App {
     private clearExistingSession() {
         removeGameCode();
         deleteAuthCookie();
+
+        // A stored InGame screen without a live session is stale — the player
+        // has clearly been past login, so drop them back to the lobby.
+        if (getAppScreen() === GameConfig.AppScreen.InGame) {
+            setAppScreen(GameConfig.AppScreen.Lobby);
+        }
     }
 
     private async fetchExistingSession() {
@@ -69,6 +77,7 @@ export class App {
                 { saveWithMerge: false },
             );
             gameManager.setCurrentPlayer(currentPlayerId);
+            setAppScreen(GameConfig.AppScreen.InGame);
 
             // Watermark-guarded catch-up: a resolve that landed while this
             // client was away plays back once on boot.
@@ -85,6 +94,8 @@ export class App {
                 sessionStorage.removeItem(FP_GAME_CODE);
             }
 
+            // Session was unusable (expired/full game) — back to the lobby.
+            setAppScreen(GameConfig.AppScreen.Lobby);
             updateComponents({ status: GameConfig.AppStatus.NewGame, loading: false });
         }
     }

@@ -1,6 +1,8 @@
 import { Z_INDEX } from "@shared/constants";
+import { GameConfig } from "@shared/index";
 import { IAppState } from "@shared/types";
 import { gameManager } from "../..";
+import { getAppScreen } from "../../utils/screen-helper";
 import { BaseComponent } from "../BaseComponent";
 import { Hand } from "../hand/Hand";
 import { InitiativeDisplay } from "./InitiativeDisplay";
@@ -22,10 +24,17 @@ export class ActionPanel extends BaseComponent {
     updateState(_state?: IAppState): void {
         if (this.ref) this.remove();
 
+        // Body-mounted and fixed-positioned, so GameView's screen gating never
+        // reaches it — it must gate itself on the InGame screen.
+        const screen = _state?.screen ?? getAppScreen();
+
+        if (screen !== GameConfig.AppScreen.InGame) {
+            return;
+        }
+
         if (_state?.gameState?.players?.length === 2) {
             this.build();
             this.show();
-            return;
         }
     }
 

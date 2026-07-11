@@ -5,6 +5,7 @@ import { gameManager } from "../";
 import { createGame } from "../apis/create-game";
 import { isLocal } from "../config/app-config";
 import { checkIfNameIsFilled, setCurrentPlayer, setGameCode } from "../utils/game-helper";
+import { setAppScreen } from "../utils/screen-helper";
 import { getComponents, updateComponents } from "./component-helper";
 import { HTMLButton } from "./native/Button";
 
@@ -61,6 +62,7 @@ export class CreateGameButton extends HTMLButton {
                 gameManager.saveAppState(newState);
             }
 
+            setAppScreen(GameConfig.AppScreen.InGame);
             updateComponents();
         } catch (error) {
             this.setDisabled(false);

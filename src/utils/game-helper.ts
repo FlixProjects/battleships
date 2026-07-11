@@ -4,6 +4,7 @@ import {
     COMPONENT_ID,
     FP_CURRENT_PLAYER,
     FP_GAME_CODE,
+    LOCAL_TEMP_PLAYER_ID,
     TColor,
     TILE_GAP_PX,
     TILE_SIZE_PX,
@@ -13,6 +14,7 @@ import { FECommand } from "@shared/models/commands/FECommand";
 import { GameEngine as GameEngineV2 } from "@shared/models/GameEngine";
 import { ICellLoc } from "@shared/types";
 import { game, gameManager } from "..";
+import { isLocal } from "../config/app-config";
 import { getGame } from "../apis/get-game";
 import { getComponents, updateComponents } from "../components/component-helper";
 import { FEGameStateManager } from "../models/FEGameStateManager";
@@ -26,6 +28,10 @@ export const getEngine = () => new GameEngineV2(gameManager.state.gameState, FEG
 // client functions
 export const getGameCode = () => {
     return sessionStorage.getItem(FP_GAME_CODE);
+};
+
+export const isUnjoinedLocalPlayer = () => {
+    return isLocal && gameManager.getCurrentPlayerId() === LOCAL_TEMP_PLAYER_ID;
 };
 
 export const setGameCode = (gameCode: string) => {
