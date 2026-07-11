@@ -43,9 +43,6 @@ export class FERenderHullCommand extends FERenderCommand {
             y: (centroidRow - hull.location[1]) * TILE_SIZE_PX * (1 - scale),
         };
 
-        // FIXME: a patch for single hull ships
-        const centerInTile = hulls.length === 1;
-
         const hullIcon = new DeployedHullIcon({
             hullId: hull.id,
             shipId: hull.shipId,
@@ -55,7 +52,6 @@ export class FERenderHullCommand extends FERenderCommand {
             rotation: hull.orientation,
             scale,
             translate,
-            centerInTile,
             mouseEnter: this.props.onMouseEnter,
             mouseLeave: this.props.onMouseLeave,
         });

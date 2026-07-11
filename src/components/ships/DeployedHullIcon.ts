@@ -14,7 +14,6 @@ interface Props {
     rotation?: number;
     scale?: number;
     translate?: { x: number; y: number };
-    centerInTile?: boolean;
     mouseEnter?: (hullIconRef?: HTMLElement, defaultMouseEnter?: () => void) => void;
     mouseLeave?: (hullIconRef?: HTMLElement, defaultMouseLeave?: () => void) => void;
 }
@@ -29,13 +28,11 @@ export class DeployedHullIcon extends Selectable {
         hullContainer.id = this.id;
         this.ref = hullContainer;
 
-        if (this.props.centerInTile) {
-            hullContainer.style.width = `${TILE_SIZE_PX}px`;
-            hullContainer.style.height = `${TILE_SIZE_PX}px`;
-            hullContainer.style.display = "flex";
-            hullContainer.style.alignItems = "center";
-            hullContainer.style.justifyContent = "center";
-        }
+        hullContainer.style.width = `${TILE_SIZE_PX}px`;
+        hullContainer.style.height = `${TILE_SIZE_PX}px`;
+        hullContainer.style.display = "flex";
+        hullContainer.style.alignItems = "center";
+        hullContainer.style.justifyContent = "center";
 
         const hullIcon = new HullIcon(this.props);
 
