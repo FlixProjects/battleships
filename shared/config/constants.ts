@@ -211,7 +211,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
         hullTemplates: HULLS_CONFIG[SHIP_REF_NO.tudf_frigate0],
         isFlagship: false,
         iconImgName: "tudf_frigate0",
-        renderScale: 0.3,
+        renderScale: 0.6,
     },
     [SHIP_REF_NO.tudf_flagship0]: {
         refNo: SHIP_REF_NO.tudf_flagship0,
