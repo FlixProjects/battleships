@@ -199,57 +199,6 @@ body {
     color: var(--muted);
 }
 
-.player-info {
-    margin-top: 1.2rem;
-    background: #1f1f1f;
-    border-radius: 10px;
-    padding: 1rem;
-    color: #eee;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-.player-info h3 {
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-    font-size: 1rem;
-    color: #ccc;
-    text-align: center;
-    letter-spacing: 0.5px;
-}
-
-.player-list {
-    display: flex;
-    justify-content: space-around;
-    gap: 1rem;
-}
-
-.player-container {
-    background: #2b2b2b;
-    border-radius: 8px;
-    padding: 0.6rem 1rem;
-    min-width: 120px;
-    text-align: center;
-    transition: all 0.2s ease-in-out;
-}
-
-.player.active {
-    background: #0d6efd;
-    color: #fff;
-    transform: scale(1.05);
-    box-shadow: 0 0 8px rgba(13, 110, 253, 0.5);
-}
-
-.player-name {
-    display: block;
-    font-weight: bold;
-    font-size: 1rem;
-}
-
-.player-id {
-    font-size: 0.8rem;
-    opacity: 0.8;
-}
-
 /* footer */
 .footer {
     color: var(--muted);

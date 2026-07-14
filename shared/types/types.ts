@@ -228,6 +228,11 @@ export interface ISupportDeckTemplateEntry {
 
 export type DeckTemplate = IDeckTemplateEntry[];
 
+export interface IFactionConfig {
+    name: string;
+    deck: DeckTemplate;
+}
+
 // ============================================================================
 // Effects — persistent or one-shot side effects produced by SupportCards (and
 // in the future, Ships). One Card may register >1 Effect; each Effect is keyed

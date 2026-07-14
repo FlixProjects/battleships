@@ -147,10 +147,10 @@ export interface IPlayerStartingState {
  * of local-only flows like ResetLocalGameButton.
  */
 export const buildPlayerStartingState = (playerId: string, faction: TFaction): IPlayerStartingState => {
-    const template = FACTION_CONFIG[faction];
+    const { deck } = FACTION_CONFIG[faction];
 
-    const shipEntries = template.filter((e) => e.kind === CardKind.Ship);
-    const supportEntries = template.filter((e) => e.kind === CardKind.Support);
+    const shipEntries = deck.filter((e) => e.kind === CardKind.Ship);
+    const supportEntries = deck.filter((e) => e.kind === CardKind.Support);
 
     const ships: IPlainShip[] = shipEntries.flatMap((entry: IDeckTemplateEntry) =>
         Array.from({ length: entry.count }, () => getShip(entry.refNo as TShipRefNo, playerId)),

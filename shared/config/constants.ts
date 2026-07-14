@@ -1,9 +1,9 @@
 import {
-    DeckTemplate,
     EffectAnchor,
     EffectKind,
     IBoardConfig,
     IEffectTemplate,
+    IFactionConfig,
     IHullTemplate,
     IShipTemplate,
     ISupportConfig,
@@ -331,17 +331,20 @@ export const SUPPORTS_CONFIG: Record<TSupportRefNo, TSupportConfig> = {
 
 export const MAX_HAND_SIZE = 4;
 
-export const FACTION_CONFIG: Record<TFaction, DeckTemplate> = {
-    [Faction.THE_UNITED_DEFENSE_FLEET]: [
-        // Ships
-        { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_flagship0, count: 1 },
-        { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_frigate0, count: 4 },
-        { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_destroyer0, count: 2 },
-        // Supports
-        { kind: CardKind.Support, refNo: SUPPORT_REF_NO.flare, count: 2 },
-        { kind: CardKind.Support, refNo: SUPPORT_REF_NO.inspire, count: 1 },
-        { kind: CardKind.Support, refNo: SUPPORT_REF_NO.airstrike, count: 1 },
-    ],
+export const FACTION_CONFIG: Record<TFaction, IFactionConfig> = {
+    [Faction.THE_UNITED_DEFENSE_FLEET]: {
+        name: "The United Defense Fleet",
+        deck: [
+            // Ships
+            { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_flagship0, count: 1 },
+            { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_frigate0, count: 4 },
+            { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_destroyer0, count: 2 },
+            // Supports
+            { kind: CardKind.Support, refNo: SUPPORT_REF_NO.flare, count: 2 },
+            { kind: CardKind.Support, refNo: SUPPORT_REF_NO.inspire, count: 1 },
+            { kind: CardKind.Support, refNo: SUPPORT_REF_NO.airstrike, count: 1 },
+        ],
+    },
 };
 
 export const BOARD_CONFIG: Record<TMapRefNo, IBoardConfig> = {
