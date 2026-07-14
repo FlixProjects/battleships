@@ -30,6 +30,7 @@ export class CreateGameButton extends HTMLButton {
         const playerNameInput = getComponents().input.playerName;
 
         if (!checkIfNameIsFilled()) {
+            this.setDisabled(false);
             return playerNameInput.shakeForAwhile();
         }
 
@@ -37,6 +38,7 @@ export class CreateGameButton extends HTMLButton {
             const response = await createGame(playerNameInput.value);
 
             if (!response) {
+                this.setDisabled(false);
                 return;
             }
 

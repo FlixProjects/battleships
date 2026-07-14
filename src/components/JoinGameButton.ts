@@ -32,12 +32,14 @@ export class JoinGameButton extends HTMLButton {
         const playerNameInput = getComponents().input.playerName;
 
         if (!checkIfNameIsFilled()) {
+            this.setDisabled(false);
             return playerNameInput.shakeForAwhile();
         }
         try {
             const response = await joinGame(joinCodeInput.value, playerNameInput.value);
 
             if (!response) {
+                this.setDisabled(false);
                 return;
             }
 
