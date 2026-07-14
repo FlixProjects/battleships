@@ -1,7 +1,13 @@
 import { Selectable } from "../../components/Selectable";
 import { getClickHandler } from "../click-handlers";
 import { ClickHandler } from "../click-handlers/ClickHandler";
-import { IMEvent } from "./types";
+import { IMEvent, IMEventType, TIMEventType } from "./types";
+
+const AWAITING_CONFIRMATION_EVENTS: TIMEventType[] = [
+    IMEventType.PLAY_SUPPORT_TARGET,
+    IMEventType.PLAY_SUPPORT_LINE,
+    IMEventType.PLAY_SUPPORT_CONFIRM,
+];
 
 export class InteractionManager {
     public uiState = "Idle";
@@ -9,9 +15,26 @@ export class InteractionManager {
     private globalClickHandler: (e: MouseEvent) => void;
     private currentHandler?: ClickHandler;
     private interacting = false;
+    private awaitingConfirmation = false;
+    private awaitingConfirmationListener?: (awaiting: boolean) => void;
 
     public isInteracting() {
         return this.interacting;
+    }
+
+    public isAwaitingConfirmation() {
+        return this.awaitingConfirmation;
+    }
+
+    public setAwaitingConfirmation(awaiting: boolean) {
+        if (this.awaitingConfirmation === awaiting) return;
+        this.awaitingConfirmation = awaiting;
+        this.awaitingConfirmationListener?.(awaiting);
+    }
+
+    /** Single subscriber — each SubmitMoveButton build re-registers itself. */
+    public onAwaitingConfirmationChange(listener: (awaiting: boolean) => void) {
+        this.awaitingConfirmationListener = listener;
     }
 
     public clearInteraction() {
@@ -30,6 +53,7 @@ export class InteractionManager {
         this.globalClickHandler = nextClickhandler;
         this.addGlobalClickEventListener();
         this.interacting = true;
+        this.setAwaitingConfirmation(AWAITING_CONFIRMATION_EVENTS.includes(event.type));
 
         // FIXME: should reset uiState but we have no use for it now
     }
@@ -59,6 +83,7 @@ export class InteractionManager {
     private removeGlobalClickEventListener() {
         document.removeEventListener("click", this.globalClickHandler);
         this.interacting = false;
+        this.setAwaitingConfirmation(false);
         // A flow that ends via handleInvalidClick already ran its own deselect; drop
         // the reference so the next handleEvent doesn't fire it a second time.
         this.currentHandler = undefined;

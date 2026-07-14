@@ -1,7 +1,7 @@
 import { FP_GAME_STATE } from "@shared/constants";
 import { GameConfig } from "@shared/index";
 import { TGameStateManagerCtor } from "@shared/types";
-import { gameManager } from "../..";
+import { gameManager, interactionManager } from "../..";
 import { submitAction } from "../../apis/submit-action";
 import { isLocal } from "../../config/app-config";
 import { FEGameStateManager } from "../../models/FEGameStateManager";
@@ -27,7 +27,8 @@ export class SubmitMoveButton extends HTMLButton {
         this.ref.textContent = this.getTextcontent();
         this.ref.className = "btn primary";
         this.ref.style.marginTop = "12px";
-        this.setDisabled(!this.isFlagshipDeployed || this.isSubmitted || this.isOver);
+        this.setDisabled(this.isLocked || interactionManager.isAwaitingConfirmation());
+        interactionManager.onAwaitingConfirmationChange((awaiting) => this.setDisabled(this.isLocked || awaiting));
         this.addClickEventListener();
 
         return this.ref;
@@ -35,6 +36,10 @@ export class SubmitMoveButton extends HTMLButton {
 
     setDisabled(isDisabled: boolean) {
         this.ref.disabled = isDisabled;
+    }
+
+    private get isLocked() {
+        return !this.isFlagshipDeployed || this.isSubmitted || this.isOver;
     }
 
     private get isFlagshipDeployed() {

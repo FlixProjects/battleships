@@ -1,4 +1,5 @@
 import { IBoardDimensions, ICellLoc } from "@shared/types";
+import { interactionManager } from "../..";
 import { PathMenu } from "../../components/path-menu/PathMenu";
 import { PathOverlay } from "../../components/path-menu/PathOverlay";
 
@@ -25,6 +26,9 @@ export class SelectRouteClickHandler {
             return;
         }
 
+        // Runs outside the InteractionManager's click-handler dispatch, so mark
+        // the confirm-pending state (which locks submit) explicitly.
+        interactionManager.setAwaitingConfirmation(true);
         this.pathOverlay.draw(this.event.routes[this.currentIndex]);
 
         this.pathMenu = new PathMenu({
@@ -54,6 +58,7 @@ export class SelectRouteClickHandler {
     }
 
     private cleanup() {
+        interactionManager.setAwaitingConfirmation(false);
         this.pathMenu?.close();
         this.pathOverlay.clear();
     }
