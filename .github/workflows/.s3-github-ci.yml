@@ -7,7 +7,7 @@ on:
 
 env:
     AWS_REGION: ap-southeast-1
-    S3BUCKET: battleships-dev
+    S3BUCKET: battleships-prd
 
 jobs:
     deploy-to-s3:
