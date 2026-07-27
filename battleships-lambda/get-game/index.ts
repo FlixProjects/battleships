@@ -15,7 +15,7 @@ export const handler = async (event: any) => {
 
         console.log("Get Game Event:", event);
 
-        const userId = getTokenCookie(event.cookies || event.multiValueHeaders.Cookie);
+        const userId = getTokenCookie(event.cookies || event.multiValueHeaders?.Cookie);
 
         if (!userId) {
             return NotFoundError;
