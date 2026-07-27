@@ -41,7 +41,7 @@ jobs:
             - name: Deploy Create Game Function
               uses: aws-actions/aws-lambda-deploy@v1.1.0
               with:
-                  function-name: create-game
+                  function-name: battleships-${{ vars.DEPLOY_ENV }}-create-game
                   code-artifacts-dir: battleships-lambda/dist/create-game
                   handler: index.handler
                   runtime: nodejs22.x
@@ -51,7 +51,7 @@ jobs:
             - name: Deploy Join Game Function
               uses: aws-actions/aws-lambda-deploy@v1.1.0
               with:
-                  function-name: join-game
+                  function-name: battleships-${{ vars.DEPLOY_ENV }}-join-game
                   code-artifacts-dir: battleships-lambda/dist/join-game
                   handler: index.handler
                   runtime: nodejs22.x
@@ -60,7 +60,7 @@ jobs:
             - name: Deploy Get Game Function
               uses: aws-actions/aws-lambda-deploy@v1.1.0
               with:
-                  function-name: get-game
+                  function-name: battleships-${{ vars.DEPLOY_ENV }}-get-game
                   code-artifacts-dir: battleships-lambda/dist/get-game
                   handler: index.handler
                   runtime: nodejs22.x
@@ -69,7 +69,7 @@ jobs:
             - name: Deploy Submit Action Function
               uses: aws-actions/aws-lambda-deploy@v1.1.0
               with:
-                  function-name: submit-action
+                  function-name: battleships-${{ vars.DEPLOY_ENV }}-submit-action
                   code-artifacts-dir: battleships-lambda/dist/submit-action
                   handler: index.handler
                   runtime: nodejs22.x
@@ -79,6 +79,6 @@ jobs:
               env:
                 CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
               run: |
-                  aws cloudfront create-invalidation --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" --paths "/api/*"
+                  aws cloudfront create-invalidation --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" --paths "/api*"
                 
               
