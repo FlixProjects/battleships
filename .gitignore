@@ -142,3 +142,5 @@ bundle.js
 
 .amazon*
 .claude*
+
+.terraform*
