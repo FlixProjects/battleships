@@ -45,7 +45,7 @@ locals {
 resource "aws_cloudfront_distribution" "battleships" {
   count               = local.create-cloudfront-distribution[terraform.workspace] ? 1 : 0
   enabled             = true
-
+  default_root_object = "index.html"
   # ── S3 origin (static site) ──────────────────────────────────────────────
   dynamic "origin" {
     for_each = local.create-s3[terraform.workspace] ? [1] : []
@@ -114,19 +114,13 @@ resource "aws_cloudfront_distribution" "battleships" {
     }
   }
 
-  # ── S3 static site ────────────────────────────────────
-  dynamic "ordered_cache_behavior" {
-    for_each = local.create-s3[terraform.workspace] ? [1] : []
-
-    content {
-      path_pattern           = "/"
-      target_origin_id       = local.s3_root_origin_id
-      allowed_methods        = ["GET", "HEAD", "OPTIONS"]
-      cached_methods         = ["GET", "HEAD"]
-      viewer_protocol_policy = "redirect-to-https"
-      cache_policy_id        = data.aws_cloudfront_cache_policy.caching_optimized.id
-
-    }
+  ordered_cache_behavior {
+    path_pattern = "/favicon.ico"
+    target_origin_id       = local.s3_public_origin_id
+    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+    cached_methods         = ["GET", "HEAD"]
+    viewer_protocol_policy = "https-only"
+    cache_policy_id        = data.aws_cloudfront_cache_policy.caching_optimized.id
   }
 
   # ── Default behaviour → S3 static site ────────────────────────────────────
