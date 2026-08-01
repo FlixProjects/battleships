@@ -149,4 +149,13 @@ describe("CryptoHelper", () => {
             expect(sig1.equals(sig2)).toBe(false);
         });
     });
+
+    describe("generateKeyPair", () => {
+        it("should generate a key pair and store the private key", async () => {
+            const keyPair = await cryptoHelper.generateKeyPair();
+
+            expect(keyPair).toHaveProperty("publicKey");
+            expect(keyPair).toHaveProperty("privateKey");
+        });
+    });
 });
