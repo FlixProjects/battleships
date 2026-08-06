@@ -1,4 +1,5 @@
 import { IAction, IResult, IPlainGameState } from "@shared/types";
+import { JWK } from "jose";
 
 export interface GetGameRequest {
     gameCode: string;
@@ -20,6 +21,19 @@ export interface SubmitActionRequest {
 export interface CreateGameRequest {
     playerName: string;
 }
+
+export interface SignedRequest {
+    publicJwk: JWK;
+}
+
+export interface AuthRequest extends SignedRequest {
+    username: string;
+    password: string;
+}
+
+export interface SignUpRequest extends AuthRequest {}
+
+export interface SignInRequest extends AuthRequest {}
 
 export interface GenericResponse {
     gameState: IPlainGameState;
