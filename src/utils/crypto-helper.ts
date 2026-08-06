@@ -1,6 +1,5 @@
 import { createHash, createHmac } from "crypto";
 import { appConfig } from "../config/app-config";
-import * as jose from "jose";
 
 type HttpMethod = "GET" | "POST" | "PUT";
 type StringEncoding = "ascii" | "utf8" | "utf16le" | "ucs2" | "base64" | "latin1" | "binary" | "hex";
@@ -27,8 +26,6 @@ export class CryptoHelper {
     public request: string = "";
     public method: HttpMethod;
     private headers: Array<[string, string]> = [];
-
-    constructor(private store?: IDBObjectStore) {}
 
     public buildSignature() {
         const hashedRequest = this.hashRequest();
@@ -145,21 +142,6 @@ export class CryptoHelper {
         });
 
         return key;
-    }
-
-    public async generateKeyPair() {
-        const keyPair = await jose.generateKeyPair("RS256");
-        return keyPair;
-    }
-
-    public storePrivateKey(privateKey: CryptoKey) {
-        if (this.store) {
-            this.store.put(privateKey, "privateKey");
-        }
-    }
-
-    public async exportKey(key: CryptoKey) {
-        return await jose.exportJWK(key);
     }
 
     private getSignature(signingKey: string, stringToSign: string) {
