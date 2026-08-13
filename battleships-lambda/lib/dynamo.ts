@@ -1,13 +1,11 @@
 import { DynamoDBClient, DynamoDBClientConfig } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { isLocal } from "./env";
 
-const LOCAL_ENV = "local";
 const DEFAULT_REGION = "ap-southeast-1";
 const DEFAULT_LOCAL_ENDPOINT = "http://dynamodb-local:8000";
 
 export const USERS_TABLE = process.env.USERS_TABLE ?? "battleships-users";
-
-export const isLocal = (): boolean => process.env.DEPLOY_ENV === LOCAL_ENV;
 
 let docClient: DynamoDBDocumentClient | undefined;
 
