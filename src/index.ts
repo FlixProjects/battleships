@@ -13,6 +13,13 @@ export let idb: FrontendDB;
 
 new FrontendDB()
     .start(async (db) => {
+        const existingPrivateKey = await db.get("privateKey")
+        const existingPublicKey = await db.get("publicKey")
+
+        if (existingPrivateKey.value && existingPublicKey.value) {
+            return;
+        }
+
         const jwtHelper = new JwtHelper();
         const { privateKey, publicKey } = await jwtHelper.generateKeyPair();
 
