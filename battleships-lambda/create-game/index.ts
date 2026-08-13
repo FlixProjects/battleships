@@ -1,6 +1,7 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import { IPlainGameState, createNewGameState, generateGameCode } from "../../shared";
+import { createNewGameState, generateGameCode } from "../../shared/utils/helpers";
+import type { IPlainGameState } from "../../shared/types/types";
 
 interface CreateGameResponse {
     statusCode: number;

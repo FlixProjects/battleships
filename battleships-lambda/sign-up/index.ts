@@ -3,7 +3,7 @@ import type { APIGatewayProxyEvent } from "aws-lambda";
 import { randomUUID } from "node:crypto";
 import { validateAuthRequest } from "../../shared/auth/auth-request-validator";
 import { hashPassword } from "../../shared/auth/password-helper";
-import type { SignUpRequest } from "../../shared";
+import type { SignUpRequest } from "../../shared/types/domains";
 import { USERS_TABLE, getDocClient } from "../lib/dynamo";
 import { isLocal } from "../lib/env";
 import { LambdaResponse, corsHeaders, errorResponse } from "../lib/http";

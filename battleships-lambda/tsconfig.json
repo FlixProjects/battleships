@@ -4,6 +4,9 @@
         "strict": true,
         "preserveConstEnums": true,
         "outDir": "dist",
+        // the editor's language service applies the rootDir check even under
+        // noEmit; without this, every `../shared` import is a red squiggle
+        "rootDir": "..",
         "noEmit": true,
         "sourceMap": false,
         "module": "Node16",
