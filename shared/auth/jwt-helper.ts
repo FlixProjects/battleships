@@ -8,4 +8,8 @@ export class JwtHelper {
     public async exportKey(key: CryptoKey) {
         return await jose.exportJWK(key);
     }
+
+    public async importKey(jwk: jose.JWK) {
+        return await jose.importJWK(jwk, "RS256");
+    }
 }

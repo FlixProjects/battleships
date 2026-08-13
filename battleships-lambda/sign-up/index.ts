@@ -18,7 +18,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<LambdaRespon
 
         const body = JSON.parse(event.body) as Partial<SignUpRequest>;
 
-        const validationMessage = validateAuthRequest(body);
+        const validationMessage = await validateAuthRequest(body);
         if (validationMessage) {
             return errorResponse(400, validationMessage);
         }
