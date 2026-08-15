@@ -24,8 +24,8 @@ const tables = [
         KeySchema: [{ AttributeName: "username", KeyType: "HASH" }],
         GlobalSecondaryIndexes: [
             {
-                IndexName: "userId-index",
-                KeySchema: [{ AttributeName: "userId", KeyType: "HASH" }],
+                IndexName: "id-index",
+                KeySchema: [{ AttributeName: "id", KeyType: "HASH" }],
                 Projection: { ProjectionType: "ALL" },
             },
         ],
