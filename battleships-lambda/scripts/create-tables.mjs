@@ -19,7 +19,7 @@ const tables = [
         BillingMode: "PAY_PER_REQUEST",
         AttributeDefinitions: [
             { AttributeName: "username", AttributeType: "S" },
-            { AttributeName: "userId", AttributeType: "S" },
+            { AttributeName: "id", AttributeType: "S" },
         ],
         KeySchema: [{ AttributeName: "username", KeyType: "HASH" }],
         GlobalSecondaryIndexes: [

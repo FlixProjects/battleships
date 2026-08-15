@@ -3,12 +3,12 @@ import type { APIGatewayProxyEvent } from "aws-lambda";
 import { randomUUID } from "node:crypto";
 import { validateAuthRequest } from "../../shared/auth/auth-request-validator";
 import { hashPassword } from "../../shared/auth/password-helper";
+import { generateAuthToken } from "../../shared/auth/auth-helper";
+import { FP_AUTH_TOKEN } from "../../shared/constants";
 import type { SignUpRequest } from "../../shared/types/domains";
 import { USERS_TABLE, getDocClient } from "../lib/dynamo";
 import { isLocal } from "../lib/env";
 import { LambdaResponse, corsHeaders, errorResponse } from "../lib/http";
-
-const FP_AUTH_TOKEN = "fp-auth-token";
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<LambdaResponse> => {
     try {
@@ -30,9 +30,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<LambdaRespon
             new PutCommand({
                 TableName: USERS_TABLE,
                 Item: {
+                    id: userId,
                     username,
-                    userId,
-                    passwordHash: await hashPassword(String(body.password)),
+                    password: await hashPassword(String(body.password)),
                     publicJwk: body.publicJwk,
                     createdAt: new Date().toISOString(),
                 },
@@ -41,17 +41,18 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<LambdaRespon
             }),
         );
 
+        const authToken = await generateAuthToken(userId);
         const response: LambdaResponse = {
             statusCode: 201,
-            headers: { ...corsHeaders(), [FP_AUTH_TOKEN]: userId },
+            headers: { ...corsHeaders(), [FP_AUTH_TOKEN]: authToken },
             body: JSON.stringify({ message: "Sign-up successful", userId, username }),
         };
 
         if (isLocal()) {
             // locally there is no Lambda@Edge to translate the header into a cookie
-            response.multiValueHeaders = {
-                "Set-Cookie": [`${FP_AUTH_TOKEN}=${userId}; Path=/; SameSite=Lax`],
-            };
+            const cookieConfig = "Path=/; SameSite=Lax";
+            response.headers["Access-Control-Allow-Origin"] = "*";
+            response.multiValueHeaders = { "Set-Cookie": [`${FP_AUTH_TOKEN}=${authToken}; ${cookieConfig}`] };
         }
 
         return response;
