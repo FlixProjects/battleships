@@ -8,10 +8,13 @@ locals {
       { name : "create-game", create : true },
       { name : "sign-up", create : false },
   ] }
-  create-s3 = {
+  create_s3 = {
     prd : true,
   }
-  create-cloudfront-distribution = {
+  create_cloudfront_distribution = {
+    prd : true,
+  }
+  create_dynamodb = {
     prd : true,
   }
 }
