@@ -23,13 +23,13 @@ resource "aws_lambda_function" "battleship_lambda" {
   }
   environment {
     variables = {
-      "GAMES_BUCKET" = aws_s3_bucket.battleships-s3[0].id
+      "GAMES_BUCKET"   = aws_s3_bucket.battleships-s3[0].id
     }
   }
 }
 
 resource "aws_lambda_permission" "allow_cf_invoke_function" {
-  for_each      = { for lambda in local.lambda_functions[terraform.workspace] : lambda.name => lambda if lambda.create && local.create-cloudfront-distribution[terraform.workspace] }
+  for_each      = { for lambda in local.lambda_functions[terraform.workspace] : lambda.name => lambda if lambda.create && local.create_cloudfront_distribution[terraform.workspace] }
   statement_id  = "AllowInvokeFunctionFromCloudfront"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.battleship_lambda[each.value.name].function_name
@@ -38,7 +38,7 @@ resource "aws_lambda_permission" "allow_cf_invoke_function" {
 }
 
 resource "aws_lambda_permission" "allow_cf_invoke_function_url" {
-  for_each      = { for lambda in local.lambda_functions[terraform.workspace] : lambda.name => lambda if lambda.create && local.create-cloudfront-distribution[terraform.workspace] }
+  for_each      = { for lambda in local.lambda_functions[terraform.workspace] : lambda.name => lambda if lambda.create && local.create_cloudfront_distribution[terraform.workspace] }
   statement_id  = "AllowInvokeFunctionUrlFromCloudfront"
   action        = "lambda:InvokeFunctionUrl"
   function_name = aws_lambda_function.battleship_lambda[each.value.name].function_name
