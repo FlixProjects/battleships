@@ -132,3 +132,41 @@ Resources:
                     - battleships-lambda/submit-action/index.ts
                 External:
                     - "@aws-sdk/client-s3"
+    
+    SignUpFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: ../
+            Handler: index.handler
+            Runtime: nodejs22.x
+            Timeout: 10 # password hashing + a cold DynamoDB connection can exceed the 3s global
+            Architectures:
+                - x86_64
+            Environment:
+                Variables:
+                    DEPLOY_ENV: local
+                    USERS_TABLE: battleships-users
+                    # container-to-container: reachable because sam local start-api
+                    # runs with --docker-network battleships-local (see npm run start)
+                    DYNAMODB_ENDPOINT: http://dynamodb-local:8000
+            Events:
+                CreateGame:
+                    Type: Api
+                    Properties:
+                        Path: /api/sign-up
+                        Method: post
+        Metadata: # Manage esbuild properties
+            BuildMethod: esbuild
+            BuildProperties:
+                Format: esm
+                Minify: true
+                Target: es2020
+                # Sourcemap: true
+                OutExtension:
+                    - .js=.mjs
+                EntryPoints:
+                    - battleships-lambda/sign-up/index.ts
+                External:
+                    - "@aws-sdk/client-s3"
+                    - "@aws-sdk/client-dynamodb"
+                    - "@aws-sdk/lib-dynamodb"

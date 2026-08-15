@@ -1,4 +1,4 @@
-import { createHash, createHmac, sign } from "crypto";
+import { createHash, createHmac } from "crypto";
 import { appConfig } from "../config/app-config";
 
 type HttpMethod = "GET" | "POST" | "PUT";

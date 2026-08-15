@@ -1,0 +1,40 @@
+name: battleships-local
+# https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html
+services:
+    # SAM runs each lambda in its own container, so the functions cannot reach a
+    # port published on the host. Both sides join the `battleships-local` network
+    # instead, and the lambdas address DynamoDB by service name.
+    dynamodb-local:
+        image: "amazon/dynamodb-local:latest"
+        container_name: dynamodb-local
+        # -sharedDb  : one table set for every credential/region pair, so the
+        #              lambdas and the host-side scripts see the same data
+        # -dbPath    : written to the mounted volume below, so tables survive a restart.
+        #              Mutually exclusive with -inMemory — setting both exits on boot.
+        command: "-jar DynamoDBLocal.jar -sharedDb -inMemory"
+        ports:
+            - "8000:8000"
+        networks:
+            - battleships-local
+        # volumes:
+        #     - "./docker/dynamodb:/home/dynamodblocal/data"
+        # working_dir: /home/dynamodblocal
+    # Browser UI for poking at the tables: http://localhost:8001
+    dynamodb-admin:
+        image: aaronshaf/dynamodb-admin:latest
+        container_name: dynamodb-admin
+        environment:
+            DYNAMO_ENDPOINT: http://dynamodb-local:8000
+            AWS_REGION: ap-southeast-1
+            AWS_ACCESS_KEY_ID: local
+            AWS_SECRET_ACCESS_KEY: local
+        ports:
+            - "8001:8001"
+        depends_on:
+            - dynamodb-local
+        networks:
+            - battleships-local
+
+networks:
+    battleships-local:
+        name: battleships-local

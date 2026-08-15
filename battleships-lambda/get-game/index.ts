@@ -1,12 +1,9 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import {
-    GetGameResponse,
-    IPlainGameState,
-    getTokenCookie,
-    transformGameStateToPlain,
-    transformPlainGameStateToDomain,
-} from "../../shared";
+import { transformGameStateToPlain, transformPlainGameStateToDomain } from "../../shared/transformers";
 import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
+import { getTokenCookie } from "../../shared/utils/helpers";
+import type { GetGameResponse } from "../../shared/types/domains";
+import type { IPlainGameState } from "../../shared/types/types";
 
 export const handler = async (event: any) => {
     try {

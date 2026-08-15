@@ -15,7 +15,10 @@ locals {
       path            = "/api/join"
       viewer-response = "auth-cf-edge-response"
     }
-    "sign-up"  = { path = "/api/sign-up" }
+    "sign-up"  = { 
+      path = "/api/sign-up"
+      viewer-response = "auth-cf-edge-response"
+    }
     "get-game" = { path = "/api*" }
   }
 
@@ -43,12 +46,12 @@ locals {
 
 
 resource "aws_cloudfront_distribution" "battleships" {
-  count               = local.create-cloudfront-distribution[terraform.workspace] ? 1 : 0
+  count               = local.create_cloudfront_distribution[terraform.workspace] ? 1 : 0
   enabled             = true
   default_root_object = "index.html"
   # ── S3 origin (static site) ──────────────────────────────────────────────
   dynamic "origin" {
-    for_each = local.create-s3[terraform.workspace] ? [1] : []
+    for_each = local.create_s3[terraform.workspace] ? [1] : []
 
     content {
       origin_id                = local.s3_root_origin_id
@@ -58,7 +61,7 @@ resource "aws_cloudfront_distribution" "battleships" {
   }
 
   dynamic "origin" {
-    for_each = local.create-s3[terraform.workspace] ? [1] : []
+    for_each = local.create_s3[terraform.workspace] ? [1] : []
 
     content {
       origin_id                = local.s3_public_origin_id
@@ -145,7 +148,7 @@ resource "aws_cloudfront_distribution" "battleships" {
 }
 
 resource "aws_cloudfront_origin_access_control" "s3" {
-  count                             = local.create-cloudfront-distribution[terraform.workspace] ? 1 : 0
+  count                             = local.create_cloudfront_distribution[terraform.workspace] ? 1 : 0
   name                              = format("battleships-%s-s3-oac", terraform.workspace)
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
@@ -153,7 +156,7 @@ resource "aws_cloudfront_origin_access_control" "s3" {
 }
 
 resource "aws_cloudfront_origin_access_control" "lambda" {
-  count                             = local.create-cloudfront-distribution[terraform.workspace] ? 1 : 0
+  count                             = local.create_cloudfront_distribution[terraform.workspace] ? 1 : 0
   name                              = format("battleships-%s-lambda-oac", terraform.workspace)
   origin_access_control_origin_type = "lambda"
   signing_behavior                  = "always"

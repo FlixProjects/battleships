@@ -1,12 +1,8 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import {
-    applyStartingStateToPlayer,
-    buildPlayerStartingState,
-    initialiseNewPlayer,
-    IPlainGameState,
-    GameConfig,
-} from "../../shared";
+import * as GameConfig from "../../shared/config/constants";
+import { applyStartingStateToPlayer, buildPlayerStartingState, initialiseNewPlayer } from "../../shared/utils/helpers";
+import type { IPlainGameState } from "../../shared/types/types";
 
 interface JoinGameResponse {
     statusCode: number;

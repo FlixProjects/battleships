@@ -4,12 +4,17 @@ import LoginInCssAnimStyle from "../css-anim-styles/models/login-in-style";
 import { getAppScreen, setAppScreen } from "../utils/screen-helper";
 import { BaseComponent } from "./BaseComponent";
 import { getComponents, updateComponents } from "./component-helper";
+import { LoginButton } from "./LoginButton";
+import { SignUpLink } from "./SignUpLink";
 import { applyButtonStyles, applyInputStyles } from "./styles/inline-styles";
+import { signUp } from "../apis/sign-up";
 
 export class LoginPage extends BaseComponent {
     private card: HTMLDivElement;
     private usernameInput: HTMLInputElement;
     private passwordInput: HTMLInputElement;
+    private loginBtn: LoginButton;
+    private signUpLink: SignUpLink;
     private hint: HTMLParagraphElement;
 
     constructor() {
@@ -137,19 +142,28 @@ export class LoginPage extends BaseComponent {
         this.usernameInput = this.buildInput("loginUsername", "text", "Username");
         this.passwordInput = this.buildInput("loginPassword", "password", "Password");
 
-        const loginBtn = document.createElement("button");
-        loginBtn.id = "loginBtn";
-        loginBtn.textContent = "Log In";
-        applyButtonStyles(loginBtn);
-        loginBtn.style.width = "100%";
-        loginBtn.style.padding = "12px";
-        loginBtn.style.marginTop = "4px";
-        loginBtn.style.border = "1px solid var(--glass-border)";
-        loginBtn.addEventListener("click", () => this.onLoginClick());
+        this.loginBtn = new LoginButton(() => this.onLoginClick());
+        this.signUpLink = new SignUpLink(() => this.onSignUpClick());
+        this.addChild(this.loginBtn);
+        this.addChild(this.signUpLink);
 
         this.buildHint();
 
-        this.card.append(this.usernameInput, this.passwordInput, loginBtn, this.hint);
+        this.card.append(this.usernameInput, this.passwordInput, this.buildActionRow(), this.hint);
+    }
+
+    // Log In takes the remaining width; the sign-up link sits alongside it.
+    private buildActionRow() {
+        const row = document.createElement("div");
+        const style = row.style;
+        style.display = "flex";
+        style.alignItems = "center";
+        style.gap = "12px";
+        style.marginTop = "4px";
+
+        row.append(this.loginBtn.ref, this.signUpLink.ref);
+
+        return row;
     }
 
     private buildHint() {
@@ -229,6 +243,31 @@ export class LoginPage extends BaseComponent {
 
     // Stage C stub: no auth backend yet — nudge towards the guest path.
     private onLoginClick() {
+        this.rejectWithHint("Account login is coming soon — continue as guest for now");
+    }
+
+    // Stage C stub: sign-up has an API but no screen to host it yet.
+    private async onSignUpClick() {
+        const username = this.usernameInput.value.trim();
+        const password = this.passwordInput.value.trim();
+
+        if (!username) {
+            this.rejectWithHint("Enter a username to sign up");
+            this.usernameInput.focus();
+            return;
+        }
+
+        if (!password) {
+            this.rejectWithHint("Enter a password to sign up");
+            this.passwordInput.focus();
+            return;
+        }
+
+        await signUp(username, password);
+    }
+
+    private rejectWithHint(message: string) {
+        this.hint.textContent = message;
         this.hint.style.maxHeight = "40px";
         this.hint.style.opacity = "1";
 

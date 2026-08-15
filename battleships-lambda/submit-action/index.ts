@@ -1,15 +1,12 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import {
-    Action,
-    FP_AUTH_TOKEN,
-    getTokenCookie,
-    IPlainGameState,
-    IPlayerAction,
-    SubmitActionResponse as ISubmitActionResponse,
-    transformGameStateToPlain,
-    transformPlainGameStateToDomain,
-} from "../../shared";
+import { FP_AUTH_TOKEN } from "../../shared/constants";
+import { Action } from "../../shared/models/actions/Action";
+import { transformGameStateToPlain, transformPlainGameStateToDomain } from "../../shared/transformers";
 import { handleActions } from "../../shared/utils/action-handler";
+import { getTokenCookie } from "../../shared/utils/helpers";
+import type { IPlayerAction } from "../../shared/types/action-types";
+import type { SubmitActionResponse as ISubmitActionResponse } from "../../shared/types/domains";
+import type { IPlainGameState } from "../../shared/types/types";
 
 interface SubmitActionResponse {
     statusCode: number;
