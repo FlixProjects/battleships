@@ -15,7 +15,10 @@ locals {
       path            = "/api/join"
       viewer-response = "auth-cf-edge-response"
     }
-    "sign-up"  = { path = "/api/sign-up" }
+    "sign-up"  = { 
+      path = "/api/sign-up"
+      viewer-response = "auth-cf-edge-response"
+    }
     "get-game" = { path = "/api*" }
   }
 

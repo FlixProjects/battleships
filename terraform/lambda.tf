@@ -2,7 +2,7 @@ resource "aws_lambda_function" "battleship_lambda" {
   for_each      = { for lambda in local.lambda_functions[terraform.workspace] : lambda.name => lambda if lambda.create }
   function_name = format("battleships-%s-%s", terraform.workspace, each.value.name)
   filename      = format("${path.module}/../battleships-lambda/dist/%s.zip", each.value.name)
-  role          = data.aws_iam_role.lambda_to_s3.arn
+  role          = data.aws_iam_role.lambda_to_s3.arn # we need to change the role for signup and login
   handler       = "index.handler"
   runtime       = "nodejs22.x"
   architectures = ["x86_64"]
@@ -22,9 +22,12 @@ resource "aws_lambda_function" "battleship_lambda" {
     mode = "PassThrough"
   }
   environment {
-    variables = {
-      "GAMES_BUCKET"   = aws_s3_bucket.battleships-s3[0].id
-    }
+    variables = merge(
+      { "GAMES_BUCKET" = aws_s3_bucket.battleships-s3[0].id },
+      try(each.value.needs_dynamodb, false) ? {
+        "USERS_TABLE" = one(aws_dynamodb_table.users[*].name)
+      } : {},
+    )
   }
 }
 

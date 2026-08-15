@@ -20,11 +20,11 @@ resource "aws_dynamodb_table" "users" {
   # gameplay addresses players by id so the username is never put on the wire.
   # eventually consistent, so never read this immediately after the sign-up put.
   global_secondary_index {
-    name            = "id-index"
+    name = "id-index"
     key_schema {
       attribute_name = "id"
       key_type       = "HASH"
-    }    
+    }
     projection_type = "ALL"
   }
 
