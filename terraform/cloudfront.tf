@@ -4,8 +4,8 @@ locals {
   # Path pattern routed to each lambda origin. get-game is the /api/* catch-all
   # and must have the lowest precedence, so it is ordered last below.
   lambda_path_patterns = {
-    "submit-action" = { 
-      path = "/api/submit"      
+    "submit-action" = {
+      path = "/api/submit"
     }
     "create-game" = {
       path            = "/api/create"
@@ -15,8 +15,8 @@ locals {
       path            = "/api/join"
       viewer-response = "auth-cf-edge-response"
     }
-    "sign-up"  = { 
-      path = "/api/sign-up"
+    "sign-up" = {
+      path            = "/api/sign-up"
       viewer-response = "auth-cf-edge-response"
     }
     "get-game" = { path = "/api*" }
@@ -118,7 +118,7 @@ resource "aws_cloudfront_distribution" "battleships" {
   }
 
   ordered_cache_behavior {
-    path_pattern = "/favicon.ico"
+    path_pattern           = "/favicon.ico"
     target_origin_id       = local.s3_public_origin_id
     allowed_methods        = ["GET", "HEAD", "OPTIONS"]
     cached_methods         = ["GET", "HEAD"]

@@ -1,4 +1,6 @@
 locals {
+  region = "ap-southeast-1"
+
   lambda_functions = {
     prd : [
       { name : "join-game", create : true, },

@@ -2,7 +2,7 @@ resource "aws_lambda_function" "battleship_lambda" {
   for_each      = { for lambda in local.lambda_functions[terraform.workspace] : lambda.name => lambda if lambda.create }
   function_name = format("battleships-%s-%s", terraform.workspace, each.value.name)
   filename      = format("${path.module}/../battleships-lambda/dist/%s.zip", each.value.name)
-  role          = data.aws_iam_role.lambda_to_s3.arn # we need to change the role for signup and login
+  role          = contains(local.dynamodb_lambdas, each.value.name) ? aws_iam_role.lambda_to_dynamodb[0].arn : data.aws_iam_role.lambda_to_s3.arn
   handler       = "index.handler"
   runtime       = "nodejs22.x"
   architectures = ["x86_64"]
