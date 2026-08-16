@@ -31,9 +31,7 @@ const DEFAULT_BOUNDS = {
     yUpperBound: BOARD_ROWS - 1,
 };
 
-export const cellLocToNodeId = locationToKey;
-export const nodeIdToCellLoc = keyToLocation;
-export const routeToCellLocs = (route: string[]): ICellLoc[] => route.map(nodeIdToCellLoc);
+export const routeToCellLocs = (route: string[]): ICellLoc[] => route.map(keyToLocation);
 
 export type NodeFilterFn = (loc: ICellLoc) => boolean;
 
@@ -83,7 +81,7 @@ export class PathFinder {
     }
 
     public cellsWithinRange(start: ICellLoc, range: number, minRange = 1): ICellLoc[] {
-        const startNode = this.nodes.get(cellLocToNodeId(start));
+        const startNode = this.nodes.get(locationToKey(start));
         if (!startNode) return [];
 
         const visited = new Set<string>([startNode.id]);
@@ -106,7 +104,7 @@ export class PathFinder {
             frontier = next;
         }
 
-        return reachable.map(nodeIdToCellLoc);
+        return reachable.map(keyToLocation);
     }
 
     public initialiseNodes(filterFn?: NodeFilterFn, cellNodes?: PathCellNodeLookup) {
@@ -142,7 +140,7 @@ export class PathFinder {
     private createAndLoadIdForNodes(filterFn?: NodeFilterFn) {
         for (let x = this.xLowerBound; x <= this.xUpperBound; x++) {
             for (let y = this.yLowerBound; y <= this.yUpperBound; y++) {
-                const id = cellLocToNodeId([x, y]);
+                const id = locationToKey([x, y]);
                 const enterable = filterFn ? filterFn([x, y]) : true;
                 this.nodes.set(id, new PathNode(id, [], enterable, this.cellNodes?.[id]));
             }
@@ -156,13 +154,13 @@ export class PathFinder {
     }
 
     private loadNextNodesForNode(node: PathNode) {
-        const [x, y] = nodeIdToCellLoc(node.id);
+        const [x, y] = keyToLocation(node.id);
         const nextTo: PathNode[] = [];
 
-        if (x > this.xLowerBound) this.pushIfExists(nextTo, this.nodes.get(cellLocToNodeId([x - 1, y])));
-        if (x < this.xUpperBound) this.pushIfExists(nextTo, this.nodes.get(cellLocToNodeId([x + 1, y])));
-        if (y > this.yLowerBound) this.pushIfExists(nextTo, this.nodes.get(cellLocToNodeId([x, y - 1])));
-        if (y < this.yUpperBound) this.pushIfExists(nextTo, this.nodes.get(cellLocToNodeId([x, y + 1])));
+        if (x > this.xLowerBound) this.pushIfExists(nextTo, this.nodes.get(locationToKey([x - 1, y])));
+        if (x < this.xUpperBound) this.pushIfExists(nextTo, this.nodes.get(locationToKey([x + 1, y])));
+        if (y > this.yLowerBound) this.pushIfExists(nextTo, this.nodes.get(locationToKey([x, y - 1])));
+        if (y < this.yUpperBound) this.pushIfExists(nextTo, this.nodes.get(locationToKey([x, y + 1])));
 
         node.nextTo = nextTo;
     }

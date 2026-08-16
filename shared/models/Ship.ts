@@ -17,9 +17,9 @@ import {
 } from "@shared/types";
 import { LocationHelper } from "@shared/utils";
 import { boardToPathCellNodes } from "@shared/utils/cell-node-helper";
-import { cellLocToNodeId, nodeIdToCellLoc, PathFinder, routeToCellLocs } from "@shared/utils/path-finder";
+import { PathFinder, routeToCellLocs } from "@shared/utils/path-finder";
 import { computeDeployedHullLocation, HullCalculator } from "@shared/utils/hull-helper";
-import { getHull, locationToKey } from "@shared/utils/helpers";
+import { getHull, locationToKey, keyToLocation } from "@shared/utils/helpers";
 import { SegmentBuilder } from "@shared/utils/segment-builder";
 import { EFFECT_REF_NO } from "@shared/config/constants";
 import { mergician } from "mergician";
@@ -157,14 +157,14 @@ export class Ship extends ShipEntity {
         const movementRange = this.remainingMovement || 0;
 
         const pathFinder = this.buildMoveShipPathFinder(gsm);
-        const startNode = pathFinder.getNode(cellLocToNodeId(currentLoc));
+        const startNode = pathFinder.getNode(locationToKey(currentLoc));
 
         const validCells = pathFinder
             .getReachableCells({
                 current: startNode,
                 movement: new Movement({ originalMovementCost: 1, unitsOfMovementLeft: movementRange }),
             })
-            .map(nodeIdToCellLoc);
+            .map(keyToLocation);
 
         resolve({ validCells, origin: currentLoc });
     }
@@ -179,7 +179,7 @@ export class Ship extends ShipEntity {
         const movementRange = this.remainingMovement || 0;
 
         const pathFinder = this.buildMoveShipPathFinder(gsm);
-        const startNode = pathFinder.getNode(cellLocToNodeId(currentLoc));
+        const startNode = pathFinder.getNode(locationToKey(currentLoc));
 
         const routes = pathFinder.getPathToNode(
             {

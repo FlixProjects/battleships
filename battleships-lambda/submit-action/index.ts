@@ -28,7 +28,7 @@ export const handler = async (event: any) => {
 
         const body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
 
-        const playerId = getTokenCookie(event.cookies || event.multiValueHeaders.Cookie);
+        const playerId = getTokenCookie(event.cookies || event.multiValueHeaders?.Cookie);
 
         if (!playerId) {
             return {
@@ -130,11 +130,17 @@ export const handler = async (event: any) => {
          *  $fault: "client" | "server";
          * }
          */
+        // without a body the function URL emits a bare 500 and cloudfront logs an
+        // opaque OriginError, so always serialise the failure into one
+        console.error("submit-action failed", err);
+
         return {
-            statusCode: err.code ?? 500,
-            message: err.message,
-            name: err.name,
-            fault: err.$fault,
+            statusCode: 500,
+            body: JSON.stringify({
+                message: err.message,
+                name: err.name,
+                fault: err.$fault,
+            }),
         };
     }
 };
