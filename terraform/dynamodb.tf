@@ -2,7 +2,7 @@
 locals {
   dynamodb_lambdas = try(local.create_dynamodb[terraform.workspace], false) ? [
     for lambda in try(local.lambda_functions[terraform.workspace], []) : lambda.name
-    if try(lambda.needs_dynamodb, false)
+    if lambda.create && try(lambda.needs_dynamodb, false)
   ] : []
   create_lambda_to_dynamodb_role = length(local.dynamodb_lambdas) > 0 ? 1 : 0
 }
@@ -50,8 +50,7 @@ resource "aws_iam_role" "lambda_to_dynamodb" {
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
 }
 
-# the role itself is created outside terraform (see data.aws_iam_role.lambda_to_s3
-# in lambda.tf); this attaches table access to it
+# CloudWatch logs come from the shared aws_iam_policy.lambda_logs attachment in iam.tf
 resource "aws_iam_role_policy" "lambda_to_dynamodb" {
   count  = local.create_lambda_to_dynamodb_role
   name   = format("battleships-%s-lambda-to-dynamodb", terraform.workspace)
@@ -76,48 +75,5 @@ data "aws_iam_policy_document" "lambda_to_dynamodb" {
       aws_dynamodb_table.users[0].arn,
       format("%s/index/*", aws_dynamodb_table.users[0].arn),
     ]
-  }
-
-  statement {
-    sid    = "AllowCreateLogGroup"
-    effect = "Allow"
-
-    actions   = ["logs:CreateLogGroup"]
-    resources = [format("arn:aws:logs:%s:%s:*", local.region, data.aws_caller_identity.current.account_id)]
-  }
-
-  # scoped to the log groups declared in lambda.tf (logging_config.log_group),
-  # which are keyed on the bare function name, not the battleships-<ws>- prefixed one
-  statement {
-    sid    = "AllowWriteLambdaLogs"
-    effect = "Allow"
-
-    actions = [
-      "logs:CreateLogStream",
-      "logs:PutLogEvents",
-    ]
-
-    resources = [
-      for name in local.dynamodb_lambdas :
-      format(
-        "arn:aws:logs:%s:%s:log-group:/aws/lambda/%s:*",
-        local.region,
-        data.aws_caller_identity.current.account_id,
-        name,
-      )
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "lambda_assume_role" {
-  statement {
-    sid    = "AllowLambdaAssumeRole"
-    effect = "Allow"
-
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
-    }
   }
 }

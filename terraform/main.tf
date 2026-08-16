@@ -11,7 +11,7 @@ locals {
       # scrypt is deliberately CPU-hard and lambda scales CPU with memory, so the
       # 128MB/3s default is the worst possible setting for password hashing
       { name : "sign-up", create : true, memory_size : 512, timeout : 10, needs_dynamodb : true },
-    ] 
+    ]
   }
 
   create_s3 = {
