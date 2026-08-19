@@ -1,5 +1,7 @@
 import { GameConfig } from "@shared/index";
 import { IAppState } from "@shared/types";
+import { login } from "../apis/login";
+import { signUp } from "../apis/sign-up";
 import LoginInCssAnimStyle from "../css-anim-styles/models/login-in-style";
 import { getAppScreen, setAppScreen } from "../utils/screen-helper";
 import { BaseComponent } from "./BaseComponent";
@@ -7,7 +9,6 @@ import { getComponents, updateComponents } from "./component-helper";
 import { LoginButton } from "./LoginButton";
 import { SignUpLink } from "./SignUpLink";
 import { applyButtonStyles, applyInputStyles } from "./styles/inline-styles";
-import { signUp } from "../apis/sign-up";
 
 export class LoginPage extends BaseComponent {
     private card: HTMLDivElement;
@@ -242,8 +243,23 @@ export class LoginPage extends BaseComponent {
     }
 
     // Stage C stub: no auth backend yet — nudge towards the guest path.
-    private onLoginClick() {
-        this.rejectWithHint("Account login is coming soon — continue as guest for now");
+    private async onLoginClick() {
+        const username = this.usernameInput.value.trim();
+        const password = this.passwordInput.value.trim();
+
+        if (!username) {
+            this.rejectWithHint("Enter your username!");
+            this.usernameInput.focus();
+            return;
+        }
+
+        if (!password) {
+            this.rejectWithHint("Enter your password!");
+            this.passwordInput.focus();
+            return;
+        }
+
+        await login(username, password)
     }
 
     // Stage C stub: sign-up has an API but no screen to host it yet.

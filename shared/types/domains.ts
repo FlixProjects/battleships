@@ -33,7 +33,7 @@ export interface AuthRequest extends SignedRequest {
 
 export interface SignUpRequest extends AuthRequest {}
 
-export interface SignInRequest extends AuthRequest {}
+export interface LoginRequest extends AuthRequest {}
 
 export interface GenericResponse {
     gameState: IPlainGameState;

@@ -170,3 +170,39 @@ Resources:
                     - "@aws-sdk/client-s3"
                     - "@aws-sdk/client-dynamodb"
                     - "@aws-sdk/lib-dynamodb"
+
+    LoginFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: ../
+            Handler: index.handler
+            Runtime: nodejs22.x
+            Timeout: 10 # verifying a password re-runs scrypt, same cost as hashing it
+            Architectures:
+                - x86_64
+            Environment:
+                Variables:
+                    DEPLOY_ENV: local
+                    USERS_TABLE: battleships-users
+                    DYNAMODB_ENDPOINT: http://dynamodb-local:8000
+            Events:
+                Login:
+                    Type: Api
+                    Properties:
+                        Path: /api/login
+                        Method: post
+        Metadata: # Manage esbuild properties
+            BuildMethod: esbuild
+            BuildProperties:
+                Format: esm
+                Minify: true
+                Target: es2020
+                # Sourcemap: true
+                OutExtension:
+                    - .js=.mjs
+                EntryPoints:
+                    - battleships-lambda/login/index.ts
+                External:
+                    - "@aws-sdk/client-s3"
+                    - "@aws-sdk/client-dynamodb"
+                    - "@aws-sdk/lib-dynamodb"
