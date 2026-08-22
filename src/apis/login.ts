@@ -1,10 +1,10 @@
-import { SignUpRequest } from "@shared/index";
+import { AuthResponse, SignUpRequest } from "@shared/index";
 import { idb } from "..";
 import { appConfig, isLocal } from "../config/app-config";
 import { CryptoHelper } from "../utils/crypto-helper";
 import { JwtHelper } from "../../shared/auth/jwt-helper";
 
-export const login = async (username: string, password: string) => {
+export const login = async (username: string, password: string): Promise<AuthResponse> => {
     try {
         const path = `login`;
         const url = isLocal ? `/api/${path}` : `${appConfig.apiBaseUrl}/${path}`;
@@ -34,10 +34,11 @@ export const login = async (username: string, password: string) => {
             ...config,
             body: JSON.stringify(reqBody),
         });
-        const data = await res.json();
+        await res.json();
 
-        return data;
+        return { statusCode: res.status };
     } catch (err) {
         console.error(err);
+        return { statusCode: 500 };
     }
 };

@@ -31,6 +31,8 @@ export interface AuthRequest extends SignedRequest {
     password: string;
 }
 
+export interface GuestLoginRequest extends SignedRequest {}
+
 export interface SignUpRequest extends AuthRequest {}
 
 export interface LoginRequest extends AuthRequest {}
@@ -54,4 +56,8 @@ export interface JoinGameResponse extends GetGameResponse {
 
 export interface SubmitActionResponse extends GenericResponse {
     results: IResult[];
+}
+
+export interface AuthResponse {
+    statusCode: number;
 }

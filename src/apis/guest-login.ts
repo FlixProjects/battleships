@@ -1,13 +1,14 @@
-import { AuthResponse, SignUpRequest } from "@shared/index";
+import { AuthResponse, GuestLoginRequest } from "@shared/index";
 import { idb } from "..";
 import { appConfig, isLocal } from "../config/app-config";
 import { CryptoHelper } from "../utils/crypto-helper";
 import { JwtHelper } from "../../shared/auth/jwt-helper";
 
-export const signUp = async (username: string, password: string): Promise<AuthResponse> => {
+export const guestLogin = async (): Promise<AuthResponse> => {
     try {
-        const path = `sign-up`;
-        const url = isLocal ? `/api/${path}` : `${appConfig.apiBaseUrl}/${path}`;
+        const path = `login`;
+        const queryParams = `guest=true`;
+        const url = isLocal ? `/api/${path}?${queryParams}` : `${appConfig.apiBaseUrl}/${path}?${queryParams}`;
 
         const publicKey = await idb.get("publicKey");
 
@@ -15,9 +16,7 @@ export const signUp = async (username: string, password: string): Promise<AuthRe
             throw new Error("Public key not found in IndexedDB.");
         }
 
-        const reqBody: SignUpRequest = {
-            username,
-            password,
+        const reqBody: GuestLoginRequest = {
             publicJwk: await new JwtHelper().exportKey(publicKey.value),
         };
 
@@ -34,7 +33,6 @@ export const signUp = async (username: string, password: string): Promise<AuthRe
             ...config,
             body: JSON.stringify(reqBody),
         });
-
         await res.json();
 
         return { statusCode: res.status };

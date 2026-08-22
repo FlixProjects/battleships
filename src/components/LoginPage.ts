@@ -1,5 +1,6 @@
 import { GameConfig } from "@shared/index";
 import { IAppState } from "@shared/types";
+import { guestLogin } from "../apis/guest-login";
 import { login } from "../apis/login";
 import { signUp } from "../apis/sign-up";
 import LoginInCssAnimStyle from "../css-anim-styles/models/login-in-style";
@@ -259,7 +260,12 @@ export class LoginPage extends BaseComponent {
             return;
         }
 
-        await login(username, password)
+        const { statusCode } = await login(username, password);
+
+        if (statusCode === 200) {
+            setAppScreen(GameConfig.AppScreen.Lobby);
+            updateComponents();
+        }
     }
 
     // Stage C stub: sign-up has an API but no screen to host it yet.
@@ -279,7 +285,12 @@ export class LoginPage extends BaseComponent {
             return;
         }
 
-        await signUp(username, password);
+        const { statusCode } = await signUp(username, password);
+
+        if (statusCode === 200) {
+            setAppScreen(GameConfig.AppScreen.Lobby);
+            updateComponents();
+        }
     }
 
     private rejectWithHint(message: string) {
@@ -295,15 +306,18 @@ export class LoginPage extends BaseComponent {
         }, 600);
     }
 
-    private onGuestClick() {
+    private async onGuestClick() {
         const username = this.usernameInput.value.trim();
-
-        setAppScreen(GameConfig.AppScreen.Lobby);
-        updateComponents();
 
         // Carry a typed username into the lobby's name field as a courtesy.
         if (username) {
             getComponents().input.playerName.setValue(username);
+        }
+
+        const { statusCode } = await guestLogin();
+        if (statusCode === 200) {
+            setAppScreen(GameConfig.AppScreen.Lobby);
+            updateComponents();
         }
     }
 }
