@@ -1,22 +1,18 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { transformGameStateToPlain, transformPlainGameStateToDomain } from "../../shared/transformers";
 import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
-import { getTokenCookie } from "../../shared/utils/helpers";
+import { withAuth } from "../lib/with-auth";
 import type { GetGameResponse } from "../../shared/types/domains";
 import type { IPlainGameState } from "../../shared/types/types";
 
-export const handler = async (event: any) => {
+export const handler = withAuth(async (event: any, auth) => {
     try {
         const LOCAL_ENV = "local";
         const isLocal = process.env.DEPLOY_ENV === LOCAL_ENV;
 
         console.log("Get Game Event:", event);
 
-        const userId = getTokenCookie(event.cookies || event.multiValueHeaders?.Cookie);
-
-        if (!userId) {
-            return NotFoundError;
-        }
+        const userId = auth.userId;
 
         const gameCode = event.queryStringParameters?.code;
 
@@ -77,7 +73,7 @@ export const handler = async (event: any) => {
             fault: err.$fault,
         };
     }
-};
+});
 
 const NotFoundError = {
     statusCode: 404,

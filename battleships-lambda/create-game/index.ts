@@ -1,12 +1,11 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { randomUUID } from "crypto";
 import { createNewGameState, generateGameCode } from "../../shared/utils/helpers";
+import { withAuth } from "../lib/with-auth";
 import type { IPlainGameState } from "../../shared/types/types";
 
 interface CreateGameResponse {
     statusCode: number;
     headers: {
-        "fp-auth-token": `${string}-${string}-${string}-${string}-${string}`;
         "Access-Control-Allow-Headers": string;
         "Access-Control-Allow-Credentials": string;
         "Access-Control-Allow-Origin": string;
@@ -15,9 +14,7 @@ interface CreateGameResponse {
     multiValueHeaders?: Record<string, Array<string>>;
 }
 
-export const handler = async (event: any) => {
-    const FP_AUTH_TOKEN = "fp-auth-token";
-
+export const handler = withAuth(async (event: any, auth) => {
     try {
         // Note: event.Records?.[0].cf?.request is undefined (becos this is not Lambda Edge)
 
@@ -30,7 +27,9 @@ export const handler = async (event: any) => {
         const s3 = new S3Client({ region: process.env.AWS_REGION }); // AWS_REGION is a reserved keyword for AWS, for now its okay to leave as is
         const BUCKET_NAME = process.env.GAMES_BUCKET!; // set in lambda, TODO: we should inject this value in pipeline
         const gameCode = generateGameCode();
-        const playerId = randomUUID();
+        // the token subject is the id get-game and submit-action match a caller
+        // against, so the player is the authenticated user rather than a fresh uuid
+        const playerId = auth.userId;
 
         const initialGameState: IPlainGameState = createNewGameState(gameCode, playerId, playerName);
 
@@ -48,7 +47,6 @@ export const handler = async (event: any) => {
         const response: CreateGameResponse = {
             statusCode: 200,
             headers: {
-                [FP_AUTH_TOKEN]: playerId,
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Credentials": "true",
                 "Access-Control-Allow-Origin": "*",
@@ -61,12 +59,7 @@ export const handler = async (event: any) => {
         };
 
         if (env === LOCAL_ENV) {
-            // we set cookie for local since prd is set thru LambdaEdge
-            const cookieConfig = "Path=/; SameSite=Lax";
             response.headers["Access-Control-Allow-Origin"] = "*";
-            response.multiValueHeaders = {
-                "Set-Cookie": [`${FP_AUTH_TOKEN}=${playerId}; ${cookieConfig}`],
-            };
         } else {
             /**
             // following code is just for reference due to above
@@ -89,4 +82,4 @@ export const handler = async (event: any) => {
             }),
         };
     }
-};
+});

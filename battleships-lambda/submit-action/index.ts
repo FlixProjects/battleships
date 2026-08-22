@@ -3,7 +3,7 @@ import { FP_AUTH_TOKEN } from "../../shared/constants";
 import { Action } from "../../shared/models/actions/Action";
 import { transformGameStateToPlain, transformPlainGameStateToDomain } from "../../shared/transformers";
 import { handleActions } from "../../shared/utils/action-handler";
-import { getTokenCookie } from "../../shared/utils/helpers";
+import { withAuth } from "../lib/with-auth";
 import type { IPlayerAction } from "../../shared/types/action-types";
 import type { SubmitActionResponse as ISubmitActionResponse } from "../../shared/types/domains";
 import type { IPlainGameState } from "../../shared/types/types";
@@ -11,7 +11,6 @@ import type { IPlainGameState } from "../../shared/types/types";
 interface SubmitActionResponse {
     statusCode: number;
     headers: {
-        "fp-auth-token": string;
         "Access-Control-Allow-Headers": string;
         "Access-Control-Allow-Credentials": string;
         "Access-Control-Allow-Origin": string;
@@ -20,7 +19,7 @@ interface SubmitActionResponse {
     multiValueHeaders?: Record<string, Array<string>>;
 }
 
-export const handler = async (event: any) => {
+export const handler = withAuth(async (event: any, auth) => {
     try {
         const env = process.env.DEPLOY_ENV;
         const LOCAL_ENV = "local";
@@ -28,16 +27,7 @@ export const handler = async (event: any) => {
 
         const body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
 
-        const playerId = getTokenCookie(event.cookies || event.multiValueHeaders?.Cookie);
-
-        if (!playerId) {
-            return {
-                statusCode: 404,
-                body: JSON.stringify({
-                    message: "No Player id found",
-                }),
-            };
-        }
+        const playerId = auth.userId;
 
         const gameCode = body.gameCode;
         const actions = body.actions as IPlayerAction[];
@@ -81,7 +71,7 @@ export const handler = async (event: any) => {
         }
 
         const { results, newGameState, obscuredGameState } = handleActions(
-            playerId!,
+            playerId,
             transformPlainGameStateToDomain(gameState),
             actions.map((a) => Action.toDomain(a)),
         );
@@ -111,13 +101,18 @@ export const handler = async (event: any) => {
         const response: SubmitActionResponse = {
             statusCode: 200,
             headers: {
-                [FP_AUTH_TOKEN]: playerId,
-                "Access-Control-Allow-Origin": "*", // FIXME: restrict origins
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Origin": "*",
             },
             body: JSON.stringify(responseBody),
         };
+
+        if (isLocal) {
+            response.headers["Access-Control-Allow-Origin"] = "*";
+        } else {
+            response.headers["Access-Control-Allow-Origin"] = process.env.BASE_URL ?? "*";
+        }
 
         return response;
     } catch (err: any) {
@@ -143,4 +138,4 @@ export const handler = async (event: any) => {
             }),
         };
     }
-};
+});

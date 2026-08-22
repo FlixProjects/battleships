@@ -1,13 +1,12 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { randomUUID } from "crypto";
 import * as GameConfig from "../../shared/config/constants";
 import { applyStartingStateToPlayer, buildPlayerStartingState, initialiseNewPlayer } from "../../shared/utils/helpers";
+import { withAuth } from "../lib/with-auth";
 import type { IPlainGameState } from "../../shared/types/types";
 
 interface JoinGameResponse {
     statusCode: number;
     headers: {
-        "fp-auth-token": `${string}-${string}-${string}-${string}-${string}`;
         "Access-Control-Allow-Headers": string;
         "Access-Control-Allow-Credentials": string;
         "Access-Control-Allow-Origin": string;
@@ -16,9 +15,7 @@ interface JoinGameResponse {
     multiValueHeaders?: Record<string, Array<string>>;
 }
 
-export const handler = async (event: any) => {
-    const FP_AUTH_TOKEN = "fp-auth-token";
-    const FP_USER_ID = "fp-user-id";
+export const handler = withAuth(async (event: any, auth) => {
     try {
         const env = process.env.DEPLOY_ENV;
         const LOCAL_ENV = "local";
@@ -69,7 +66,7 @@ export const handler = async (event: any) => {
             };
         }
 
-        const playerId = randomUUID();
+        const playerId = auth.userId;
         const newPlayer = initialiseNewPlayer({ id: playerId, name: playerName, order: gameState.players.length });
         const starting = buildPlayerStartingState(playerId, GameConfig.Faction.THE_UNITED_DEFENSE_FLEET);
         applyStartingStateToPlayer(newPlayer, starting);
@@ -95,7 +92,6 @@ export const handler = async (event: any) => {
         const response: JoinGameResponse = {
             statusCode: 200,
             headers: {
-                [FP_AUTH_TOKEN]: playerId,
                 "Access-Control-Allow-Origin": "*", // FIXME: restrict origins
                 "Access-Control-Allow-Headers": "Content-Type",
                 "Access-Control-Allow-Credentials": "true",
@@ -108,12 +104,7 @@ export const handler = async (event: any) => {
         };
 
         if (env === LOCAL_ENV) {
-            // we set cookie for local since prd is set thru LambdaEdge
-            const cookieConfig = "Path=/; SameSite=Lax";
             response.headers["Access-Control-Allow-Origin"] = "*";
-            response.multiValueHeaders = {
-                "Set-Cookie": [`${FP_AUTH_TOKEN}=${playerId}; ${cookieConfig}`],
-            };
         } else {
             response.headers["Access-Control-Allow-Origin"] = process.env.BASE_URL ?? "*";
         }
@@ -136,4 +127,4 @@ export const handler = async (event: any) => {
             fault: err.$fault,
         };
     }
-};
+});
