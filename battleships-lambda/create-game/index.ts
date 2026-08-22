@@ -1,6 +1,9 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import type { LambdaFunctionURLEvent } from "aws-lambda";
 import { createNewGameState, generateGameCode } from "../../shared/utils/helpers";
+import { getGamesBucket } from "../lib/env";
 import { withAuth } from "../lib/with-auth";
+import type { CreateGameRequest } from "../../shared/types/domains";
 import type { IPlainGameState } from "../../shared/types/types";
 
 interface CreateGameResponse {
@@ -14,18 +17,18 @@ interface CreateGameResponse {
     multiValueHeaders?: Record<string, Array<string>>;
 }
 
-export const handler = withAuth(async (event: any, auth) => {
+export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth) => {
     try {
         // Note: event.Records?.[0].cf?.request is undefined (becos this is not Lambda Edge)
 
         const env = process.env.DEPLOY_ENV;
         const LOCAL_ENV = "local";
 
-        const body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
+        const body = (typeof event.body === "string" ? JSON.parse(event.body) : event.body) as CreateGameRequest;
         const playerName = body.playerName;
 
         const s3 = new S3Client({ region: process.env.AWS_REGION }); // AWS_REGION is a reserved keyword for AWS, for now its okay to leave as is
-        const BUCKET_NAME = process.env.GAMES_BUCKET!; // set in lambda, TODO: we should inject this value in pipeline
+        const BUCKET_NAME = getGamesBucket();
         const gameCode = generateGameCode();
         // the token subject is the id get-game and submit-action match a caller
         // against, so the player is the authenticated user rather than a fresh uuid

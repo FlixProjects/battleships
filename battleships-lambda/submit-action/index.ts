@@ -1,11 +1,13 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import type { LambdaFunctionURLEvent } from "aws-lambda";
 import { FP_AUTH_TOKEN } from "../../shared/constants";
 import { Action } from "../../shared/models/actions/Action";
 import { transformGameStateToPlain, transformPlainGameStateToDomain } from "../../shared/transformers";
 import { handleActions } from "../../shared/utils/action-handler";
+import { getGamesBucket } from "../lib/env";
 import { withAuth } from "../lib/with-auth";
 import type { IPlayerAction } from "../../shared/types/action-types";
-import type { SubmitActionResponse as ISubmitActionResponse } from "../../shared/types/domains";
+import type { SubmitActionRequest, SubmitActionResponse as ISubmitActionResponse } from "../../shared/types/domains";
 import type { IPlainGameState } from "../../shared/types/types";
 
 interface SubmitActionResponse {
@@ -19,20 +21,20 @@ interface SubmitActionResponse {
     multiValueHeaders?: Record<string, Array<string>>;
 }
 
-export const handler = withAuth(async (event: any, auth) => {
+export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth) => {
     try {
         const env = process.env.DEPLOY_ENV;
         const LOCAL_ENV = "local";
         const isLocal = env === LOCAL_ENV;
 
-        const body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
+        const body = (typeof event.body === "string" ? JSON.parse(event.body) : event.body) as SubmitActionRequest;
 
         const playerId = auth.userId;
 
         const gameCode = body.gameCode;
         const actions = body.actions as IPlayerAction[];
 
-        let gameState: IPlainGameState = body.gameState; // will only be present for local
+        let gameState: IPlainGameState | undefined = body.gameState; // will only be present for local
         console.log(`Request Body for ${playerId}:`, JSON.stringify(body));
 
         if (!gameCode) {
@@ -46,7 +48,7 @@ export const handler = withAuth(async (event: any, auth) => {
         }
 
         const s3 = new S3Client({ region: process.env.AWS_REGION }); // AWS_REGION is a reserved keyword for AWS, for now its okay to leave as is
-        const BUCKET_NAME = process.env.GAMES_BUCKET!; // set in lambda, TODO: we should inject this value
+        const BUCKET_NAME = getGamesBucket();
 
         if (!isLocal) {
             const { Body } = await s3.send(
@@ -57,7 +59,7 @@ export const handler = withAuth(async (event: any, auth) => {
             );
 
             const bodyStr = await Body?.transformToString("utf-8");
-            gameState = bodyStr ? JSON.parse(bodyStr) : null;
+            gameState = bodyStr ? JSON.parse(bodyStr) : undefined;
             console.log("Fetched Game State", gameState);
         }
 

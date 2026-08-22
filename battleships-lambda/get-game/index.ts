@@ -1,11 +1,13 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import type { LambdaFunctionURLEvent } from "aws-lambda";
 import { transformGameStateToPlain, transformPlainGameStateToDomain } from "../../shared/transformers";
 import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
+import { getGamesBucket } from "../lib/env";
 import { withAuth } from "../lib/with-auth";
 import type { GetGameResponse } from "../../shared/types/domains";
 import type { IPlainGameState } from "../../shared/types/types";
 
-export const handler = withAuth(async (event: any, auth) => {
+export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth) => {
     try {
         const LOCAL_ENV = "local";
         const isLocal = process.env.DEPLOY_ENV === LOCAL_ENV;
@@ -16,15 +18,17 @@ export const handler = withAuth(async (event: any, auth) => {
 
         const gameCode = event.queryStringParameters?.code;
 
-        let gameState: IPlainGameState;
+        let gameState: IPlainGameState | undefined;
 
         if (isLocal) {
             // we will only have body for local
-            const body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
+            const body = (typeof event.body === "string" ? JSON.parse(event.body) : event.body) as
+                | { gameState?: IPlainGameState }
+                | undefined;
             gameState = body?.gameState;
         } else {
             const s3 = new S3Client({ region: process.env.AWS_REGION }); // AWS_REGION is a reserved keyword for AWS, for now its okay to leave as is
-            const BUCKET_NAME = process.env.GAMES_BUCKET!; // set in lambda, TODO: we should inject this value
+            const BUCKET_NAME = getGamesBucket();
 
             const { Body } = await s3.send(
                 new GetObjectCommand({
@@ -35,7 +39,7 @@ export const handler = withAuth(async (event: any, auth) => {
 
             const bodyStr = await Body?.transformToString("utf-8");
 
-            gameState = bodyStr ? JSON.parse(bodyStr) : null;
+            gameState = bodyStr ? JSON.parse(bodyStr) : undefined;
         }
 
         if (!gameState || gameState.code !== gameCode) {
