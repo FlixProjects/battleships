@@ -8,7 +8,8 @@ async function buildLambda() {
         "submit-action/index.ts",
         "sign-up/index.ts",
         "login/index.ts",
-        // "edge-auth-viewer-response/index.ts",
+        "auth-edge-request/index.ts",
+        "auth-edge-response/index.ts",
     ];
 
     await esbuild.build({
