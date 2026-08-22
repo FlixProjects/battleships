@@ -1,143 +1,84 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { LambdaFunctionURLEvent } from "aws-lambda";
-import { FP_AUTH_TOKEN } from "../../shared/constants";
 import { Action } from "../../shared/models/actions/Action";
 import { transformGameStateToPlain, transformPlainGameStateToDomain } from "../../shared/transformers";
 import { handleActions } from "../../shared/utils/action-handler";
-import { getGamesBucket } from "../lib/env";
+import { getGamesBucket, isLocal } from "../lib/env";
+import { type LambdaResponse, corsHeaders, errorResponse } from "../lib/http";
 import { withAuth } from "../lib/with-auth";
 import type { IPlayerAction } from "../../shared/types/action-types";
 import type { SubmitActionRequest, SubmitActionResponse as ISubmitActionResponse } from "../../shared/types/domains";
 import type { IPlainGameState } from "../../shared/types/types";
 
-interface SubmitActionResponse {
-    statusCode: number;
-    headers: {
-        "Access-Control-Allow-Headers": string;
-        "Access-Control-Allow-Credentials": string;
-        "Access-Control-Allow-Origin": string;
-    };
-    body: string;
-    multiValueHeaders?: Record<string, Array<string>>;
-}
-
-export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth) => {
+export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Promise<LambdaResponse> => {
     try {
-        const env = process.env.DEPLOY_ENV;
-        const LOCAL_ENV = "local";
-        const isLocal = env === LOCAL_ENV;
-
-        const body = (typeof event.body === "string" ? JSON.parse(event.body) : event.body) as SubmitActionRequest;
-
-        const playerId = auth.userId;
-
+        const body = (event.body ? JSON.parse(event.body) : {}) as Partial<SubmitActionRequest>;
         const gameCode = body.gameCode;
-        const actions = body.actions as IPlayerAction[];
-
-        let gameState: IPlainGameState | undefined = body.gameState; // will only be present for local
-        console.log(`Request Body for ${playerId}:`, JSON.stringify(body));
+        // TODO: SubmitActionRequest still types these as IAction; drop the cast with it
+        const actions = (body.actions ?? []) as IPlayerAction[];
 
         if (!gameCode) {
-            return {
-                statusCode: 400,
-                body: JSON.stringify({
-                    message: "Bad request: missing game code",
-                    body,
-                }),
-            };
+            return errorResponse(400, "Bad request: missing game code");
         }
 
-        const s3 = new S3Client({ region: process.env.AWS_REGION }); // AWS_REGION is a reserved keyword for AWS, for now its okay to leave as is
-        const BUCKET_NAME = getGamesBucket();
+        const s3 = new S3Client({ region: process.env.AWS_REGION });
+        let gameState: IPlainGameState | undefined = body.gameState; // will only be present for local
 
-        if (!isLocal) {
+        if (!isLocal()) {
             const { Body } = await s3.send(
-                new GetObjectCommand({
-                    Bucket: BUCKET_NAME,
-                    Key: `games/${gameCode}.json`,
-                }),
+                new GetObjectCommand({ Bucket: getGamesBucket(), Key: `games/${gameCode}.json` }),
             );
 
             const bodyStr = await Body?.transformToString("utf-8");
             gameState = bodyStr ? JSON.parse(bodyStr) : undefined;
-            console.log("Fetched Game State", gameState);
         }
 
         if (!gameState || gameState.code !== gameCode) {
-            return {
-                statusCode: 404,
-                body: JSON.stringify({
-                    message: "Game not found",
-                }),
-            };
+            return errorResponse(404, "Game not found");
+        }
+
+        // the caller is authenticated, but that says nothing about this game
+        if (!gameState.players?.some((player) => player.id === auth.userId)) {
+            return errorResponse(403, "You are not a player in this game");
         }
 
         const { results, newGameState, obscuredGameState } = handleActions(
-            playerId,
+            auth.userId,
             transformPlainGameStateToDomain(gameState),
-            actions.map((a) => Action.toDomain(a)),
+            actions.map((action) => Action.toDomain(action)),
         );
 
-        gameState = transformGameStateToPlain(newGameState);
+        const plainNewGameState = transformGameStateToPlain(newGameState);
 
-        if (!isLocal) {
+        if (!isLocal()) {
             await s3.send(
                 new PutObjectCommand({
-                    Bucket: BUCKET_NAME,
+                    Bucket: getGamesBucket(),
                     Key: `games/${gameCode}.json`,
-                    Body: JSON.stringify(gameState),
+                    Body: JSON.stringify(plainNewGameState),
                     ContentType: "application/json",
                 }),
             );
         }
 
         const responseBody: ISubmitActionResponse = {
-            gameState: obscuredGameState ? transformGameStateToPlain(obscuredGameState) : gameState,
+            gameState: obscuredGameState ? transformGameStateToPlain(obscuredGameState) : plainNewGameState,
             results,
         };
 
-        if (isLocal) {
-            responseBody.gameStateForLocal = gameState;
+        if (isLocal()) {
+            responseBody.gameStateForLocal = plainNewGameState;
         }
 
-        const response: SubmitActionResponse = {
+        return {
             statusCode: 200,
-            headers: {
-                "Access-Control-Allow-Headers": "Content-Type",
-                "Access-Control-Allow-Credentials": "true",
-                "Access-Control-Allow-Origin": "*",
-            },
+            headers: corsHeaders(),
             body: JSON.stringify(responseBody),
         };
-
-        if (isLocal) {
-            response.headers["Access-Control-Allow-Origin"] = "*";
-        } else {
-            response.headers["Access-Control-Allow-Origin"] = process.env.BASE_URL ?? "*";
-        }
-
-        return response;
-    } catch (err: any) {
-        /**
-         * error shape
-         * {
-         *  code: string;
-         *  message: string;
-         *  name: string;
-         *  $fault: "client" | "server";
-         * }
-         */
+    } catch (err) {
         // without a body the function URL emits a bare 500 and cloudfront logs an
         // opaque OriginError, so always serialise the failure into one
         console.error("submit-action failed", err);
-
-        return {
-            statusCode: 500,
-            body: JSON.stringify({
-                message: err.message,
-                name: err.name,
-                fault: err.$fault,
-            }),
-        };
+        return errorResponse(500, "some error happened");
     }
 });

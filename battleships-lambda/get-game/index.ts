@@ -2,56 +2,41 @@ import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { LambdaFunctionURLEvent } from "aws-lambda";
 import { transformGameStateToPlain, transformPlainGameStateToDomain } from "../../shared/transformers";
 import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
-import { getGamesBucket } from "../lib/env";
+import { getGamesBucket, isLocal } from "../lib/env";
+import { type LambdaResponse, corsHeaders, errorResponse } from "../lib/http";
 import { withAuth } from "../lib/with-auth";
 import type { GetGameResponse } from "../../shared/types/domains";
 import type { IPlainGameState } from "../../shared/types/types";
 
-export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth) => {
+export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Promise<LambdaResponse> => {
     try {
-        const LOCAL_ENV = "local";
-        const isLocal = process.env.DEPLOY_ENV === LOCAL_ENV;
-
-        console.log("Get Game Event:", event);
-
-        const userId = auth.userId;
-
         const gameCode = event.queryStringParameters?.code;
-
         let gameState: IPlainGameState | undefined;
 
-        if (isLocal) {
+        if (isLocal()) {
             // we will only have body for local
-            const body = (typeof event.body === "string" ? JSON.parse(event.body) : event.body) as
-                | { gameState?: IPlainGameState }
-                | undefined;
-            gameState = body?.gameState;
+            const body = (event.body ? JSON.parse(event.body) : {}) as { gameState?: IPlainGameState };
+            gameState = body.gameState;
         } else {
-            const s3 = new S3Client({ region: process.env.AWS_REGION }); // AWS_REGION is a reserved keyword for AWS, for now its okay to leave as is
-            const BUCKET_NAME = getGamesBucket();
-
-            const { Body } = await s3.send(
-                new GetObjectCommand({
-                    Bucket: BUCKET_NAME,
-                    Key: `games/${gameCode}.json`,
-                }),
+            const { Body } = await new S3Client({ region: process.env.AWS_REGION }).send(
+                new GetObjectCommand({ Bucket: getGamesBucket(), Key: `games/${gameCode}.json` }),
             );
 
             const bodyStr = await Body?.transformToString("utf-8");
-
             gameState = bodyStr ? JSON.parse(bodyStr) : undefined;
         }
 
         if (!gameState || gameState.code !== gameCode) {
-            return NotFoundError;
+            return errorResponse(404, "Game not found");
         }
 
-        if (!gameState.players?.find((p: { id: string }) => p.id === userId)) {
-            return WrongGameError;
+        // withAuth proves who the caller is; this proves they belong in this game
+        if (!gameState.players?.some((player) => player.id === auth.userId)) {
+            return errorResponse(403, "You are not authorised to join this game");
         }
 
         const { obscuredGameState } = new ActionResolver(
-            userId,
+            auth.userId,
             transformPlainGameStateToDomain(gameState),
         ).resolveVisibility();
 
@@ -59,39 +44,16 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth) => {
             gameState: transformGameStateToPlain(obscuredGameState),
         };
 
-        // TODO: might not need this since we don't modify actual game state and don't need to save
-        // the new actual gameState to sessionStorage
         return {
             statusCode: 200,
-            headers: {
-                "Access-Control-Allow-Headers": "Content-Type",
-                "Access-Control-Allow-Credentials": "true",
-            },
+            headers: corsHeaders(),
             body: JSON.stringify(responseBody),
         };
-    } catch (err: any) {
-        return {
-            statusCode: err.code ?? 500,
-            message: err.message,
-            name: err.name,
-            fault: err.$fault,
-        };
+    } catch (err) {
+        console.error("get-game failed", err);
+        return errorResponse(500, "some error happened");
     }
 });
-
-const NotFoundError = {
-    statusCode: 404,
-    body: JSON.stringify({
-        message: "Game not found",
-    }),
-};
-
-const WrongGameError = {
-    statusCode: 403,
-    body: JSON.stringify({
-        message: "You are not authorised to join this game",
-    }),
-};
 
 /**
 Reference shape for event
