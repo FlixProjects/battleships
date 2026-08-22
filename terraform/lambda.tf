@@ -22,11 +22,14 @@ resource "aws_lambda_function" "battleship_lambda" {
     mode = "PassThrough"
   }
   environment {
-    # FIXME: sign-up needs access to the secret for token signing
     variables = merge(
       { "GAMES_BUCKET" = aws_s3_bucket.battleships-s3[0].id },
       try(each.value.needs_dynamodb, false) ? {
         "USERS_TABLE" = one(aws_dynamodb_table.users[*].name)
+      } : {},
+      # the parameter name, never the value
+      try(each.value.needs_auth_secret, false) ? {
+        "AUTH_TOKEN_SECRET_PARAM" = local.auth_token_secret_name
       } : {},
     )
   }

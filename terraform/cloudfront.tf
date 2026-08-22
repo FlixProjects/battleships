@@ -7,16 +7,16 @@ locals {
   auth_edge_response_name = format("battleships-%s-%s", terraform.workspace, "auth-edge-response")
   lambda_path_patterns = {
     "submit-action" = {
-      path = "/api/submit"
-      viewer-request  = true
+      path           = "/api/submit"
+      viewer-request = true
     }
     "create-game" = {
-      path            = "/api/create"
-      viewer-request  = true
+      path           = "/api/create"
+      viewer-request = true
     }
     "join-game" = {
-      path            = "/api/join"
-      viewer-request  = true
+      path           = "/api/join"
+      viewer-request = true
     }
     "sign-up" = {
       path            = "/api/sign-up"
@@ -41,13 +41,13 @@ locals {
 
   lambda_origins = {
     for name, furl in aws_lambda_function_url.battleship_function_url : name => {
-      origin_id           = "lambda-${name}-origin"
-      domain_name         = trimsuffix(trimprefix(furl.function_url, "https://"), "/")
-      path_pattern        = local.lambda_path_patterns[name].path
+      origin_id    = "lambda-${name}-origin"
+      domain_name  = trimsuffix(trimprefix(furl.function_url, "https://"), "/")
+      path_pattern = local.lambda_path_patterns[name].path
 
       viewer_response_arn = try(local.lambda_path_patterns[name].viewer-response, false) ? aws_lambda_function.battleship_edge_lambda["auth-edge-response"].qualified_arn : null
 
-      viewer_request_arn  = try(local.lambda_path_patterns[name].viewer-request , false)? aws_lambda_function.battleship_edge_lambda["auth-edge-request"].qualified_arn : null
+      viewer_request_arn = try(local.lambda_path_patterns[name].viewer-request, false) ? aws_lambda_function.battleship_edge_lambda["auth-edge-request"].qualified_arn : null
     }
   }
 
