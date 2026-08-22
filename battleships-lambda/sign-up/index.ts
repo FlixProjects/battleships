@@ -6,6 +6,7 @@ import { hashPassword } from "../../shared/auth/password-helper";
 import { generateAuthToken } from "../../shared/auth/auth-helper";
 import { FP_AUTH_TOKEN } from "../../shared/constants";
 import type { SignUpRequest } from "../../shared/types/domains";
+import { getAuthTokenSecret } from "../lib/auth-secret";
 import { USERS_TABLE, getDocClient } from "../lib/dynamo";
 import { isLocal } from "../lib/env";
 import { LambdaResponse, corsHeaders, errorResponse } from "../lib/http";
@@ -41,7 +42,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<LambdaRespon
             }),
         );
 
-        const authToken = await generateAuthToken(userId);
+        const authToken = await generateAuthToken(userId, await getAuthTokenSecret());
         const response: LambdaResponse = {
             statusCode: 201,
             headers: { ...corsHeaders(), [FP_AUTH_TOKEN]: authToken },

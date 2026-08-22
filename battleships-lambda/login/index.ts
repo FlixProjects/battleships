@@ -5,6 +5,7 @@ import { generateAuthToken } from "../../shared/auth/auth-helper";
 import { verifyPassword } from "../../shared/auth/password-helper";
 import { FP_AUTH_TOKEN } from "../../shared/constants";
 import type { LoginRequest } from "../../shared/types/domains";
+import { getAuthTokenSecret } from "../lib/auth-secret";
 import { USERS_TABLE, getDocClient } from "../lib/dynamo";
 import { isLocal } from "../lib/env";
 import { LambdaResponse, corsHeaders, errorResponse } from "../lib/http";
@@ -40,7 +41,7 @@ const getUser = async (username: string): Promise<UserRecord | undefined> => {
  * Locally there is no edge function, so the cookie is set here instead.
  */
 const authTokenResponse = async (userId: string, body: Record<string, string | boolean>): Promise<LambdaResponse> => {
-    const authToken = await generateAuthToken(userId);
+    const authToken = await generateAuthToken(userId, await getAuthTokenSecret());
 
     const response: LambdaResponse = {
         statusCode: 200,
