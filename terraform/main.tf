@@ -11,9 +11,18 @@ locals {
       # scrypt is deliberately CPU-hard and lambda scales CPU with memory, so the
       # 128MB/3s default is the worst possible setting for password hashing
       { name : "sign-up", create : true, memory_size : 512, timeout : 10, needs_dynamodb : true },
+      # verifying a password re-derives the same scrypt hash, so login is priced
+      # exactly like sign-up
+      { name : "login", create : true, memory_size : 512, timeout : 10, needs_dynamodb : true },
     ]
   }
 
+  lambda_edge_functions = {
+    prd : [
+      { name : "auth-edge-request", create : true },
+      { name : "auth-edge-response", create : true },
+    ]
+  }
   create_s3 = {
     prd : true,
   }

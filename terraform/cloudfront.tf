@@ -1,30 +1,42 @@
 locals {
   s3_root_origin_id   = "origin"
   s3_public_origin_id = "assets-origin"
-  # Path pattern routed to each lambda origin. get-game is the /api/* catch-all
-  # and must have the lowest precedence, so it is ordered last below.
+
+  # should we dynamically fetch these?
+  auth_edge_request_name  = format("battleships-%s-%s", terraform.workspace, "auth-edge-request")
+  auth_edge_response_name = format("battleships-%s-%s", terraform.workspace, "auth-edge-response")
   lambda_path_patterns = {
     "submit-action" = {
       path = "/api/submit"
+      viewer-request  = true
     }
     "create-game" = {
       path            = "/api/create"
-      viewer-response = "auth-cf-edge-response"
+      viewer-request  = true
     }
     "join-game" = {
       path            = "/api/join"
-      viewer-response = "auth-cf-edge-response"
+      viewer-request  = true
     }
     "sign-up" = {
       path            = "/api/sign-up"
-      viewer-response = "auth-cf-edge-response"
+      viewer-response = true
+    }
+    "login" = {
+      path            = "/api/login"
+      viewer-response = true
     }
     "get-game" = { path = "/api*" }
   }
 
-  edge_function_names = toset([
+  edge_response_functions = toset([
     for name, cfg in local.lambda_path_patterns : lookup(cfg, "viewer-response", null)
     if lookup(cfg, "viewer-response", null) != null
+  ])
+
+  edge_request_functions = toset([
+    for name, cfg in local.lambda_path_patterns : lookup(cfg, "viewer-request", null)
+    if lookup(cfg, "viewer-request", null) != null
   ])
 
   lambda_origins = {
@@ -32,7 +44,10 @@ locals {
       origin_id           = "lambda-${name}-origin"
       domain_name         = trimsuffix(trimprefix(furl.function_url, "https://"), "/")
       path_pattern        = local.lambda_path_patterns[name].path
-      viewer_response_arn = try(data.aws_lambda_function.edge_response[local.lambda_path_patterns[name]["viewer-response"]].qualified_arn, null)
+
+      viewer_response_arn = try(local.lambda_path_patterns[name].viewer-response, false) ? aws_lambda_function.battleship_edge_lambda["auth-edge-response"].qualified_arn : null
+
+      viewer_request_arn  = try(local.lambda_path_patterns[name].viewer-request , false)? aws_lambda_function.battleship_edge_lambda["auth-edge-request"].qualified_arn : null
     }
   }
 
@@ -43,7 +58,6 @@ locals {
     [for name, o in local.lambda_origins : merge(o, { name = name }) if strcontains(o.path_pattern, "*")],
   )
 }
-
 
 resource "aws_cloudfront_distribution" "battleships" {
   count               = local.create_cloudfront_distribution[terraform.workspace] ? 1 : 0
@@ -114,6 +128,16 @@ resource "aws_cloudfront_distribution" "battleships" {
           include_body = false
         }
       }
+
+      dynamic "lambda_function_association" {
+        for_each = ordered_cache_behavior.value.viewer_request_arn == null ? [] : [ordered_cache_behavior.value.viewer_request_arn]
+
+        content {
+          event_type   = "viewer-request"
+          lambda_arn   = lambda_function_association.value
+          include_body = false
+        }
+      }
     }
   }
 
@@ -161,12 +185,6 @@ resource "aws_cloudfront_origin_access_control" "lambda" {
   origin_access_control_origin_type = "lambda"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
-}
-
-data "aws_lambda_function" "edge_response" {
-  for_each      = local.edge_function_names
-  provider      = aws.global
-  function_name = each.value
 }
 
 # Managed policies (referenced by name to avoid hard-coding AWS ids).
