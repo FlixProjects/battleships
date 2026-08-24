@@ -41,6 +41,7 @@ Resources:
                     - battleships-lambda/get-game/index.ts # because we specify project root as CodeUri, we need to be more specific with entrypoint
                 External:
                     - "@aws-sdk/client-s3"
+                    - "@aws-sdk/client-ssm"
     CreateGameFunction:
         Type: AWS::Serverless::Function
         Properties:
@@ -71,6 +72,7 @@ Resources:
                     - battleships-lambda/create-game/index.ts
                 External:
                     - "@aws-sdk/client-s3"
+                    - "@aws-sdk/client-ssm"
 
     JoinGameFunction:
         Type: AWS::Serverless::Function
@@ -102,6 +104,7 @@ Resources:
                     - battleships-lambda/join-game/index.ts
                 External:
                     - "@aws-sdk/client-s3"
+                    - "@aws-sdk/client-ssm"
     SubmitActionFunction:
         Type: AWS::Serverless::Function
         Properties:
@@ -132,7 +135,8 @@ Resources:
                     - battleships-lambda/submit-action/index.ts
                 External:
                     - "@aws-sdk/client-s3"
-    
+                    - "@aws-sdk/client-ssm"
+
     SignUpFunction:
         Type: AWS::Serverless::Function
         Properties:
@@ -170,6 +174,7 @@ Resources:
                     - "@aws-sdk/client-s3"
                     - "@aws-sdk/client-dynamodb"
                     - "@aws-sdk/lib-dynamodb"
+                    - "@aws-sdk/client-ssm"
 
     LoginFunction:
         Type: AWS::Serverless::Function
@@ -206,3 +211,4 @@ Resources:
                     - "@aws-sdk/client-s3"
                     - "@aws-sdk/client-dynamodb"
                     - "@aws-sdk/lib-dynamodb"
+                    - "@aws-sdk/client-ssm"
