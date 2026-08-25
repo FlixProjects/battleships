@@ -4,10 +4,12 @@ import {
     FP_CURRENT_PLAYER,
     FP_PLAYER_STATES,
     FP_ROUND_SNAPSHOTS,
+    LOCAL_OTHER_PLAYER_TOKEN,
 } from "@shared/constants";
 import { IAppState, IPlainAppState, IPlainGameState, IPlayer } from "@shared/types";
 import { mergician } from "mergician";
 import { transformPlainAppStateToFEDomain } from "../utils/transformers";
+import { getCookie } from "../utils/cookie-helper";
 
 interface PlayerGameStates {
     [playerId: string]: IPlainAppState;
@@ -57,16 +59,20 @@ export class GameManager {
         const playerId = this.getCurrentPlayerId();
         const existing = this.playerGameStates[playerId] ?? {};
 
-        const next = options.saveWithMerge
-            ? (mergician(existing, state) as IPlainAppState)
-            : (state as IPlainAppState);
+        const next = options.saveWithMerge ? (mergician(existing, state) as IPlainAppState) : (state as IPlainAppState);
 
         this.playerGameStates[playerId] = next;
         this.savePlayerStates();
     }
 
-    public switchLocalPlayerAuthToken(playerId: string) {
-        document.cookie = `${FP_AUTH_TOKEN}=${playerId}; path=/; SameSite=Lax`;
+    public switchLocalPlayerAuthToken() {
+        const currToken = getCookie(FP_AUTH_TOKEN);
+        const incomingToken = sessionStorage.getItem(LOCAL_OTHER_PLAYER_TOKEN);
+
+        sessionStorage.setItem(LOCAL_OTHER_PLAYER_TOKEN, currToken);
+        if (incomingToken) {
+            document.cookie = `${FP_AUTH_TOKEN}=${incomingToken}; path=/; SameSite=Lax`;
+        }
     }
 
     public setCurrentPlayer(playerId: string) {

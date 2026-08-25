@@ -50,25 +50,19 @@ export class SwitchPlayerButton extends HTMLButton {
         }
 
         const playerIds = gameManager.getAllPlayerIds();
-
-        if (playerIds.length === 1) {
-            // second player have yet to join
-            sessionStorage.setItem(FP_CURRENT_PLAYER, LOCAL_TEMP_PLAYER_ID);
-            return LOCAL_TEMP_PLAYER_ID;
-        }
         const foundPlayer = playerIds.findIndex((id) => id === currentPlayerId);
 
         if (foundPlayer == null) {
-            // some error in the playerGameState;
             return;
         }
 
-        const nextPlayerId = foundPlayer === 0 ? playerIds[1] : playerIds[0];
+        let playerId: string =
+            playerIds.length === 1 ? LOCAL_TEMP_PLAYER_ID : foundPlayer === 0 ? playerIds[1] : playerIds[0];
 
-        sessionStorage.setItem(FP_CURRENT_PLAYER, nextPlayerId);
-        gameManager.switchLocalPlayerAuthToken(nextPlayerId);
+        sessionStorage.setItem(FP_CURRENT_PLAYER, playerId);
+        gameManager.switchLocalPlayerAuthToken();
 
-        return nextPlayerId;
+        return playerId;
     }
 
     async onClick() {

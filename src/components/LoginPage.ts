@@ -1,4 +1,4 @@
-import { GameConfig } from "@shared/index";
+import { FP_AUTH_TOKEN, GameConfig, LOCAL_OTHER_PLAYER_TOKEN } from "@shared/index";
 import { IAppState } from "@shared/types";
 import { guestLogin } from "../apis/guest-login";
 import { login } from "../apis/login";
@@ -10,6 +10,8 @@ import { getComponents, updateComponents } from "./component-helper";
 import { LoginButton } from "./LoginButton";
 import { SignUpLink } from "./SignUpLink";
 import { applyButtonStyles, applyInputStyles } from "./styles/inline-styles";
+import { isLocal } from "../config/app-config";
+import { getCookie } from "../utils/cookie-helper";
 
 export class LoginPage extends BaseComponent {
     private card: HTMLDivElement;
@@ -262,10 +264,7 @@ export class LoginPage extends BaseComponent {
 
         const { statusCode } = await login(username, password);
 
-        if (statusCode === 200) {
-            setAppScreen(GameConfig.AppScreen.Lobby);
-            updateComponents();
-        }
+        this.onSuccessAuth(statusCode);
     }
 
     // Stage C stub: sign-up has an API but no screen to host it yet.
@@ -286,11 +285,7 @@ export class LoginPage extends BaseComponent {
         }
 
         const { statusCode } = await signUp(username, password);
-
-        if (statusCode === 200) {
-            setAppScreen(GameConfig.AppScreen.Lobby);
-            updateComponents();
-        }
+        this.onSuccessAuth(statusCode);
     }
 
     private rejectWithHint(message: string) {
@@ -315,6 +310,10 @@ export class LoginPage extends BaseComponent {
         }
 
         const { statusCode } = await guestLogin();
+        this.onSuccessAuth(statusCode);
+    }
+
+    private onSuccessAuth(statusCode: number) {
         if (statusCode === 200) {
             setAppScreen(GameConfig.AppScreen.Lobby);
             updateComponents();

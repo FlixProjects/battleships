@@ -1,4 +1,4 @@
-import { GameConfig } from "@shared/index";
+import { GameConfig, TAppScreen } from "@shared/index";
 import { IAppState } from "@shared/types";
 import { deleteAuthCookie } from "../utils/cookie-helper";
 import { getGameCode, isUnjoinedLocalPlayer } from "../utils/game-helper";
@@ -6,6 +6,7 @@ import { getAppScreen, setAppScreen } from "../utils/screen-helper";
 import { BaseComponent } from "./BaseComponent";
 import { updateComponents } from "./component-helper";
 import { applyButtonStyles } from "./styles/inline-styles";
+import { isLocal } from "../config/app-config";
 
 /**
  * Top-right hamburger menu, mounted into the HeroSection row (so it must be
@@ -110,6 +111,10 @@ export class HamburgerMenu extends BaseComponent {
         style.boxShadow = "0 10px 30px rgba(3, 7, 18, 0.6)";
         style.zIndex = "1000";
 
+        if (isLocal) {
+            this.dropdown.append(this.buildMenuItem("Login", () => this.onLoginClick()));
+        }
+
         this.dropdown.append(
             this.buildMenuItem("Game", () => this.onGameClick()),
             this.buildMenuItem("Lobby", () => this.onLobbyClick()),
@@ -192,20 +197,26 @@ export class HamburgerMenu extends BaseComponent {
             return;
         }
 
-        setAppScreen(GameConfig.AppScreen.InGame);
-        updateComponents();
+        this.navigateTo(GameConfig.AppScreen.InGame);
     }
 
     private onLobbyClick() {
-        setAppScreen(GameConfig.AppScreen.Lobby);
-        updateComponents();
+        this.navigateTo(GameConfig.AppScreen.Lobby);
+    }
+
+    private onLoginClick() {
+        this.navigateTo(GameConfig.AppScreen.Login);
+    }
+
+    private navigateTo(screen: TAppScreen, componentProps?: Partial<IAppState>) {
+        setAppScreen(screen);
+        updateComponents(componentProps);
     }
 
     private async onExitClick() {
         await sessionStorage.clear();
         await location.reload();
         deleteAuthCookie();
-        setAppScreen(GameConfig.AppScreen.Login);
-        updateComponents({ status: GameConfig.AppStatus.NewGame, loading: false });
+        this.navigateTo(GameConfig.AppScreen.Login, { status: GameConfig.AppStatus.NewGame, loading: false });
     }
 }

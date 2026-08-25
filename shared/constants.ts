@@ -14,6 +14,7 @@ export const FP_PLAYER_STATES = "fp-player-states";
 export const FP_ROUND_SNAPSHOTS = "fp-round-snapshots";
 
 export const LOCAL_TEMP_PLAYER_ID = "temp-id";
+export const LOCAL_OTHER_PLAYER_TOKEN = "fp-auth-token-other"
 
 // Plain (data-only) defaults. Consumers that want a hydrated `IAppState` /
 // `GameState` wrap with `transformPlainAppStateToDomain(DEFAULT_APP_STATE)` —
