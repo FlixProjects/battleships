@@ -9,9 +9,18 @@ export interface IAuthContext {
     userId: string;
 }
 
+// TODO: Does jose export error interface?
+export interface IVerifyTokenError {
+    code?: string;
+    claim?: string;
+    reason?: string;
+    payload?: any;
+}
+
 export type TAuthedHandler<TEvent, TResult> = (event: TEvent, auth: IAuthContext) => Promise<TResult>;
 
 const UNAUTHORISED = "authentication required";
+const EXPIRED_TOKEN = "token expired";
 
 export const withAuth =
     <TEvent extends ICookieCarrier, TResult>(handler: TAuthedHandler<TEvent, TResult>) =>
@@ -27,7 +36,10 @@ export const withAuth =
         try {
             userId = await verifyAuthToken(token, await getAuthTokenSecret());
         } catch (err) {
-            console.log("auth verification failed:", err);
+            if ((err as IVerifyTokenError).code === "ERR_JWT_EXPIRED") {
+                return errorResponse(401, EXPIRED_TOKEN);
+            }
+            console.log("auth verification failed:", JSON.stringify(err));
             return errorResponse(401, UNAUTHORISED);
         }
 
