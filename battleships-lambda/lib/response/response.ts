@@ -32,8 +32,8 @@ export class ApiResponse {
     }
 
     public setCookie(key: string, value: string) {
-        const cookieConfig = isLocal() ? `Path=/; Secure; SameSite=Strict; HttpOnly;` : `Path=/; SameSite=Lax`
-        this.setHeaders({"Set-Cookie": `${key}=${value}; ${cookieConfig}`})
+        const cookieConfig = isLocal() ? `Path=/; SameSite=Lax` : `Path=/; Secure; SameSite=Strict; HttpOnly;`;
+        this.setHeaders({ "Set-Cookie": `${key}=${value}; ${cookieConfig}` });
         return this;
     }
 
