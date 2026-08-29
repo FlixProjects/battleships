@@ -1,18 +1,15 @@
 import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import type { APIGatewayProxyEvent } from "aws-lambda";
 import { randomUUID } from "node:crypto";
-import { generateAuthToken } from "../../shared/auth/auth-helper";
 import { verifyPassword } from "../../shared/auth/password-helper";
-import { ERROR_MESSAGES, FP_AUTH_TOKEN } from "../../shared/constants";
+import { ERROR_MESSAGES } from "../../shared/constants";
 import type { LoginRequest } from "../../shared/types/domains";
 import { ErrorCode } from "../../shared/types/response-types";
-import { getAuthTokenSecret } from "../lib/auth-secret";
+import { authTokenResponse } from "../lib/auth/response";
 import { USERS_TABLE, getDocClient } from "../lib/dynamo";
-import { isLocal } from "../lib/env";
 import { ErrorApiResponse } from "../lib/response/error-response";
 import { InternalServerErrorApiResponse } from "../lib/response/internal-server-error-response";
-import { ApiResponse } from "../lib/response/response";
-import { type PlainApiResponse } from "../lib/response/types";
+import type { PlainApiResponse } from "../lib/response/types";
 
 /** Only the fields this route reads; the rest of the item is left alone. */
 interface UserRecord {
@@ -34,24 +31,6 @@ const getUser = async (username: string): Promise<UserRecord | undefined> => {
     const result = await getDocClient().send(new GetCommand({ TableName: USERS_TABLE, Key: { username } }));
 
     return result.Item as UserRecord | undefined;
-};
-
-/**
- * Same token hand-off as sign-up: the JWT rides a response *header*, which the
- * Lambda@Edge viewer-response strips and re-emits as an HttpOnly cookie.
- * Locally there is no edge function, so the cookie is set here instead.
- */
-const authTokenResponse = async (userId: string, body: Record<string, string | boolean>): Promise<PlainApiResponse> => {
-    const authToken = await generateAuthToken(userId, await getAuthTokenSecret());
-
-    const response = new ApiResponse().setHeaders({ [FP_AUTH_TOKEN]: authToken }).setBody(body);
-
-    if (isLocal()) {
-        response.setHeaders({ "Access-Control-Allow-Origin": "*" });
-        response.setCookie(`${FP_AUTH_TOKEN}=${authToken}; Path=/; SameSite=Lax`);
-    }
-
-    return response.build();
 };
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResponse> => {

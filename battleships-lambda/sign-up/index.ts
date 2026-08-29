@@ -8,6 +8,7 @@ import { ERROR_MESSAGES, FP_AUTH_TOKEN } from "../../shared/constants";
 import type { SignUpRequest } from "../../shared/types/domains";
 import { ErrorCode, SuccessCode } from "../../shared/types/response-types";
 import { getAuthTokenSecret } from "../lib/auth-secret";
+import { authTokenResponse } from "../lib/auth/response";
 import { USERS_TABLE, getDocClient } from "../lib/dynamo";
 import { isLocal } from "../lib/env";
 import { ErrorApiResponse } from "../lib/response/error-response";
@@ -57,7 +58,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResp
             response.setCookie(`${FP_AUTH_TOKEN}=${authToken}; Path=/; SameSite=Lax`);
         }
 
-        return response.build();
+        return authTokenResponse(userId, { message: "Sign up successful", userId, username });
     } catch (err) {
         if (err instanceof Error && err.name === "ConditionalCheckFailedException") {
             return new ErrorApiResponse(ErrorCode.CONFLICT).setMessage(ERROR_MESSAGES.USERNAME_TAKEN).build();
