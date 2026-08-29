@@ -147,6 +147,7 @@ export const ERROR_MESSAGES = {
     // ==========================
     UNAUTHORISED: "UNAUTHORISED",
     EXPIRED_TOKEN: "EXPIRED_TOKEN",
+    MISSING_TOKEN: "MISSING_TOKEN",
     // a wrong username and a wrong password must be indistinguishable to the caller
     INVALID_CREDENTIALS: "INVALID_CREDENTIALS",
     USERNAME_TAKEN: "USERNAME_TAKEN",

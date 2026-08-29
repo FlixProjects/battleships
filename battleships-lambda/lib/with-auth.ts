@@ -27,7 +27,7 @@ export const withAuth =
         const token = getRequestCookie(event, FP_AUTH_TOKEN);
 
         if (!token) {
-            return new ErrorApiResponse(ErrorCode.UNAUTHORISED).setMessage(ERROR_MESSAGES.UNAUTHORISED).build();
+            return new ErrorApiResponse(ErrorCode.UNAUTHORISED).setMessage(ERROR_MESSAGES.MISSING_TOKEN).build();
         }
 
         let userId: string;

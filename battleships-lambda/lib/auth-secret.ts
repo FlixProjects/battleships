@@ -5,7 +5,7 @@ const PARAMETER_REGION = "ap-southeast-1";
 const PLACEHOLDER_VALUE = "REPLACE_ME_VIA_PUT_PARAMETER";
 
 let client: SSMClient | undefined;
-let cachedSecret: Promise<string> | undefined;
+let cachedSecret: string | undefined;
 
 const getClient = (): SSMClient => {
     client ??= new SSMClient({ region: PARAMETER_REGION });
@@ -32,16 +32,13 @@ const fetchSecret = async (): Promise<string> => {
     return value;
 };
 
-export const getAuthTokenSecret = (): Promise<string> => {
+export const getAuthTokenSecret = async (): Promise<string> => {
     if (isLocal()) {
         // sam local has no parameter store to reach for
         return Promise.resolve(process.env.AUTH_TOKEN_SECRET ?? "test-secret");
     }
 
-    cachedSecret ??= fetchSecret().catch((err) => {
-        cachedSecret = undefined;
-        throw err;
-    });
+    cachedSecret ??= await fetchSecret();
 
     return cachedSecret;
 };
