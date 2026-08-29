@@ -1,7 +1,21 @@
 import { FP_GAME_CODE, FP_GAME_STATE } from "@shared/constants";
 import { GetGameResponse, IGameState } from "@shared/types";
-import { appConfig, isLocal } from "../config/app-config";
+import { isLocal } from "../config/app-config";
 import { deleteAuthCookie } from "../utils/cookie-helper";
+import { ApiError, useApi } from "./use-api";
+
+interface GetGameLocalRequest {
+    gameState: IGameState;
+}
+
+/** Local sam has no S3 behind it, so the client posts the state it already holds. */
+const getLocalBody = (): GetGameLocalRequest | undefined => {
+    if (!isLocal) {
+        return undefined;
+    }
+
+    return { gameState: JSON.parse(sessionStorage.getItem(FP_GAME_STATE)) as IGameState };
+};
 
 export const getGame = async (gameCodeInput: string) => {
     const gameCode = gameCodeInput.trim();
@@ -10,30 +24,20 @@ export const getGame = async (gameCodeInput: string) => {
         console.log("Please enter a code");
         return;
     }
-    try {
-        const url = isLocal ? `/api?code=${gameCode}` : `${appConfig.apiBaseUrl}?code=${gameCode}`;
 
-        const config: RequestInit = {
-            method: isLocal ? "POST" : "GET",
-            credentials: "include",
-        };
+    const result = await useApi<GetGameLocalRequest, GetGameResponse>({
+        method: isLocal ? "POST" : "GET",
+        query: { code: gameCode },
+        body: getLocalBody(),
+        onError: (err) => {
+            // the session is for a game this player is no longer part of
+            if (err instanceof ApiError && err.status === 403) {
+                sessionStorage.removeItem(FP_GAME_CODE);
+                deleteAuthCookie();
+            }
+            console.error(err);
+        },
+    });
 
-        if (isLocal) {
-            const localState = sessionStorage.getItem(FP_GAME_STATE);
-            config.body = JSON.stringify({ gameState: JSON.parse(localState) as IGameState });
-        }
-
-        const res = await fetch(url, config);
-
-        const data: GetGameResponse = await res.json();
-
-        return data;
-    } catch (err) {
-        const errorCode: number = err.statusCode || err.code;
-        if (errorCode === 403) {
-            sessionStorage.removeItem(FP_GAME_CODE);
-            deleteAuthCookie();
-        }
-        console.error(err);
-    }
+    return result?.data;
 };

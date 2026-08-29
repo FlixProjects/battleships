@@ -1,27 +1,13 @@
-import { appConfig } from "../config/app-config";
 import { CreateGameRequest, CreateGameResponse } from "@shared/types";
-import { CryptoHelper } from "../utils/crypto-helper";
+import { useApi } from "./use-api";
 
 export const createGame = async (playerName: string) => {
-    const url = appConfig.deployEnv === "local" ? `/api/create` : `${appConfig.apiBaseUrl}/create`;
-
-    const reqBody: CreateGameRequest = { playerName };
-
-    const config: RequestInit = {
+    const result = await useApi<CreateGameRequest, CreateGameResponse>({
+        path: "/create",
         method: "POST",
-        credentials: "include",
-        headers: {
-            "Content-Type": "application/json",
-            "x-Amz-Content-Sha256": new CryptoHelper().hash(JSON.stringify(reqBody)),
-        },
-    };
+        body: { playerName },
+        onError: (err) => console.error(err),
+    });
 
-    try {
-        const res = await fetch(url, { ...config, body: JSON.stringify(reqBody) });
-        const data: CreateGameResponse = await res.json();
-
-        return data;
-    } catch (err) {
-        console.error(err);
-    }
+    return result?.data;
 };

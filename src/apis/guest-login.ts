@@ -1,15 +1,10 @@
 import { AuthResponse, GuestLoginRequest } from "@shared/index";
 import { idb } from "..";
-import { appConfig, isLocal } from "../config/app-config";
-import { CryptoHelper } from "../utils/crypto-helper";
 import { JwtHelper } from "../../shared/auth/jwt-helper";
+import { ApiError, useApi } from "./use-api";
 
 export const guestLogin = async (): Promise<AuthResponse> => {
     try {
-        const path = `login`;
-        const queryParams = `guest=true`;
-        const url = isLocal ? `/api/${path}?${queryParams}` : `${appConfig.apiBaseUrl}/${path}?${queryParams}`;
-
         const publicKey = await idb.get("publicKey");
 
         if (!publicKey.value) {
@@ -20,24 +15,16 @@ export const guestLogin = async (): Promise<AuthResponse> => {
             publicJwk: await new JwtHelper().exportKey(publicKey.value),
         };
 
-        const config: RequestInit = {
+        const result = await useApi<GuestLoginRequest, AuthResponse>({
+            path: "/login",
             method: "POST",
-            credentials: "include",
-            headers: {
-                "Content-Type": "application/json",
-                "x-Amz-Content-Sha256": new CryptoHelper().hash(JSON.stringify(reqBody)),
-            },
-        };
-
-        const res = await fetch(url, {
-            ...config,
-            body: JSON.stringify(reqBody),
+            query: { guest: "true" },
+            body: reqBody,
         });
-        await res.json();
 
-        return { statusCode: res.status };
+        return { statusCode: result?.status ?? 500 };
     } catch (err) {
         console.error(err);
-        return { statusCode: 500 };
+        return { statusCode: err instanceof ApiError ? err.status : 500 };
     }
 };

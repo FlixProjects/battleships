@@ -1,43 +1,29 @@
-import { IPlainGameState, JoinGameRequest, JoinGameResponse } from "@shared/types";
 import { FP_GAME_STATE } from "@shared/constants";
-import { appConfig, isLocal } from "../config/app-config";
-import { CryptoHelper } from "../utils/crypto-helper";
+import { IPlainGameState, JoinGameRequest, JoinGameResponse } from "@shared/types";
+import { isLocal } from "../config/app-config";
+import { useApi } from "./use-api";
 
 export const joinGame = async (joinCodeInput: string, playerName: string) => {
     const gameCode = joinCodeInput.trim();
+
     if (!gameCode) {
         console.log("Please enter a code");
         return;
     }
-    try {
-        const path = `join`;
-        const url = isLocal ? `/api/${path}` : `${appConfig.apiBaseUrl}/${path}`;
 
-        const reqBody: JoinGameRequest = { gameCode, playerName };
+    const reqBody: JoinGameRequest = { gameCode, playerName };
 
-        const config: RequestInit = {
-            method: "POST",
-            credentials: "include",
-            headers: {
-                "Content-Type": "application/json",
-                "x-Amz-Content-Sha256": new CryptoHelper().hash(JSON.stringify(reqBody)),
-            },
-        };
-
-        if (isLocal) {
-            const localState = sessionStorage.getItem(FP_GAME_STATE);
-            reqBody.gameState = localState ? (JSON.parse(localState) as IPlainGameState) : null;
-        }
-
-        const res = await fetch(url, {
-            ...config,
-            body: JSON.stringify(reqBody),
-            // for non-local, it should also set-cookie
-        });
-        const data: JoinGameResponse = await res.json();
-
-        return data;
-    } catch (err) {
-        console.error(err);
+    if (isLocal) {
+        const localState = sessionStorage.getItem(FP_GAME_STATE);
+        reqBody.gameState = localState ? (JSON.parse(localState) as IPlainGameState) : null;
     }
+
+    const result = await useApi<JoinGameRequest, JoinGameResponse>({
+        path: "/join",
+        method: "POST",
+        body: reqBody,
+        onError: (err) => console.error(err),
+    });
+
+    return result?.data;
 };
