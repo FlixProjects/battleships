@@ -2,8 +2,7 @@
 
 import { CloudFrontResponseEvent } from "aws-lambda";
 
-// login lambda will return the authToken
-// this function strips it and sets it as a cookie
+// DEPRECATED
 export const handler = async (event: CloudFrontResponseEvent) => {
     const FP_AUTH_TOKEN = "fp-auth-token";
 

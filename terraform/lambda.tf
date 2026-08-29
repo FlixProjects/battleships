@@ -60,40 +60,6 @@ resource "aws_lambda_function_url" "battleship_function_url" {
   invoke_mode        = "BUFFERED"
 }
 
-
-resource "aws_lambda_function" "battleship_edge_lambda" {
-  for_each      = { for lambda in local.lambda_edge_functions[terraform.workspace] : lambda.name => lambda if lambda.create }
-  function_name = format("battleships-%s-%s", terraform.workspace, each.value.name)
-  filename      = format("${path.module}/../battleships-lambda/dist/%s.zip", each.value.name)
-  role          = data.aws_iam_role.auth_cf_edge.arn
-  handler       = "index.handler"
-  runtime       = "nodejs22.x"
-  architectures = ["x86_64"]
-  region        = "us-east-1" # Lambda@Edge functions must be in us-east-1
-
-  publish = true
-  ephemeral_storage {
-    size = 512
-  }
-
-  memory_size = coalesce(try(each.value.memory_size, null), 128)
-  timeout     = coalesce(try(each.value.timeout, null), 3)
-
-  logging_config {
-    log_format = "Text"
-    log_group  = format("/aws/lambda/%s", each.value.name)
-  }
-  tracing_config {
-    mode = "PassThrough"
-  }
-  # # edge lambdas can't have environment variables
-  # environment {
-  #   variables = {
-  #     "USERS_TABLE"       = aws_dynamodb_table.users[0].name
-  #   }
-  # }
-}
-
 data "aws_iam_role" "auth_cf_edge" {
   name = "auth-cf-edge"
 }

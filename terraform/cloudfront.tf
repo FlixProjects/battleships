@@ -1,53 +1,31 @@
 locals {
   s3_root_origin_id   = "origin"
   s3_public_origin_id = "assets-origin"
-
-  # should we dynamically fetch these?
-  auth_edge_request_name  = format("battleships-%s-%s", terraform.workspace, "auth-edge-request")
-  auth_edge_response_name = format("battleships-%s-%s", terraform.workspace, "auth-edge-response")
+  
   lambda_path_patterns = {
     "submit-action" = {
       path           = "/api/submit"
-      viewer-request = true
     }
     "create-game" = {
       path           = "/api/create"
-      viewer-request = true
     }
     "join-game" = {
       path           = "/api/join"
-      viewer-request = true
     }
     "sign-up" = {
       path            = "/api/sign-up"
-      viewer-response = true
     }
     "login" = {
       path            = "/api/login"
-      viewer-response = true
     }
     "get-game" = { path = "/api*" }
   }
-
-  edge_response_functions = toset([
-    for name, cfg in local.lambda_path_patterns : lookup(cfg, "viewer-response", null)
-    if lookup(cfg, "viewer-response", null) != null
-  ])
-
-  edge_request_functions = toset([
-    for name, cfg in local.lambda_path_patterns : lookup(cfg, "viewer-request", null)
-    if lookup(cfg, "viewer-request", null) != null
-  ])
 
   lambda_origins = {
     for name, furl in aws_lambda_function_url.battleship_function_url : name => {
       origin_id    = "lambda-${name}-origin"
       domain_name  = trimsuffix(trimprefix(furl.function_url, "https://"), "/")
       path_pattern = local.lambda_path_patterns[name].path
-
-      viewer_response_arn = try(local.lambda_path_patterns[name].viewer-response, false) ? aws_lambda_function.battleship_edge_lambda["auth-edge-response"].qualified_arn : null
-
-      viewer_request_arn = try(local.lambda_path_patterns[name].viewer-request, false) ? aws_lambda_function.battleship_edge_lambda["auth-edge-request"].qualified_arn : null
     }
   }
 
@@ -116,28 +94,6 @@ resource "aws_cloudfront_distribution" "battleships" {
       viewer_protocol_policy   = "redirect-to-https"
       cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
       origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_except_host.id
-
-      # Attach a Lambda@Edge viewer-response only for lambdas listed in
-      # local.lambda_viewer_response_arns; others emit zero associations.
-      dynamic "lambda_function_association" {
-        for_each = ordered_cache_behavior.value.viewer_response_arn == null ? [] : [ordered_cache_behavior.value.viewer_response_arn]
-
-        content {
-          event_type   = "viewer-response"
-          lambda_arn   = lambda_function_association.value
-          include_body = false
-        }
-      }
-
-      dynamic "lambda_function_association" {
-        for_each = ordered_cache_behavior.value.viewer_request_arn == null ? [] : [ordered_cache_behavior.value.viewer_request_arn]
-
-        content {
-          event_type   = "viewer-request"
-          lambda_arn   = lambda_function_association.value
-          include_body = false
-        }
-      }
     }
   }
 

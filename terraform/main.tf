@@ -17,12 +17,6 @@ locals {
     ]
   }
 
-  lambda_edge_functions = {
-    prd : [
-      { name : "auth-edge-request", create : true },
-      { name : "auth-edge-response", create : true },
-    ]
-  }
   create_s3 = {
     prd : true,
   }

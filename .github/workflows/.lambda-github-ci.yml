@@ -75,24 +75,6 @@ jobs:
                   runtime: nodejs22.x
                   role: ${{ secrets.LAMBDA_EXECUTION_ROLE_ARN }}
 
-            - name: Deploy Auth Request Function
-              uses: aws-actions/aws-lambda-deploy@v1.1.0
-              with:
-                  function-name: battleships-${{ vars.DEPLOY_ENV }}-auth-edge-request
-                  code-artifacts-dir: battleships-lambda/dist/auth-edge-request
-                  handler: index.handler
-                  runtime: nodejs22.x
-                  role: ${{ secrets.LAMBDA_EXECUTION_ROLE_ARN }}
-
-            - name: Deploy Auth Response Function
-              uses: aws-actions/aws-lambda-deploy@v1.1.0
-              with:
-                  function-name: battleships-${{ vars.DEPLOY_ENV }}-auth-edge-response
-                  code-artifacts-dir: battleships-lambda/dist/auth-edge-response
-                  handler: index.handler
-                  runtime: nodejs22.x
-                  role: ${{ secrets.LAMBDA_EXECUTION_ROLE_ARN }}
-
             - name: Invalidate CloudFront cache
               env:
                   CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}

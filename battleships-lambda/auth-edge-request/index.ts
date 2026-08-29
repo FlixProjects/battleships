@@ -1,5 +1,5 @@
 import type { CloudFrontRequestEvent, CloudFrontRequestResult, CloudFrontResultResponse } from "aws-lambda";
-import { getCookie } from "../lib/cookie";
+import { getCookie } from "../lib/cookie-helper";
 
 const FP_AUTH_TOKEN = "fp-auth-token";
 
@@ -14,6 +14,7 @@ const forbidden = (): CloudFrontResultResponse => ({
     body: JSON.stringify({ message: "authentication required" }),
 });
 
+// DEPRECATED
 export const handler = async (event: CloudFrontRequestEvent): Promise<CloudFrontRequestResult> => {
     const request = event.Records?.[0]?.cf?.request;
 
