@@ -19,10 +19,9 @@ export const authTokenResponse = async (
 
     if (isLocal()) {
         response.setHeaders({ "Access-Control-Allow-Origin": "*" });
-        response.setCookie(`${FP_AUTH_TOKEN}=${authToken}; Path=/; SameSite=Lax`);
-    } else {
-        response.setCookie(`${FP_AUTH_TOKEN}=${authToken}; Path=/; Secure; SameSite=Strict; HttpOnly;`);
     }
 
+    response.setCookie(FP_AUTH_TOKEN, authToken);
+    
     return response.build();
 };

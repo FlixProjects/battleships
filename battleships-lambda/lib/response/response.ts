@@ -31,9 +31,9 @@ export class ApiResponse {
         return this;
     }
 
-    public setCookie(cookie: string) {
-        const cookies = this.multiValueHeaders[SET_COOKIE] ?? [];
-        this.multiValueHeaders = { ...this.multiValueHeaders, [SET_COOKIE]: [...cookies, cookie] };
+    public setCookie(key: string, value: string) {
+        const cookieConfig = isLocal() ? `Path=/; Secure; SameSite=Strict; HttpOnly;` : `Path=/; SameSite=Lax`
+        this.setHeaders({"Set-Cookie": `${key}=${value}; ${cookieConfig}`})
         return this;
     }
 
