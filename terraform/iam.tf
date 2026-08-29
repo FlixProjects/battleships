@@ -9,7 +9,7 @@ locals {
 }
 
 # shared by lambda_to_s3 and lambda_to_dynamodb; the edge functions assume
-# data.aws_iam_role.auth_cf_edge instead and are not covered here
+
 data "aws_iam_policy_document" "lambda_assume_role" {
   statement {
     sid    = "AllowLambdaAssumeRole"

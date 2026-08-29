@@ -59,7 +59,3 @@ resource "aws_lambda_function_url" "battleship_function_url" {
   authorization_type = "AWS_IAM"
   invoke_mode        = "BUFFERED"
 }
-
-data "aws_iam_role" "auth_cf_edge" {
-  name = "auth-cf-edge"
-}
