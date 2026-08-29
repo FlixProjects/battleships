@@ -1,5 +1,5 @@
 import { CardKind } from "../../config/constants";
-import { ERROR_CODE } from "../../constants";
+import { ERROR_MESSAGES } from "../../constants";
 import { IDeployAction, IErrorResult, IGameState, IPlayCardAction, IShipCardPayload, ResultType } from "../../types";
 import { DeployShipValidator } from "./DeployShipValidator";
 import { Validator } from "./Validator";
@@ -25,7 +25,7 @@ export class PlayCardValidator extends Validator {
         if (!card) {
             return {
                 type: ResultType.ERROR,
-                errorCode: ERROR_CODE.SYS_NOT_FOUND,
+                errorCode: ERROR_MESSAGES.SYS_NOT_FOUND,
                 message: "Card not found",
             } as IErrorResult;
         }
@@ -34,7 +34,7 @@ export class PlayCardValidator extends Validator {
         if (!player || !player.hand.includes(cardId)) {
             return {
                 type: ResultType.ERROR,
-                errorCode: ERROR_CODE.PLAY_CARD_ERROR_NOT_IN_HAND,
+                errorCode: ERROR_MESSAGES.PLAY_CARD_ERROR_NOT_IN_HAND,
                 message: `Card ${cardId} is not in player ${playerId}'s hand`,
             } as IErrorResult;
         }

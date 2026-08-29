@@ -1,13 +1,18 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { LambdaFunctionURLEvent } from "aws-lambda";
+import { ERROR_MESSAGES } from "../../shared/constants";
+import type { CreateGameRequest } from "../../shared/types/domains";
+import { ErrorCode } from "../../shared/types/response-types";
+import type { IPlainGameState } from "../../shared/types/types";
 import { createNewGameState, generateGameCode } from "../../shared/utils/helpers";
 import { getGamesBucket, isLocal } from "../lib/env";
-import { type LambdaResponse, corsHeaders, errorResponse } from "../lib/http";
+import { ErrorApiResponse } from "../lib/response/error-response";
+import { InternalServerErrorApiResponse } from "../lib/response/internal-server-error-response";
+import { ApiResponse } from "../lib/response/response";
+import { type PlainApiResponse } from "../lib/response/types";
 import { withAuth } from "../lib/with-auth";
-import type { CreateGameRequest } from "../../shared/types/domains";
-import type { IPlainGameState } from "../../shared/types/types";
 
-export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Promise<LambdaResponse> => {
+export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Promise<PlainApiResponse> => {
     try {
         const body = (event.body ? JSON.parse(event.body) : {}) as Partial<CreateGameRequest>;
         const playerName = body.playerName?.trim();
@@ -15,7 +20,7 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
         // createNewGameState declares name as required, and a nameless player would
         // reach stored game state as undefined
         if (!playerName) {
-            return errorResponse(400, "Bad request: missing player name");
+            return new ErrorApiResponse(ErrorCode.BAD_REQUEST).setMessage(ERROR_MESSAGES.MISSING_PLAYER_NAME).build();
         }
 
         const gameCode = generateGameCode();
@@ -35,13 +40,9 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
             );
         }
 
-        return {
-            statusCode: 200,
-            headers: corsHeaders(),
-            body: JSON.stringify({ gameCode, playerId: auth.userId, gameState: initialGameState }),
-        };
+        return new ApiResponse().setBody({ gameCode, playerId: auth.userId, gameState: initialGameState }).build();
     } catch (err) {
         console.error("create-game failed", err);
-        return errorResponse(500, "some error happened");
+        return new InternalServerErrorApiResponse().build();
     }
 });

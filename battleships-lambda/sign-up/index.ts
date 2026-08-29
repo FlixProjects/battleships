@@ -1,27 +1,31 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { APIGatewayProxyEvent } from "aws-lambda";
 import { randomUUID } from "node:crypto";
+import { generateAuthToken } from "../../shared/auth/auth-helper";
 import { validateAuthRequest } from "../../shared/auth/auth-request-validator";
 import { hashPassword } from "../../shared/auth/password-helper";
-import { generateAuthToken } from "../../shared/auth/auth-helper";
-import { FP_AUTH_TOKEN } from "../../shared/constants";
+import { ERROR_MESSAGES, FP_AUTH_TOKEN } from "../../shared/constants";
 import type { SignUpRequest } from "../../shared/types/domains";
+import { ErrorCode, SuccessCode } from "../../shared/types/response-types";
 import { getAuthTokenSecret } from "../lib/auth-secret";
 import { USERS_TABLE, getDocClient } from "../lib/dynamo";
 import { isLocal } from "../lib/env";
-import { LambdaResponse, corsHeaders, errorResponse } from "../lib/http";
+import { ErrorApiResponse } from "../lib/response/error-response";
+import { InternalServerErrorApiResponse } from "../lib/response/internal-server-error-response";
+import { ApiResponse } from "../lib/response/response";
+import { type PlainApiResponse } from "../lib/response/types";
 
-export const handler = async (event: APIGatewayProxyEvent): Promise<LambdaResponse> => {
+export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResponse> => {
     try {
         if (!event.body) {
-            return errorResponse(400, "request body is required");
+            return new ErrorApiResponse(ErrorCode.BAD_REQUEST).setMessage(ERROR_MESSAGES.MISSING_REQUEST_BODY).build();
         }
 
         const body = JSON.parse(event.body) as Partial<SignUpRequest>;
 
         const validationMessage = await validateAuthRequest(body);
         if (validationMessage) {
-            return errorResponse(400, validationMessage);
+            return new ErrorApiResponse(ErrorCode.BAD_REQUEST).setMessage(validationMessage).build();
         }
 
         const username = String(body.username).trim().toLowerCase();
@@ -43,26 +47,23 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<LambdaRespon
         );
 
         const authToken = await generateAuthToken(userId, await getAuthTokenSecret());
-        const response: LambdaResponse = {
-            statusCode: 201,
-            headers: { ...corsHeaders(), [FP_AUTH_TOKEN]: authToken },
-            body: JSON.stringify({ message: "Sign-up successful", userId, username }),
-        };
+        const response = new ApiResponse({ statusCode: SuccessCode.CREATED })
+            .setHeaders({ [FP_AUTH_TOKEN]: authToken })
+            .setBody({ message: "Sign-up successful", userId, username });
 
         if (isLocal()) {
             // locally there is no Lambda@Edge to translate the header into a cookie
-            const cookieConfig = "Path=/; SameSite=Lax";
-            response.headers["Access-Control-Allow-Origin"] = "*";
-            response.multiValueHeaders = { "Set-Cookie": [`${FP_AUTH_TOKEN}=${authToken}; ${cookieConfig}`] };
+            response.setHeaders({ "Access-Control-Allow-Origin": "*" });
+            response.setCookie(`${FP_AUTH_TOKEN}=${authToken}; Path=/; SameSite=Lax`);
         }
 
-        return response;
+        return response.build();
     } catch (err) {
         if (err instanceof Error && err.name === "ConditionalCheckFailedException") {
-            return errorResponse(409, "username is already taken");
+            return new ErrorApiResponse(ErrorCode.CONFLICT).setMessage(ERROR_MESSAGES.USERNAME_TAKEN).build();
         }
 
-        console.log(err);
-        return errorResponse(500, "some error happened");
+        console.error("sign-up failed", err);
+        return new InternalServerErrorApiResponse().build();
     }
 };

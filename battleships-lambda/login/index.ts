@@ -3,12 +3,16 @@ import type { APIGatewayProxyEvent } from "aws-lambda";
 import { randomUUID } from "node:crypto";
 import { generateAuthToken } from "../../shared/auth/auth-helper";
 import { verifyPassword } from "../../shared/auth/password-helper";
-import { FP_AUTH_TOKEN } from "../../shared/constants";
+import { ERROR_MESSAGES, FP_AUTH_TOKEN } from "../../shared/constants";
 import type { LoginRequest } from "../../shared/types/domains";
+import { ErrorCode } from "../../shared/types/response-types";
 import { getAuthTokenSecret } from "../lib/auth-secret";
 import { USERS_TABLE, getDocClient } from "../lib/dynamo";
 import { isLocal } from "../lib/env";
-import { LambdaResponse, corsHeaders, errorResponse } from "../lib/http";
+import { ErrorApiResponse } from "../lib/response/error-response";
+import { InternalServerErrorApiResponse } from "../lib/response/internal-server-error-response";
+import { ApiResponse } from "../lib/response/response";
+import { type PlainApiResponse } from "../lib/response/types";
 
 /** Only the fields this route reads; the rest of the item is left alone. */
 interface UserRecord {
@@ -17,9 +21,6 @@ interface UserRecord {
     /** scrypt digest stored as `salt:derivedKey`, see shared/auth/password-helper */
     password: string;
 }
-
-// a wrong username and a wrong password must be indistinguishable to the caller
-const INVALID_CREDENTIALS = "username or password is incorrect";
 
 // A well-formed but unmatchable hash (16-byte salt, 64-byte key) so the
 // "no such user" path still pays for one scrypt derivation. Without it the
@@ -40,25 +41,20 @@ const getUser = async (username: string): Promise<UserRecord | undefined> => {
  * Lambda@Edge viewer-response strips and re-emits as an HttpOnly cookie.
  * Locally there is no edge function, so the cookie is set here instead.
  */
-const authTokenResponse = async (userId: string, body: Record<string, string | boolean>): Promise<LambdaResponse> => {
+const authTokenResponse = async (userId: string, body: Record<string, string | boolean>): Promise<PlainApiResponse> => {
     const authToken = await generateAuthToken(userId, await getAuthTokenSecret());
 
-    const response: LambdaResponse = {
-        statusCode: 200,
-        headers: { ...corsHeaders(), [FP_AUTH_TOKEN]: authToken },
-        body: JSON.stringify(body),
-    };
+    const response = new ApiResponse().setHeaders({ [FP_AUTH_TOKEN]: authToken }).setBody(body);
 
     if (isLocal()) {
-        const cookieConfig = "Path=/; SameSite=Lax";
-        response.headers["Access-Control-Allow-Origin"] = "*";
-        response.multiValueHeaders = { "Set-Cookie": [`${FP_AUTH_TOKEN}=${authToken}; ${cookieConfig}`] };
+        response.setHeaders({ "Access-Control-Allow-Origin": "*" });
+        response.setCookie(`${FP_AUTH_TOKEN}=${authToken}; Path=/; SameSite=Lax`);
     }
 
-    return response;
+    return response.build();
 };
 
-export const handler = async (event: APIGatewayProxyEvent): Promise<LambdaResponse> => {
+export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResponse> => {
     try {
         if (isGuestLogin(event)) {
             // guests are never persisted — the uuid exists only inside the token,
@@ -67,7 +63,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<LambdaRespon
         }
 
         if (!event.body) {
-            return errorResponse(400, "request body is required");
+            return new ErrorApiResponse(ErrorCode.BAD_REQUEST).setMessage(ERROR_MESSAGES.MISSING_REQUEST_BODY).build();
         }
 
         const body = JSON.parse(event.body) as Partial<LoginRequest>;
@@ -75,7 +71,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<LambdaRespon
         // no min-length rules here: an under-length password is simply a failed
         // login, and enforcing sign-up's policy would just advertise it
         if (typeof body.username !== "string" || typeof body.password !== "string") {
-            return errorResponse(400, "username and password are required");
+            return new ErrorApiResponse(ErrorCode.BAD_REQUEST).setMessage(ERROR_MESSAGES.MISSING_CREDENTIALS).build();
         }
 
         const username = body.username.trim().toLowerCase();
@@ -83,7 +79,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<LambdaRespon
         const isValidPassword = await verifyPassword(body.password, user?.password ?? TIMING_EQUALISER_HASH);
 
         if (!user || !isValidPassword) {
-            return errorResponse(401, INVALID_CREDENTIALS);
+            return new ErrorApiResponse(ErrorCode.UNAUTHORISED).setMessage(ERROR_MESSAGES.INVALID_CREDENTIALS).build();
         }
 
         // the token is subject to the stored user id, never the username
@@ -94,7 +90,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<LambdaRespon
             isGuest: false,
         });
     } catch (err) {
-        console.log(err);
-        return errorResponse(500, "some error happened");
+        console.error("login failed", err);
+        return new InternalServerErrorApiResponse().build();
     }
 };

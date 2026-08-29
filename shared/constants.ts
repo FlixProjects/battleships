@@ -14,7 +14,7 @@ export const FP_PLAYER_STATES = "fp-player-states";
 export const FP_ROUND_SNAPSHOTS = "fp-round-snapshots";
 
 export const LOCAL_TEMP_PLAYER_ID = "temp-id";
-export const LOCAL_OTHER_PLAYER_TOKEN = "fp-auth-token-other"
+export const LOCAL_OTHER_PLAYER_TOKEN = "fp-auth-token-other";
 
 // Plain (data-only) defaults. Consumers that want a hydrated `IAppState` /
 // `GameState` wrap with `transformPlainAppStateToDomain(DEFAULT_APP_STATE)` —
@@ -141,7 +141,39 @@ export const COMPONENT_ID = {
 export const ANIMATION_LAYER_ID = COMPONENT_ID.GAME_BOARD_CONTAINER;
 export const GAME_BOARD_ID = "gameBoard";
 
-export const ERROR_CODE = {
+export const ERROR_MESSAGES = {
+    // ==========================
+    // API — auth
+    // ==========================
+    UNAUTHORISED: "UNAUTHORISED",
+    EXPIRED_TOKEN: "EXPIRED_TOKEN",
+    // a wrong username and a wrong password must be indistinguishable to the caller
+    INVALID_CREDENTIALS: "INVALID_CREDENTIALS",
+    USERNAME_TAKEN: "USERNAME_TAKEN",
+
+    // ==========================
+    // API — request
+    // ==========================
+    MISSING_REQUEST_BODY: "MISSING_REQUEST_BODY",
+    MISSING_CREDENTIALS: "MISSING_CREDENTIALS",
+    MISSING_GAME_CODE: "MISSING_GAME_CODE",
+    MISSING_PLAYER_NAME: "MISSING_PLAYER_NAME",
+
+    // ==========================
+    // API — game
+    // ==========================
+    GAME_NOT_FOUND: "GAME_NOT_FOUND",
+    NOT_A_PLAYER_IN_GAME: "NOT_A_PLAYER_IN_GAME",
+    ALREADY_JOINED_GAME: "ALREADY_JOINED_GAME",
+
+    // ==========================
+    // API — server
+    // ==========================
+    INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
+
+    // ==========================
+    // Legacy (FIXME: to review)
+    // ==========================
     SYS_NOT_FOUND: "SYS_NOT_FOUND",
     SYS_INVALID_PARAMS: "SYS_INVALID_PARAMS",
     MOVE_ERROR_LOCATION_OCCUPIED: "MOVE_ERROR_LOCATION_OCCUPIED",
@@ -149,7 +181,7 @@ export const ERROR_CODE = {
     DEPLOY_ERROR_LOCATION_OCCUPIED: "DEPLOY_ERROR_LOCATION_OCCUPIED",
     PLAY_CARD_ERROR_NOT_IN_HAND: "PLAY_CARD_ERROR_NOT_IN_HAND",
 } as const;
-export type TErrorCode = (typeof ERROR_CODE)[keyof typeof ERROR_CODE];
+export type TErrorMessages = (typeof ERROR_MESSAGES)[keyof typeof ERROR_MESSAGES];
 
 export const DEPLOYED_HULL_PREFIX = `hull-`;
 export const DEPLOYED_SHIP_PREFIX = `ship-`;

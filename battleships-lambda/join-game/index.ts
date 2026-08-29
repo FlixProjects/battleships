@@ -1,26 +1,31 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { LambdaFunctionURLEvent } from "aws-lambda";
 import * as GameConfig from "../../shared/config/constants";
+import { ERROR_MESSAGES } from "../../shared/constants";
+import type { JoinGameRequest } from "../../shared/types/domains";
+import { ErrorCode } from "../../shared/types/response-types";
+import type { IPlainGameState } from "../../shared/types/types";
 import { applyStartingStateToPlayer, buildPlayerStartingState, initialiseNewPlayer } from "../../shared/utils/helpers";
 import { getGamesBucket, isLocal } from "../lib/env";
-import { type LambdaResponse, corsHeaders, errorResponse } from "../lib/http";
+import { ErrorApiResponse } from "../lib/response/error-response";
+import { InternalServerErrorApiResponse } from "../lib/response/internal-server-error-response";
+import { ApiResponse } from "../lib/response/response";
+import { type PlainApiResponse } from "../lib/response/types";
 import { withAuth } from "../lib/with-auth";
-import type { JoinGameRequest } from "../../shared/types/domains";
-import type { IPlainGameState } from "../../shared/types/types";
 
-export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Promise<LambdaResponse> => {
+export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Promise<PlainApiResponse> => {
     try {
         const body = (event.body ? JSON.parse(event.body) : {}) as Partial<JoinGameRequest>;
         const { gameCode } = body;
         const playerName = body.playerName?.trim();
 
         if (!gameCode) {
-            return errorResponse(400, "Bad request: missing game code");
+            return new ErrorApiResponse(ErrorCode.BAD_REQUEST).setMessage(ERROR_MESSAGES.MISSING_GAME_CODE).build();
         }
 
         // initialiseNewPlayer declares name as required, see create-game
         if (!playerName) {
-            return errorResponse(400, "Bad request: missing player name");
+            return new ErrorApiResponse(ErrorCode.BAD_REQUEST).setMessage(ERROR_MESSAGES.MISSING_PLAYER_NAME).build();
         }
 
         const s3 = new S3Client({ region: process.env.AWS_REGION });
@@ -36,13 +41,13 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
         }
 
         if (!gameState || gameState.code !== gameCode) {
-            return errorResponse(404, "Game not found");
+            return new ErrorApiResponse(ErrorCode.NOT_FOUND).setMessage(ERROR_MESSAGES.GAME_NOT_FOUND).build();
         }
 
         // player ids are the caller's token subject rather than a fresh uuid, so a
         // second join would collide with the slot this user already owns
         if (gameState.players.some((player) => player.id === auth.userId)) {
-            return errorResponse(409, "You have already joined this game");
+            return new ErrorApiResponse(ErrorCode.CONFLICT).setMessage(ERROR_MESSAGES.ALREADY_JOINED_GAME).build();
         }
 
         const newPlayer = initialiseNewPlayer({
@@ -71,13 +76,9 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
             );
         }
 
-        return {
-            statusCode: 200,
-            headers: corsHeaders(),
-            body: JSON.stringify({ playerId: auth.userId, gameCode, gameState }),
-        };
+        return new ApiResponse().setBody({ playerId: auth.userId, gameCode, gameState }).build();
     } catch (err) {
         console.error("join-game failed", err);
-        return errorResponse(500, "some error happened");
+        return new InternalServerErrorApiResponse().build();
     }
 });

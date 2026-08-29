@@ -1,4 +1,4 @@
-import { ERROR_CODE } from "../../constants";
+import { ERROR_MESSAGES } from "../../constants";
 import { IDeployAction, IErrorResult, IGameState, ResultType } from "../../types";
 import { LocationHelper } from "../../utils";
 import { computeDeployedHullLocation } from "../hull-helper";
@@ -30,7 +30,7 @@ export class DeployShipValidator extends Validator {
         if (!ship) {
             throw {
                 type: ResultType.ERROR,
-                errorCode: ERROR_CODE.SYS_NOT_FOUND,
+                errorCode: ERROR_MESSAGES.SYS_NOT_FOUND,
                 message: "Ship not found",
             };
         }
@@ -43,7 +43,7 @@ export class DeployShipValidator extends Validator {
         if (!locationHelper.hasSpaceForShip(cells)) {
             throw {
                 type: ResultType.ERROR,
-                errorCode: ERROR_CODE.DEPLOY_ERROR_LOCATION_OCCUPIED,
+                errorCode: ERROR_MESSAGES.DEPLOY_ERROR_LOCATION_OCCUPIED,
                 message: "Deploy location is occupied",
             };
         }
@@ -55,7 +55,7 @@ export class DeployShipValidator extends Validator {
         if (!ship) {
             throw {
                 type: ResultType.ERROR,
-                errorCode: ERROR_CODE.SYS_NOT_FOUND,
+                errorCode: ERROR_MESSAGES.SYS_NOT_FOUND,
                 message: "Ship not found",
             };
         }

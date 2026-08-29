@@ -1,4 +1,4 @@
-import { IHull, IPlayer, IShip, TErrorCode } from "..";
+import { IHull, IPlayer, IShip, TErrorMessages } from "..";
 
 export const ResultType = {
     SUCCESS: "SUCCESS",
@@ -15,7 +15,7 @@ export interface IResult {
 
 export interface IErrorResult extends IResult {
     type: typeof ResultType.ERROR;
-    errorCode?: TErrorCode;
+    errorCode?: TErrorMessages;
 }
 
 export interface IDeployResult extends IResult {

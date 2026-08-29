@@ -1,14 +1,19 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { LambdaFunctionURLEvent } from "aws-lambda";
+import { ERROR_MESSAGES } from "../../shared/constants";
 import { transformGameStateToPlain, transformPlainGameStateToDomain } from "../../shared/transformers";
+import type { GetGameResponse } from "../../shared/types/domains";
+import { ErrorCode } from "../../shared/types/response-types";
+import type { IPlainGameState } from "../../shared/types/types";
 import { ActionResolver } from "../../shared/utils/action-handler/ActionResolver";
 import { getGamesBucket, isLocal } from "../lib/env";
-import { type LambdaResponse, corsHeaders, errorResponse } from "../lib/http";
+import { ErrorApiResponse } from "../lib/response/error-response";
+import { InternalServerErrorApiResponse } from "../lib/response/internal-server-error-response";
+import { ApiResponse } from "../lib/response/response";
+import { type PlainApiResponse } from "../lib/response/types";
 import { withAuth } from "../lib/with-auth";
-import type { GetGameResponse } from "../../shared/types/domains";
-import type { IPlainGameState } from "../../shared/types/types";
 
-export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Promise<LambdaResponse> => {
+export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Promise<PlainApiResponse> => {
     try {
         const gameCode = event.queryStringParameters?.code;
         let gameState: IPlainGameState | undefined;
@@ -27,12 +32,14 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
         }
 
         if (!gameState || gameState.code !== gameCode) {
-            return errorResponse(404, "Game not found");
+            return new ErrorApiResponse(ErrorCode.NOT_FOUND).setMessage(ERROR_MESSAGES.GAME_NOT_FOUND).build();
         }
 
         // withAuth proves who the caller is; this proves they belong in this game
         if (!gameState.players?.some((player) => player.id === auth.userId)) {
-            return errorResponse(403, "You are not authorised to join this game");
+            return new ErrorApiResponse(ErrorCode.AUTHORIZATION_FAILED)
+                .setMessage(ERROR_MESSAGES.NOT_A_PLAYER_IN_GAME)
+                .build();
         }
 
         const { obscuredGameState } = new ActionResolver(
@@ -44,14 +51,10 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
             gameState: transformGameStateToPlain(obscuredGameState),
         };
 
-        return {
-            statusCode: 200,
-            headers: corsHeaders(),
-            body: JSON.stringify(responseBody),
-        };
+        return new ApiResponse().setBody(responseBody).build();
     } catch (err) {
         console.error("get-game failed", err);
-        return errorResponse(500, "some error happened");
+        return new InternalServerErrorApiResponse().build();
     }
 });
 

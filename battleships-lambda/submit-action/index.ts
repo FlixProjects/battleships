@@ -1,16 +1,21 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { LambdaFunctionURLEvent } from "aws-lambda";
+import { ERROR_MESSAGES } from "../../shared/constants";
 import { Action } from "../../shared/models/actions/Action";
 import { transformGameStateToPlain, transformPlainGameStateToDomain } from "../../shared/transformers";
+import type { IPlayerAction } from "../../shared/types/action-types";
+import type { SubmitActionResponse as ISubmitActionResponse, SubmitActionRequest } from "../../shared/types/domains";
+import { ErrorCode } from "../../shared/types/response-types";
+import type { IPlainGameState } from "../../shared/types/types";
 import { handleActions } from "../../shared/utils/action-handler";
 import { getGamesBucket, isLocal } from "../lib/env";
-import { type LambdaResponse, corsHeaders, errorResponse } from "../lib/http";
+import { ErrorApiResponse } from "../lib/response/error-response";
+import { InternalServerErrorApiResponse } from "../lib/response/internal-server-error-response";
+import { ApiResponse } from "../lib/response/response";
+import { type PlainApiResponse } from "../lib/response/types";
 import { withAuth } from "../lib/with-auth";
-import type { IPlayerAction } from "../../shared/types/action-types";
-import type { SubmitActionRequest, SubmitActionResponse as ISubmitActionResponse } from "../../shared/types/domains";
-import type { IPlainGameState } from "../../shared/types/types";
 
-export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Promise<LambdaResponse> => {
+export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Promise<PlainApiResponse> => {
     try {
         const body = (event.body ? JSON.parse(event.body) : {}) as Partial<SubmitActionRequest>;
         const gameCode = body.gameCode;
@@ -18,7 +23,7 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
         const actions = (body.actions ?? []) as IPlayerAction[];
 
         if (!gameCode) {
-            return errorResponse(400, "Bad request: missing game code");
+            return new ErrorApiResponse(ErrorCode.BAD_REQUEST).setMessage(ERROR_MESSAGES.MISSING_GAME_CODE).build();
         }
 
         const s3 = new S3Client({ region: process.env.AWS_REGION });
@@ -34,12 +39,14 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
         }
 
         if (!gameState || gameState.code !== gameCode) {
-            return errorResponse(404, "Game not found");
+            return new ErrorApiResponse(ErrorCode.NOT_FOUND).setMessage(ERROR_MESSAGES.GAME_NOT_FOUND).build();
         }
 
         // the caller is authenticated, but that says nothing about this game
         if (!gameState.players?.some((player) => player.id === auth.userId)) {
-            return errorResponse(403, "You are not a player in this game");
+            return new ErrorApiResponse(ErrorCode.AUTHORIZATION_FAILED)
+                .setMessage(ERROR_MESSAGES.NOT_A_PLAYER_IN_GAME)
+                .build();
         }
 
         const { results, newGameState, obscuredGameState } = handleActions(
@@ -70,15 +77,9 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
             responseBody.gameStateForLocal = plainNewGameState;
         }
 
-        return {
-            statusCode: 200,
-            headers: corsHeaders(),
-            body: JSON.stringify(responseBody),
-        };
+        return new ApiResponse().setBody(responseBody).build();
     } catch (err) {
-        // without a body the function URL emits a bare 500 and cloudfront logs an
-        // opaque OriginError, so always serialise the failure into one
         console.error("submit-action failed", err);
-        return errorResponse(500, "some error happened");
+        return new InternalServerErrorApiResponse().build();
     }
 });

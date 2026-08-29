@@ -1,4 +1,4 @@
-import { ERROR_CODE } from "../../constants";
+import { ERROR_MESSAGES } from "../../constants";
 import { Ship } from "../../models/Ship";
 import { IErrorResult, IGameState, IHull, IMoveAction, ResultType } from "../../types";
 import { LocationHelper, locationToKey } from "../../utils";
@@ -30,7 +30,7 @@ export class MoveShipValidator extends Validator {
         const { shipId, targetCell, route } = this.moveAction;
         const _ship = this.gameState.ships.find((s) => s.id === shipId);
         if (!_ship) {
-            throw { type: ResultType.ERROR, errorCode: ERROR_CODE.SYS_NOT_FOUND, message: "Ship not found" };
+            throw { type: ResultType.ERROR, errorCode: ERROR_MESSAGES.SYS_NOT_FOUND, message: "Ship not found" };
         }
         return new Ship(_ship).getNewHullLocations(targetCell, route);
     }
@@ -43,7 +43,7 @@ export class MoveShipValidator extends Validator {
         if (!ship?.deployed || !shipHulls?.[0]) {
             throw {
                 type: ResultType.ERROR,
-                errorCode: ERROR_CODE.SYS_NOT_FOUND,
+                errorCode: ERROR_MESSAGES.SYS_NOT_FOUND,
                 message: "Ship not found or not deployed",
             };
         }
@@ -60,7 +60,7 @@ export class MoveShipValidator extends Validator {
         if (!isWithinBounds) {
             throw {
                 type: ResultType.ERROR,
-                errorCode: ERROR_CODE.SYS_INVALID_PARAMS,
+                errorCode: ERROR_MESSAGES.SYS_INVALID_PARAMS,
                 message: "Destination location is out of board bounds",
             };
         }
@@ -75,7 +75,7 @@ export class MoveShipValidator extends Validator {
         if (!_ship) {
             throw {
                 type: ResultType.ERROR,
-                errorCode: ERROR_CODE.SYS_NOT_FOUND,
+                errorCode: ERROR_MESSAGES.SYS_NOT_FOUND,
                 message: "[validateWithinMovementRange] Ship not found",
             };
         }
@@ -93,7 +93,7 @@ export class MoveShipValidator extends Validator {
         if (!frontHullNewLoc) {
             throw {
                 type: ResultType.ERROR,
-                errorCode: ERROR_CODE.SYS_INVALID_PARAMS,
+                errorCode: ERROR_MESSAGES.SYS_INVALID_PARAMS,
                 message: "Front hull location not found in new locations",
             };
         }
@@ -104,7 +104,7 @@ export class MoveShipValidator extends Validator {
         if (!isReachable) {
             throw {
                 type: ResultType.ERROR,
-                errorCode: ERROR_CODE.MOVE_ERROR_INSUFFICIENT_MOVEMENT,
+                errorCode: ERROR_MESSAGES.MOVE_ERROR_INSUFFICIENT_MOVEMENT,
                 message: "Destination location is out of movement range",
             };
         }
@@ -122,7 +122,7 @@ export class MoveShipValidator extends Validator {
         if (locationHelper.isLocationOccupied(newLocations[0].location)) {
             throw {
                 type: ResultType.ERROR,
-                errorCode: ERROR_CODE.MOVE_ERROR_LOCATION_OCCUPIED,
+                errorCode: ERROR_MESSAGES.MOVE_ERROR_LOCATION_OCCUPIED,
                 message: "Destination location is occupied",
             };
         }

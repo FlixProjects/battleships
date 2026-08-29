@@ -1,8 +1,10 @@
 import { verifyAuthToken } from "../../shared/auth/auth-helper";
-import { FP_AUTH_TOKEN } from "../../shared/constants";
+import { ERROR_MESSAGES, FP_AUTH_TOKEN } from "../../shared/constants";
+import { ErrorCode } from "../../shared/types/response-types";
 import { getAuthTokenSecret } from "./auth-secret";
 import { getRequestCookie, type ICookieCarrier } from "./cookie-helper";
-import { type LambdaResponse, errorResponse } from "./http";
+import { ErrorApiResponse } from "./response/error-response";
+import { type PlainApiResponse } from "./response/types";
 
 export interface IAuthContext {
     /** the token's `sub` — the user id minted at sign-up, or a throwaway guest id */
@@ -19,16 +21,13 @@ export interface IVerifyTokenError {
 
 export type TAuthedHandler<TEvent, TResult> = (event: TEvent, auth: IAuthContext) => Promise<TResult>;
 
-const UNAUTHORISED = "authentication required";
-const EXPIRED_TOKEN = "token expired";
-
 export const withAuth =
     <TEvent extends ICookieCarrier, TResult>(handler: TAuthedHandler<TEvent, TResult>) =>
-    async (event: TEvent): Promise<TResult | LambdaResponse> => {
+    async (event: TEvent): Promise<TResult | PlainApiResponse> => {
         const token = getRequestCookie(event, FP_AUTH_TOKEN);
 
         if (!token) {
-            return errorResponse(401, UNAUTHORISED);
+            return new ErrorApiResponse(ErrorCode.UNAUTHORISED).setMessage(ERROR_MESSAGES.UNAUTHORISED).build();
         }
 
         let userId: string;
@@ -37,10 +36,10 @@ export const withAuth =
             userId = await verifyAuthToken(token, await getAuthTokenSecret());
         } catch (err) {
             if ((err as IVerifyTokenError).code === "ERR_JWT_EXPIRED") {
-                return errorResponse(401, EXPIRED_TOKEN);
+                return new ErrorApiResponse(ErrorCode.UNAUTHORISED).setMessage(ERROR_MESSAGES.EXPIRED_TOKEN).build();
             }
             console.log("auth verification failed:", JSON.stringify(err));
-            return errorResponse(401, UNAUTHORISED);
+            return new ErrorApiResponse(ErrorCode.UNAUTHORISED).setMessage(ERROR_MESSAGES.UNAUTHORISED).build();
         }
 
         return await handler(event, { userId });
