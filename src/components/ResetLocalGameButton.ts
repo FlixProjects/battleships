@@ -11,6 +11,7 @@ import {
 import { v7 as uuidv7 } from "uuid";
 import { gameManager } from "..";
 import { isLocal } from "../config/app-config";
+import { clearCookies } from "../utils/cookie-helper";
 import { setCurrentPlayer, setGameCode } from "../utils/game-helper";
 import { updateComponents } from "./component-helper";
 import { HTMLButton } from "./native/Button";
@@ -52,8 +53,9 @@ export class ResetLocalGameButton extends HTMLButton {
         document.getElementById("resetLocalGameButtonContainer")?.remove();
     }
 
-    private async resetLocalGame() {
-        await sessionStorage.clear();
+    private resetLocalGame() {
+        sessionStorage.clear();
+        clearCookies();
     }
 
     // FIXME: to fix later, low priority since this is only for local testing
@@ -104,8 +106,8 @@ export class ResetLocalGameButton extends HTMLButton {
     }
 
     async onClick() {
-        await this.resetLocalGame();
-        // await this.initializeTwoPlayers();
-        await location.reload();
+        this.resetLocalGame();
+        // this.initializeTwoPlayers();
+        location.reload();
     }
 }
