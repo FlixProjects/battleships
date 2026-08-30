@@ -6,6 +6,7 @@ import { CreateTableCommand, DynamoDBClient, ListTablesCommand } from "@aws-sdk/
 const ENDPOINT = process.env.DYNAMODB_ENDPOINT ?? "http://localhost:8000";
 const REGION = process.env.AWS_REGION ?? "ap-southeast-1";
 const USERS_TABLE = process.env.USERS_TABLE ?? "battleships-users";
+const GAMES_TABLE = process.env.GAMES_TABLE ?? "battleships-games";
 
 const client = new DynamoDBClient({
     region: REGION,
@@ -29,6 +30,12 @@ const tables = [
                 Projection: { ProjectionType: "ALL" },
             },
         ],
+    },
+    {
+        TableName: GAMES_TABLE,
+        BillingMode: "PAY_PER_REQUEST",
+        AttributeDefinitions: [{ AttributeName: "id", AttributeType: "S" }],
+        KeySchema: [{ AttributeName: "id", KeyType: "HASH" }],
     },
 ];
 

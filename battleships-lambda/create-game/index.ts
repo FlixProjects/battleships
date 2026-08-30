@@ -1,18 +1,19 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { LambdaFunctionURLEvent } from "aws-lambda";
+import { randomUUID } from "node:crypto";
 import { ERROR_MESSAGES } from "../../shared/constants";
 import type { CreateGameRequest } from "../../shared/types/domains";
 import { ErrorCode } from "../../shared/types/response-types";
 import type { IPlainGameState } from "../../shared/types/types";
 import { createNewGameState, generateGameCode } from "../../shared/utils/helpers";
+import { GAMES_TABLE, getDocClient } from "../lib/dynamo";
 import { getGamesBucket, isLocal } from "../lib/env";
 import { ErrorApiResponse } from "../lib/response/error-response";
 import { InternalServerErrorApiResponse } from "../lib/response/internal-server-error-response";
 import { ApiResponse } from "../lib/response/response";
 import { type PlainApiResponse } from "../lib/response/types";
 import { withAuth } from "../lib/with-auth";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
-import { getDocClient, GAMES_TABLE } from "../lib/dynamo";
 
 export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Promise<PlainApiResponse> => {
     try {
@@ -45,7 +46,7 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
         await getDocClient().send(
             new PutCommand({
                 TableName: GAMES_TABLE,
-                Item: { id: userId, gameCode, createdAt: now, updatedAt: now },
+                Item: { id: randomUUID(), userId, gameCode, createdAt: now, updatedAt: now },
             }),
         );
 
