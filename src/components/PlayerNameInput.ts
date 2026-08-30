@@ -37,7 +37,6 @@ export class PlayerNameInput extends HTMLInput {
 
         if (playerName) {
             this.ref.value = playerName;
-            this.ref.disabled = true;
         } else {
             this.reset();
         }

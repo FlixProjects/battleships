@@ -48,7 +48,7 @@ export class CreateGameButton extends HTMLButton {
                 // DO NOT DELETE: this item simulates Object in S3
                 sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameState));
             }
-
+            this.setDisabled(false);
             setGameCode(gameCode);
             setCurrentPlayer(playerId);
 
@@ -77,11 +77,9 @@ export class CreateGameButton extends HTMLButton {
 
         switch (status) {
             case GameConfig.AppStatus.NewGame:
-                this.setDisabled(false);
-                break;
             case GameConfig.AppStatus.Initialised:
             case GameConfig.AppStatus.Initialising:
-                this.setDisabled(true);
+                this.setDisabled(false);
                 break;
         }
     }

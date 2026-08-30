@@ -51,7 +51,7 @@ export class JoinGameButton extends HTMLButton {
                 sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameState));
             }
             gameManager.setCurrentPlayer(playerId);
-
+            this.setDisabled(false);
             setGameCode(gameCode);
             if (gameState) {
                 // Seed the round-start snapshot so round 1's playback can rewind.
@@ -70,13 +70,12 @@ export class JoinGameButton extends HTMLButton {
     updateState(_state: IAppState) {
         const { status } = _state;
 
+        // FIXME: do we still need to separate state handling?
         switch (status) {
             case GameConfig.AppStatus.NewGame:
-                this.setDisabled(false);
-                break;
             case GameConfig.AppStatus.Initialised:
             case GameConfig.AppStatus.Initialising:
-                this.setDisabled(true);
+                this.setDisabled(false);
                 break;
         }
     }
