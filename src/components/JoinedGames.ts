@@ -1,6 +1,7 @@
 import { GameConfig } from "@shared/index";
 import { IAppState } from "@shared/types";
-import { getGameCode, isUnjoinedLocalPlayer } from "../utils/game-helper";
+import { getGames } from "../apis/get-games";
+import { isUnjoinedLocalPlayer } from "../utils/game-helper";
 import { getAppScreen, setAppScreen } from "../utils/screen-helper";
 import { BaseComponent } from "./BaseComponent";
 import { updateComponents } from "./component-helper";
@@ -12,6 +13,8 @@ import { updateComponents } from "./component-helper";
  */
 export class JoinedGames extends BaseComponent {
     private list: HTMLDivElement;
+    private loading: boolean = false;
+    private games: string[] = [];
 
     constructor() {
         super();
@@ -19,12 +22,28 @@ export class JoinedGames extends BaseComponent {
     }
 
     updateState(_state?: IAppState): void {
+        if (this.loading) {
+            return;
+        }
+        this.fetchGames();
         this.build();
 
         const screen = _state?.screen ?? getAppScreen();
         this.ref.style.display = screen === GameConfig.AppScreen.Lobby ? "flex" : "none";
 
         this.renderGames();
+    }
+    // FIXME: Is there a better way to ensure no infinite calls?
+    // Only works because its a single component
+    private async fetchGames() {
+        if (this.loading) {
+            return;
+        }
+        this.loading = true;
+        const { games } = await getGames();
+        this.games = games;
+        this.updateState();
+        this.loading = false;
     }
 
     build() {
@@ -87,13 +106,13 @@ export class JoinedGames extends BaseComponent {
     private renderGames() {
         this.list.replaceChildren();
 
-        const gameCode = getGameCode();
-
-        if (gameCode && !isUnjoinedLocalPlayer()) {
-            this.list.appendChild(this.buildGameRow(gameCode));
-        } else {
-            this.list.appendChild(this.buildEmptyState());
-        }
+        this.games.map((gameCode) => {
+            if (gameCode && !isUnjoinedLocalPlayer()) {
+                this.list.appendChild(this.buildGameRow(gameCode));
+            } else {
+                this.list.appendChild(this.buildEmptyState());
+            }
+        });
     }
 
     private buildGameRow(gameCode: string) {

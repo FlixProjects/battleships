@@ -34,8 +34,14 @@ const tables = [
     {
         TableName: GAMES_TABLE,
         BillingMode: "PAY_PER_REQUEST",
-        AttributeDefinitions: [{ AttributeName: "id", AttributeType: "S" }],
-        KeySchema: [{ AttributeName: "id", KeyType: "HASH" }],
+        AttributeDefinitions: [
+            { AttributeName: "userId", AttributeType: "S" },
+            { AttributeName: "gameCode", AttributeType: "S" },
+        ],
+        KeySchema: [
+            { AttributeName: "userId", KeyType: "HASH" },
+            { AttributeName: "gameCode", KeyType: "RANGE" },
+        ],
     },
 ];
 
