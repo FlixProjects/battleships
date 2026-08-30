@@ -55,7 +55,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResp
         if (isLocal()) {
             // locally there is no Lambda@Edge to translate the header into a cookie
             response.setHeaders({ "Access-Control-Allow-Origin": "*" });
-            response.setCookie(`${FP_AUTH_TOKEN}=${authToken}; Path=/; SameSite=Lax`);
+            response.setCookie(FP_AUTH_TOKEN, authToken);
         }
 
         return authTokenResponse(userId, { message: "Sign up successful", userId, username });
