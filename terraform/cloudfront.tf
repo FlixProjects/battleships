@@ -1,31 +1,16 @@
 locals {
   s3_root_origin_id   = "origin"
   s3_public_origin_id = "assets-origin"
-  
-  lambda_path_patterns = {
-    "submit-action" = {
-      path           = "/api/submit"
-    }
-    "create-game" = {
-      path           = "/api/create"
-    }
-    "join-game" = {
-      path           = "/api/join"
-    }
-    "sign-up" = {
-      path            = "/api/sign-up"
-    }
-    "login" = {
-      path            = "/api/login"
-    }
-    "get-game" = { path = "/api*" }
+
+  lambda_cf_paths = {
+    for lambda in local.lambda_functions[terraform.workspace] : lambda.name => lambda.cf_path if lambda.create
   }
 
   lambda_origins = {
     for name, furl in aws_lambda_function_url.battleship_function_url : name => {
       origin_id    = "lambda-${name}-origin"
       domain_name  = trimsuffix(trimprefix(furl.function_url, "https://"), "/")
-      path_pattern = local.lambda_path_patterns[name].path
+      path_pattern = local.lambda_cf_paths[name]
     }
   }
 

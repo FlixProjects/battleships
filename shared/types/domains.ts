@@ -44,6 +44,10 @@ export interface GenericResponse {
 
 export interface GetGameResponse extends GenericResponse {}
 
+export interface GetGamesResponse {
+    games: string[];
+}
+
 export interface CreateGameResponse extends GetGameResponse {
     playerId: string;
     gameCode: string;

@@ -5,6 +5,7 @@ async function buildLambda() {
         "create-game/index.ts",
         "join-game/index.ts",
         "get-game/index.ts",
+        "get-games/index.ts",
         "submit-action/index.ts",
         "sign-up/index.ts",
         "login/index.ts",
