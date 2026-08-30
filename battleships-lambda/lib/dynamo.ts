@@ -6,6 +6,7 @@ const DEFAULT_REGION = "ap-southeast-1";
 const DEFAULT_LOCAL_ENDPOINT = "http://dynamodb-local:8000";
 
 export const USERS_TABLE = process.env.USERS_TABLE ?? "battleships-users";
+export const GAMES_TABLE = process.env.GAMES_TABLE ?? "battleships-games";
 
 let docClient: DynamoDBDocumentClient | undefined;
 

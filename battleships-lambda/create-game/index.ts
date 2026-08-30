@@ -11,10 +11,13 @@ import { InternalServerErrorApiResponse } from "../lib/response/internal-server-
 import { ApiResponse } from "../lib/response/response";
 import { type PlainApiResponse } from "../lib/response/types";
 import { withAuth } from "../lib/with-auth";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { getDocClient, GAMES_TABLE } from "../lib/dynamo";
 
 export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Promise<PlainApiResponse> => {
     try {
         const body = (event.body ? JSON.parse(event.body) : {}) as Partial<CreateGameRequest>;
+        const userId = auth.userId;
         const playerName = body.playerName?.trim();
 
         // createNewGameState declares name as required, and a nameless player would
@@ -28,7 +31,7 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
         // the token subject is the id get-game and submit-action match a caller
         // against, so the player is the authenticated user rather than a fresh uuid
         const initialGameState: IPlainGameState = createNewGameState(gameCode, auth.userId, playerName);
-
+        const now = new Date().toISOString();
         if (!isLocal()) {
             await new S3Client({ region: process.env.AWS_REGION }).send(
                 new PutObjectCommand({
@@ -39,6 +42,12 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
                 }),
             );
         }
+        await getDocClient().send(
+            new PutCommand({
+                TableName: GAMES_TABLE,
+                Item: { id: userId, gameCode, createdAt: now, updatedAt: now },
+            }),
+        );
 
         return new ApiResponse().setBody({ gameCode, playerId: auth.userId, gameState: initialGameState }).build();
     } catch (err) {
