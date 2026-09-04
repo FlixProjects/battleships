@@ -37,7 +37,7 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
 
         // withAuth proves who the caller is; this proves they belong in this game
         if (!gameState.players?.some((player) => player.id === auth.userId)) {
-            return new ErrorApiResponse(ErrorCode.AUTHORIZATION_FAILED)
+            return new ErrorApiResponse(ErrorCode.UNAUTHORISED)
                 .setMessage(ERROR_MESSAGES.NOT_A_PLAYER_IN_GAME)
                 .build();
         }

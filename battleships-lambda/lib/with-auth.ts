@@ -36,7 +36,7 @@ export const withAuth =
             userId = await verifyAuthToken(token, await getAuthTokenSecret());
         } catch (err) {
             if ((err as IVerifyTokenError).code === "ERR_JWT_EXPIRED") {
-                return new ErrorApiResponse(ErrorCode.UNAUTHORISED).setMessage(ERROR_MESSAGES.EXPIRED_TOKEN).build();
+                return new ErrorApiResponse(ErrorCode.AUTHORIZATION_FAILED).setMessage(ERROR_MESSAGES.EXPIRED_TOKEN).build();
             }
             console.log("auth verification failed:", JSON.stringify(err));
             return new ErrorApiResponse(ErrorCode.UNAUTHORISED).setMessage(ERROR_MESSAGES.UNAUTHORISED).build();
