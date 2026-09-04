@@ -5,9 +5,9 @@ import { gameManager } from "..";
 import { getGame } from "../apis/get-game";
 import { updateComponents } from "../components/component-helper";
 import { loadStyles } from "../css-anim-styles";
-import { deleteAuthCookie, getCookie } from "../utils/cookie-helper";
-import { getGameCode, isWaitingForOtherPlayer, removeGameCode } from "../utils/game-helper";
-import { getAppScreen, setAppScreen } from "../utils/screen-helper";
+import { getCookie } from "../utils/cookie-helper";
+import { getGameCode, isWaitingForOtherPlayer } from "../utils/game-helper";
+import { setAppScreen } from "../utils/screen-helper";
 import { transformPlainAppStateToFEDomain } from "../utils/transformers";
 import { FEGameStateManager } from "./FEGameStateManager";
 import { playbackRunner } from "./PlaybackRunner";
@@ -18,8 +18,8 @@ export class App {
     public async start() {
         loadStyles();
 
-        if (!this.hasExistingSession()) {
-            this.clearExistingSession();
+        if (!this.hasExistingStaleSession()) {
+            this.clearStaleSession();
             return updateComponents(this._state);
         }
 
@@ -27,24 +27,15 @@ export class App {
         await this.fetchExistingSession();
     }
 
-    private hasExistingSession() {
+    private hasExistingStaleSession() {
         const gameCode = getGameCode();
         const authToken = getCookie(FP_AUTH_TOKEN);
-
-        const hasExistingSession = !!(gameCode && authToken);
-
-        return hasExistingSession;
+        return gameCode && !authToken;
     }
 
-    private clearExistingSession() {
-        removeGameCode();
-        deleteAuthCookie();
-
-        // A stored InGame screen without a live session is stale — the player
-        // has clearly been past login, so drop them back to the lobby.
-        if (getAppScreen() === GameConfig.AppScreen.Game) {
-            setAppScreen(GameConfig.AppScreen.Games);
-        }
+    private clearStaleSession() {
+        sessionStorage.clear();
+        setAppScreen(GameConfig.AppScreen.Login);
     }
 
     private async fetchExistingSession() {
