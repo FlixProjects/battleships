@@ -1,4 +1,4 @@
-import { DEFAULT_APP_STATE, FP_AUTH_TOKEN, FP_GAME_CODE } from "@shared/constants";
+import { DEFAULT_APP_STATE, FP_AUTH_TOKEN } from "@shared/constants";
 import { GameConfig } from "@shared/index";
 import { IAppState, TGameStateManagerCtor } from "@shared/types";
 import { gameManager } from "..";
@@ -10,7 +10,6 @@ import { getGameCode, isWaitingForOtherPlayer } from "../utils/game-helper";
 import { setAppScreen } from "../utils/screen-helper";
 import { transformPlainAppStateToFEDomain } from "../utils/transformers";
 import { FEGameStateManager } from "./FEGameStateManager";
-import { playbackRunner } from "./PlaybackRunner";
 
 export class App {
     private _state: IAppState = transformPlainAppStateToFEDomain(DEFAULT_APP_STATE);
@@ -50,53 +49,15 @@ export class App {
         if (!gameCode) {
             return;
         }
-        try {
-            const response = await getGame(gameCode);
-            console.log("Existing game found:", response);
 
-            if (!response?.gameState) {
-                throw new Error("Get-game returned no game state");
-            }
+        await getGame(gameCode, { resolveLocalActions: true, saveWithMerge: false });
+    }
 
-            const currentPlayerId = gameManager.getCurrentPlayerId();
-            gameManager.trackRoundSnapshots(currentPlayerId, response.gameState);
-            const gsm = new this.GSM(response.gameState);
-            // Server speaks plain. Run local re-resolution (only fires if player has already submitted)
-            gsm.resolveLocalActionsForPlayer(currentPlayerId);
-
-            gameManager.saveAppState(
-                {
-                    status: response.gameState.isOver
-                        ? GameConfig.AppStatus.GameOver
-                        : isWaitingForOtherPlayer(gameManager.state.gameState)
-                          ? GameConfig.AppStatus.WaitingForOtherPlayer
-                          : GameConfig.AppStatus.ReadyToSubmit,
-                    loading: false,
-                    gameState: gsm.gameState.toPlain(),
-                },
-                { saveWithMerge: false },
-            );
-            
-            setAppScreen(GameConfig.AppScreen.Game);
-
-            // Watermark-guarded catch-up: a resolve that landed while this
-            // client was away plays back once on boot.
-            await playbackRunner.playIfUnseen();
-            updateComponents();
-        } catch (error) {
-            if ((error as any)?.code === 404) {
-                console.log("Game not found or expired.");
-                sessionStorage.removeItem(FP_GAME_CODE);
-            }
-
-            if ((error as any)?.code === 403) {
-                console.log("Game is full.");
-                sessionStorage.removeItem(FP_GAME_CODE);
-            }
-
-            // Session was unusable (expired/full game) — back to the lobby.
-            setAppScreen(GameConfig.AppScreen.Games);
-            updateComponents({ status: GameConfig.AppStatus.NewGame, loading: false });
-        }
+    private getGameStatus(isOver: boolean) {
+        return isOver
+            ? GameConfig.AppStatus.GameOver
+            : isWaitingForOtherPlayer(gameManager.state.gameState)
+              ? GameConfig.AppStatus.WaitingForOtherPlayer
+              : GameConfig.AppStatus.ReadyToSubmit;
     }
 }

@@ -9,16 +9,14 @@ import {
     TILE_GAP_PX,
     TILE_SIZE_PX,
 } from "@shared/constants";
-import { GameConfig } from "@shared/index";
 import { FECommand } from "@shared/models/commands/FECommand";
 import { GameEngine as GameEngineV2 } from "@shared/models/GameEngine";
 import { ICellLoc } from "@shared/types";
 import { game, gameManager } from "..";
-import { isLocal } from "../config/app-config";
 import { getGame } from "../apis/get-game";
-import { getComponents, updateComponents } from "../components/component-helper";
+import { getComponents } from "../components/component-helper";
+import { isLocal } from "../config/app-config";
 import { FEGameStateManager } from "../models/FEGameStateManager";
-import { playbackRunner } from "../models/PlaybackRunner";
 
 // engine-v2 over the current FE state. FEGameStateManager rehydrates into FE
 // domain entities (FEShipEntity etc.) so faction mixins / FE behaviour apply
@@ -67,29 +65,9 @@ export const getColorFilter = (color: TColor) => {
 };
 
 export const refresh = async () => {
-    try {
-        const response = await getGame(getGameCode());
-
-        if (response?.gameState) {
-            gameManager.trackRoundSnapshots(gameManager.getCurrentPlayerId(), response.gameState);
-        }
-
-        const { status, currentPlayer } = gameManager.state;
-
-        const newState = {
-            loading: false,
-            gameState: response?.gameState,
-            status,
-            currentPlayer,
-        };
-
-        gameManager.saveAppState(newState);
-        // First submitter learns the resolved round here — rewind and replay
-        // it (watermark-guarded) before the final board settles in.
-        await playbackRunner.playIfUnseen();
-        updateComponents();
-    } catch (error) {
-        updateComponents({ status: GameConfig.AppStatus.Error });
+    const gameCode = getGameCode();
+    if(gameCode) {
+        await getGame(gameCode);
     }
 };
 
@@ -124,7 +102,7 @@ export const getElementsFromIds = (ids: string[]) => {
 
 export const isWaitingForOtherPlayer = (gameState: { players: { id: string; ready: boolean }[] }) => {
     const playerId = gameManager.getCurrentPlayerId();
-    const isWaitingForOtherPlayer = gameState.players.find((p) => p.id === playerId).ready;
+    const isWaitingForOtherPlayer = gameState.players.find((p) => p.id === playerId)?.ready;
     return isWaitingForOtherPlayer;
 };
 
