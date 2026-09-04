@@ -1,4 +1,4 @@
-import { GameConfig } from "@shared/index";
+import { COMPONENT_ID, GameConfig } from "@shared/index";
 import { IAppState } from "@shared/types";
 import { getGames } from "../apis/get-games";
 import { isUnjoinedLocalPlayer } from "../utils/game-helper";
@@ -6,6 +6,8 @@ import { getAppScreen, setAppScreen } from "../utils/screen-helper";
 import { BaseComponent } from "./BaseComponent";
 import { updateComponents } from "./component-helper";
 import { gameManager } from "..";
+import { GamesContainer } from "./games/GamesContainer";
+import { GameRow } from "./games/GameRow";
 
 /**
  * Lobby-only list of the games the player has joined, shown directly below
@@ -13,7 +15,7 @@ import { gameManager } from "..";
  * session game); clicking a row returns to the InGame screen.
  */
 export class GamesPage extends BaseComponent {
-    private list: HTMLDivElement;
+    private gamesContainer: GamesContainer;
     private loading: boolean = false;
     private games: string[] = [];
 
@@ -31,8 +33,6 @@ export class GamesPage extends BaseComponent {
         this.build();
 
         this.ref.style.display = screen === GameConfig.AppScreen.Games ? "flex" : "none";
-
-        this.renderGames();
     }
     // FIXME: Is there a better way to ensure no infinite calls?
     // Only works because its a single component
@@ -48,18 +48,18 @@ export class GamesPage extends BaseComponent {
     }
 
     build() {
+        this.removeChildren();
         const card = document.querySelector(".card");
 
-        if (!card || card.querySelector("#joined-games")) {
+        if (!card || card.querySelector(`#${COMPONENT_ID.GAMES}`)) {
             return this.ref;
         }
 
         this.ref = document.createElement("section");
-        this.ref.id = "joined-games";
+        this.ref.id = COMPONENT_ID.GAMES;
         this.addStyles();
 
         this.buildHeading();
-        this.buildList();
 
         // Sits directly below the create/join controls.
         const controls = card.querySelector("#controls");
@@ -68,6 +68,8 @@ export class GamesPage extends BaseComponent {
         } else {
             card.prepend(this.ref);
         }
+
+        this.renderGames();
 
         return this.ref;
     }
@@ -94,71 +96,24 @@ export class GamesPage extends BaseComponent {
         this.ref.appendChild(heading);
     }
 
-    private buildList() {
-        this.list = document.createElement("div");
-        this.list.style.display = "flex";
-        this.list.style.flexDirection = "column";
-        this.list.style.gap = "8px";
-
-        this.ref.appendChild(this.list);
-    }
-
     // No child components hold refs in here, so the rows can rebuild freely.
     private renderGames() {
-        this.list.replaceChildren();
+        if (!this.gamesContainer) {
+            this.gamesContainer = new GamesContainer();
+        }
+
+        this.addChild(this.gamesContainer);
+        this.ref.appendChild(this.gamesContainer.build());
+
         this.games.map((gameCode) => {
             if (gameCode && !isUnjoinedLocalPlayer()) {
-                this.list.appendChild(this.buildGameRow(gameCode));
+                const gameRow = new GameRow({ gameCode });
+                this.gamesContainer.addChild(gameRow);
+                this.gamesContainer.ref.appendChild(gameRow.build());
             } else {
-                this.list.appendChild(this.buildEmptyState());
+                this.gamesContainer.ref.appendChild(this.buildEmptyState());
             }
         });
-    }
-
-    private buildGameRow(gameCode: string) {
-        const row = document.createElement("button");
-        this.addGameRowStyles(row);
-
-        const code = document.createElement("span");
-        code.textContent = gameCode;
-        code.style.fontWeight = "700";
-        code.style.fontSize = "16px";
-        code.style.letterSpacing = "3px";
-        code.style.color = "var(--accent)";
-        code.style.textShadow = "0 0 10px rgba(110, 231, 183, 0.4)";
-
-        const resume = document.createElement("span");
-        resume.textContent = "Resume →";
-        resume.style.fontSize = "13px";
-        resume.style.color = "var(--muted)";
-
-        row.append(code, resume);
-
-        row.addEventListener("mouseenter", () => (row.style.background = "var(--glass)"));
-        row.addEventListener("mouseleave", () => (row.style.background = "var(--glass-2)"));
-        row.addEventListener("click", (event) => {
-            event.stopPropagation();
-            setAppScreen(GameConfig.AppScreen.Game);
-            updateComponents();
-        });
-
-        return row;
-    }
-
-    private addGameRowStyles(row: HTMLButtonElement) {
-        const style = row.style;
-        style.display = "flex";
-        style.alignItems = "center";
-        style.justifyContent = "space-between";
-        style.padding = "12px 14px";
-        style.background = "var(--glass-2)";
-        style.border = "1px solid var(--glass-border)";
-        style.borderRadius = "10px";
-        style.color = "inherit";
-        style.font = "inherit";
-        style.textAlign = "left";
-        style.cursor = "pointer";
-        style.transition = "background var(--transition)";
     }
 
     private buildEmptyState() {

@@ -137,6 +137,7 @@ export const COMPONENT_ID = {
     GAME_BOARD_CONTAINER: "gameBoardContainer",
     GAME_BOARD: "gameBoard",
     GAME_BOARD_STATIC_LAYER: "gameBoardStaticLayer",
+    GAMES: "games",
 } as const;
 export const ANIMATION_LAYER_ID = COMPONENT_ID.GAME_BOARD_CONTAINER;
 export const GAME_BOARD_ID = "gameBoard";
