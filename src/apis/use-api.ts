@@ -1,3 +1,6 @@
+import { ERROR_MESSAGES } from "@shared/constants";
+import { ErrorCode } from "@shared/types/response-types";
+import { gameManager } from "..";
 import { appConfig, isLocal } from "../config/app-config";
 import { CryptoHelper } from "../utils/crypto-helper";
 
@@ -19,12 +22,18 @@ export interface ApiResult<TResponse> {
 
 /** Thrown for a non-2xx response, which `fetch` itself resolves rather than rejects. */
 export class ApiError extends Error {
-    public readonly status: number;
-
-    constructor(status: number, path: string) {
+    public status: number;
+    public message: string;
+    
+    constructor(res: { status: number; message: string }, path: string) {
         super(`api ${path || "/"} failed with ${status}.`);
         this.name = "ApiError";
-        this.status = status;
+        this.status = res.status;
+        this.message = res.message ?? `api ${path || "/"} failed with ${this.status}.`;
+    }
+
+    get outcomeIsExpiredToken(): boolean {
+        return this.status === ErrorCode.AUTHORIZATION_FAILED && this.message === ERROR_MESSAGES.EXPIRED_TOKEN;
     }
 }
 
@@ -52,18 +61,26 @@ export const useApi = async <TBody, TResponse>(config: ApiConfig<TBody>): Promis
             body: reqBody,
         });
 
+        const status = res.status;
+        const data = await res.json();
+
         if (!res.ok) {
-            throw new ApiError(res.status, path);
+            throw new ApiError({ status, message: data.message }, path);
         }
 
-        return { status: res.status, data: (await res.json()) as TResponse };
+        return { status, data: data as TResponse };
     } catch (err) {
-        const error = err instanceof Error ? err : new Error(`api ${path || "/"} failed.`);
-
-        if (!onError) {
-            throw error;
+        if (err instanceof ApiError && err.outcomeIsExpiredToken) {
+            console.log("api expired token, clearing local state and reloading");
+            gameManager.resetGame();
+            return;
         }
 
-        onError(error);
+        if (onError && err instanceof Error) {
+            onError(err);
+            return;
+        }
+
+        throw new Error(`api ${path || "/"} failed.`);
     }
 };
