@@ -49,9 +49,12 @@ export class App {
 
     private async fetchExistingSession() {
         updateComponents({ status: GameConfig.AppStatus.Initialising, loading: true });
-
+        const gameCode = getGameCode();
+        if (!gameCode) {
+            return;
+        }
         try {
-            const response = await getGame(getGameCode());
+            const response = await getGame(gameCode);
             console.log("Existing game found:", response);
 
             if (!response?.gameState) {
@@ -84,12 +87,12 @@ export class App {
             await playbackRunner.playIfUnseen();
             updateComponents();
         } catch (error) {
-            if (error.code === 404) {
+            if ((error as any)?.code === 404) {
                 console.log("Game not found or expired.");
                 sessionStorage.removeItem(FP_GAME_CODE);
             }
 
-            if (error.code === 403) {
+            if ((error as any)?.code === 403) {
                 console.log("Game is full.");
                 sessionStorage.removeItem(FP_GAME_CODE);
             }
