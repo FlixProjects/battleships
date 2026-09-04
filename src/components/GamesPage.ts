@@ -1,13 +1,12 @@
 import { COMPONENT_ID, GameConfig } from "@shared/index";
 import { IAppState } from "@shared/types";
+import { gameManager } from "..";
 import { getGames } from "../apis/get-games";
 import { isUnjoinedLocalPlayer } from "../utils/game-helper";
-import { getAppScreen, setAppScreen } from "../utils/screen-helper";
+import { getAppScreen } from "../utils/screen-helper";
 import { BaseComponent } from "./BaseComponent";
-import { updateComponents } from "./component-helper";
-import { gameManager } from "..";
-import { GamesContainer } from "./games/GamesContainer";
 import { GameRow } from "./games/GameRow";
+import { GamesContainer } from "./games/GamesContainer";
 
 /**
  * Lobby-only list of the games the player has joined, shown directly below
@@ -25,14 +24,11 @@ export class GamesPage extends BaseComponent {
     }
 
     updateState(_state?: IAppState): void {
-        const screen = _state?.screen ?? getAppScreen();
-        if (this.loading || !gameManager.isLoggedIn || screen !== GameConfig.AppScreen.Games) {
-            return;
+        const screen = getAppScreen();
+        if (!this.loading && gameManager.isLoggedIn && screen === GameConfig.AppScreen.Games) {
+            this.fetchGames();
         }
-        this.fetchGames();
         this.build();
-
-        this.ref.style.display = screen === GameConfig.AppScreen.Games ? "flex" : "none";
     }
     // FIXME: Is there a better way to ensure no infinite calls?
     // Only works because its a single component
@@ -43,7 +39,7 @@ export class GamesPage extends BaseComponent {
         this.loading = true;
         const { games } = await getGames();
         this.games = games;
-        this.renderGames();
+        this.updateState();
         this.loading = false;
     }
 
@@ -51,8 +47,13 @@ export class GamesPage extends BaseComponent {
         this.removeChildren();
         const card = document.querySelector(".card");
 
-        if (!card || card.querySelector(`#${COMPONENT_ID.GAMES}`)) {
+        if (!card) {
             return this.ref;
+        }
+
+        const existing = card.querySelector(`#${COMPONENT_ID.GAMES}`);
+        if (existing) {
+            existing.remove();
         }
 
         this.ref = document.createElement("section");
@@ -76,7 +77,7 @@ export class GamesPage extends BaseComponent {
 
     addStyles() {
         const style = this.ref.style;
-        style.display = "flex";
+        style.display = getAppScreen() === GameConfig.AppScreen.Games ? "flex" : "none";
         style.flexDirection = "column";
         style.gap = "8px";
     }
