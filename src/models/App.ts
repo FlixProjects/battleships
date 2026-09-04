@@ -18,8 +18,11 @@ export class App {
     public async start() {
         loadStyles();
 
-        if (!this.hasExistingStaleSession()) {
+        if (this.hasExistingStaleSession()) {
             this.clearStaleSession();
+            return updateComponents(this._state);
+        } else if (this.isLoggedInButNoData()) {
+            setAppScreen(GameConfig.AppScreen.Games);
             return updateComponents(this._state);
         }
 
@@ -31,6 +34,12 @@ export class App {
         const gameCode = getGameCode();
         const authToken = getCookie(FP_AUTH_TOKEN);
         return gameCode && !authToken;
+    }
+
+    private isLoggedInButNoData() {
+        const gameCode = getGameCode();
+        const authToken = getCookie(FP_AUTH_TOKEN);
+        return !gameCode && authToken;
     }
 
     private clearStaleSession() {
