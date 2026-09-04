@@ -11,8 +11,7 @@ import {
 import { v7 as uuidv7 } from "uuid";
 import { gameManager } from "..";
 import { isLocal } from "../config/app-config";
-import { clearCookies } from "../utils/cookie-helper";
-import { setCurrentPlayer, setGameCode } from "../utils/game-helper";
+import { setGameCode } from "../utils/game-helper";
 import { updateComponents } from "./component-helper";
 import { HTMLButton } from "./native/Button";
 
@@ -69,7 +68,7 @@ export class ResetLocalGameButton extends HTMLButton {
         // sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(initialGameState));
 
         setGameCode(gameCode);
-        setCurrentPlayer(player1Id);
+        gameManager.setCurrentPlayer(player1Id);
 
         gameManager.saveAppState({
             status: GameConfig.AppStatus.Initialised,

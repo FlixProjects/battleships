@@ -3,7 +3,6 @@ import {
     COLOR_FILTER,
     COLOR_GLOW,
     COMPONENT_ID,
-    FP_CURRENT_PLAYER,
     FP_GAME_CODE,
     LOCAL_TEMP_PLAYER_ID,
     TColor,
@@ -41,10 +40,6 @@ export const setGameCode = (gameCode: string) => {
 
 export const removeGameCode = () => {
     return sessionStorage.removeItem(FP_GAME_CODE);
-};
-
-export const setCurrentPlayer = (playerId: string) => {
-    return sessionStorage.setItem(FP_CURRENT_PLAYER, playerId);
 };
 
 export const checkIfNameIsFilled = () => {

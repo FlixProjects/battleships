@@ -58,7 +58,7 @@ export class App {
                 throw new Error("Get-game returned no game state");
             }
 
-            const currentPlayerId = getCookie(FP_AUTH_TOKEN);
+            const currentPlayerId = gameManager.getCurrentPlayerId();
             gameManager.trackRoundSnapshots(currentPlayerId, response.gameState);
             const gsm = new this.GSM(response.gameState);
             // Server speaks plain. Run local re-resolution (only fires if player has already submitted)

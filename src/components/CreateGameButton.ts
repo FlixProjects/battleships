@@ -4,7 +4,7 @@ import { IAppState } from "@shared/types";
 import { gameManager } from "../";
 import { createGame } from "../apis/create-game";
 import { isLocal } from "../config/app-config";
-import { checkIfNameIsFilled, setCurrentPlayer, setGameCode } from "../utils/game-helper";
+import { checkIfNameIsFilled, setGameCode } from "../utils/game-helper";
 import { setAppScreen } from "../utils/screen-helper";
 import { getComponents, updateComponents } from "./component-helper";
 import { HTMLButton } from "./native/Button";
@@ -50,7 +50,7 @@ export class CreateGameButton extends HTMLButton {
             }
             this.setDisabled(false);
             setGameCode(gameCode);
-            setCurrentPlayer(playerId);
+            gameManager.setCurrentPlayer(playerId);
 
             const newState = {
                 status: GameConfig.AppStatus.Initialised,

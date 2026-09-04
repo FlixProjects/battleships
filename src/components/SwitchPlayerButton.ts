@@ -59,7 +59,7 @@ export class SwitchPlayerButton extends HTMLButton {
         let playerId: string =
             playerIds.length === 1 ? LOCAL_TEMP_PLAYER_ID : foundPlayer === 0 ? playerIds[1] : playerIds[0];
 
-        sessionStorage.setItem(FP_CURRENT_PLAYER, playerId);
+        gameManager.setCurrentPlayer(playerId);
         gameManager.switchLocalPlayerAuthToken();
 
         return playerId;
