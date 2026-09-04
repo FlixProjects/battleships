@@ -53,11 +53,6 @@ export class ResetLocalGameButton extends HTMLButton {
         document.getElementById("resetLocalGameButtonContainer")?.remove();
     }
 
-    private resetLocalGame() {
-        sessionStorage.clear();
-        clearCookies();
-    }
-
     // FIXME: to fix later, low priority since this is only for local testing
     private initializeTwoPlayers() {
         gameManager.clearPlayerStates(); // clear memory
