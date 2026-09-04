@@ -5,6 +5,7 @@ import { isUnjoinedLocalPlayer } from "../utils/game-helper";
 import { getAppScreen, setAppScreen } from "../utils/screen-helper";
 import { BaseComponent } from "./BaseComponent";
 import { updateComponents } from "./component-helper";
+import { gameManager } from "..";
 
 /**
  * Lobby-only list of the games the player has joined, shown directly below
@@ -22,7 +23,7 @@ export class JoinedGames extends BaseComponent {
     }
 
     updateState(_state?: IAppState): void {
-        if (this.loading) {
+        if (this.loading || !gameManager.isLoggedIn) {
             return;
         }
         this.fetchGames();

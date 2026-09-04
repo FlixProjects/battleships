@@ -9,7 +9,9 @@ import {
 import { IAppState, IPlainAppState, IPlainGameState, IPlayer } from "@shared/types";
 import { mergician } from "mergician";
 import { transformPlainAppStateToFEDomain } from "../utils/transformers";
-import { getCookie } from "../utils/cookie-helper";
+import { clearCookies, getCookie } from "../utils/cookie-helper";
+import { setAppScreen } from "../utils/screen-helper";
+import { GameConfig } from "@shared/index";
 
 interface PlayerGameStates {
     [playerId: string]: IPlainAppState;
@@ -162,6 +164,21 @@ export class GameManager {
         const playerId = this.getCurrentPlayerId();
         snapshots[playerId] = { ...snapshots[playerId], lastAnimatedRound: round };
         this.saveRoundSnapshots(snapshots);
+    }
+
+    public getAuthToken() {
+        return getCookie(FP_AUTH_TOKEN);
+    }
+
+    public get isLoggedIn() {
+        return !!this.getAuthToken();
+    }
+
+    public resetGame() {
+        sessionStorage.clear();
+        clearCookies();
+        setAppScreen(GameConfig.AppScreen.Login);
+        location.reload();
     }
 
     private loadRoundSnapshots(): RoundSnapshots {

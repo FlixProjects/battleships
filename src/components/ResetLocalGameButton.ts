@@ -106,8 +106,6 @@ export class ResetLocalGameButton extends HTMLButton {
     }
 
     async onClick() {
-        this.resetLocalGame();
-        // this.initializeTwoPlayers();
-        location.reload();
+        gameManager.resetGame();
     }
 }
