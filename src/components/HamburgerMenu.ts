@@ -1,12 +1,12 @@
 import { GameConfig, TAppScreen } from "@shared/index";
 import { IAppState } from "@shared/types";
-import { deleteAuthCookie } from "../utils/cookie-helper";
+import { gameManager } from "..";
+import { isLocal } from "../config/app-config";
 import { getGameCode, isUnjoinedLocalPlayer } from "../utils/game-helper";
 import { getAppScreen, setAppScreen } from "../utils/screen-helper";
 import { BaseComponent } from "./BaseComponent";
 import { updateComponents } from "./component-helper";
 import { applyButtonStyles } from "./styles/inline-styles";
-import { isLocal } from "../config/app-config";
 
 /**
  * Top-right hamburger menu, mounted into the HeroSection row (so it must be
@@ -214,9 +214,6 @@ export class HamburgerMenu extends BaseComponent {
     }
 
     private async onExitClick() {
-        await sessionStorage.clear();
-        await location.reload();
-        deleteAuthCookie();
-        this.navigateTo(GameConfig.AppScreen.Login, { status: GameConfig.AppStatus.NewGame, loading: false });
+        gameManager.resetGame();
     }
 }
