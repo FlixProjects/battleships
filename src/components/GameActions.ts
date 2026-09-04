@@ -22,7 +22,7 @@ export class GameActions extends BaseComponent {
 
         // Lobby-only; never unmounted — children hold refs into this subtree.
         const screen = _state?.screen ?? getAppScreen();
-        this.ref.style.display = screen === GameConfig.AppScreen.Lobby ? "flex" : "none";
+        this.ref.style.display = screen === GameConfig.AppScreen.Games ? "flex" : "none";
 
         this.gameCode.updateState(_state);
     }

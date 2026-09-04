@@ -72,7 +72,7 @@ export class PlayerCards extends BaseComponent {
     }
 
     updateState(_state?: IAppState): void {
-        const inGame = _state?.screen === GameConfig.AppScreen.InGame;
+        const inGame = _state?.screen === GameConfig.AppScreen.Game;
         this.panels.forEach((panel) => {
             panel.style.display = inGame ? "" : "none";
         });

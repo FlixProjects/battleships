@@ -4,15 +4,20 @@ import { getAppScreen } from "../utils/screen-helper";
 import { BaseComponent } from "./BaseComponent";
 import { GameCodeText } from "./GameCodeText";
 
-export class GameView extends BaseComponent {
+export class GamePage extends BaseComponent {
     public ref = document.querySelector("main.card") as HTMLElement;
 
-    private gameBlocks = [
-        document.getElementById("status-bar"),
-        document.getElementById("gameArea"),
-    ];
+    private gameBlocks = [document.getElementById("status-bar"), document.getElementById("gameArea")];
 
-    private gameCode = new GameCodeText(document.getElementById("status-bar"));
+    private gameCode: GameCodeText;
+
+    constructor() {
+        super();
+        const statusBarElement = document.getElementById("status-bar");
+        if (statusBarElement) {
+            this.gameCode = new GameCodeText(statusBarElement);
+        }
+    }
 
     updateState(_state?: IAppState): void {
         const screen = _state?.screen ?? getAppScreen();
@@ -20,7 +25,7 @@ export class GameView extends BaseComponent {
         // Empty string defers back to the stylesheet's display value.
         this.ref.style.display = screen === GameConfig.AppScreen.Login ? "none" : "";
 
-        const inGame = screen === GameConfig.AppScreen.InGame;
+        const inGame = screen === GameConfig.AppScreen.Game;
         this.gameBlocks.forEach((block) => {
             if (block) {
                 block.style.display = inGame ? "" : "none";

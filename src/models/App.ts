@@ -42,8 +42,8 @@ export class App {
 
         // A stored InGame screen without a live session is stale — the player
         // has clearly been past login, so drop them back to the lobby.
-        if (getAppScreen() === GameConfig.AppScreen.InGame) {
-            setAppScreen(GameConfig.AppScreen.Lobby);
+        if (getAppScreen() === GameConfig.AppScreen.Game) {
+            setAppScreen(GameConfig.AppScreen.Games);
         }
     }
 
@@ -80,7 +80,7 @@ export class App {
                 { saveWithMerge: false },
             );
             gameManager.setCurrentPlayer(currentPlayerId);
-            setAppScreen(GameConfig.AppScreen.InGame);
+            setAppScreen(GameConfig.AppScreen.Game);
 
             // Watermark-guarded catch-up: a resolve that landed while this
             // client was away plays back once on boot.
@@ -98,7 +98,7 @@ export class App {
             }
 
             // Session was unusable (expired/full game) — back to the lobby.
-            setAppScreen(GameConfig.AppScreen.Lobby);
+            setAppScreen(GameConfig.AppScreen.Games);
             updateComponents({ status: GameConfig.AppStatus.NewGame, loading: false });
         }
     }

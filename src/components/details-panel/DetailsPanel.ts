@@ -26,7 +26,7 @@ export class DetailsPanel extends BaseComponent {
         // so an open panel doesn't linger over the lobby.
         const screen = _state?.screen ?? getAppScreen();
 
-        if (screen !== GameConfig.AppScreen.InGame) {
+        if (screen !== GameConfig.AppScreen.Game) {
             this.close();
         }
     }
@@ -231,8 +231,7 @@ export class DetailsPanel extends BaseComponent {
         this.ref.style.top = "50%";
         this.ref.style.transform = HIDDEN_TRANSFORM;
         this.ref.style.width = "240px";
-        this.ref.style.background =
-            "linear-gradient(180deg, rgba(15, 23, 36, 0.97), rgba(10, 15, 28, 0.97))";
+        this.ref.style.background = "linear-gradient(180deg, rgba(15, 23, 36, 0.97), rgba(10, 15, 28, 0.97))";
         this.ref.style.border = "1px solid rgba(255, 255, 255, 0.06)";
         this.ref.style.borderRight = "none";
         this.ref.style.borderRadius = "14px 0 0 14px";

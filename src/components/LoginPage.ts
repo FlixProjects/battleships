@@ -315,7 +315,7 @@ export class LoginPage extends BaseComponent {
 
     private onSuccessAuth(statusCode: number) {
         if (statusCode === 200) {
-            setAppScreen(GameConfig.AppScreen.Lobby);
+            setAppScreen(GameConfig.AppScreen.Games);
             updateComponents();
         }
     }

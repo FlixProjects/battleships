@@ -28,7 +28,7 @@ export class ActionPanel extends BaseComponent {
         // reaches it — it must gate itself on the InGame screen.
         const screen = _state?.screen ?? getAppScreen();
 
-        if (screen !== GameConfig.AppScreen.InGame) {
+        if (screen !== GameConfig.AppScreen.Game) {
             return;
         }
 

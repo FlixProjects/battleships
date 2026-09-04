@@ -12,7 +12,7 @@ import { gameManager } from "..";
  * the GameActions controls. A guest can only ever have one (the stored
  * session game); clicking a row returns to the InGame screen.
  */
-export class JoinedGames extends BaseComponent {
+export class GamesPage extends BaseComponent {
     private list: HTMLDivElement;
     private loading: boolean = false;
     private games: string[] = [];
@@ -30,7 +30,7 @@ export class JoinedGames extends BaseComponent {
         this.build();
 
         const screen = _state?.screen ?? getAppScreen();
-        this.ref.style.display = screen === GameConfig.AppScreen.Lobby ? "flex" : "none";
+        this.ref.style.display = screen === GameConfig.AppScreen.Games ? "flex" : "none";
 
         this.renderGames();
     }
@@ -139,7 +139,7 @@ export class JoinedGames extends BaseComponent {
         row.addEventListener("mouseleave", () => (row.style.background = "var(--glass-2)"));
         row.addEventListener("click", (event) => {
             event.stopPropagation();
-            setAppScreen(GameConfig.AppScreen.InGame);
+            setAppScreen(GameConfig.AppScreen.Game);
             updateComponents();
         });
 

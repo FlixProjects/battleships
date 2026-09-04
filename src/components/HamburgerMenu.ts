@@ -197,11 +197,11 @@ export class HamburgerMenu extends BaseComponent {
             return;
         }
 
-        this.navigateTo(GameConfig.AppScreen.InGame);
+        this.navigateTo(GameConfig.AppScreen.Game);
     }
 
     private onLobbyClick() {
-        this.navigateTo(GameConfig.AppScreen.Lobby);
+        this.navigateTo(GameConfig.AppScreen.Games);
     }
 
     private onLoginClick() {

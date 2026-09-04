@@ -59,7 +59,7 @@ export class JoinGameButton extends HTMLButton {
             }
             gameManager.saveAppState(newState);
 
-            setAppScreen(GameConfig.AppScreen.InGame);
+            setAppScreen(GameConfig.AppScreen.Game);
             updateComponents();
         } catch (error) {
             this.setDisabled(false);

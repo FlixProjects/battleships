@@ -36,8 +36,8 @@ export const AppStatus = {
 // Top-level FE view routing — orthogonal to AppStatus (game/network lifecycle).
 export const AppScreen = {
     Login: "Login",
-    Lobby: "Lobby",
-    InGame: "InGame",
+    Games: "Games",
+    Game: "Game",
 } as const;
 
 export const SHIP_REF_NO = {

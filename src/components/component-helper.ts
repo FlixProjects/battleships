@@ -6,8 +6,8 @@ import { DetailsPanel } from "./details-panel/DetailsPanel";
 import { getAppScreen } from "../utils/screen-helper";
 import { CreateGameButton } from "./CreateGameButton";
 import { GameActions } from "./GameActions";
-import { GameView } from "./GameView";
-import { JoinedGames } from "./JoinedGames";
+import { GamePage } from "./GamePage";
+import { GamesPage } from "./GamesPage";
 import { LoginPage } from "./LoginPage";
 import { GameOverToast } from "./GameOverToast";
 import { JoinGameButton } from "./JoinGameButton";
@@ -27,10 +27,10 @@ export const loadComponents = () => {
         // Mounts into #hero-section, so it must stay right after heroSection.
         hamburgerMenu: new HamburgerMenu(),
         loginPage: new LoginPage(),
-        gameView: new GameView(),
+        gamePage: new GamePage(),
         gameActions: new GameActions(),
         // Mounts below #controls, so it must stay after gameActions.
-        joinedGames: new JoinedGames(),
+        gamesPage: new GamesPage(),
         statusText: new StatusText(),
 
         playerNameInput: new PlayerNameInput(),
@@ -93,9 +93,9 @@ const getStaticComponents = () => {
             heroSection: _components.heroSection,
             hamburgerMenu: _components.hamburgerMenu,
             loginPage: _components.loginPage,
-            gameView: _components.gameView,
+            gamePage: _components.gamePage,
             gameActions: _components.gameActions,
-            joinedGames: _components.joinedGames,
+            gamesPage: _components.gamesPage,
             playerCards: _components.playerCardsContainer,
             gameBoard: _components.gameBoard,
             actionPanel: _components.actionPanel,
