@@ -76,7 +76,7 @@ export class App {
                 },
                 { saveWithMerge: false },
             );
-            gameManager.setCurrentPlayer(currentPlayerId);
+            
             setAppScreen(GameConfig.AppScreen.Game);
 
             // Watermark-guarded catch-up: a resolve that landed while this

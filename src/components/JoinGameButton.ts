@@ -50,7 +50,7 @@ export class JoinGameButton extends HTMLButton {
                 // DO NOT DELETE: this item simulates Object in S3
                 sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(gameState));
             }
-            gameManager.setCurrentPlayer(playerId);
+
             this.setDisabled(false);
             setGameCode(gameCode);
             if (gameState) {

@@ -50,7 +50,6 @@ export class CreateGameButton extends HTMLButton {
             }
             this.setDisabled(false);
             setGameCode(gameCode);
-            gameManager.setCurrentPlayer(playerId);
 
             const newState = {
                 status: GameConfig.AppStatus.Initialised,
