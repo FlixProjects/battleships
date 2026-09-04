@@ -1,5 +1,6 @@
-import { FP_AUTH_TOKEN, GameConfig, LOCAL_OTHER_PLAYER_TOKEN } from "@shared/index";
+import { GameConfig } from "@shared/index";
 import { IAppState } from "@shared/types";
+import { gameManager } from "..";
 import { guestLogin } from "../apis/guest-login";
 import { login } from "../apis/login";
 import { signUp } from "../apis/sign-up";
@@ -10,8 +11,6 @@ import { getComponents, updateComponents } from "./component-helper";
 import { LoginButton } from "./LoginButton";
 import { SignUpLink } from "./SignUpLink";
 import { applyButtonStyles, applyInputStyles } from "./styles/inline-styles";
-import { isLocal } from "../config/app-config";
-import { getCookie } from "../utils/cookie-helper";
 
 export class LoginPage extends BaseComponent {
     private card: HTMLDivElement;
@@ -262,9 +261,9 @@ export class LoginPage extends BaseComponent {
             return;
         }
 
-        const { statusCode } = await login(username, password);
+        const { statusCode, playerId } = await login(username, password);
 
-        this.onSuccessAuth(statusCode);
+        this.handleAuth({ statusCode, playerId });
     }
 
     // Stage C stub: sign-up has an API but no screen to host it yet.
@@ -284,12 +283,15 @@ export class LoginPage extends BaseComponent {
             return;
         }
 
-        const { statusCode } = await signUp(username, password);
-        this.onSuccessAuth(statusCode);
+        const { statusCode, playerId } = await signUp(username, password);
+        this.handleAuth({ statusCode, playerId });
     }
 
-    private rejectWithHint(message: string) {
+    private rejectWithHint(message: string, type: "error" | "info" = "info") {
         this.hint.textContent = message;
+
+        this.hint.style.color = type === "error" ? "rgb(255, 0, 0)" : "rgb(110, 231, 183)";
+
         this.hint.style.maxHeight = "40px";
         this.hint.style.opacity = "1";
 
@@ -309,14 +311,23 @@ export class LoginPage extends BaseComponent {
             getComponents().input.playerName.setValue(username);
         }
 
-        const { statusCode } = await guestLogin();
-        this.onSuccessAuth(statusCode);
+        const { statusCode, playerId } = await guestLogin();
+        this.handleAuth({ statusCode, playerId });
     }
 
-    private onSuccessAuth(statusCode: number) {
-        if (statusCode === 200) {
-            setAppScreen(GameConfig.AppScreen.Games);
-            updateComponents();
+    private handleAuth(authResponse: { statusCode: number; playerId?: string }) {
+        const { statusCode, playerId } = authResponse;
+
+        if (statusCode === 200 && playerId) {
+            this.onSuccessAuth(statusCode, playerId);
+        } else {
+            this.rejectWithHint("Authentication failed. Please try again.", "error");
         }
+    }
+
+    private onSuccessAuth(statusCode: number, playerId: string) {
+        gameManager.setCurrentPlayer(playerId);
+        setAppScreen(GameConfig.AppScreen.Games);
+        updateComponents();
     }
 }

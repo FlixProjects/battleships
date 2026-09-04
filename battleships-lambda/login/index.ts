@@ -38,7 +38,12 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResp
         if (isGuestLogin(event)) {
             // guests are never persisted — the uuid exists only inside the token,
             // so a new one is minted on every guest login and dies with it
-            return await authTokenResponse(randomUUID(), { message: "Guest login successful", isGuest: true });
+            const guestUserId = randomUUID();
+            return await authTokenResponse(guestUserId, {
+                message: "Guest login successful",
+                playerId: guestUserId,
+                isGuest: true,
+            });
         }
 
         if (!event.body) {
@@ -64,8 +69,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResp
         // the token is subject to the stored user id, never the username
         return await authTokenResponse(user.id, {
             message: "Login successful",
-            userId: user.id,
-            username: user.username,
+            playerId: user.id,
             isGuest: false,
         });
     } catch (err) {

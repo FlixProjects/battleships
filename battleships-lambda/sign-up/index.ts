@@ -58,7 +58,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResp
             response.setCookie(FP_AUTH_TOKEN, authToken);
         }
 
-        return authTokenResponse(userId, { message: "Sign up successful", userId, username });
+        return authTokenResponse(userId, { message: "Sign up successful", playerId: userId });
     } catch (err) {
         if (err instanceof Error && err.name === "ConditionalCheckFailedException") {
             return new ErrorApiResponse(ErrorCode.CONFLICT).setMessage(ERROR_MESSAGES.USERNAME_TAKEN).build();

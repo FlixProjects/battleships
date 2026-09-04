@@ -1,9 +1,9 @@
-import { AuthResponse, GuestLoginRequest } from "@shared/index";
+import { AuthResponseBody, GuestLoginRequest } from "@shared/index";
 import { idb } from "..";
 import { JwtHelper } from "../../shared/auth/jwt-helper";
 import { ApiError, useApi } from "./use-api";
 
-export const guestLogin = async (): Promise<AuthResponse> => {
+export const guestLogin = async () => {
     try {
         const publicKey = await idb.get("publicKey");
 
@@ -15,14 +15,14 @@ export const guestLogin = async (): Promise<AuthResponse> => {
             publicJwk: await new JwtHelper().exportKey(publicKey.value),
         };
 
-        const result = await useApi<GuestLoginRequest, AuthResponse>({
+        const result = await useApi<GuestLoginRequest, AuthResponseBody>({
             path: "/login",
             method: "POST",
             query: { guest: "true" },
             body: reqBody,
         });
 
-        return { statusCode: result?.status ?? 500 };
+        return { statusCode: result?.status ?? 500, playerId: result?.data.playerId ?? "" };
     } catch (err) {
         console.error(err);
         return { statusCode: err instanceof ApiError ? err.status : 500 };

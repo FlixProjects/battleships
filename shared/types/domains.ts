@@ -64,4 +64,11 @@ export interface SubmitActionResponse extends GenericResponse {
 
 export interface AuthResponse {
     statusCode: number;
+    playerId?: string;
+}
+
+export interface AuthResponseBody {
+    message: string;
+    playerId: string;
+    isGuest?: boolean;
 }

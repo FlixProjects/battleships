@@ -1,4 +1,4 @@
-import { AuthResponse, SignUpRequest } from "@shared/index";
+import { AuthResponse, AuthResponseBody, SignUpRequest } from "@shared/index";
 import { idb } from "..";
 import { JwtHelper } from "../../shared/auth/jwt-helper";
 import { ApiError, useApi } from "./use-api";
@@ -17,13 +17,17 @@ export const login = async (username: string, password: string): Promise<AuthRes
             publicJwk: await new JwtHelper().exportKey(publicKey.value),
         };
 
-        const result = await useApi<SignUpRequest, AuthResponse>({
+        const result = await useApi<SignUpRequest, AuthResponseBody>({
             path: "/login",
             method: "POST",
             body: reqBody,
         });
 
-        return { statusCode: result?.status ?? 500 };
+        if (!result?.data.playerId) {
+            throw new Error("No playerId returned.");
+        }
+
+        return { statusCode: result?.status ?? 500, playerId: result.data.playerId };
     } catch (err) {
         console.error(err);
         return { statusCode: err instanceof ApiError ? err.status : 500 };
