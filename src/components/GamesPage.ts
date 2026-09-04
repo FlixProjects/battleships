@@ -23,13 +23,13 @@ export class GamesPage extends BaseComponent {
     }
 
     updateState(_state?: IAppState): void {
-        if (this.loading || !gameManager.isLoggedIn) {
+        const screen = _state?.screen ?? getAppScreen();
+        if (this.loading || !gameManager.isLoggedIn || screen !== GameConfig.AppScreen.Games) {
             return;
         }
         this.fetchGames();
         this.build();
 
-        const screen = _state?.screen ?? getAppScreen();
         this.ref.style.display = screen === GameConfig.AppScreen.Games ? "flex" : "none";
 
         this.renderGames();
@@ -43,7 +43,7 @@ export class GamesPage extends BaseComponent {
         this.loading = true;
         const { games } = await getGames();
         this.games = games;
-        this.updateState();
+        this.renderGames();
         this.loading = false;
     }
 
@@ -106,7 +106,6 @@ export class GamesPage extends BaseComponent {
     // No child components hold refs in here, so the rows can rebuild freely.
     private renderGames() {
         this.list.replaceChildren();
-
         this.games.map((gameCode) => {
             if (gameCode && !isUnjoinedLocalPlayer()) {
                 this.list.appendChild(this.buildGameRow(gameCode));
