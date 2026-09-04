@@ -17,29 +17,26 @@ export class App {
     private GSM: TGameStateManagerCtor = FEGameStateManager;
     public async start() {
         loadStyles();
+        const gameCode = getGameCode();
+        const authToken = getCookie(FP_AUTH_TOKEN);
 
-        if (this.hasExistingStaleSession()) {
-            this.clearStaleSession();
-            return updateComponents(this._state);
-        } else if (this.isLoggedInButNoData()) {
-            setAppScreen(GameConfig.AppScreen.Games);
-            return updateComponents(this._state);
+        if (gameCode && authToken) {
+            setAppScreen(GameConfig.AppScreen.Game);
+            return await this.fetchExistingSession();
         }
 
-        updateComponents(this._state);
-        await this.fetchExistingSession();
-    }
+        const hasExistingStaleSession = gameCode && !authToken;
+        const isLoggedInButNoData = !gameCode && authToken;
 
-    private hasExistingStaleSession() {
-        const gameCode = getGameCode();
-        const authToken = getCookie(FP_AUTH_TOKEN);
-        return gameCode && !authToken;
-    }
+        if (hasExistingStaleSession) {
+            this.clearStaleSession();
+        } else if (isLoggedInButNoData) {
+            setAppScreen(GameConfig.AppScreen.Games);
+        } else if (!authToken) {
+            setAppScreen(GameConfig.AppScreen.Login);
+        }
 
-    private isLoggedInButNoData() {
-        const gameCode = getGameCode();
-        const authToken = getCookie(FP_AUTH_TOKEN);
-        return !gameCode && authToken;
+        return updateComponents(this._state);
     }
 
     private clearStaleSession() {
