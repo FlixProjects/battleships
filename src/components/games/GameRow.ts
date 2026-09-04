@@ -1,7 +1,10 @@
 import { GameConfig } from "@shared/index";
-import { setAppScreen } from "../../utils/screen-helper";
+import { getAppScreen, setAppScreen } from "../../utils/screen-helper";
 import { BaseComponent } from "../BaseComponent";
 import { updateComponents } from "../component-helper";
+import { getGame } from "../../apis/get-game";
+import { gameManager } from "../..";
+import { playbackRunner } from "../../models/PlaybackRunner";
 
 interface Props {
     gameCode: string;
@@ -61,10 +64,36 @@ export class GameRow extends BaseComponent {
     addEventListeners() {
         this.ref.addEventListener("mouseenter", () => (this.ref.style.background = "var(--glass)"));
         this.ref.addEventListener("mouseleave", () => (this.ref.style.background = "var(--glass-2)"));
-        this.ref.addEventListener("click", (event) => {
+        this.ref.addEventListener("click", async (event) => {
             event.stopPropagation();
             setAppScreen(GameConfig.AppScreen.Game);
-            updateComponents();
+            await this.getGame();
         });
+    }
+
+    private async getGame() {
+        try {
+            const response = await getGame(this.gameCode);
+            if (response?.gameState) {
+                gameManager.trackRoundSnapshots(gameManager.getCurrentPlayerId(), response.gameState);
+            }
+
+            const { status, currentPlayer } = gameManager.state;
+
+            const newState = {
+                loading: false,
+                gameState: response?.gameState,
+                status,
+                currentPlayer,
+            };
+
+            gameManager.saveAppState(newState);
+
+            await playbackRunner.playIfUnseen();
+
+            updateComponents();
+        } catch (error) {
+            updateComponents({ status: GameConfig.AppStatus.Error });
+        }
     }
 }
