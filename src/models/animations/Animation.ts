@@ -33,6 +33,8 @@ export class BaseAnimation implements IAnimation {
         this.animationLayer = layer;
     }
 
+    // 1 Animation instance may call animate() multiple times
+    // so we need to make sure that the onDocumentCancelClick cancels all of them
     protected animate(runAnimation: () => void): Promise<void> {
         return new Promise((resolve) => this.runAnimationFlow(resolve, runAnimation));
     }
