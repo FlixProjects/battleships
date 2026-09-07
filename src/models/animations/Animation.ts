@@ -18,7 +18,7 @@ export class BaseAnimation implements IAnimation {
     public duration: number;
 
     protected onCancelClicks: (() => void)[] = [DEFAULT_CANCEL_CLICK];
-    protected onCancelClick: () => void = () => this.onCancelClicks.forEach((cc) => cc());
+    protected onDocumentCancelClick: () => void = () => this.onCancelClicks.forEach((cc) => cc());
 
     constructor(props: IAnimationProps) {
         this.duration = props.duration || 750;
@@ -56,7 +56,7 @@ export class BaseAnimation implements IAnimation {
 
     private startAnimationTimer() {
         setTimeout(() => {
-            this.onCancelClick();
+            this.onDocumentCancelClick();
         }, this.duration);
     }
 
@@ -64,7 +64,7 @@ export class BaseAnimation implements IAnimation {
         const onCancelClick = () => {
             resolve();
             this.resetCancelClickListener();
-            document.removeEventListener("click", this.onCancelClick);
+            document.removeEventListener("click", this.onDocumentCancelClick);
         };
         return onCancelClick;
     }
@@ -74,6 +74,6 @@ export class BaseAnimation implements IAnimation {
     }
 
     private addCancelAnimationListener() {
-        document.addEventListener("click", this.onCancelClick);
+        document.addEventListener("click", this.onDocumentCancelClick);
     }
 }
