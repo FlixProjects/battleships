@@ -64,7 +64,7 @@ export class BaseAnimation implements IAnimation {
         const onCancelClick = () => {
             resolve();
             this.resetCancelClickListener();
-            document.removeEventListener("click", onCancelClick);
+            document.removeEventListener("click", this.onCancelClick);
         };
         return onCancelClick;
     }
