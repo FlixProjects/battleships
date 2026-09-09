@@ -178,6 +178,8 @@ export const ERROR_MESSAGES = {
     // ==========================
 
     TARGET_SHIP_ALREADY_DESTROYED: "TARGET_SHIP_ALREADY_DESTROYED",
+    ATTACK_ERROR_NO_ATTACKS_REMAINING: "ATTACK_ERROR_NO_ATTACKS_REMAINING",
+    ATTACK_ERROR_OUT_OF_RANGE: "ATTACK_ERROR_OUT_OF_RANGE",
 
     // ==========================
     // Legacy (FIXME: to review)

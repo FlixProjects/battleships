@@ -14,10 +14,11 @@ import {
     IMoveAction,
     IPlayCardAction,
     IPlayerAction,
+    IShipAttackAction,
     ISignalHandleCtx,
     ResultType
 } from "..";
-import { DeployShipValidator, MoveShipValidator, PlayCardValidator } from "../utils/validator";
+import { DeployShipValidator, MoveShipValidator, PlayCardValidator, ShipAttackValidator } from "../utils/validator";
 import { IValidator } from "../utils/validator/types";
 import { GameObjectEntity } from "./entities/GameObjectEntity";
 import { Signal } from "./signals/Signal";
@@ -191,6 +192,9 @@ export class GameEngine {
         }
         if (action.type === ActionTypes.PLAY_CARD) {
             return new PlayCardValidator(this.gameState, action as IPlayCardAction);
+        }
+        if (action.type === ActionTypes.ATTACK) {
+            return new ShipAttackValidator(this.gameState, action as IShipAttackAction);
         }
         return null;
     }

@@ -14,7 +14,8 @@ const buildPlayer1 = (overrides?: Partial<IPlayer>) => new PlayerBuilder({ id: "
 const buildPlayer2 = (overrides?: Partial<IPlayer>) =>
     new PlayerBuilder({ id: "player2", name: "Player 2", order: 1 }).build(overrides);
 
-const shipBuilder = new ShipBuilder({ refNo: "frigate0", name: "Frigate", deployed: true });
+// frigate reach; ShipAttackValidator rejects out-of-range attackLocations
+const shipBuilder = new ShipBuilder({ refNo: "frigate0", name: "Frigate", deployed: true, attackRange: 3 });
 const hullBuilder = new HullBuilder({ visionRange: 2 });
 const gameStateBuilder = new GameStateBuilder();
 

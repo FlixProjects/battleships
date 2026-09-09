@@ -34,6 +34,8 @@ const shipBuilder = new ShipBuilder({
     refNo: "frigate0",
     name: "Frigate",
     deployed: true,
+    // frigate reach; ShipAttackValidator rejects out-of-range attackLocations
+    attackRange: 3,
 });
 
 const hullBuilder = new HullBuilder({
