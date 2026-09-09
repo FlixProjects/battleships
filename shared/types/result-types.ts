@@ -7,6 +7,13 @@ export const ResultType = {
 
 export type TResultTypes = (typeof ResultType)[keyof typeof ResultType];
 
+export const ErrorType = {
+    SERVER: "server",
+    GAME: "game", // not logic error, but illegal within game's context
+}
+
+export type TErrorTypes = (typeof ErrorType)[keyof typeof ErrorType];
+
 export interface IResult {
     playerId: string;
     type: TResultTypes;
@@ -15,6 +22,7 @@ export interface IResult {
 
 export interface IErrorResult extends IResult {
     type: typeof ResultType.ERROR;
+    errorType: TErrorTypes;
     errorCode?: TErrorMessages;
 }
 

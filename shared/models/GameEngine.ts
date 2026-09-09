@@ -3,8 +3,10 @@ import { BasicShipAttackActionSignalCreator } from "@shared/models/signal-creato
 import { BasicShipDeployActionSignalCreator } from "@shared/models/signal-creators/BasicShipDeployActionSignalCreator";
 import { BasicShipMoveActionSignalCreator } from "@shared/models/signal-creators/BasicShipMoveActionSignalCreator";
 import { PlayCardActionSignalCreator } from "@shared/models/signal-creators/PlayCardActionSignalCreator";
+import { BaseError } from "@shared/utils/error/BaseError";
 import {
     ActionTypes,
+    ErrorType,
     IDeployAction,
     IGameObjectEntity,
     IGameState,
@@ -13,13 +15,13 @@ import {
     IPlayCardAction,
     IPlayerAction,
     ISignalHandleCtx,
-    ResultType,
+    ResultType
 } from "..";
 import { DeployShipValidator, MoveShipValidator, PlayCardValidator } from "../utils/validator";
 import { IValidator } from "../utils/validator/types";
 import { GameObjectEntity } from "./entities/GameObjectEntity";
 import { Signal } from "./signals/Signal";
-import { ISignal, IQuerySignal, SignalResultMap, TQuerySignalType, TQueryResult } from "./signals/types";
+import { IQuerySignal, ISignal, SignalResultMap, TQueryResult, TQuerySignalType } from "./signals/types";
 
 /** Passive tap on the signal stream: called once per drained signal, before the
  *  entity fan-out, with the same ctx the entities receive (so `ctx.gsm` is the
@@ -51,11 +53,19 @@ export class GameEngine {
     public run(action: IPlayerAction) {
         this.resetRun();
         this.currentAction = action;
-        if (this.isValidAction()) {
-            this.recordAction();
-            this.loadInitialSignals(action);
-            this.sendSignals();
+        try {
+            if (this.isValidAction()) {
+                this.recordAction();
+                this.loadInitialSignals(action);
+                this.sendSignals();
+            }
+        } catch (error) {
+            if (error instanceof BaseError && error.errorType === ErrorType.GAME) {
+                return this.gameState;
+            }
+            throw error;
         }
+
         return this.gameState;
     }
 
@@ -126,7 +136,7 @@ export class GameEngine {
     private sendSignalToGameObjects(signal: Signal) {
         // IMPT: passing in this.getSignalContext(signal) directly into obj.receiveSignal
         // causes timeout due to new GSM() cloning in getSignalContext
-        // FIXME: change to getGSM() instead 
+        // FIXME: change to getGSM() instead
         const ctx = this.getSignalContext(signal);
         this.signalObserver?.(ctx);
         this.gameObjects.forEach((obj) => {

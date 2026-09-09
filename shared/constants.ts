@@ -172,6 +172,12 @@ export const ERROR_MESSAGES = {
     // API — server
     // ==========================
     INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
+    
+    // ==========================
+    // Game — illegal moves
+    // ==========================
+
+    TARGET_SHIP_ALREADY_DESTROYED: "TARGET_SHIP_ALREADY_DESTROYED",
 
     // ==========================
     // Legacy (FIXME: to review)

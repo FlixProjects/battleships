@@ -1,8 +1,9 @@
 import { ERROR_MESSAGES } from "../../constants";
 import { Ship } from "../../models/Ship";
-import { IErrorResult, IGameState, IHull, IMoveAction, ResultType } from "../../types";
+import { ErrorType, IErrorResult, IGameState, IHull, IMoveAction, ResultType } from "../../types";
 import { LocationHelper, locationToKey } from "../../utils";
 import { PathFinder } from "../../utils/path-finder";
+import { BaseError } from "../error/BaseError";
 import { Validator } from "./Validator";
 
 export class MoveShipValidator extends Validator {
@@ -15,9 +16,13 @@ export class MoveShipValidator extends Validator {
 
     validate() {
         try {
+            // Server validation
             this.validateShipExists();
             this.validateWithinBoardBounds();
             this.validateDestinationNotOccupied();
+
+            // Game validation
+            this.validateShipNotDestroyed();
             // this.validateWithinMovementRange();
 
             return { type: ResultType.SUCCESS, playerId: this.moveAction.playerId };
@@ -30,9 +35,25 @@ export class MoveShipValidator extends Validator {
         const { shipId, targetCell, route } = this.moveAction;
         const _ship = this.gameState.ships.find((s) => s.id === shipId);
         if (!_ship) {
-            throw { type: ResultType.ERROR, errorCode: ERROR_MESSAGES.SYS_NOT_FOUND, message: "Ship not found" };
+            throw new BaseError({
+                errorType: ErrorType.SERVER,
+                errorCode: ERROR_MESSAGES.SYS_NOT_FOUND,
+                message: "Ship not found",
+            });
         }
         return new Ship(_ship).getNewHullLocations(targetCell, route);
+    }
+
+    private validateShipNotDestroyed() {
+        const { shipId } = this.moveAction;
+        const ship = this.gameState.ships.find((s) => s.id === shipId);
+        if (ship?.destroyed) {
+            throw new BaseError({
+                errorType: ErrorType.GAME,
+                errorCode: ERROR_MESSAGES.TARGET_SHIP_ALREADY_DESTROYED,
+                message: "Ship is destroyed and cannot move",
+            });
+        }
     }
 
     private validateShipExists() {
@@ -41,11 +62,11 @@ export class MoveShipValidator extends Validator {
         const shipHulls = this.gameState.hulls?.filter((h) => h.shipId === shipId);
 
         if (!ship?.deployed || !shipHulls?.[0]) {
-            throw {
-                type: ResultType.ERROR,
+            throw new BaseError({
+                errorType: ErrorType.SERVER,
                 errorCode: ERROR_MESSAGES.SYS_NOT_FOUND,
                 message: "Ship not found or not deployed",
-            };
+            });
         }
     }
 
@@ -58,11 +79,11 @@ export class MoveShipValidator extends Validator {
         });
 
         if (!isWithinBounds) {
-            throw {
-                type: ResultType.ERROR,
+            throw new BaseError({
+                errorType: ErrorType.SERVER,
                 errorCode: ERROR_MESSAGES.SYS_INVALID_PARAMS,
                 message: "Destination location is out of board bounds",
-            };
+            });
         }
     }
 
@@ -73,11 +94,11 @@ export class MoveShipValidator extends Validator {
         const newLocations = this.computeNewHullLocations();
         const _ship = this.gameState.ships.find((s) => s.id === shipId);
         if (!_ship) {
-            throw {
-                type: ResultType.ERROR,
+            throw new BaseError({
+                errorType: ErrorType.SERVER,
                 errorCode: ERROR_MESSAGES.SYS_NOT_FOUND,
                 message: "[validateWithinMovementRange] Ship not found",
-            };
+            });
         }
         const ship = new Ship(_ship);
         const currentLoc = ship.getFrontHull().location;
@@ -91,22 +112,22 @@ export class MoveShipValidator extends Validator {
         const frontHullNewLoc = newLocations.find((h) => h.front)?.location;
 
         if (!frontHullNewLoc) {
-            throw {
-                type: ResultType.ERROR,
+            throw new BaseError({
+                errorType: ErrorType.SERVER,
                 errorCode: ERROR_MESSAGES.SYS_INVALID_PARAMS,
                 message: "Front hull location not found in new locations",
-            };
+            });
         }
 
         const newLocationKeys = [locationToKey(frontHullNewLoc)];
         const isReachable = newLocationKeys.every((newLoc) => reachableCellsKeys.includes(newLoc));
 
         if (!isReachable) {
-            throw {
-                type: ResultType.ERROR,
+            throw new BaseError({
+                errorType: ErrorType.GAME,
                 errorCode: ERROR_MESSAGES.MOVE_ERROR_INSUFFICIENT_MOVEMENT,
                 message: "Destination location is out of movement range",
-            };
+            });
         }
     }
 
@@ -120,11 +141,11 @@ export class MoveShipValidator extends Validator {
         const locationHelper = new LocationHelper(players);
 
         if (locationHelper.isLocationOccupied(newLocations[0].location)) {
-            throw {
-                type: ResultType.ERROR,
+            throw new BaseError({
+                errorType: ErrorType.SERVER,
                 errorCode: ERROR_MESSAGES.MOVE_ERROR_LOCATION_OCCUPIED,
                 message: "Destination location is occupied",
-            };
+            });
         }
     }
 }
