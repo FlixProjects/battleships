@@ -10,6 +10,7 @@ import { GameRotateInitiativeSignal } from "../../models/signals/GameRotateIniti
 import { GameWinnerDeterminedSignal } from "../../models/signals/GameWinnerDeterminedSignal";
 import { ISignal } from "../../models/signals/types";
 import { IGameState, IPlayerAction, IResult } from "../../types";
+import { mergeSets } from "../helpers";
 import { TurnEventRecorder, TVisibleTilesByPlayer } from "./TurnEventRecorder";
 
 export interface IActionResolverOptions {
@@ -42,8 +43,9 @@ export class ActionResolver {
     }
 
     public resolve() {
+        const visionBeforeTick = this.visibleTilesByPlayer();
         this.resolvePersistentEffectsTick();
-        this.stampTurnEventVisibility();
+        this.stampTurnEventVisibility(visionBeforeTick);
 
         do {
             this.resolveTurn();
@@ -93,21 +95,31 @@ export class ActionResolver {
         }
 
         this.currentTurn.forEach((action) => {
+            const visionBeforeAction = this.visibleTilesByPlayer();
             const newState = this.resolveAction(action);
             this.gameState = newState;
-            // Visibility can shift with every action; stamp its events with what
-            // each player could see *at this moment*, not at turn end.
-            this.stampTurnEventVisibility();
+            this.stampTurnEventVisibility(visionBeforeAction);
         });
 
         this.currentTurn = [];
     }
 
-    private stampTurnEventVisibility() {
+    private visibleTilesByPlayer(): TVisibleTilesByPlayer | undefined {
         if (!this.recorder) return;
         const visibleTilesByPlayer: TVisibleTilesByPlayer = {};
         this.gameState.players.forEach((player) => {
             visibleTilesByPlayer[player.id] = this.gameState.getVisibleTilesforPlayer(player.id);
+        });
+        return visibleTilesByPlayer;
+    }
+
+    // Union of before/after: an action can destroy the ship whose vision the event needs.
+    private stampTurnEventVisibility(visionBefore?: TVisibleTilesByPlayer) {
+        if (!this.recorder) return;
+        const visionAfter = this.visibleTilesByPlayer() ?? {};
+        const visibleTilesByPlayer: TVisibleTilesByPlayer = {};
+        Object.entries(visionAfter).forEach(([playerId, tiles]) => {
+            visibleTilesByPlayer[playerId] = mergeSets([visionBefore?.[playerId] ?? new Set<string>(), tiles]);
         });
         this.recorder.stampVisibility(visibleTilesByPlayer);
     }

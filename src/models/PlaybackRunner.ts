@@ -1,4 +1,4 @@
-import { IPlainAppState, IPlainGameState, ITurnEvent } from "@shared/types";
+import { IPlainAppState, IPlainGameState, ITurnEvent, TurnEventKind } from "@shared/types";
 import clone from "lodash.clonedeep";
 import { gameManager } from "..";
 import { updateComponents } from "../components/component-helper";
@@ -98,10 +98,20 @@ export class PlaybackRunner {
 
         applier.apply(playback, index);
         const command = turnEventToCommand(event);
+
+        // The sink animates a copy, so the ship must leave the board before it plays.
+        const rendersBeforeAnimating = event.kind === TurnEventKind.ShipDestroyed;
+        if (rendersBeforeAnimating) {
+            this.renderTransient(finalAppState, playback);
+        }
+
         if (command) {
             await queueCommand(command);
         }
-        this.renderTransient(finalAppState, playback);
+
+        if (!rendersBeforeAnimating) {
+            this.renderTransient(finalAppState, playback);
+        }
     }
 
     private requestSkip(): void {

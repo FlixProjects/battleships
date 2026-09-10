@@ -32,10 +32,10 @@ export const turnEventToCommand = (event: ITurnEvent): FECommand | undefined => 
             return new FEPlaybackAnimationCommand(() => [
                 new HitAnimation({ id: event.shipId, elements: getElementsFromIds([event.hullId]) }),
             ]);
-        case TurnEventKind.ShipDestroyed:
-            return new FEPlaybackAnimationCommand(() => [
-                new DestroyedAnimation({ id: event.shipId, elements: getElementsFromIds(event.hullIds) }),
-            ]);
+        case TurnEventKind.ShipDestroyed: {
+            const elements = getElementsFromIds(event.hullIds);
+            return new FEPlaybackAnimationCommand(() => [new DestroyedAnimation({ id: event.shipId, elements })]);
+        }
         case TurnEventKind.EffectDetonated:
             return new FEEffectDetonationAnimationCommand({ location: event.location });
         case TurnEventKind.ShipDeployed:

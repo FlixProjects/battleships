@@ -4,7 +4,14 @@ import { HullBuilder } from "../../../factories/hull-builder";
 import { PlayerBuilder } from "../../../factories/player-builder";
 import { ShipBuilder } from "../../../factories/ship-builder";
 import { GameState } from "../../../models/GameState";
-import { ActionTypes, EffectKind, IMoveAction, TurnEventKind, isShipMovedEvent } from "../../../types";
+import {
+    ActionTypes,
+    EffectKind,
+    IMoveAction,
+    IShipAttackAction,
+    TurnEventKind,
+    isShipMovedEvent,
+} from "../../../types";
 import { ActionResolver } from "../ActionResolver";
 
 const gameStateBuilder = new GameStateBuilder();
@@ -104,6 +111,52 @@ describe("ActionResolver — turn-event recording (authoritative path)", () => {
         // …while player2's view of the same authoritative state drops it (get-game path).
         const { obscuredGameState: player2View } = new ActionResolver("player2", resolved).resolveVisibility();
         expect(player2View.lastTurnEvents).toEqual([]);
+    });
+
+    it("keeps the killing shot visible to the victim whose only spotter it sank", () => {
+        // The attacker stands one tile away — well inside the victim's vision —
+        // but the victim's ship is the only thing granting that vision, and this
+        // very shot destroys it.
+        const attackerHull = hullBuilder.build({ id: "aHull", shipId: "attacker", location: [2, 2], front: true });
+        const attacker = shipBuilder.build({
+            id: "attacker",
+            playerId: "player1",
+            hulls: [attackerHull],
+            remainingAttacks: 1,
+        });
+        const victimHull = hullBuilder.build({ id: "vHull", shipId: "victim", location: [2, 3], front: true });
+        const victim = shipBuilder.build({ id: "victim", playerId: "player2", hulls: [victimHull] });
+
+        const attackAction: IShipAttackAction = {
+            id: "attack-1",
+            type: ActionTypes.ATTACK,
+            playerId: "player1",
+            round: 1,
+            order: 0,
+            commandPointCost: 1,
+            shipId: "attacker",
+            attackLocations: [[2, 3]],
+        };
+        const gameState = gameStateBuilder.build({
+            players: [
+                buildPlayer1.build({ ships: [attacker], pendingActions: [attackAction] }),
+                buildPlayer2.build({ ships: [victim] }),
+            ],
+            ships: [attacker, victim],
+            hulls: [attackerHull, victimHull],
+            actions: [attackAction],
+        });
+
+        const { gameState: resolved } = new ActionResolver("player1", gameState, {
+            recordTurnEvents: true,
+        }).resolve();
+
+        const { obscuredGameState: player2View } = new ActionResolver("player2", resolved).resolveVisibility();
+        expect(player2View.lastTurnEvents.map((e) => e.kind)).toEqual([
+            TurnEventKind.ShipAttacked, // the projectile — post-death vision alone would drop it
+            TurnEventKind.HullDamaged,
+            TurnEventKind.ShipDestroyed,
+        ]);
     });
 
     it("truncates a partially-seen opponent move and strips the per-viewer map", () => {
