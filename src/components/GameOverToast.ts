@@ -42,16 +42,16 @@ export class GameOverToast extends Toast {
                 const isWinner = gameState.winners.includes(gameManager.getCurrentPlayerId());
 
                 const isDraw = gameState.winners.length > 1;
-
+                let options: ToastOptions;
                 if (isDraw) {
-                    this.options = DRAW_OPTIONS;
+                    options = DRAW_OPTIONS;
                 } else if (isWinner) {
-                    this.options = WIN_OPTIONS;
+                    options = WIN_OPTIONS;
                 } else {
-                    this.options = LOSE_OPTIONS;
+                    options = LOSE_OPTIONS;
                 }
 
-                GameOverToast.show(this.options, GAME_OVER_TOAST_ID);
+                GameOverToast.show(options, GAME_OVER_TOAST_ID);
             }
         }
     }

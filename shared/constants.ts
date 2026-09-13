@@ -130,6 +130,7 @@ export const ASSET_PATHS = {
     INFO_ICON: "./assets/info-icon.svg",
     VISION_ICON: "./assets/vision-icon.svg",
     DURATION_ICON: "./assets/duration-icon.svg",
+    CROSS_ICON: "./assets/cross-icon.png",
 };
 
 export const COMPONENT_ID = {
@@ -172,7 +173,7 @@ export const ERROR_MESSAGES = {
     // API — server
     // ==========================
     INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR",
-    
+
     // ==========================
     // Game — illegal moves
     // ==========================

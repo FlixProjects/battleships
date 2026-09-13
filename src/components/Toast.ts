@@ -1,5 +1,7 @@
-import { Z_INDEX } from "@shared/constants";
+import { ASSET_PATHS, Z_INDEX } from "@shared/constants";
 import { BaseComponent } from "./BaseComponent";
+import { Icon } from "./icon/Icon";
+import { HTMLImage } from "./native/Image";
 
 export interface ToastOptions {
     message: string;
@@ -7,18 +9,36 @@ export interface ToastOptions {
     type?: "info" | "error" | "success" | "warning";
     permanent?: boolean;
     animate?: boolean;
+    showCloseButton?: boolean;
 }
+
+interface _ToastOptions {
+    message: string;
+    duration: number;
+    type: "info" | "error" | "success" | "warning";
+    permanent: boolean;
+    animate: boolean;
+    showCloseButton: boolean;
+}
+
+const DEFAULT_TOAST_OPTIONS: _ToastOptions = {
+    message: "",
+    duration: 3000,
+    type: "info",
+    permanent: false,
+    animate: true,
+    showCloseButton: true,
+};
 
 export class Toast extends BaseComponent {
     protected static container: HTMLDivElement;
     private timeout: NodeJS.Timeout;
-    protected options: ToastOptions;
+    private options: _ToastOptions;
     constructor(_options: ToastOptions, id?: string) {
         super();
         this.id = id;
         this.options = {
-            permanent: false,
-            animate: true,
+            ...DEFAULT_TOAST_OPTIONS,
             ..._options,
         };
 
@@ -57,12 +77,13 @@ export class Toast extends BaseComponent {
         }
 
         this.addStyles();
+        this.buildCloseButton();
 
         Toast.container.appendChild(this.ref);
 
         if (this.options.permanent) return this.ref;
 
-        const duration = this.options.duration ?? 3000;
+        const duration = this.options.duration;
         this.timeout = setTimeout(() => this.remove(), duration);
 
         return this.ref;
@@ -79,6 +100,8 @@ export class Toast extends BaseComponent {
         const type = this.options.type ?? "info";
         const color = colors[type];
 
+        this.ref.style.display = "flex";
+        this.ref.style.justifyContent = "space-between";
         this.ref.style.background = color.bg;
         this.ref.style.border = `1px solid ${color.border}`;
         this.ref.style.borderRadius = "8px";
@@ -87,6 +110,25 @@ export class Toast extends BaseComponent {
         this.ref.style.fontSize = "14px";
         this.ref.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.4)";
         this.ref.style.boxSizing = "content-box";
+    }
+
+    protected buildCloseButton() {
+        const container = document.createElement("div");
+
+        const addStyles = (buttonElement: HTMLImage) => {
+            buttonElement.ref.style.top = "4px";
+            buttonElement.ref.style.right = "4px";
+            buttonElement.ref.style.width = "16px";
+            buttonElement.ref.style.height = "16px";
+            buttonElement.ref.style.cursor = "pointer";
+        };
+        const icon = new Icon({ src: ASSET_PATHS.CROSS_ICON, addStyles });
+
+        container.appendChild(icon.build());
+
+        container.addEventListener("click", () => this.remove());
+
+        this.ref.appendChild(container);
     }
 
     protected remove() {
