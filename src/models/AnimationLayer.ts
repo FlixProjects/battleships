@@ -1,4 +1,5 @@
 import { ANIMATION_LAYER_ID } from "@shared/constants";
+import { getLayoutRect } from "../utils/game-helper";
 
 export class AnimationLayer {
     public _layer: HTMLElement;
@@ -24,7 +25,7 @@ export class AnimationLayer {
         wrapper.id = refId;
 
         // Calculate bounding box of all elements
-        const rects = elementsToAnimate.map((el) => el.getBoundingClientRect());
+        const rects = elementsToAnimate.map((el) => getLayoutRect(el));
         const minTop = Math.min(...rects.map((r) => r.top));
         const minLeft = Math.min(...rects.map((r) => r.left));
         const maxBottom = Math.max(...rects.map((r) => r.bottom));
@@ -66,7 +67,7 @@ export class AnimationLayer {
     public copyToLayer(animationId: string, elementToAnimate: HTMLElement, customRect?: DOMRect): HTMLElement {
         this.initialiseLayer();
 
-        const sourceRect = customRect ?? elementToAnimate.getBoundingClientRect();
+        const sourceRect = customRect ?? getLayoutRect(elementToAnimate);
         const { top, left } = this.calculateRelativePosition(sourceRect, this.layer.getBoundingClientRect());
 
         const clone = elementToAnimate.cloneNode(true) as HTMLElement;

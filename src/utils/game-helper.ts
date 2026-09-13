@@ -95,9 +95,25 @@ export const getElementsFromIds = (ids: string[]) => {
             return gameBoardContainer.querySelector(`[id="${id}"]`);
         })
         .filter((el): el is HTMLElement => el !== null)
-        .map((el) => ({ el, rect: el.getBoundingClientRect() }));
+        .map((el) => ({ el, rect: getLayoutRect(el) }));
 
     return elements;
+};
+
+// TODO: Check if we are repeating centering logic elsewhere
+export const getLayoutRect = (el: HTMLElement): DOMRect => {
+    const rect = el.getBoundingClientRect();
+    const { offsetWidth: w, offsetHeight: h } = el;
+    const { a, b, c, d } = new DOMMatrix(getComputedStyle(el).transform);
+    const transformedExtent = Math.abs(a) * w + Math.abs(c) * h + Math.abs(b) * w + Math.abs(d) * h;
+    if (transformedExtent === 0) return rect;
+
+    const scale = (rect.width + rect.height) / transformedExtent;
+    const width = w * scale;
+    const height = h * scale;
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    return new DOMRect(centerX - width / 2, centerY - height / 2, width, height);
 };
 
 export const isWaitingForOtherPlayer = (gameState: { players: { id: string; ready: boolean }[] }) => {
