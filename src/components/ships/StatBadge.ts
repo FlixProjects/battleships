@@ -1,5 +1,5 @@
 import { BaseComponent } from "../BaseComponent";
-import { Icon } from "./Icon";
+import { Icon } from "../icon/Icon";
 
 interface Props {
     iconSrc: string;

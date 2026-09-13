@@ -4,7 +4,7 @@ import { IAppState } from "@shared/types";
 import { interactionManager } from "../..";
 import { getAppScreen } from "../../utils/screen-helper";
 import { BaseComponent } from "../BaseComponent";
-import { Icon } from "../ships/Icon";
+import { Icon } from "../icon/Icon";
 import { StatBadge } from "../ships/StatBadge";
 import { DetailsHullRow, DetailsHullValue, DetailsViewModel } from "../../models/details/DetailsViewModel";
 

@@ -8,7 +8,7 @@ import { gameManager } from "../..";
 import { getComponents } from "../../components/component-helper";
 import { HTMLImage } from "../../components/native/Image";
 import { Selectable } from "../../components/Selectable";
-import { Icon } from "../../components/ships/Icon";
+import { Icon } from "../../components/icon/Icon";
 import { getEngine, queueCommand } from "../../utils/game-helper";
 import { ShipAttackActionIMEvent } from "../interaction-manager/types";
 import { ClickHandler } from "./ClickHandler";
@@ -58,7 +58,7 @@ export class ShipAttackClickHandler extends ClickHandler {
 
     protected async handler(e: MouseEvent) {
         const { shipId, onGlobalDeselect, onSuccessfulSelect } = this.event;
-        
+
         const id = this.getTileIdAtPoint(e);
 
         const validCellIndices = this.validCells.map((cell) => locationToKey(cell));

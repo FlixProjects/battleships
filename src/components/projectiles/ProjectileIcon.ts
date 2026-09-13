@@ -1,6 +1,6 @@
 import { Z_INDEX } from "@shared/constants";
 import { IconProps } from "../../types/components/types";
-import { Icon } from "../ships/Icon";
+import { Icon } from "../icon/Icon";
 
 interface Props extends IconProps {
     top: number;

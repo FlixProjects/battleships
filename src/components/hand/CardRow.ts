@@ -7,7 +7,7 @@ import { FEGameStateManager } from "../../models/FEGameStateManager";
 import { shipArmor, sumShipHealth } from "../../models/details/DetailsViewModel";
 import { IMEventType } from "../../models/interaction-manager/types";
 import { Selectable } from "../Selectable";
-import { Icon } from "../ships/Icon";
+import { Icon } from "../icon/Icon";
 import { ShipIcon } from "../ships/ShipIcon";
 import { StatBadge } from "../ships/StatBadge";
 import { SupportIcon } from "../supports/SupportIcon";

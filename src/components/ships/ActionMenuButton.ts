@@ -1,5 +1,5 @@
 import { Selectable } from "../Selectable";
-import { Icon } from "./Icon";
+import { Icon } from "../icon/Icon";
 
 interface Props {
     iconSrc?: string;
