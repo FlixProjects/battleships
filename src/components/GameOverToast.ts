@@ -1,6 +1,8 @@
 import { gameManager } from "..";
 import { IAppState } from "@shared/types";
 import { Toast, ToastOptions } from "./Toast";
+import { getAppScreen } from "../utils/screen-helper";
+import { AppScreen } from "@shared/config/constants";
 
 const SHARED_OPTIONS = {
     permanent: true,
@@ -35,9 +37,10 @@ export class GameOverToast extends Toast {
 
     public updateState(_state?: IAppState): void {
         const gameState = _state?.gameState;
+        const screen = getAppScreen();
         this.removeIfExisting();
 
-        if (gameState?.isOver) {
+        if (screen === AppScreen.Game && gameState?.isOver) {
             if (gameState.winners.length > 0 && !gameState.players.some((p) => p.ready)) {
                 const isWinner = gameState.winners.includes(gameManager.getCurrentPlayerId());
 
