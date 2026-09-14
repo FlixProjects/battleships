@@ -1,9 +1,9 @@
 locals {
   s3_lambdas = try(local.create_s3[terraform.workspace], false) ? [
-    for lambda in try(local.lambda_functions[terraform.workspace], []) : lambda.name
-    if lambda.create && !try(lambda.needs_dynamodb, false)
+    for name, lambda in local.workspace_lambdas : name
+    if try(lambda.needs_s3, false)
   ] : []
-  create_lambda_to_s3_role = length(local.s3_lambdas) > 0 ? 1 : 0
+  create_lambda_to_s3_policy = length(local.s3_lambdas) > 0 ? 1 : 0
 }
 
 resource "aws_s3_bucket" "battleships-s3" {
@@ -44,16 +44,10 @@ data "aws_iam_policy_document" "origin_bucket_policy" {
   }
 }
 
-resource "aws_iam_role" "lambda_to_s3" {
-  count              = local.create_lambda_to_s3_role
-  name               = format("battleships-%s-lambda-to-s3", terraform.workspace)
-  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
-}
-
-resource "aws_iam_role_policy" "lambda_to_s3" {
-  count  = local.create_lambda_to_s3_role
+# attached per function in iam.tf
+resource "aws_iam_policy" "lambda_to_s3" {
+  count  = local.create_lambda_to_s3_policy
   name   = format("battleships-%s-lambda-to-s3", terraform.workspace)
-  role   = aws_iam_role.lambda_to_s3[0].id
   policy = data.aws_iam_policy_document.lambda_to_s3.json
 }
 
@@ -69,7 +63,6 @@ data "aws_iam_policy_document" "lambda_to_s3" {
       "s3:PutObject",
     ]
 
-    resources = [format("%s/*", aws_s3_bucket.battleships-s3[0].arn)]
+    resources = formatlist("%s/*", aws_s3_bucket.battleships-s3[*].arn)
   }
 }
-

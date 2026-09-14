@@ -1,11 +1,11 @@
-
 locals {
   dynamodb_lambdas = try(local.create_dynamodb[terraform.workspace], false) ? [
-    for lambda in try(local.lambda_functions[terraform.workspace], []) : lambda.name
-    if lambda.create && try(lambda.needs_dynamodb, false)
+    for name, lambda in local.workspace_lambdas : name
+    if try(lambda.needs_dynamodb, false)
   ] : []
-  create_lambda_to_dynamodb_role = length(local.dynamodb_lambdas) > 0 ? 1 : 0
+  create_lambda_to_dynamodb_policy = length(local.dynamodb_lambdas) > 0 ? 1 : 0
 }
+
 resource "aws_dynamodb_table" "users" {
   count        = local.create_dynamodb[terraform.workspace] ? 1 : 0
   name         = format("battleships-%s-users", terraform.workspace)
@@ -64,17 +64,11 @@ resource "aws_dynamodb_table" "games" {
   deletion_protection_enabled = true
 }
 
-resource "aws_iam_role" "lambda_to_dynamodb" {
-  count              = local.create_lambda_to_dynamodb_role
-  name               = format("battleships-%s-lambda-to-dynamodb", terraform.workspace)
-  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
-}
-
-# CloudWatch logs come from the shared aws_iam_policy.lambda_logs attachment in iam.tf
-resource "aws_iam_role_policy" "lambda_to_dynamodb" {
-  count  = local.create_lambda_to_dynamodb_role
+# attached per function in iam.tf; CloudWatch logs come from the shared
+# aws_iam_policy.lambda_logs attachment there
+resource "aws_iam_policy" "lambda_to_dynamodb" {
+  count  = local.create_lambda_to_dynamodb_policy
   name   = format("battleships-%s-lambda-to-dynamodb", terraform.workspace)
-  role   = aws_iam_role.lambda_to_dynamodb[0].id
   policy = data.aws_iam_policy_document.lambda_to_dynamodb.json
 }
 
@@ -91,9 +85,23 @@ data "aws_iam_policy_document" "lambda_to_dynamodb" {
     ]
 
     # no Scan and no DeleteItem: nothing in the app enumerates or removes users
-    resources = [
-      aws_dynamodb_table.users[0].arn,
-      format("%s/index/*", aws_dynamodb_table.users[0].arn),
+    resources = concat(
+      aws_dynamodb_table.users[*].arn,
+      formatlist("%s/index/*", aws_dynamodb_table.users[*].arn),
+    )
+  }
+
+  statement {
+    sid    = "AllowGameTableAccess"
+    effect = "Allow"
+
+    # create-game puts a row, get-games queries by userId; nothing updates or
+    # deletes a game row yet, so those stay off until something needs them
+    actions = [
+      "dynamodb:PutItem",
+      "dynamodb:Query",
     ]
+
+    resources = aws_dynamodb_table.games[*].arn
   }
 }

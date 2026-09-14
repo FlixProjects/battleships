@@ -1,14 +1,12 @@
 locals {
-  # every lambda built for this workspace gets its own log group, and both
-  # execution roles need the same grant, so the logging policy is shared
-  logging_lambdas = [
-    for lambda in try(local.lambda_functions[terraform.workspace], []) : lambda.name
+  # every lambda built for this workspace gets its own execution role, so grants
+  # compose per function instead of forcing a single-datastore choice on each one
+  workspace_lambdas = {
+    for lambda in try(local.lambda_functions[terraform.workspace], []) : lambda.name => lambda
     if lambda.create
-  ]
-  create_lambda_logs_policy = length(local.logging_lambdas) > 0 ? 1 : 0
+  }
+  create_lambda_logs_policy = length(local.workspace_lambdas) > 0 ? 1 : 0
 }
-
-# shared by lambda_to_s3 and lambda_to_dynamodb; the edge functions assume
 
 data "aws_iam_policy_document" "lambda_assume_role" {
   statement {
@@ -21,6 +19,12 @@ data "aws_iam_policy_document" "lambda_assume_role" {
       identifiers = ["lambda.amazonaws.com"]
     }
   }
+}
+
+resource "aws_iam_role" "lambda" {
+  for_each           = local.workspace_lambdas
+  name               = format("battleships-lambda-%s-%s", terraform.workspace, each.key)
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
 }
 
 data "aws_iam_policy_document" "lambda_logs" {
@@ -44,7 +48,7 @@ data "aws_iam_policy_document" "lambda_logs" {
     ]
 
     resources = [
-      for name in local.logging_lambdas :
+      for name in keys(local.workspace_lambdas) :
       format(
         "arn:aws:logs:%s:%s:log-group:/aws/lambda/%s:*",
         local.region,
@@ -61,14 +65,21 @@ resource "aws_iam_policy" "lambda_logs" {
   policy = data.aws_iam_policy_document.lambda_logs.json
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_to_s3_logs" {
-  count      = local.create_lambda_to_s3_role
-  role       = aws_iam_role.lambda_to_s3[0].name
+# every function logs; the datastore grants below are opt-in per function flag
+resource "aws_iam_role_policy_attachment" "lambda_logs" {
+  for_each   = local.workspace_lambdas
+  role       = aws_iam_role.lambda[each.key].name
   policy_arn = aws_iam_policy.lambda_logs[0].arn
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_to_dynamodb_logs" {
-  count      = local.create_lambda_to_dynamodb_role
-  role       = aws_iam_role.lambda_to_dynamodb[0].name
-  policy_arn = aws_iam_policy.lambda_logs[0].arn
+resource "aws_iam_role_policy_attachment" "lambda_to_dynamodb" {
+  for_each   = toset(local.dynamodb_lambdas)
+  role       = aws_iam_role.lambda[each.key].name
+  policy_arn = aws_iam_policy.lambda_to_dynamodb[0].arn
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_to_s3" {
+  for_each   = toset(local.s3_lambdas)
+  role       = aws_iam_role.lambda[each.key].name
+  policy_arn = aws_iam_policy.lambda_to_s3[0].arn
 }

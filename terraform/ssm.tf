@@ -3,25 +3,14 @@ locals {
   # Store at cold start rather than taking it as an env var, so the value never
   # passes through the terraform state file in s3.
   auth_secret_lambdas = [
-    for lambda in try(local.lambda_functions[terraform.workspace], []) : lambda.name
-    if lambda.create && try(lambda.needs_auth_secret, false)
+    for name, lambda in local.workspace_lambdas : name
+    if try(lambda.needs_auth_secret, false)
   ]
   create_auth_secret = length(local.auth_secret_lambdas) > 0 ? 1 : 0
 
   # exported to the readers as an env var; the lambda resolves name -> value itself
   auth_token_secret_name = format("/battleships/%s/auth-token-secret", terraform.workspace)
-
-  # the grant has to land on whichever execution role lambda.tf picked for each
-  # reader, so derive both rather than assuming every reader is a dynamodb one
-  auth_secret_on_dynamodb_role = length([
-    for name in local.auth_secret_lambdas : name if contains(local.dynamodb_lambdas, name)
-  ]) > 0 ? 1 : 0
-
-  auth_secret_on_s3_role = length([
-    for name in local.auth_secret_lambdas : name if !contains(local.dynamodb_lambdas, name)
-  ]) > 0 ? 1 : 0
 }
-
 
 resource "aws_ssm_parameter" "auth_token_secret" {
   count       = local.create_auth_secret
@@ -81,15 +70,10 @@ resource "aws_iam_policy" "lambda_read_auth_secret" {
   policy = data.aws_iam_policy_document.lambda_read_auth_secret.json
 }
 
-# attaches policy to read secret from Parameter Store to lambda_to_dynamodb role
-resource "aws_iam_role_policy_attachment" "lambda_to_dynamodb_auth_secret" {
-  count      = local.auth_secret_on_dynamodb_role
-  role       = aws_iam_role.lambda_to_dynamodb[0].name
-  policy_arn = aws_iam_policy.lambda_read_auth_secret[0].arn
-}
-
-resource "aws_iam_role_policy_attachment" "lambda_to_s3_auth_secret" {
-  count      = local.auth_secret_on_s3_role
-  role       = aws_iam_role.lambda_to_s3[0].name
+# each reader gets the grant on its own role, so this no longer has to care
+# which datastore the function happens to use
+resource "aws_iam_role_policy_attachment" "lambda_read_auth_secret" {
+  for_each   = toset(local.auth_secret_lambdas)
+  role       = aws_iam_role.lambda[each.key].name
   policy_arn = aws_iam_policy.lambda_read_auth_secret[0].arn
 }

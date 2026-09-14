@@ -2,7 +2,7 @@ resource "aws_lambda_function" "battleship_lambda" {
   for_each      = { for lambda in local.lambda_functions[terraform.workspace] : lambda.name => lambda if lambda.create }
   function_name = format("battleships-%s-%s", terraform.workspace, each.value.name)
   filename      = format("${path.module}/../battleships-lambda/dist/%s.zip", each.value.name)
-  role          = contains(local.dynamodb_lambdas, each.value.name) ? aws_iam_role.lambda_to_dynamodb[0].arn : aws_iam_role.lambda_to_s3[0].arn
+  role          = aws_iam_role.lambda[each.key].arn
   handler       = "index.handler"
   runtime       = "nodejs22.x"
   architectures = ["x86_64"]
@@ -23,9 +23,12 @@ resource "aws_lambda_function" "battleship_lambda" {
   }
   environment {
     variables = merge(
-      { "GAMES_BUCKET" = aws_s3_bucket.battleships-s3[0].id },
+      try(each.value.needs_s3, false) ? {
+        "GAMES_BUCKET" = one(aws_s3_bucket.battleships-s3[*].id)
+      } : {},
       try(each.value.needs_dynamodb, false) ? {
         "USERS_TABLE" = one(aws_dynamodb_table.users[*].name)
+        "GAMES_TABLE" = one(aws_dynamodb_table.games[*].name)
       } : {},
       # the parameter name, never the value
       try(each.value.needs_auth_secret, false) ? {
