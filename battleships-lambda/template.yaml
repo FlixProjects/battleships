@@ -146,6 +146,8 @@ Resources:
                 External:
                     - "@aws-sdk/client-s3"
                     - "@aws-sdk/client-ssm"
+                    - "@aws-sdk/lib-dynamodb"
+                    - "@aws-sdk/client-dynamodb"
     SubmitActionFunction:
         Type: AWS::Serverless::Function
         Properties:
