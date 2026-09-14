@@ -6,6 +6,7 @@ import { updateComponents } from "../components/component-helper";
 import { isLocal } from "../config/app-config";
 import { FEGameStateManager } from "../models/FEGameStateManager";
 import { playbackRunner } from "../models/PlaybackRunner";
+import { setGameCode } from "../utils/game-helper";
 import { useApi } from "./use-api";
 
 interface GetGameLocalRequest {
@@ -52,6 +53,9 @@ export const getGame = async (_gameCode: string, config?: GetGameConfig) => {
         }
 
         const currentPlayerId = gameManager.getCurrentPlayerId();
+
+        setGameCode(responseData.gameState.code);
+
         let newGameState = responseData.gameState;
         gameManager.trackRoundSnapshots(currentPlayerId, newGameState);
 
