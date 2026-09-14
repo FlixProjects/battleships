@@ -64,7 +64,14 @@ jobs:
                   code-artifacts-dir: battleships-lambda/dist/get-game
                   handler: index.handler
                   runtime: nodejs22.x
-                  role: ${{ secrets.LAMBDA_TO_S3_EXECUTION_ROLE_ARN }}
+
+            - name: Deploy Get Games Function
+              uses: aws-actions/aws-lambda-deploy@v1.1.0
+              with:
+                  function-name: battleships-${{ vars.DEPLOY_ENV }}-get-games
+                  code-artifacts-dir: battleships-lambda/dist/get-games
+                  handler: index.handler
+                  runtime: nodejs22.x
 
             - name: Deploy Submit Action Function
               uses: aws-actions/aws-lambda-deploy@v1.1.0
