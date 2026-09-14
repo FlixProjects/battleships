@@ -1,4 +1,5 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { LambdaFunctionURLEvent } from "aws-lambda";
 import * as GameConfig from "../../shared/config/constants";
 import { ERROR_MESSAGES } from "../../shared/constants";
@@ -6,6 +7,7 @@ import type { JoinGameRequest } from "../../shared/types/domains";
 import { ErrorCode } from "../../shared/types/response-types";
 import type { IPlainGameState } from "../../shared/types/types";
 import { applyStartingStateToPlayer, buildPlayerStartingState, initialiseNewPlayer } from "../../shared/utils/helpers";
+import { GAMES_TABLE, getDocClient } from "../lib/dynamo";
 import { getGamesBucket, isLocal } from "../lib/env";
 import { ErrorApiResponse } from "../lib/response/error-response";
 import { InternalServerErrorApiResponse } from "../lib/response/internal-server-error-response";
@@ -75,6 +77,14 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
                 }),
             );
         }
+
+        const now = new Date().toISOString();
+        await getDocClient().send(
+            new PutCommand({
+                TableName: GAMES_TABLE,
+                Item: { userId: auth.userId, gameCode, createdAt: now, updatedAt: now },
+            }),
+        );
 
         return new ApiResponse().setBody({ playerId: auth.userId, gameCode, gameState }).build();
     } catch (err) {
