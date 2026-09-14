@@ -44,6 +44,26 @@ resource "aws_dynamodb_table" "users" {
   deletion_protection_enabled = true
 }
 
+resource "aws_dynamodb_table" "games" {
+  count        = local.create_dynamodb[terraform.workspace] ? 1 : 0
+  name         = format("battleships-%s-games", terraform.workspace)
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "userId"
+  region       = "ap-southeast-1"
+
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  # accounts are not reconstructible from anywhere else
+  deletion_protection_enabled = true
+}
+
 resource "aws_iam_role" "lambda_to_dynamodb" {
   count              = local.create_lambda_to_dynamodb_role
   name               = format("battleships-%s-lambda-to-dynamodb", terraform.workspace)
