@@ -3,7 +3,7 @@ locals {
 
   lambda_functions = {
     prd : [
-      { name : "join-game", create : true, cf_path : "/api/join", needs_s3 : true, needs_auth_secret : true },
+      { name : "join-game", create : true, cf_path : "/api/join", needs_s3 : true, needs_dynamodb : true, needs_auth_secret : true },
       { name : "get-game", create : true, cf_path : "/api*", needs_s3 : true, needs_auth_secret : true },
       { name : "get-games", create : true, cf_path : "/api/games", needs_dynamodb : true, needs_auth_secret : true },
       # sample: Billed Duration: 986 ms    Memory Size: 1024 MB    Max Memory Used: 131 MB

@@ -49,10 +49,18 @@ resource "aws_dynamodb_table" "games" {
   name         = format("battleships-%s-games", terraform.workspace)
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "userId"
-  region       = "ap-southeast-1"
+  # a row is "this user is in this game", so (userId, gameCode) is the identity.
+  # without the range key every PutItem for a user overwrote their previous game
+  range_key = "gameCode"
+  region    = "ap-southeast-1"
 
   attribute {
     name = "userId"
+    type = "S"
+  }
+
+  attribute {
+    name = "gameCode"
     type = "S"
   }
 
