@@ -24,7 +24,6 @@ export interface ApiResult<TResponse> {
 export class ApiError extends Error {
     public status: number;
     public message: string;
-    
     constructor(res: { status: number; message: string }, path: string) {
         super(`api ${path || "/"} failed with ${status}.`);
         this.name = "ApiError";
@@ -34,6 +33,10 @@ export class ApiError extends Error {
 
     get outcomeIsExpiredToken(): boolean {
         return this.status === ErrorCode.AUTHORIZATION_FAILED && this.message === ERROR_MESSAGES.EXPIRED_TOKEN;
+    }
+
+    get outcomeIsMissingToken(): boolean {
+        return this.status === ErrorCode.UNAUTHORISED && this.message === ERROR_MESSAGES.MISSING_TOKEN;
     }
 }
 
@@ -70,8 +73,10 @@ export const useApi = async <TBody, TResponse>(config: ApiConfig<TBody>): Promis
 
         return { status, data: data as TResponse };
     } catch (err) {
-        if (err instanceof ApiError && err.outcomeIsExpiredToken) {
-            console.log("api expired token, clearing local state and reloading");
+        if (err instanceof ApiError && (err.outcomeIsExpiredToken || err.outcomeIsMissingToken)) {
+            console.log(
+                `api ${err.outcomeIsExpiredToken ? "expired" : "missing"} token, clearing local state and reloading`,
+            );
             gameManager.resetGame();
             return;
         }

@@ -6,12 +6,12 @@ import {
     FP_ROUND_SNAPSHOTS,
     LOCAL_OTHER_PLAYER_TOKEN,
 } from "@shared/constants";
+import { GameConfig } from "@shared/index";
 import { IAppState, IPlainAppState, IPlainGameState, IPlayer } from "@shared/types";
 import { mergician } from "mergician";
-import { transformPlainAppStateToFEDomain } from "../utils/transformers";
 import { clearCookies, getCookie } from "../utils/cookie-helper";
 import { setAppScreen } from "../utils/screen-helper";
-import { GameConfig } from "@shared/index";
+import { transformPlainAppStateToFEDomain } from "../utils/transformers";
 
 interface PlayerGameStates {
     [playerId: string]: IPlainAppState;
@@ -167,7 +167,7 @@ export class GameManager {
     }
 
     public getAuthToken() {
-        return getCookie(FP_AUTH_TOKEN);
+        return this.getCurrentPlayerId(); // we cannot read FP_AUTH_TOKEN since cookie has changed to HttpOnly
     }
 
     public get isLoggedIn() {

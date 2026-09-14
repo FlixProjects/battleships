@@ -1,7 +1,5 @@
-import { FP_AUTH_TOKEN, FP_CURRENT_PLAYER } from "@shared/constants";
 import { IAppState } from "@shared/types";
-import { isLocal } from "../config/app-config";
-import { getCookie } from "../utils/cookie-helper";
+import { gameManager } from "..";
 import { HTMLInput } from "./native/Input";
 
 export class PlayerNameInput extends HTMLInput {
@@ -27,7 +25,7 @@ export class PlayerNameInput extends HTMLInput {
     }
 
     updateState(_state?: IAppState): void {
-        const playerId = isLocal ? sessionStorage.getItem(FP_CURRENT_PLAYER) : getCookie(FP_AUTH_TOKEN);
+        const playerId = gameManager.getCurrentPlayerId();
 
         let playerName = "";
 
