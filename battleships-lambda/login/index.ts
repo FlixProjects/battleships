@@ -20,6 +20,19 @@ interface UserRecord {
     password: string;
 }
 
+interface ILoginHandlerParams {
+    thumbprint: string;
+}
+
+interface IGuestLoginHandlerParams extends ILoginHandlerParams {}
+
+interface IUserLoginHandlerParams extends ILoginHandlerParams {
+    username: string;
+    password: string;
+    publicJwk: any;
+    body?: any;
+}
+
 // A well-formed but unmatchable hash (16-byte salt, 64-byte key) so the
 // "no such user" path still pays for one scrypt derivation. Without it the
 // response time alone tells an attacker which usernames exist.
@@ -35,62 +48,80 @@ const getUser = async (username: string): Promise<UserRecord | undefined> => {
 };
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResponse> => {
+    if (!event.body) {
+        return new ErrorApiResponse(ErrorCode.BAD_REQUEST).setMessage(ERROR_MESSAGES.MISSING_REQUEST_BODY).build();
+    }
+
+    const body = JSON.parse(event.body) as Partial<LoginRequest>;
+
+    if (!body.publicJwk) {
+        return new ErrorApiResponse(ErrorCode.UNAUTHORISED).setMessage(ERROR_MESSAGES.MISSING_CLIENT_JWKS).build();
+    }
+
+    const jkt = await new JwtHelper().getThumprint(body.publicJwk);
+
     try {
         if (isGuestLogin(event)) {
-            // guests are never persisted — the uuid exists only inside the token,
-            // so a new one is minted on every guest login and dies with it
-            const guestUserId = randomUUID();
-            return await authTokenResponse(guestUserId, {
-                message: "Guest login successful",
-                playerId: guestUserId,
-                isGuest: true,
-            });
+            return handleGuestLogin({ thumbprint: jkt });
         }
-
-        if (!event.body) {
-            return new ErrorApiResponse(ErrorCode.BAD_REQUEST).setMessage(ERROR_MESSAGES.MISSING_REQUEST_BODY).build();
-        }
-
-        const body = JSON.parse(event.body) as Partial<LoginRequest>;
-
-        // no min-length rules here: an under-length password is simply a failed
-        // login, and enforcing sign-up's policy would just advertise it
-        if (typeof body.username !== "string" || typeof body.password !== "string") {
+        const { username, password, publicJwk } = body;
+        if (typeof username !== "string" || typeof password !== "string") {
             return new ErrorApiResponse(ErrorCode.BAD_REQUEST).setMessage(ERROR_MESSAGES.MISSING_CREDENTIALS).build();
         }
-
-        const username = body.username.trim().toLowerCase();
-        const user = await getUser(username);
-        const isValidPassword = await verifyPassword(body.password, user?.password ?? TIMING_EQUALISER_HASH);
-
-        // TODO: use proper validator
-        if (!user || !isValidPassword || !body.publicJwk) {
-            return new ErrorApiResponse(ErrorCode.UNAUTHORISED).setMessage(ERROR_MESSAGES.INVALID_CREDENTIALS).build();
-        }
-
-        const jkt = await new JwtHelper().getThumprint(body.publicJwk);
-
-        await getDocClient().send(
-            new UpdateCommand({
-                TableName: USERS_TABLE,
-                Key: { username },
-                UpdateExpression: "SET publicJwk = :publicJwk, modifiedAt = :now",
-                ConditionExpression: "attribute_exists(username)",
-                ExpressionAttributeValues: {
-                    ":publicJwk": { ...body.publicJwk, jkt },
-                    ":now": new Date().toISOString(),
-                }, // :<value> -> actual value
-            }),
-        );
-
-        // the token is subject to the stored user id, never the username
-        return await authTokenResponse(user.id, {
-            message: "Login successful",
-            playerId: user.id,
-            isGuest: false,
-        });
+        return handleUserLogin({ username, password, thumbprint: jkt, publicJwk });
     } catch (err) {
         console.error("login failed", err);
         return new InternalServerErrorApiResponse().build();
     }
+};
+
+const handleGuestLogin = async (params: IGuestLoginHandlerParams) => {
+    const { thumbprint } = params;
+
+    const guestUserId = randomUUID();
+    return await authTokenResponse({
+        userId: guestUserId,
+        thumbprint,
+        body: {
+            message: "Guest login successful",
+            playerId: guestUserId,
+            isGuest: true,
+        },
+    });
+};
+
+const handleUserLogin = async (params: IUserLoginHandlerParams) => {
+    const { username, password, publicJwk, thumbprint } = params;
+
+    const user = await getUser(username.trim().toLowerCase());
+    const isValidPassword = await verifyPassword(password, user?.password ?? TIMING_EQUALISER_HASH);
+
+    // TODO: use proper validator
+    if (!user || !isValidPassword) {
+        return new ErrorApiResponse(ErrorCode.UNAUTHORISED).setMessage(ERROR_MESSAGES.INVALID_CREDENTIALS).build();
+    }
+
+    await getDocClient().send(
+        new UpdateCommand({
+            TableName: USERS_TABLE,
+            Key: { username },
+            UpdateExpression: "SET publicJwk = :publicJwk, modifiedAt = :now",
+            ConditionExpression: "attribute_exists(username)",
+            ExpressionAttributeValues: {
+                ":publicJwk": { ...publicJwk, jkt: thumbprint },
+                ":now": new Date().toISOString(),
+            }, // :<value> -> actual value
+        }),
+    );
+
+    // the token is subject to the stored user id, never the username
+    return await authTokenResponse({
+        userId: user.id,
+        thumbprint,
+        body: {
+            message: "Login successful",
+            playerId: user.id,
+            isGuest: false,
+        },
+    });
 };

@@ -1,22 +1,18 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { APIGatewayProxyEvent } from "aws-lambda";
 import { randomUUID } from "node:crypto";
-import { generateAuthToken } from "../../shared/auth/auth-helper";
 import { validateAuthRequest } from "../../shared/auth/auth-request-validator";
+import { JwtHelper } from "../../shared/auth/jwt-helper";
 import { hashPassword } from "../../shared/auth/password-helper";
-import { ERROR_MESSAGES, FP_AUTH_TOKEN } from "../../shared/constants";
+import { ERROR_MESSAGES } from "../../shared/constants";
 import type { SignUpRequest } from "../../shared/types/domains";
 import { ErrorCode, SuccessCode } from "../../shared/types/response-types";
-import { getAuthTokenSecret } from "../lib/auth-secret";
+import { ResultType } from "../../shared/types/result-types";
 import { authTokenResponse } from "../lib/auth/response";
 import { USERS_TABLE, getDocClient } from "../lib/dynamo";
-import { isLocal } from "../lib/env";
 import { ErrorApiResponse } from "../lib/response/error-response";
 import { InternalServerErrorApiResponse } from "../lib/response/internal-server-error-response";
-import { ApiResponse } from "../lib/response/response";
 import { type PlainApiResponse } from "../lib/response/types";
-import { JwtHelper } from "../../shared/auth/jwt-helper";
-import { ResultType } from "../../shared/types/result-types";
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResponse> => {
     try {
@@ -51,18 +47,12 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResp
             }),
         );
 
-        const authToken = await generateAuthToken(userId, await getAuthTokenSecret());
-        const response = new ApiResponse({ statusCode: SuccessCode.CREATED })
-            .setHeaders({ [FP_AUTH_TOKEN]: authToken })
-            .setBody({ message: "Sign-up successful", userId, username });
-
-        if (isLocal()) {
-            // locally there is no Lambda@Edge to translate the header into a cookie
-            response.setHeaders({ "Access-Control-Allow-Origin": "*" });
-            response.setCookie(FP_AUTH_TOKEN, authToken);
-        }
-
-        return authTokenResponse(userId, { message: "Sign up successful", playerId: userId });
+        return authTokenResponse({
+            userId,
+            thumbprint: jkt,
+            statusCode: SuccessCode.CREATED,
+            body: { message: "Sign up successful", playerId: userId },
+        });
     } catch (err) {
         if (err instanceof Error && err.name === "ConditionalCheckFailedException") {
             return new ErrorApiResponse(ErrorCode.CONFLICT).setMessage(ERROR_MESSAGES.USERNAME_TAKEN).build();

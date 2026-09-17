@@ -152,6 +152,7 @@ export const ERROR_MESSAGES = {
     MISSING_TOKEN: "MISSING_TOKEN",
     // a wrong username and a wrong password must be indistinguishable to the caller
     INVALID_CREDENTIALS: "INVALID_CREDENTIALS",
+    MISSING_CLIENT_JWKS: "MISSING_CLIENT_JWKS",
     USERNAME_TAKEN: "USERNAME_TAKEN",
 
     // ==========================

@@ -2,13 +2,21 @@ import { JwtHelper } from "./jwt-helper";
 
 const TOKEN_TTL_SECONDS = 60 * 15;
 
-export const generateAuthToken = async (userId: string, secret: string): Promise<string> => {
+interface IGenerateAuthTokenParams {
+    userId: string;
+    secret: string;
+    thumbprint: string;
+}
+
+export const generateAuthToken = async (params: IGenerateAuthTokenParams): Promise<string> => {
+    const { secret, userId, thumbprint } = params;
     const jwtHelper = new JwtHelper();
     const currentTime = Math.floor(Date.now() / 1000);
 
     const payload = {
         sub: userId,
         iat: currentTime,
+        cnf: { jkt: thumbprint }, // DPoP confirmation; RFC 7800
         exp: currentTime + TOKEN_TTL_SECONDS,
     };
 
