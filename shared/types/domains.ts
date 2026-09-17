@@ -1,3 +1,4 @@
+import type { FP_CLIENT_TOKEN } from "@shared/constants";
 import { IAction, IResult, IPlainGameState } from "@shared/types";
 import { JWK } from "jose";
 
@@ -71,4 +72,8 @@ export interface AuthResponseBody {
     message: string;
     playerId: string;
     isGuest?: boolean;
+}
+
+export interface IClientAuthHeaders {
+    [FP_CLIENT_TOKEN]?: string;
 }

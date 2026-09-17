@@ -1,10 +1,13 @@
 import { ERROR_MESSAGES } from "@shared/constants";
+import { IClientAuthHeaders } from "@shared/types/domains";
 import { ErrorCode } from "@shared/types/response-types";
 import { gameManager } from "..";
 import { appConfig, isLocal } from "../config/app-config";
 import { CryptoHelper } from "../utils/crypto-helper";
+import { useToken } from "./use-token";
 
 interface ApiConfig<TBody> {
+    sign?: boolean;
     /** Appended to the api base, leading slash included; omit for the root route (get-game). */
     path?: `/${string}`;
     method: "POST" | "GET";
@@ -49,43 +52,48 @@ const buildUrl = (path: string, query?: Record<string, string>): string => {
 };
 
 export const useApi = async <TBody, TResponse>(config: ApiConfig<TBody>): Promise<ApiResult<TResponse> | undefined> => {
-    const { path = "", method, headers, query, onError, body } = config;
+    const { path = "", method, headers, query, onError, body, sign } = config;
     const reqBody = JSON.stringify(body);
-    const baseHeaders: HeadersInit = {
-        "Content-Type": "application/json",
-        ...(body ? { "x-Amz-Content-Sha256": new CryptoHelper().hash(reqBody) } : {}),
+    const fullPath = buildUrl(path, query);
+    const fetchFn = async (authHeaders: IClientAuthHeaders = {}) => {
+        const baseHeaders: HeadersInit = {
+            "Content-Type": "application/json",
+            ...authHeaders,
+            ...(body ? { "x-Amz-Content-Sha256": new CryptoHelper().hash(reqBody) } : {}),
+        };
+        try {
+            const res = await fetch(fullPath, {
+                method,
+                credentials: "include",
+                headers: { ...baseHeaders, ...(headers ?? {}) },
+                body: reqBody,
+            });
+
+            const status = res.status;
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new ApiError({ status, message: data.message }, path);
+            }
+
+            return { status, data: data as TResponse };
+        } catch (err) {
+            if (err instanceof ApiError && (err.outcomeIsExpiredToken || err.outcomeIsMissingToken)) {
+                console.log(
+                    `api ${err.outcomeIsExpiredToken ? "expired" : "missing"} token, clearing local state and reloading`,
+                );
+                gameManager.resetGame();
+                return;
+            }
+
+            if (onError && err instanceof Error) {
+                onError(err);
+                return;
+            }
+
+            throw new Error(`api ${path || "/"} failed.`);
+        }
     };
 
-    try {
-        const res = await fetch(buildUrl(path, query), {
-            method,
-            credentials: "include",
-            headers: { ...baseHeaders, ...(headers ?? {}) },
-            body: reqBody,
-        });
-
-        const status = res.status;
-        const data = await res.json();
-
-        if (!res.ok) {
-            throw new ApiError({ status, message: data.message }, path);
-        }
-
-        return { status, data: data as TResponse };
-    } catch (err) {
-        if (err instanceof ApiError && (err.outcomeIsExpiredToken || err.outcomeIsMissingToken)) {
-            console.log(
-                `api ${err.outcomeIsExpiredToken ? "expired" : "missing"} token, clearing local state and reloading`,
-            );
-            gameManager.resetGame();
-            return;
-        }
-
-        if (onError && err instanceof Error) {
-            onError(err);
-            return;
-        }
-
-        throw new Error(`api ${path || "/"} failed.`);
-    }
+    return sign ? await useToken({ path, method, body, headers }, fetchFn) : await fetchFn();
 };
