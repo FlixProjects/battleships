@@ -3,6 +3,7 @@ import { IClientAuthHeaders } from "@shared/types/domains";
 import { ErrorCode } from "@shared/types/response-types";
 import { gameManager } from "..";
 import { appConfig, isLocal } from "../config/app-config";
+import { sortQueries } from "../utils/api-helper";
 import { CryptoHelper } from "../utils/crypto-helper";
 import { useToken } from "./use-token";
 
@@ -55,11 +56,13 @@ export const useApi = async <TBody, TResponse>(config: ApiConfig<TBody>): Promis
     const { path = "", method, headers, query, onError, body, sign } = config;
     const reqBody = JSON.stringify(body);
     const fullPath = buildUrl(path, query);
+    const bodyHash = new CryptoHelper().hash(reqBody);
+    const _query = sortQueries(query);
     const fetchFn = async (authHeaders: IClientAuthHeaders = {}) => {
         const baseHeaders: HeadersInit = {
             "Content-Type": "application/json",
             ...authHeaders,
-            ...(body ? { "x-Amz-Content-Sha256": new CryptoHelper().hash(reqBody) } : {}),
+            ...(body ? { "x-Amz-Content-Sha256": bodyHash } : {}),
         };
         try {
             const res = await fetch(fullPath, {
@@ -95,5 +98,5 @@ export const useApi = async <TBody, TResponse>(config: ApiConfig<TBody>): Promis
         }
     };
 
-    return sign ? await useToken({ path, method, body, headers }, fetchFn) : await fetchFn();
+    return sign ? await useToken({ path, method, bodyHash, query: _query, headers }, fetchFn) : await fetchFn();
 };

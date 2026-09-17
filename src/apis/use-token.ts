@@ -5,19 +5,19 @@ import * as jose from "jose";
 import { v7 as uuidv7 } from "uuid";
 import { idb } from "..";
 
-interface ISigningConfig<TBody> {
+interface ISigningConfig {
     path?: string;
     method: "POST" | "GET";
     headers?: HeadersInit | undefined;
-    query?: Record<string, string>;
-    body?: TBody;
+    query?: string;
+    bodyHash?: string;
 }
 
-export const useToken = async <TBody, TResult>(
-    config: ISigningConfig<TBody>,
+export const useToken = async <TResult>(
+    config: ISigningConfig,
     apiFn: (authHeaders?: IClientAuthHeaders) => Promise<TResult>,
 ) => {
-    const { method, path, body } = config;
+    const { method, path, bodyHash, query } = config;
     const privateKey = (await idb.get("privateKey")).value;
     const publicKey = (await idb.get("publicKey")).value;
 
@@ -30,6 +30,8 @@ export const useToken = async <TBody, TResult>(
         htm: method,
         htu: path,
         jti: uuidv7(),
+        bodyHash,
+        query,
     })
         .setProtectedHeader({ alg: "RS256", typ: "dpop+jwt", jwk: publicJwk })
         .setIssuedAt()
