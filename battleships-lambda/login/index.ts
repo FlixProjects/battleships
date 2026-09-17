@@ -1,6 +1,7 @@
-import { GetCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import type { APIGatewayProxyEvent } from "aws-lambda";
 import { randomUUID } from "node:crypto";
+import { JwtHelper } from "../../shared/auth/jwt-helper";
 import { verifyPassword } from "../../shared/auth/password-helper";
 import { ERROR_MESSAGES } from "../../shared/constants";
 import type { LoginRequest } from "../../shared/types/domains";
@@ -62,9 +63,25 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResp
         const user = await getUser(username);
         const isValidPassword = await verifyPassword(body.password, user?.password ?? TIMING_EQUALISER_HASH);
 
-        if (!user || !isValidPassword) {
+        // TODO: use proper validator
+        if (!user || !isValidPassword || !body.publicJwk) {
             return new ErrorApiResponse(ErrorCode.UNAUTHORISED).setMessage(ERROR_MESSAGES.INVALID_CREDENTIALS).build();
         }
+
+        const jkt = await new JwtHelper().getThumprint(body.publicJwk);
+
+        await getDocClient().send(
+            new UpdateCommand({
+                TableName: USERS_TABLE,
+                Key: { username },
+                UpdateExpression: "SET publicJwk = :publicJwk, modifiedAt = :now",
+                ConditionExpression: "attribute_exists(username)",
+                ExpressionAttributeValues: {
+                    ":publicJwk": { ...body.publicJwk, jkt },
+                    ":now": new Date().toISOString(),
+                }, // :<value> -> actual value
+            }),
+        );
 
         // the token is subject to the stored user id, never the username
         return await authTokenResponse(user.id, {

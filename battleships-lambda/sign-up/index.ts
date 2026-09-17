@@ -33,7 +33,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResp
 
         const username = String(body.username).trim().toLowerCase();
         const userId = randomUUID();
-
+        const jkt = await new JwtHelper().getThumprint(result.body.publicJwk);
+        const now = new Date().toISOString();
         await getDocClient().send(
             new PutCommand({
                 TableName: USERS_TABLE,
@@ -41,8 +42,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResp
                     id: userId,
                     username,
                     password: await hashPassword(String(body.password)),
-                    publicJwk: body.publicJwk,
-                    createdAt: new Date().toISOString(),
+                    publicJwk: { ...body.publicJwk, jkt },
+                    createdAt: now,
+                    modifiedAt: now,
                 },
                 // the table is keyed on username, so this is what enforces uniqueness
                 ConditionExpression: "attribute_not_exists(username)",

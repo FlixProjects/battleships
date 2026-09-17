@@ -60,6 +60,10 @@ export class JwtHelper {
         return payload;
     }
 
+    public async getThumprint(jwk: jose.JWK){
+        return await jose.calculateJwkThumbprint(jwk, "sha256");
+    }
+
     /**
      * Encrypted (JWE) rather than signed — the payload is opaque to whoever
      * holds the token, and A256GCM authenticates it, so tampering fails to
