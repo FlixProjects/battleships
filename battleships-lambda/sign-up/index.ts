@@ -15,6 +15,8 @@ import { ErrorApiResponse } from "../lib/response/error-response";
 import { InternalServerErrorApiResponse } from "../lib/response/internal-server-error-response";
 import { ApiResponse } from "../lib/response/response";
 import { type PlainApiResponse } from "../lib/response/types";
+import { JwtHelper } from "../../shared/auth/jwt-helper";
+import { ResultType } from "../../shared/types/result-types";
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResponse> => {
     try {
@@ -24,9 +26,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResp
 
         const body = JSON.parse(event.body) as Partial<SignUpRequest>;
 
-        const validationMessage = await validateAuthRequest(body);
-        if (validationMessage) {
-            return new ErrorApiResponse(ErrorCode.BAD_REQUEST).setMessage(validationMessage).build();
+        const result = await validateAuthRequest(body);
+        if (result.type === ResultType.ERROR) {
+            return new ErrorApiResponse(ErrorCode.BAD_REQUEST).setMessage(result.message).build();
         }
 
         const username = String(body.username).trim().toLowerCase();
