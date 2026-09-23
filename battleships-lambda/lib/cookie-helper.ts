@@ -1,10 +1,13 @@
 import type { CloudFrontHeaders } from "aws-lambda";
 
-/** the subset of a Function URL / API Gateway event that can carry cookies */
-export interface ICookieCarrier {
-    cookies?: string[];
+interface IEventHeaders {
     headers?: Record<string, string | undefined>;
     multiValueHeaders?: Record<string, string[] | undefined>;
+}
+
+/** the subset of a Function URL / API Gateway event that can carry cookies */
+export interface ICookieCarrier extends IEventHeaders {
+    cookies?: string[];
 }
 
 /** Reads one `name=value` pair, tolerating the whitespace after `; ` separators. */
@@ -68,4 +71,14 @@ export const getRequestCookie = (event: ICookieCarrier, name: string): string | 
     }
 
     return findInHeaderValues([single], name);
+};
+
+export const getHeader = (eventHeaders: IEventHeaders, name: string) => {
+    const singleValue = eventHeaders.headers;
+    const multiValue = eventHeaders.multiValueHeaders;
+
+    // we only expect single value for now, and if its present in multivalue instead, take that
+    const value = singleValue?.[name] ?? multiValue?.[name]?.[0];
+
+    return value;
 };

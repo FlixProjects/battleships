@@ -1,4 +1,6 @@
+import { ERROR_MESSAGES } from "@shared/constants";
 import { JwtHelper } from "./jwt-helper";
+import * as jose from "jose";
 
 const TOKEN_TTL_SECONDS = 60 * 15;
 
@@ -6,6 +8,12 @@ interface IGenerateAuthTokenParams {
     userId: string;
     secret: string;
     thumbprint: string;
+}
+
+interface IVerifyClientTokenParams {
+    clientToken: string;
+    authTokenJkt: string;
+    publicJwk: jose.JWK;
 }
 
 export const generateAuthToken = async (params: IGenerateAuthTokenParams): Promise<string> => {
@@ -31,4 +39,18 @@ export const verifyAuthToken = async (token: string, secret: string): Promise<st
     }
 
     return payload.sub;
+};
+
+export const verifyClientToken = async (params: IVerifyClientTokenParams): Promise<any> => {
+    const { clientToken, authTokenJkt: previousClientJkt, publicJwk } = params;
+    
+    const jwtHelper = new JwtHelper();    
+    
+    const clientJkt = await jwtHelper.getThumprint(jose.decodeProtectedHeader(clientToken).jwk!, "sha256");
+
+    if (previousClientJkt !== clientJkt) {
+        throw new Error(ERROR_MESSAGES.MISMATCHED_JKT);
+    }
+
+    await jwtHelper.verifyToken(clientToken, publicJwk, { typ: "dpop+jwt" })
 };
