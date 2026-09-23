@@ -53,15 +53,26 @@ export class JwtHelper {
         return await new jose.SignJWT(payload).setProtectedHeader({ alg }).setIssuedAt().sign(toKeyInput(key));
     }
 
+    // parses the token string to jwt payload shape i.e. whatever was included in the JWT payload
     public async verify(token: string, key: TSecret, alg: TSignatureAlgorithm = "RS256"): Promise<jose.JWTPayload> {
+        const options = { algorithms: [alg] };
         // the algorithm is pinned by the caller rather than read from the token
         // header, otherwise an attacker picks the algorithm we verify with
-        const { payload } = await jose.jwtVerify(token, toKeyInput(key), { algorithms: [alg] });
+        const { payload } = await jose.jwtVerify(token, toKeyInput(key), options);
         return payload;
     }
 
-    public async getThumprint(jwk: jose.JWK){
-        return await jose.calculateJwkThumbprint(jwk, "sha256");
+    public async verifyToken(jwt: string | Uint8Array, key: jose.KeyInput, options?: jose.JWTVerifyOptions) {
+        const { payload } = await jose.jwtVerify(jwt, key, options);
+        return payload;
+    }
+
+    public async getThumprint(jwk: jose.JWK, digestAlgorithm: "sha256" | "sha384" | "sha512" = "sha256") {
+        return await jose.calculateJwkThumbprint(jwk, digestAlgorithm);
+    }
+
+    public decodeHeaders(token: string | object): jose.ProtectedHeaderParameters {
+        return jose.decodeProtectedHeader(token)
     }
 
     /**
