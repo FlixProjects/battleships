@@ -1,4 +1,4 @@
-import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import type { APIGatewayProxyEvent } from "aws-lambda";
 import { randomUUID } from "node:crypto";
 import { JwtHelper } from "../../shared/auth/jwt-helper";
@@ -29,8 +29,6 @@ interface IGuestLoginHandlerParams extends ILoginHandlerParams {}
 interface IUserLoginHandlerParams extends ILoginHandlerParams {
     username: string;
     password: string;
-    publicJwk: any;
-    body?: any;
 }
 
 // A well-formed but unmatchable hash (16-byte salt, 64-byte key) so the
@@ -64,11 +62,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResp
         if (isGuestLogin(event)) {
             return handleGuestLogin({ thumbprint: jkt });
         }
-        const { username, password, publicJwk } = body;
+        const { username, password } = body;
         if (typeof username !== "string" || typeof password !== "string") {
             return new ErrorApiResponse(ErrorCode.BAD_REQUEST).setMessage(ERROR_MESSAGES.MISSING_CREDENTIALS).build();
         }
-        return handleUserLogin({ username, password, thumbprint: jkt, publicJwk });
+        return handleUserLogin({ username, password, thumbprint: jkt });
     } catch (err) {
         console.error("login failed", err);
         return new InternalServerErrorApiResponse().build();
@@ -91,7 +89,7 @@ const handleGuestLogin = async (params: IGuestLoginHandlerParams) => {
 };
 
 const handleUserLogin = async (params: IUserLoginHandlerParams) => {
-    const { username, password, publicJwk, thumbprint } = params;
+    const { username, password, thumbprint } = params;
 
     const user = await getUser(username.trim().toLowerCase());
     const isValidPassword = await verifyPassword(password, user?.password ?? TIMING_EQUALISER_HASH);
@@ -100,19 +98,6 @@ const handleUserLogin = async (params: IUserLoginHandlerParams) => {
     if (!user || !isValidPassword) {
         return new ErrorApiResponse(ErrorCode.UNAUTHORISED).setMessage(ERROR_MESSAGES.INVALID_CREDENTIALS).build();
     }
-
-    await getDocClient().send(
-        new UpdateCommand({
-            TableName: USERS_TABLE,
-            Key: { username },
-            UpdateExpression: "SET publicJwk = :publicJwk, modifiedAt = :now",
-            ConditionExpression: "attribute_exists(username)",
-            ExpressionAttributeValues: {
-                ":publicJwk": { ...publicJwk, jkt: thumbprint },
-                ":now": new Date().toISOString(),
-            }, // :<value> -> actual value
-        }),
-    );
 
     // the token is subject to the stored user id, never the username
     return await authTokenResponse({

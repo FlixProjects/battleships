@@ -38,7 +38,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<PlainApiResp
                     id: userId,
                     username,
                     password: await hashPassword(String(body.password)),
-                    publicJwk: { ...body.publicJwk, jkt },
                     createdAt: now,
                     modifiedAt: now,
                 },
