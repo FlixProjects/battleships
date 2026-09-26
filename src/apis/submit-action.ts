@@ -25,6 +25,7 @@ export const submitAction = async (actions: IAction[]) => {
     const result = await useApi<SubmitActionRequest, SubmitActionResponse>({
         path: "/submit",
         method: "POST",
+        sign: true,
         body: reqBody,
         onError: (err) => console.error(err),
     });

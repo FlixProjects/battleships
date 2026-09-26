@@ -25,6 +25,7 @@ const getLocalBody = (): GetGameLocalRequest | undefined => {
 const _getGame = async (gameCode: string) => {
     const result = await useApi<GetGameLocalRequest, GetGameResponse>({
         method: isLocal ? "POST" : "GET",
+        sign: true,
         query: { code: gameCode },
         body: getLocalBody(),
     });

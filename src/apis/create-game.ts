@@ -5,6 +5,7 @@ export const createGame = async (playerName: string) => {
     const result = await useApi<CreateGameRequest, CreateGameResponse>({
         path: "/create",
         method: "POST",
+        sign: true,
         body: { playerName },
         onError: (err) => console.error(err),
     });

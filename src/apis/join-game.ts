@@ -21,6 +21,7 @@ export const joinGame = async (joinCodeInput: string, playerName: string) => {
     const result = await useApi<JoinGameRequest, JoinGameResponse>({
         path: "/join",
         method: "POST",
+        sign: true,
         body: reqBody,
         onError: (err) => console.error(err),
     });
