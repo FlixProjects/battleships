@@ -7,7 +7,9 @@
         "test": "jest",
         "build": "webpack --config webpack.config.js --mode=development",
         "serve": "webpack serve --mode=development",
-        "dev": "npm run serve"
+        "dev": "npm run serve",
+        "test:e2e": "playwright test",
+        "test:e2e:ui": "playwright test --ui"
     },
     "keywords": [],
     "author": "",
@@ -17,6 +19,7 @@
         "npm": ">=10.0.0"
     },
     "devDependencies": {
+        "@playwright/test": "^1.63.0",
         "@types/jest": "^30.0.0",
         "@types/lodash.clonedeep": "^4.5.9",
         "buffer": "^6.0.3",
