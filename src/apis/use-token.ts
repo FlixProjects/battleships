@@ -17,6 +17,7 @@ export const useToken = async <TResult>(
     config: ISigningConfig,
     apiFn: (authHeaders?: IClientAuthHeaders) => Promise<TResult>,
 ) => {
+    if (!idb) return;
     const { method, path, bodyHash, query } = config;
     const privateKey = (await idb.get("privateKey")).value;
     const publicKey = (await idb.get("publicKey")).value;
