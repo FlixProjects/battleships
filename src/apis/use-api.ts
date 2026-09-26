@@ -56,7 +56,8 @@ export const useApi = async <TBody, TResponse>(config: ApiConfig<TBody>): Promis
     const { path = "", method, headers, query, onError, body, sign } = config;
     const reqBody = JSON.stringify(body);
     const fullPath = buildUrl(path, query);
-    const bodyHash = new CryptoHelper().hash(reqBody);
+
+    const bodyHash = reqBody ? new CryptoHelper().hash(reqBody) : undefined;
     const _query = sortQueries(query);
     const fetchFn = async (authHeaders: IClientAuthHeaders = {}) => {
         const baseHeaders: HeadersInit = {
