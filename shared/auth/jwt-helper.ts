@@ -49,8 +49,13 @@ export class JwtHelper {
      * holding the token. Set `exp` on the payload to have `verify` reject it
      * once expired.
      */
+    // TODO: replace with signJwt below
     public async sign(payload: jose.JWTPayload, key: TSecret, alg: TSignatureAlgorithm = "RS256"): Promise<string> {
         return await new jose.SignJWT(payload).setProtectedHeader({ alg }).setIssuedAt().sign(toKeyInput(key));
+    }
+
+    public async signJwt(payload: jose.JWTPayload) {
+        return new jose.SignJWT(payload);
     }
 
     // parses the token string to jwt payload shape i.e. whatever was included in the JWT payload
@@ -72,7 +77,7 @@ export class JwtHelper {
     }
 
     public decodeHeaders(token: string | object): jose.ProtectedHeaderParameters {
-        return jose.decodeProtectedHeader(token)
+        return jose.decodeProtectedHeader(token);
     }
 
     /**
