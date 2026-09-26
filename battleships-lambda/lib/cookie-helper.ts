@@ -77,8 +77,20 @@ export const getHeader = (eventHeaders: IEventHeaders, name: string) => {
     const singleValue = eventHeaders.headers;
     const multiValue = eventHeaders.multiValueHeaders;
 
+    // TODO: to consider if we need this elsewhere
+    const keyToLowercase = (obj?: Record<string, any>) => {
+        if (!obj) return undefined;
+        const newObj: Record<string, any> = {};
+        Object.entries(obj).forEach(([k, v]) => {
+            newObj[k.toLocaleLowerCase()] = v;
+        });
+        return newObj;
+    };
+
+    const formattedName = name.toLocaleLowerCase();
+
     // we only expect single value for now, and if its present in multivalue instead, take that
-    const value = singleValue?.[name] ?? multiValue?.[name]?.[0];
+    const value = keyToLowercase(singleValue)?.[formattedName] ?? keyToLowercase(multiValue)?.[formattedName]?.[0];
 
     return value;
 };
