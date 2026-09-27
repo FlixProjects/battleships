@@ -17,6 +17,9 @@ export interface IPlayerView {
     ships: IPlainShip[];
 }
 
+type TScreen = "Login" | "Lobby" | "Game";
+type TMenuItem = "Login" | "Game" | "Lobby" | "Exit";
+
 export const deployedFlagships = (view: IPlayerView) =>
     view.ships.filter((ship) => ship.refNo === "tudf_flagship0" && ship.deployed);
 
@@ -75,6 +78,29 @@ export class PageHelper {
 
     async submitTurn() {
         await this.clickAndWaitFor(/\/api\/submit/, () => this.submitButton.click());
+    }
+
+    async openMenuItem(item: TMenuItem) {
+        const menu = this.page.locator("#hamburger-menu");
+        await menu.locator("#hamburgerBtn").click();
+        await menu.getByRole("button", { name: item, exact: true }).click();
+    }
+
+    // Each screen shows exactly one of these blocks; some switches wait on an API call
+    async expectScreen(screen: TScreen) {
+        const blocks: Record<TScreen, string> = {
+            Login: "#login-page",
+            Lobby: "#controls",
+            Game: "#gameArea",
+        };
+
+        for (const [name, selector] of Object.entries(blocks)) {
+            if (name === screen) {
+                await expect(this.page.locator(selector)).toBeVisible({ timeout: API_TIMEOUT });
+            } else {
+                await expect(this.page.locator(selector)).toBeHidden({ timeout: API_TIMEOUT });
+            }
+        }
     }
 
     async readPlayerView(): Promise<IPlayerView> {
