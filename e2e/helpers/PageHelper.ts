@@ -9,14 +9,41 @@ const API_TIMEOUT = 60_000;
 interface IPlainShip {
     id: string;
     refNo: string;
+    playerId: string;
     deployed?: boolean;
+    destroyed?: boolean;
+}
+
+export interface IPlainHull {
+    id: string;
+    shipId: string;
+    location: [number, number];
+    remainingHealth: number;
+    armor: number;
+    destroyed?: boolean;
+}
+
+interface IPlainPlayer {
+    id: string;
+    name: string;
+    ready: boolean;
+    commandPoints: number;
+    pendingActions: string[];
+    hand: string[];
 }
 
 export interface IPlayerView {
     playerId: string;
     currentRound: number;
+    initiative?: string;
+    isOver: boolean;
+    winners: string[];
+    players: IPlainPlayer[];
     ships: IPlainShip[];
+    hulls: IPlainHull[];
 }
+
+export const FLAGSHIP_REF_NO = "tudf_flagship0";
 
 type TScreen = "Login" | "Lobby" | "Game";
 type TMenuItem = "Login" | "Game" | "Lobby" | "Exit";
@@ -34,7 +61,10 @@ declare global {
 }
 
 export const deployedFlagships = (view: IPlayerView) =>
-    view.ships.filter((ship) => ship.refNo === "tudf_flagship0" && ship.deployed);
+    view.ships.filter((ship) => ship.refNo === FLAGSHIP_REF_NO && ship.deployed);
+
+export const hullAt = (view: IPlayerView, tileId: string) =>
+    view.hulls.find((hull) => hull.location.join("/") === tileId);
 
 export class PageHelper {
     constructor(private readonly page: Page) {}
@@ -43,9 +73,60 @@ export class PageHelper {
         return this.page.getByRole("button", { name: "Submit Move" });
     }
 
+    // The same button reads "Awaiting other player" once submitted and "Game Over" at the end
+    get turnButton() {
+        return this.page.getByRole("button", { name: /^(Submit Move|Awaiting other player|Game Over)$/ });
+    }
+
+    get moveButton() {
+        return this.page.locator("#select-action-move");
+    }
+
+    get attackButton() {
+        return this.page.locator("#select-action-attack");
+    }
+
     private async clickAndWaitFor(path: RegExp, click: () => Promise<void>) {
         const [response] = await Promise.all([this.page.waitForResponse(path, { timeout: API_TIMEOUT }), click()]);
         expect(response.status()).toBe(200);
+    }
+
+    // Deploys Bob on 2/6 + 2/5 and Alice on 2/0 + 2/1, leaving Alice current at the start of round 2
+    async startGameWithFlagships() {
+        const gameCode = await this.createGame("Alice");
+        await this.handOverToNewPlayer();
+        await this.joinGame("Bob", gameCode);
+
+        await this.deployFlagship("2/6");
+        await this.submitTurn();
+
+        await this.switchPlayer();
+        await this.deployFlagship("2/0");
+        await this.submitTurn();
+
+        return { gameCode };
+    }
+
+    async ownFlagshipId() {
+        const view = await this.readPlayerView();
+        const flagship = view.ships.find((ship) => ship.refNo === FLAGSHIP_REF_NO && ship.playerId === view.playerId);
+        expect(flagship).toBeDefined();
+
+        return flagship?.id ?? "";
+    }
+
+    // Tiles the current interaction offers, marked by their pulsing highlight
+    async highlightedTiles(): Promise<string[]> {
+        return await this.page
+            .locator(".tile")
+            .evaluateAll((tiles) =>
+                tiles.filter((tile) => (tile as HTMLElement).style.animation.includes("pulse")).map((tile) => tile.id),
+            );
+    }
+
+    async pendingActionCount() {
+        const view = await this.readPlayerView();
+        return view.players.find((player) => player.id === view.playerId)?.pendingActions.length ?? 0;
     }
 
     async guestLogin() {
@@ -60,6 +141,18 @@ export class PageHelper {
         await expect(this.page.locator("#switchPlayerBtn")).toBeVisible();
 
         return await this.page.evaluate(() => JSON.parse(sessionStorage.getItem("fp-game-state") ?? "{}").code);
+    }
+
+    // A refused join leaves the player in the lobby
+    async attemptJoinGame(playerName: string, gameCode: string) {
+        await this.page.locator("#playerName").fill(playerName);
+        await this.page.locator("#joinCode").fill(gameCode);
+        const [response] = await Promise.all([
+            this.page.waitForResponse(/\/api\/join/, { timeout: API_TIMEOUT }),
+            this.page.locator("#joinGameBtn").click(),
+        ]);
+
+        return response.status();
     }
 
     async joinGame(playerName: string, gameCode: string) {
@@ -96,7 +189,11 @@ export class PageHelper {
     }
 
     // The ship's sprite sits over its tile in a separate layer, so click the tile's point
-    private async selectShip(tileId: string) {
+    async selectShip(tileId: string) {
+        await this.clickTile(tileId);
+    }
+
+    async clickTile(tileId: string) {
         await this.tile(tileId).click({ force: true });
     }
 
@@ -242,9 +339,9 @@ export class PageHelper {
         return await this.page.evaluate(() => {
             const playerId = sessionStorage.getItem("fp-current-player") ?? "";
             const states = JSON.parse(sessionStorage.getItem("fp-player-states") ?? "{}");
-            const { currentRound, ships } = states[playerId].gameState;
+            const { currentRound, initiative, isOver, winners, players, ships, hulls } = states[playerId].gameState;
 
-            return { playerId, currentRound, ships };
+            return { playerId, currentRound, initiative, isOver, winners, players, ships, hulls: hulls ?? [] };
         });
     }
 }

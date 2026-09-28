@@ -14,30 +14,6 @@ test.describe.configure({ timeout: 240_000 });
 
 let helper: PageHelper;
 
-const ownFlagshipId = async () => {
-    const view = await helper.readPlayerView();
-    const flagship = view.ships.find((ship) => ship.refNo === "tudf_flagship0");
-    expect(flagship).toBeDefined();
-
-    return flagship?.id ?? "";
-};
-
-// Leaves Alice as the current player at the start of round 2
-const startGameWithFlagships = async () => {
-    const gameCode = await helper.createGame("Alice");
-    await helper.handOverToNewPlayer();
-    await helper.joinGame("Bob", gameCode);
-
-    await helper.deployFlagship("2/6");
-    await helper.submitTurn();
-
-    await helper.switchPlayer();
-    await helper.deployFlagship("2/0");
-    await helper.submitTurn();
-
-    return { aliceShipId: await ownFlagshipId() };
-};
-
 test.beforeEach(async ({ page }) => {
     helper = new PageHelper(page);
     await page.goto("/");
@@ -45,7 +21,8 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("ordering a move animates the ship straight away", async () => {
-    const { aliceShipId } = await startGameWithFlagships();
+    await helper.startGameWithFlagships();
+    const aliceShipId = await helper.ownFlagshipId();
 
     await helper.recordAnimations();
     await helper.moveShip(ALICE_FRONT, "3/1");
@@ -55,7 +32,7 @@ test("ordering a move animates the ship straight away", async () => {
 });
 
 test("ordering an attack fires a projectile straight away", async () => {
-    await startGameWithFlagships();
+    await helper.startGameWithFlagships();
 
     await helper.recordAnimations();
     await helper.attack(ALICE_FRONT, BOB_FRONT);
@@ -65,11 +42,11 @@ test("ordering an attack fires a projectile straight away", async () => {
 });
 
 test("the round replay moves the ship", async () => {
-    await startGameWithFlagships();
+    await helper.startGameWithFlagships();
     await helper.submitTurn();
 
     await helper.switchPlayer();
-    const bobShipId = await ownFlagshipId();
+    const bobShipId = await helper.ownFlagshipId();
     await helper.recordAnimations();
     await helper.moveShip(BOB_FRONT, "3/5");
     await helper.waitForAnimationsToSettle();
@@ -82,14 +59,14 @@ test("the round replay moves the ship", async () => {
 });
 
 test("the round replay shows the shot to the attacker and the hit to the target", async () => {
-    await startGameWithFlagships();
+    await helper.startGameWithFlagships();
 
     await helper.recordAnimations();
     await helper.attack(ALICE_FRONT, BOB_FRONT);
     await helper.waitForAnimationsToSettle();
     await helper.submitTurn();
     await helper.switchPlayer();
-    const bobShipId = await ownFlagshipId();
+    const bobShipId = await helper.ownFlagshipId();
 
     await helper.recordAnimations();
     await helper.submitTurn();
@@ -106,7 +83,7 @@ test("the round replay shows the shot to the attacker and the hit to the target"
 test("the round replay sinks a destroyed ship", async () => {
     // Four rounds of fire: each hull's armour soaks the first shot, the second sinks it
     test.setTimeout(480_000);
-    await startGameWithFlagships();
+    await helper.startGameWithFlagships();
     const targets = [BOB_REAR, BOB_REAR, BOB_FRONT, BOB_FRONT];
 
     for (const [round, target] of targets.entries()) {
@@ -117,7 +94,7 @@ test("the round replay sinks a destroyed ship", async () => {
         await helper.waitForAnimationsToSettle();
         await helper.submitTurn();
         await helper.switchPlayer();
-        const bobShipId = await ownFlagshipId();
+        const bobShipId = await helper.ownFlagshipId();
 
         await helper.recordAnimations();
         await helper.submitTurn();
