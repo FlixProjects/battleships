@@ -1,6 +1,10 @@
 locals {
   region = "ap-southeast-1"
 
+  github_ci_agent = {
+    prd : true
+  }
+
   lambda_functions = {
     prd : [
       { name : "join-game", create : true, cf_path : "/api/join", needs_s3 : true, needs_dynamodb : true, needs_auth_secret : true },
