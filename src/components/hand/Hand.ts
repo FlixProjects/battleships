@@ -3,6 +3,7 @@ import { SupportCard } from "@shared/models";
 import { ICard, IPlayer, IGameStateManager, TGameStateManagerCtor } from "@shared/types";
 import { gameManager, interactionManager } from "../..";
 import { FEGameStateManager } from "../../models/FEGameStateManager";
+import { playbackRunner } from "../../models/PlaybackRunner";
 import { isCompactViewport } from "../../utils/game-helper";
 import { BaseComponent } from "../BaseComponent";
 import { getComponents } from "../component-helper";
@@ -60,7 +61,8 @@ export class Hand extends BaseComponent {
             this.ref.appendChild(cardRow.build());
         });
 
-        if (hasFlagshipCardInHand) {
+        // A replay renders rewound states; arming the deploy flow there would outlive the replay
+        if (hasFlagshipCardInHand && !playbackRunner.isPlaying()) {
             this.dispatchCardSelection(flagshipCardId);
         }
     }

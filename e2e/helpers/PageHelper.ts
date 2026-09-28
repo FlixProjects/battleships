@@ -95,11 +95,8 @@ export class PageHelper {
         await this.waitForReplay();
     }
 
-    // The ship's sprite sits over its tile in a separate layer, so click the tile's point.
-    // Workaround: the round-1 replay renders the flagship undeployed, which re-arms the
-    // deploy flow and swallows the next board click, so dismiss it first.
+    // The ship's sprite sits over its tile in a separate layer, so click the tile's point
     private async selectShip(tileId: string) {
-        await this.page.mouse.click(1, 1);
         await this.tile(tileId).click({ force: true });
     }
 
