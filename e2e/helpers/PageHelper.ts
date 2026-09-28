@@ -7,6 +7,7 @@ import { expect, type Page } from "@playwright/test";
 const API_TIMEOUT = 60_000;
 
 interface IPlainShip {
+    id: string;
     refNo: string;
     deployed?: boolean;
 }
@@ -19,6 +20,18 @@ export interface IPlayerView {
 
 type TScreen = "Login" | "Lobby" | "Game";
 type TMenuItem = "Login" | "Game" | "Lobby" | "Exit";
+
+export interface IRecordedAnimation {
+    kind: "move" | "projectile" | "hit" | "sink" | "explosion";
+    shipId?: string;
+}
+
+declare global {
+    interface Window {
+        __animations?: IRecordedAnimation[];
+        __lastAnimationAt?: number;
+    }
+}
 
 export const deployedFlagships = (view: IPlayerView) =>
     view.ships.filter((ship) => ship.refNo === "tudf_flagship0" && ship.deployed);
@@ -67,17 +80,142 @@ export class PageHelper {
     // Refresh re-reads the shared local game so the incoming player sees the other's changes
     async switchPlayer() {
         await this.page.locator("#switchPlayerBtn").click();
-        await this.page.locator("#refreshBtn").click();
+        await this.clickAndWaitFor(/\/api\?code=/, () => this.page.locator("#refreshBtn").click());
+        await this.waitForReplay();
     }
 
     // The flagship card is pre-selected while it is undeployed, so one tile click places it
     async deployFlagship(tileId: string) {
-        await this.page.locator(`[id="${tileId}"]`).click();
+        await this.tile(tileId).click();
         await expect(this.submitButton).toBeEnabled();
     }
 
     async submitTurn() {
         await this.clickAndWaitFor(/\/api\/submit/, () => this.submitButton.click());
+        await this.waitForReplay();
+    }
+
+    // The ship's sprite sits over its tile in a separate layer, so click the tile's point.
+    // Workaround: the round-1 replay renders the flagship undeployed, which re-arms the
+    // deploy flow and swallows the next board click, so dismiss it first.
+    private async selectShip(tileId: string) {
+        await this.page.mouse.click(1, 1);
+        await this.tile(tileId).click({ force: true });
+    }
+
+    async moveShip(fromTileId: string, toTileId: string) {
+        await this.selectShip(fromTileId);
+        await this.page.locator("#select-action-move").click();
+        await this.tile(toTileId).click({ force: true });
+        await this.page.locator("#path-menu-confirm").click();
+    }
+
+    async attack(fromTileId: string, targetTileId: string) {
+        await this.selectShip(fromTileId);
+        await this.page.locator("#select-action-attack").click();
+        await this.tile(targetTileId).click({ force: true });
+    }
+
+    // A click mid-replay skips it, so wait until the latest resolved round has played out.
+    // Mid-replay the stored state is the rewound prior round, so it only matches the
+    // watermark once the replay restores the real state.
+    // Checked twice because an API response lands a moment before the app applies it.
+    async waitForReplay() {
+        const isSettled = () =>
+            this.page.evaluate(() => {
+                const playerId = sessionStorage.getItem("fp-current-player") ?? "";
+                const states = JSON.parse(sessionStorage.getItem("fp-player-states") ?? "{}");
+                const snapshots = JSON.parse(sessionStorage.getItem("fp-round-snapshots") ?? "{}");
+                const shownRound = states[playerId]?.gameState?.lastResolvedRound ?? 0;
+
+                return (snapshots[playerId]?.lastAnimatedRound ?? 0) === shownRound;
+            });
+
+        await expect
+            .poll(
+                async () => {
+                    if (!(await isSettled())) return false;
+                    await this.page.waitForTimeout(250);
+                    return await isSettled();
+                },
+                { timeout: API_TIMEOUT },
+            )
+            .toBe(true);
+    }
+
+    // Logs the board's CSS animations and transform transitions from here on
+    async recordAnimations() {
+        await this.page.evaluate(() => {
+            window.__animations = [];
+            window.__lastAnimationAt = Date.now();
+            if (document.body.dataset.animationRecorder) return;
+            document.body.dataset.animationRecorder = "on";
+
+            const record = (animation: IRecordedAnimation) => {
+                window.__animations?.push(animation);
+                window.__lastAnimationAt = Date.now();
+            };
+            const onBoard = (event: Event) => {
+                const target = event.target;
+                return target instanceof HTMLElement && target.closest("#gameBoardContainer") ? target : undefined;
+            };
+            const keyframeKinds: Record<string, IRecordedAnimation["kind"]> = {
+                shiver: "hit",
+                sink: "sink",
+                "css-explosion-anim": "explosion",
+            };
+
+            document.addEventListener(
+                "animationstart",
+                (event) => {
+                    const target = onBoard(event);
+                    const kind = keyframeKinds[event.animationName];
+                    if (!target || !kind) return;
+
+                    const shipId = target.getAttribute("alt") ?? target.querySelector("img")?.getAttribute("alt");
+                    record({ kind, shipId: shipId ?? undefined });
+                },
+                true,
+            );
+
+            // Projectiles slide their bullet sprite; moves slide a pivot wrapping the ship copy
+            document.addEventListener(
+                "transitionrun",
+                (event) => {
+                    const target = onBoard(event);
+                    if (!target || event.propertyName !== "transform") return;
+
+                    if (target.getAttribute("src")?.includes("bullet")) {
+                        record({ kind: "projectile" });
+                    } else if (target.firstElementChild?.id) {
+                        record({ kind: "move", shipId: target.firstElementChild.id });
+                    }
+                },
+                true,
+            );
+
+            const markActive = () => (window.__lastAnimationAt = Date.now());
+            document.addEventListener("animationend", markActive, true);
+            document.addEventListener("transitionend", markActive, true);
+        });
+    }
+
+    async recordedAnimations(): Promise<IRecordedAnimation[]> {
+        return await this.page.evaluate(() => window.__animations ?? []);
+    }
+
+    // Local previews play straight after an order is given; let them finish before moving on
+    async waitForAnimationsToSettle(quietMs = 1500) {
+        await this.page.evaluate(() => (window.__lastAnimationAt = Date.now()));
+        await expect
+            .poll(() => this.page.evaluate((quiet) => Date.now() - (window.__lastAnimationAt ?? 0) > quiet, quietMs), {
+                timeout: API_TIMEOUT,
+            })
+            .toBe(true);
+    }
+
+    private tile(tileId: string) {
+        return this.page.locator(`[id="${tileId}"]`);
     }
 
     async openMenuItem(item: TMenuItem) {
