@@ -6,12 +6,18 @@ import { expect, type Page } from "@playwright/test";
 // SAM spins up a container per cold lambda, so first hits can be slow
 const API_TIMEOUT = 60_000;
 
-interface IPlainShip {
+export interface IPlainShip {
     id: string;
     refNo: string;
     playerId: string;
     deployed?: boolean;
     destroyed?: boolean;
+    attackRange: number;
+    attackMinRange?: number;
+    attackCommandPointCost: number;
+    remainingAttacks: number;
+    movementCommandPointCost: number;
+    remainingMovement: number;
 }
 
 export interface IPlainHull {
@@ -20,7 +26,18 @@ export interface IPlainHull {
     location: [number, number];
     remainingHealth: number;
     armor: number;
+    front?: boolean;
     destroyed?: boolean;
+}
+
+// The slice of a get-game response that must not reveal the opponent's secrets
+export interface IWireGameState {
+    players: { id: string; hand: string[]; pendingActions: string[] }[];
+    ships: { id: string; playerId: string }[];
+    hulls?: { shipId: string }[];
+    cards: { id: string }[];
+    decks: { playerId: string; cards: string[] }[];
+    actions?: { playerId: string }[];
 }
 
 interface IPlainPlayer {
@@ -66,6 +83,15 @@ export const deployedFlagships = (view: IPlayerView) =>
 export const hullAt = (view: IPlayerView, tileId: string) =>
     view.hulls.find((hull) => hull.location.join("/") === tileId);
 
+export const tileOf = (hull: IPlainHull) => hull.location.join("/");
+
+// Ranges count straight board steps, as the path finder does
+export const stepsBetween = (fromTileId: string, toTileId: string) => {
+    const [fromCol, fromRow] = fromTileId.split("/").map(Number);
+    const [toCol, toRow] = toTileId.split("/").map(Number);
+    return Math.abs(fromCol - toCol) + Math.abs(fromRow - toRow);
+};
+
 export class PageHelper {
     constructor(private readonly page: Page) {}
 
@@ -89,6 +115,7 @@ export class PageHelper {
     private async clickAndWaitFor(path: RegExp, click: () => Promise<void>) {
         const [response] = await Promise.all([this.page.waitForResponse(path, { timeout: API_TIMEOUT }), click()]);
         expect(response.status()).toBe(200);
+        return response;
     }
 
     // Deploys Bob on 2/6 + 2/5 and Alice on 2/0 + 2/1, leaving Alice current at the start of round 2
@@ -108,11 +135,50 @@ export class PageHelper {
     }
 
     async ownFlagshipId() {
+        return (await this.ownFlagship()).id;
+    }
+
+    async ownFlagship(): Promise<IPlainShip> {
         const view = await this.readPlayerView();
         const flagship = view.ships.find((ship) => ship.refNo === FLAGSHIP_REF_NO && ship.playerId === view.playerId);
-        expect(flagship).toBeDefined();
+        if (!flagship) throw new Error("The current player has no flagship");
 
-        return flagship?.id ?? "";
+        return flagship;
+    }
+
+    async ownFrontTile() {
+        const [view, flagship] = await Promise.all([this.readPlayerView(), this.ownFlagship()]);
+        const front = view.hulls.find((hull) => hull.shipId === flagship.id && hull.front);
+        if (!front) throw new Error("The flagship has no front hull");
+
+        return tileOf(front);
+    }
+
+    async ownCommandPoints() {
+        const view = await this.readPlayerView();
+        return view.players.find((player) => player.id === view.playerId)?.commandPoints ?? 0;
+    }
+
+    // Picks whichever tile the board offers, so the test doesn't encode the ship's range
+    private async clickFirstOffered() {
+        await expect.poll(async () => (await this.highlightedTiles()).length).toBeGreaterThan(0);
+        const [tileId] = await this.highlightedTiles();
+        await this.clickTile(tileId);
+        return tileId;
+    }
+
+    async attackFirstTarget(fromTileId: string) {
+        await this.selectShip(fromTileId);
+        await this.attackButton.click();
+        return await this.clickFirstOffered();
+    }
+
+    async moveToFirstDestination(fromTileId: string) {
+        await this.selectShip(fromTileId);
+        await this.moveButton.click();
+        const tileId = await this.clickFirstOffered();
+        await this.page.locator("#path-menu-confirm").click();
+        return tileId;
     }
 
     // Tiles the current interaction offers, marked by their pulsing highlight
@@ -171,10 +237,13 @@ export class PageHelper {
     }
 
     // Refresh re-reads the shared local game so the incoming player sees the other's changes
-    async switchPlayer() {
+    // Returns what the server sent the incoming player
+    async switchPlayer(): Promise<IWireGameState> {
         await this.page.locator("#switchPlayerBtn").click();
-        await this.clickAndWaitFor(/\/api\?code=/, () => this.page.locator("#refreshBtn").click());
+        const response = await this.clickAndWaitFor(/\/api\?code=/, () => this.page.locator("#refreshBtn").click());
         await this.waitForReplay();
+
+        return (await response.json()).gameState;
     }
 
     // The flagship card is pre-selected while it is undeployed, so one tile click places it
@@ -191,6 +260,11 @@ export class PageHelper {
     // The ship's sprite sits over its tile in a separate layer, so click the tile's point
     async selectShip(tileId: string) {
         await this.clickTile(tileId);
+    }
+
+    // A click off the board ends whatever selection is open
+    async dismissSelection() {
+        await this.page.mouse.click(1, 1);
     }
 
     async clickTile(tileId: string) {
