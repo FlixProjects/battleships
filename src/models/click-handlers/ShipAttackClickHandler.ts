@@ -3,12 +3,12 @@ import { FEHighlightLocationsCommand } from "@shared/models/commands/FEHighlight
 import { FEShipAttackCommand } from "@shared/models/commands/FEShipAttackCommand";
 import { GetValidAttackCellsSignal } from "@shared/models/signals/GetValidAttackCellsSignal";
 import { ICellLoc } from "@shared/types";
+import { ISelectable } from "@shared/types/fe-types";
 import { locationToKey } from "@shared/utils";
 import { gameManager } from "../..";
 import { getComponents } from "../../components/component-helper";
-import { HTMLImage } from "../../components/native/Image";
-import { Selectable } from "../../components/Selectable";
 import { Icon } from "../../components/icon/Icon";
+import { HTMLImage } from "../../components/native/Image";
 import { getEngine, queueCommand } from "../../utils/game-helper";
 import { ShipAttackActionIMEvent } from "../interaction-manager/types";
 import { ClickHandler } from "./ClickHandler";
@@ -32,12 +32,12 @@ export class ShipAttackClickHandler extends ClickHandler {
         const validCells = result?.validCells ?? [];
         const origin = result?.origin ?? this.origin;
 
-        const onSelectable = (selectable: Selectable) => {
+        const onSelectable = (selectable: ISelectable) => {
             this.loadRedStyle(selectable);
             this.loadTargetIcon(selectable);
         };
 
-        const onUnselectable = (selectable: Selectable) => {
+        const onUnselectable = (selectable: ISelectable) => {
             this.removeTargetIcon(selectable);
         };
 
@@ -94,12 +94,12 @@ export class ShipAttackClickHandler extends ClickHandler {
         );
     }
 
-    private loadRedStyle(selectable: Selectable) {
+    private loadRedStyle(selectable: ISelectable) {
         selectable.ref.style.background = "rgba(255, 110, 110, 0.2)";
         selectable.ref.style.border = "1px solid rgba(255, 110, 110, 0.5)";
     }
 
-    private loadTargetIcon(selectable: Selectable) {
+    private loadTargetIcon(selectable: ISelectable) {
         const iconId = `${TARGET_ICON_ID_PREFIX}-${selectable.id.replace(CELL_SEPARATOR, "-")}`;
         const existingIcon = selectable.ref.querySelector(`#${iconId}`);
 
@@ -123,7 +123,7 @@ export class ShipAttackClickHandler extends ClickHandler {
         ref.style.zIndex = Z_INDEX.TARGET_ATTACK_ICON;
     }
 
-    private removeTargetIcon(selectable: Selectable) {
+    private removeTargetIcon(selectable: ISelectable) {
         const iconId = `${TARGET_ICON_ID_PREFIX}-${selectable.id.replace(CELL_SEPARATOR, "-")}`;
         const existingIcon = selectable.ref.children.namedItem(iconId);
 

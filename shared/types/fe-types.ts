@@ -13,6 +13,7 @@ export interface IActionMenu extends ISelectable {
 }
 
 export interface ISelectable extends IBaseComponent {
+    id: string;
     ref: HTMLElement;
     runOnSelects: () => void;
 }
