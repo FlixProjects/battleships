@@ -47,14 +47,16 @@ Battleships is a two-player strategy game. Each player commands a faction fleet,
 - IndexedDB (client signing keys), sessionStorage (game state)
 
 **Backend:**
-- AWS Lambda + API Gateway (AWS SAM for local development)
-- S3 (game state), DynamoDB (users & games)
-- Account and guest login with proof-of-possession (DPoP) signed requests
+- AWS Lambda (Node 22, bundled with esbuild) behind CloudFront via function URLs
+- AWS SAM for local development (emulates API Gateway)
+- S3 (game state), DynamoDB (users & games), SSM Parameter Store (auth-token secret)
+- Account and guest login with proof-of-possession (DPoP) signed requests (`jose`)
 
 **Infrastructure:**
 - Terraform (Lambda, CloudFront, S3, DynamoDB, SSM, IAM)
 - CloudFront (CDN)
 - Docker (local SAM + DynamoDB Local)
+- GitHub Actions (deploys frontend to S3 and lambdas on push to `main`, via OIDC)
 
 **Testing:**
 - Jest (unit)
