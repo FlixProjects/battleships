@@ -173,6 +173,7 @@ export const ERROR_MESSAGES = {
     GAME_NOT_FOUND: "GAME_NOT_FOUND",
     NOT_A_PLAYER_IN_GAME: "NOT_A_PLAYER_IN_GAME",
     ALREADY_JOINED_GAME: "ALREADY_JOINED_GAME",
+    GAME_FULL: "GAME_FULL",
 
     // ==========================
     // API — server

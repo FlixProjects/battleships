@@ -52,6 +52,10 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
             return new ErrorApiResponse(ErrorCode.CONFLICT).setMessage(ERROR_MESSAGES.ALREADY_JOINED_GAME).build();
         }
 
+        if (gameState.players.length >= GameConfig.MAX_PLAYERS) {
+            return new ErrorApiResponse(ErrorCode.CONFLICT).setMessage(ERROR_MESSAGES.GAME_FULL).build();
+        }
+
         const newPlayer = initialiseNewPlayer({
             id: auth.userId,
             name: playerName,

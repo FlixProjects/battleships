@@ -331,6 +331,8 @@ export const SUPPORTS_CONFIG: Record<TSupportRefNo, TSupportConfig> = {
 
 export const MAX_HAND_SIZE = 4;
 
+export const MAX_PLAYERS = 2;
+
 export const FACTION_CONFIG: Record<TFaction, IFactionConfig> = {
     [Faction.THE_UNITED_DEFENSE_FLEET]: {
         name: "The United Defense Fleet",
