@@ -1,5 +1,4 @@
 import { COLOR, COLOR_RGB_VALUE } from "@shared/constants";
-import { FACTION_CONFIG } from "@shared/config/constants";
 import { TFaction } from "@shared/types";
 import { gameManager } from "../..";
 import { BaseComponent } from "../BaseComponent";
@@ -75,10 +74,9 @@ export class PlayerCard extends BaseComponent {
     private addFaction() {
         const { faction } = this.props;
         if (!faction) return;
-
         const factionEl = document.createElement("span");
         factionEl.className = "player-faction";
-        factionEl.innerText = FACTION_CONFIG[faction]?.name ?? faction;
+        factionEl.innerText = gameManager.getPlayer()?.faction?.replaceAll("_", " ") ?? "";
         factionEl.style.display = "block";
         factionEl.style.marginTop = "4px";
         factionEl.style.fontSize = "0.7rem";
