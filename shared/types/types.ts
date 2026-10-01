@@ -42,6 +42,7 @@ import {
     EFFECT_REF_NO,
     Faction,
     MAP_REF_NO,
+    PLAYER_REF_NO,
     SHIP_REF_NO,
     SUPPORT_REF_NO,
 } from "../config/constants";
@@ -450,6 +451,7 @@ export type TAppScreen = (typeof AppScreen)[keyof typeof AppScreen];
 export type TShipRefNo = (typeof SHIP_REF_NO)[keyof typeof SHIP_REF_NO];
 export type TMapRefNo = (typeof MAP_REF_NO)[keyof typeof MAP_REF_NO];
 export type TCellNodeRefNo = (typeof CELL_NODE_REF_NO)[keyof typeof CELL_NODE_REF_NO];
+export type TPlayerRefNo = (typeof PLAYER_REF_NO)[keyof typeof PLAYER_REF_NO];
 
 export type TSupportRefNo = (typeof SUPPORT_REF_NO)[keyof typeof SUPPORT_REF_NO];
 
@@ -566,6 +568,11 @@ export interface ICellNode extends ICellNodeConfig {
 export interface ICellNodeConfig {
     refNo: TCellNodeRefNo;
     imgSrc?: string;
+}
+
+export interface IPlayerConfig {
+    maxCommandPoints: number;
+    commandPoints: number;
 }
 
 export interface IPathTraveller {

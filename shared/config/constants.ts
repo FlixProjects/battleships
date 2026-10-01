@@ -6,6 +6,7 @@ import {
     TEffectsConfig,
     TFactionsConfig,
     THullsConfig,
+    TPlayersConfig,
     TShipsConfig,
     TSupportsConfig,
 } from "../types";
@@ -67,6 +68,10 @@ export const MAP_REF_NO = {
 export const CELL_NODE_REF_NO = {
     default: "default",
     island0: "island0",
+} as const;
+
+export const PLAYER_REF_NO = {
+    default: "default",
 } as const;
 
 export const Faction = {
@@ -368,5 +373,12 @@ export const CELL_CONFIG: TCellsConfig = {
     [CELL_NODE_REF_NO.island0]: {
         refNo: CELL_NODE_REF_NO.island0,
         imgSrc: "assets/terrain/island0.png",
+    },
+};
+
+export const PLAYERS_CONFIG: TPlayersConfig = {
+    [PLAYER_REF_NO.default]: {
+        maxCommandPoints: 2,
+        commandPoints: 2,
     },
 };

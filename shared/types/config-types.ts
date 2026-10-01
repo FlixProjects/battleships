@@ -4,11 +4,13 @@ import {
     IEffectTemplate,
     IFactionConfig,
     IHullTemplate,
+    IPlayerConfig,
     IShipTemplate,
     TCellNodeRefNo,
     TEffectRefNo,
     TFaction,
     TMapRefNo,
+    TPlayerRefNo,
     TShipRefNo,
     TSupportConfig,
     TSupportRefNo,
@@ -21,6 +23,7 @@ export type TSupportsConfig = Record<TSupportRefNo, TSupportConfig>;
 export type TFactionsConfig = Record<TFaction, IFactionConfig>;
 export type TBoardsConfig = Record<TMapRefNo, IBoardConfig>;
 export type TCellsConfig = Record<TCellNodeRefNo, ICellNodeConfig>;
+export type TPlayersConfig = Record<TPlayerRefNo, IPlayerConfig>;
 
 export interface IGameConfig {
     hullsConfig: THullsConfig;
@@ -30,4 +33,5 @@ export interface IGameConfig {
     effectsConfig: TEffectsConfig;
     boardConfig: TBoardsConfig;
     cellConfig: TCellsConfig;
+    playersConfig: TPlayersConfig;
 }
