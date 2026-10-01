@@ -42,6 +42,14 @@ export class Selectable extends BaseComponent implements ISelectable {
         this.setState();
     }
 
+    public removeOnSelectable() {
+        this.onSelectable = () => {};
+    }
+
+    public removeOnUnselectable() {
+        this.onUnselectable = () => {};
+    }
+
     protected setState(): void {
         if (this.isSelectable) {
             this.setSelectableStyle();

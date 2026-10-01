@@ -10,12 +10,10 @@ export class FEHighlightLocationsCommand extends FECommand {
     ) {
         super();
     }
-    execute(): Promise<void> {
+    async execute(): Promise<void> {
         this.gameBoard.updateSelectableTiles(this.locations, this.options);
-        return;
     }
-    undo(): Promise<void> {
+    async undo(): Promise<void> {
         this.gameBoard.updateSelectableTiles([]); // TODO: should we only unhighlight the tiles we selected?
-        return;
     }
 }

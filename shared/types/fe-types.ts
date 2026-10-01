@@ -16,6 +16,8 @@ export interface ISelectable extends IBaseComponent {
     id: string;
     ref: HTMLElement;
     runOnSelects: () => void;
+    removeOnUnselectable: () => void;
+    removeOnSelectable: () => void;
 }
 
 export interface IUpdateSelectableOptions extends TSetSelectableOptions {

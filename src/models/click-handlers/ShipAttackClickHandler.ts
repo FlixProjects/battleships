@@ -39,6 +39,7 @@ export class ShipAttackClickHandler extends ClickHandler {
 
         const onUnselectable = (selectable: ISelectable) => {
             this.removeTargetIcon(selectable);
+            selectable.removeOnSelectable();
         };
 
         queueCommand(
