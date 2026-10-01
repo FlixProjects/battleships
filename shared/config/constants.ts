@@ -1,20 +1,13 @@
 import {
     EffectAnchor,
     EffectKind,
-    IBoardConfig,
-    IEffectTemplate,
-    IFactionConfig,
-    IHullTemplate,
-    IShipTemplate,
-    ISupportConfig,
-    ICellNodeConfig,
-    TCellNodeRefNo,
-    TEffectRefNo,
-    TFaction,
-    TMapRefNo,
-    TShipRefNo,
-    TSupportRefNo,
-    TSupportConfig,
+    TBoardsConfig,
+    TCellsConfig,
+    TEffectsConfig,
+    TFactionsConfig,
+    THullsConfig,
+    TShipsConfig,
+    TSupportsConfig,
 } from "../types";
 
 export const CELL_SEPARATOR = "/";
@@ -80,7 +73,7 @@ export const Faction = {
     THE_UNITED_DEFENSE_FLEET: "THE_UNITED_DEFENSE_FLEET",
 } as const;
 
-export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
+export const HULLS_CONFIG: THullsConfig = {
     // TODO: deprecate
     [SHIP_REF_NO.frigate0]: [
         {
@@ -156,7 +149,7 @@ export const HULLS_CONFIG: Record<TShipRefNo, IHullTemplate[]> = {
     ],
 };
 
-export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
+export const SHIPS_CONFIG: TShipsConfig = {
     [SHIP_REF_NO.frigate0]: {
         refNo: SHIP_REF_NO.frigate0,
         name: "Frigate",
@@ -254,7 +247,7 @@ export const SHIPS_CONFIG: Record<TShipRefNo, IShipTemplate> = {
     },
 };
 
-export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectTemplate> = {
+export const EFFECTS_CONFIG: TEffectsConfig = {
     [EFFECT_REF_NO.flare]: {
         refNo: EFFECT_REF_NO.flare,
         kind: EffectKind.Vision,
@@ -300,7 +293,7 @@ export const EFFECTS_CONFIG: Record<TEffectRefNo, IEffectTemplate> = {
     },
 };
 
-export const SUPPORTS_CONFIG: Record<TSupportRefNo, TSupportConfig> = {
+export const SUPPORTS_CONFIG: TSupportsConfig = {
     [SUPPORT_REF_NO.flare]: {
         refNo: SUPPORT_REF_NO.flare,
         name: "Flare",
@@ -333,7 +326,7 @@ export const MAX_HAND_SIZE = 4;
 
 export const MAX_PLAYERS = 2;
 
-export const FACTION_CONFIG: Record<TFaction, IFactionConfig> = {
+export const FACTION_CONFIG: TFactionsConfig = {
     [Faction.THE_UNITED_DEFENSE_FLEET]: {
         name: "The United Defense Fleet",
         deck: [
@@ -349,7 +342,7 @@ export const FACTION_CONFIG: Record<TFaction, IFactionConfig> = {
     },
 };
 
-export const BOARD_CONFIG: Record<TMapRefNo, IBoardConfig> = {
+export const BOARD_CONFIG: TBoardsConfig = {
     [MAP_REF_NO.default]: {
         rows: BOARD_ROWS,
         columns: BOARD_COLUMNS,
@@ -368,7 +361,7 @@ export const BOARD_CONFIG: Record<TMapRefNo, IBoardConfig> = {
     },
 };
 
-export const CELL_CONFIG: Record<TCellNodeRefNo, ICellNodeConfig> = {
+export const CELL_CONFIG: TCellsConfig = {
     [CELL_NODE_REF_NO.default]: {
         refNo: CELL_NODE_REF_NO.default,
     },

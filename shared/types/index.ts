@@ -4,3 +4,4 @@ export * from "./action-types";
 export * from "./im-event-types";
 export * from "./result-types";
 export * from "./turn-event-types";
+export * from "./config-types";
