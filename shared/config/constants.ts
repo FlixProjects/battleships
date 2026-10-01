@@ -382,3 +382,14 @@ export const PLAYERS_CONFIG: TPlayersConfig = {
         commandPoints: 2,
     },
 };
+
+export const DEFAULT_CONFIG = {
+    hullsConfig: HULLS_CONFIG,
+    shipsConfig: SHIPS_CONFIG,
+    factionConfig: FACTION_CONFIG,
+    supportsConfig: SUPPORTS_CONFIG,
+    effectsConfig: EFFECTS_CONFIG,
+    boardConfig: BOARD_CONFIG,
+    cellConfig: CELL_CONFIG,
+    playersConfig: PLAYERS_CONFIG,
+};
