@@ -110,12 +110,10 @@ test.describe("joining", () => {
     });
 
     test("a third player cannot join a full game", async () => {
-        // Known gap: join-game never checks the player count
-        test.fail();
         const gameCode = await startJoinedGame();
         await helper.handOverToNewPlayer();
 
-        expect(await helper.attemptJoinGame("Carol", gameCode)).not.toBe(200);
+        expect(await helper.attemptJoinGame("Carol", gameCode)).toBe(409);
         await helper.expectScreen("Lobby");
     });
 });

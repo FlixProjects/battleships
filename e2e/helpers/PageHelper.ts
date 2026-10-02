@@ -9,6 +9,7 @@ const API_TIMEOUT = 60_000;
 export interface IPlainShip {
     id: string;
     refNo: string;
+    name: string;
     playerId: string;
     deployed?: boolean;
     destroyed?: boolean;
@@ -61,6 +62,16 @@ export interface IPlayerView {
 }
 
 export const FLAGSHIP_REF_NO = "tudf_flagship0";
+
+export type TSupportRefNo = "flare" | "inspire" | "airstrike";
+
+export interface IBoardMarks {
+    highlighted: string[];
+    targeted: string[];
+    tinted: string[];
+}
+
+export const IDLE_BOARD: IBoardMarks = { highlighted: [], targeted: [], tinted: [] };
 
 type TScreen = "Login" | "Lobby" | "Game";
 type TMenuItem = "Login" | "Game" | "Lobby" | "Exit";
@@ -190,6 +201,34 @@ export class PageHelper {
             );
     }
 
+    // What the board shows of the current interaction, in tile order. A tile appears once
+    // per target icon it holds, so a doubled icon shows up as a repeat.
+    async boardMarks(): Promise<IBoardMarks> {
+        return await this.page.locator(".tile").evaluateAll((tiles) => {
+            const elements = tiles as HTMLElement[];
+            return {
+                highlighted: elements.filter((tile) => tile.style.animation.includes("pulse")).map((tile) => tile.id),
+                targeted: elements.flatMap((tile) =>
+                    Array.from(tile.querySelectorAll('img[id^="target-icon-"]')).map(() => tile.id),
+                ),
+                tinted: elements
+                    .filter((tile) => tile.style.background.includes("255, 110, 110"))
+                    .map((tile) => tile.id),
+            };
+        });
+    }
+
+    // Support cards whose row is marked as the one being played
+    async selectedCards(): Promise<string[]> {
+        return await this.page
+            .locator(".card-row")
+            .evaluateAll((rows) =>
+                rows
+                    .filter((row) => (row as HTMLElement).style.animation.includes("pulse"))
+                    .map((row) => row.querySelector("img")?.getAttribute("alt") ?? ""),
+            );
+    }
+
     async pendingActionCount() {
         const view = await this.readPlayerView();
         return view.players.find((player) => player.id === view.playerId)?.pendingActions.length ?? 0;
@@ -240,6 +279,10 @@ export class PageHelper {
     // Returns what the server sent the incoming player
     async switchPlayer(): Promise<IWireGameState> {
         await this.page.locator("#switchPlayerBtn").click();
+        return await this.refresh();
+    }
+
+    async refresh(): Promise<IWireGameState> {
         const response = await this.clickAndWaitFor(/\/api\?code=/, () => this.page.locator("#refreshBtn").click());
         await this.waitForReplay();
 
@@ -380,6 +423,64 @@ export class PageHelper {
                 timeout: API_TIMEOUT,
             })
             .toBe(true);
+    }
+
+    // Hands are shuffled, so swap the wanted support cards in from the draw pile.
+    // Local mode posts the stored game with every request, so the server plays along.
+    async stackHand(refNos: TSupportRefNo[]) {
+        await this.page.evaluate(
+            ({ wanted, flagshipRefNo }) => {
+                const playerId = sessionStorage.getItem("fp-current-player") ?? "";
+                const state = JSON.parse(sessionStorage.getItem("fp-game-state") ?? "{}");
+                const player = state.players.find((p: { id: string }) => p.id === playerId);
+                const deck = state.decks.find((d: { playerId: string }) => d.playerId === playerId);
+                const refNoOf = (cardId: string): string =>
+                    state.cards.find((card: { id: string }) => card.id === cardId)?.refNo ?? "";
+                const isKept = (cardId: string) => [flagshipRefNo, ...wanted].includes(refNoOf(cardId));
+
+                for (const refNo of wanted) {
+                    if (player.hand.some((cardId: string) => refNoOf(cardId) === refNo)) continue;
+
+                    const deckIndex = deck.cards.findIndex((cardId: string) => refNoOf(cardId) === refNo);
+                    const handIndex = player.hand.findIndex((cardId: string) => !isKept(cardId));
+                    if (deckIndex < 0 || handIndex < 0) throw new Error(`Cannot stack ${refNo} into the hand`);
+
+                    [deck.cards[deckIndex], player.hand[handIndex]] = [player.hand[handIndex], deck.cards[deckIndex]];
+                }
+
+                sessionStorage.setItem("fp-game-state", JSON.stringify(state));
+            },
+            { wanted: refNos, flagshipRefNo: FLAGSHIP_REF_NO },
+        );
+        await this.refresh();
+    }
+
+    // The deck holds duplicates (e.g. two Flares), so take the first copy in hand
+    supportCard(refNo: TSupportRefNo) {
+        return this.page.locator(`.card-row img[alt="${refNo}"]`).first();
+    }
+
+    async handRefNos(): Promise<string[]> {
+        return await this.page.evaluate(() => {
+            const playerId = sessionStorage.getItem("fp-current-player") ?? "";
+            const { gameState } = JSON.parse(sessionStorage.getItem("fp-player-states") ?? "{}")[playerId];
+            const hand: string[] = gameState.players.find((p: { id: string }) => p.id === playerId)?.hand ?? [];
+
+            return hand.map(
+                (cardId) => gameState.cards.find((card: { id: string }) => card.id === cardId)?.refNo ?? "",
+            );
+        });
+    }
+
+    get pathMenu() {
+        return this.page.locator("#path-menu");
+    }
+
+    // The dashed line the route picker draws over the board
+    async drawnRoute(): Promise<string | null> {
+        const route = this.page.locator("#gameBoardContainer polyline");
+        if ((await route.count()) === 0) return null;
+        return await route.getAttribute("points");
     }
 
     private tile(tileId: string) {
