@@ -9,9 +9,14 @@ export class FERenderShipCommand extends FERenderCommand {
 
     public async execute(params: IFECommandExecutionParams): Promise<void> {
         const { gsm } = params;
-        const feShip = gsm.getShip(this.shipId);
-
-        feShip.render(this.gameBoard);
+        try {
+            const feShip = gsm.getShip(this.shipId);
+            feShip.render(this.gameBoard);
+        } catch (error) {
+            // to handle case where ship is not found,
+            // only expected on local hot-seat mode, and switching players fast
+            console.error(`Error rendering ship with id ${this.shipId}:`, error);
+        }
     }
 
     public async undo(params: ICommandExecutionParams): Promise<void> {}
