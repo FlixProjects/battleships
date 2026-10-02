@@ -20,6 +20,7 @@ interface ILoadEmptyNewPlayerParams {
     playerConfigRefNo?: TPlayerRefNo;
 }
 
+// separate from GameStateBuild in /factories which is only for tests
 export class GameStateBuilder {
     private gameState: IPlainGameState;
 
@@ -42,8 +43,15 @@ export class GameStateBuilder {
     }
 
     public loadEmptyNewPlayer(_params: ILoadEmptyNewPlayerParams) {
-        const defaultParams = { id: uuidv7(), order: 1, playerConfigRefNo: PLAYER_REF_NO.default };
-        const params = { ...defaultParams, ..._params };
+        const params = this.loadParams(
+            {
+                id: uuidv7(),
+                name: "UnknownPlayer",
+                order: 1,
+                playerConfigRefNo: PLAYER_REF_NO.default,
+            },
+            _params,
+        );
         const { playerConfigRefNo, ...playerParams } = params;
         const newPlayer: IPlainPlayer = {
             ready: false,
@@ -63,6 +71,10 @@ export class GameStateBuilder {
 
     public build(override: Partial<IPlainGameState> = {}): IPlainGameState {
         return mergician(override, this.gameState) as IPlainGameState;
+    }
+
+    private loadParams<T>(defaults: T, _param: Partial<T>): T {
+        return { ...defaults, ..._param };
     }
 
     private loadFreshGameState(params: ILoadFreshGameStateParams) {
