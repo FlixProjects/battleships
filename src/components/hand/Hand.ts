@@ -104,9 +104,10 @@ export class Hand extends BaseComponent {
         const card = gsm.getCard(cardId);
         if (!card) return;
 
+        // handle event first, which cleans up previous handlers, before setSelected
+        interactionManager.handleEvent(card.getSelectionEvent({ onGlobalDeselect: () => this.clearSelection() }));
         this.selectedCardId = cardId;
         this.cardRows.forEach((row) => row.setSelected(row.props.cardId === cardId));
-        interactionManager.handleEvent(card.getSelectionEvent({ onGlobalDeselect: () => this.clearSelection() }));
 
         if (isCompactViewport()) {
             getComponents().div.actionPanel.close();
