@@ -72,6 +72,17 @@ export class GameStateBuilder {
     public build(override: Partial<IPlainGameState> = {}): IPlainGameState {
         return mergician(override, this.gameState) as IPlainGameState;
     }
+    private loadShipCard(refNo: TShipRefNo, deckId: string) {
+        const ship = this.config.shipsConfig[refNo];
+        this.gameState.cards.push({
+            id: uuidv7(),
+            deckId,
+            instanceId: uuidv7(), // new implementation: we try to avoid pre-creation of ships
+            kind: CardKind.Ship,
+            refNo: ship.refNo,
+            name: ship.name,
+        });
+    }
 
     private loadParams<T>(defaults: T, _param: Partial<T>): T {
         return { ...defaults, ..._param };
