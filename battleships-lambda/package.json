@@ -9,6 +9,7 @@
     "scripts": {
         "start": "npm run db:up && npm run db:init && npm run start:api",
         "start:api": "sam build && sam local start-api --docker-network battleships-local --skip-pull-image --warm-containers EAGER",
+        "stop": "pkill -INT -f 'sam local start-api'",
         "db:up": "docker compose up -d",
         "db:down": "docker compose down",
         "db:init": "node scripts/create-tables.mjs",
