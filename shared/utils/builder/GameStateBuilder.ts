@@ -156,15 +156,10 @@ export class GameStateBuilder {
         this.gameState.decks.push(deck);
         player.deck = deck.id;
         const loadHand = () => this.loadHand({ deck: deckDomain, player });
-        const loadCards = () => this.loadCards({ deck, player });
         return {
             loadCards: () => {
                 this.loadCards({ deck, player });
                 return { loadHand };
-            },
-            loadHand: () => {
-                this.loadHand({ deck: deckDomain, player });
-                return { loadCards };
             },
         };
     }
@@ -172,7 +167,7 @@ export class GameStateBuilder {
     private loadCards({ deck, player }: ILoadCardsParams) {
         const deckConfig = this.config.factionConfig[player.faction].deck;
         const cards = deckConfig
-            .map((c) => this.loadCard({ cardEntry: c, deck, refNo: c.refNo }))
+            .flatMap((c) => Array(c.count).map(() => this.loadCard({ cardEntry: c, deck, refNo: c.refNo })))
             .filter((c) => c !== undefined);
         deck.cards = cards.map((c) => c.id);
         this.gameState.cards.push(...cards);
