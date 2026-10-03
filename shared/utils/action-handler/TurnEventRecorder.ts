@@ -5,6 +5,7 @@ import {
     IBasicShipMoveSignalHandleCtx,
     ICellLoc,
     IEffectAttackLocationSignalHandleCtx,
+    IGameCreateEffectSignalHandleCtx,
     IHullDestroyedSignalHandleCtx,
     IHullMoveSignalHandleCtx,
     IHullReceiveDamageSignalHandleCtx,
@@ -13,8 +14,10 @@ import {
     ISignalHandleCtx,
     ITurnEvent,
     TurnEventKind,
+    isDamageEffect,
     isShipDestroyedEvent,
     isShipMovedEvent,
+    isVisionEffect,
 } from "../../types";
 import { locationToKey } from "../helpers";
 
@@ -54,6 +57,8 @@ export class TurnEventRecorder {
                 return this.recordCardPlayed(ctx as IPlayCardSignalHandleCtx);
             case SignalType.EffectAttackLocation:
                 return this.recordEffectDetonated(ctx as IEffectAttackLocationSignalHandleCtx);
+            case SignalType.GameCreateEffect:
+                return this.recordEffectCreated(ctx as IGameCreateEffectSignalHandleCtx);
         }
     };
 
@@ -199,6 +204,22 @@ export class TurnEventRecorder {
         });
     }
 
+    /** Only effects with a board presence: CP gains and attack buffs have nothing to show. */
+    private recordEffectCreated(ctx: IGameCreateEffectSignalHandleCtx): void {
+        const { effect } = ctx.signal.payload;
+        if (!effect.existsOnBoard) return;
+        if (!isVisionEffect(effect) && !isDamageEffect(effect)) return;
+
+        this.events.push({
+            kind: TurnEventKind.EffectCreated,
+            playerId: effect.playerId,
+            visibleToPlayerIds: [],
+            effectId: effect.id,
+            refNo: effect.refNo,
+            location: effect.location,
+        });
+    }
+
     private eventLocations(event: ITurnEvent): ICellLoc[] {
         switch (event.kind) {
             case TurnEventKind.ShipDeployed:
@@ -215,6 +236,7 @@ export class TurnEventRecorder {
             case TurnEventKind.ShipDestroyed:
                 return event.locations;
             case TurnEventKind.EffectDetonated:
+            case TurnEventKind.EffectCreated:
                 return [event.location];
             case TurnEventKind.CardPlayed:
                 return []; // hand-private: only the owner sees it

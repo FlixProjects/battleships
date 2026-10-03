@@ -1,4 +1,5 @@
 import {
+    IEffectCreatedEvent,
     IEffectDetonatedEvent,
     IHull,
     IPlainGameState,
@@ -19,26 +20,12 @@ const upsertById = <T extends { id: string }>(list: T[], item: T): void => {
     list[index] = item;
 };
 
-/**
- * Advances the transient playback state event-by-event so a full board render
- * after each event shows its post-event arrangement. Entity data comes from
- * the final resolved state (the only complete source the viewer has); only
- * positions are rewound from the events. Never touches the DOM — the
- * PlaybackRunner renders, this class only patches plain data.
- */
 export class PlaybackStateApplier {
     constructor(
         private readonly finalState: IPlainGameState,
         private readonly events: ITurnEvent[],
     ) {}
 
-    /**
-     * Spawn the event's ship into the playback state when it is missing — a
-     * ship hidden at round start enters the viewer's vision at its first
-     * visible event. Returns true when something was spawned so the runner
-     * re-renders before animating (the animation needs the sprite in the DOM).
-     * Deploys are excluded: their `apply` IS the appearance.
-     */
     public ensurePresence(playback: IPlainGameState, index: number): boolean {
         const event = this.events[index];
         switch (event.kind) {
@@ -66,6 +53,9 @@ export class PlaybackStateApplier {
                 return;
             case TurnEventKind.EffectDetonated:
                 this.applyDetonation(playback, event);
+                return;
+            case TurnEventKind.EffectCreated:
+                this.applyEffectCreation(playback, event);
                 return;
             case TurnEventKind.ShipAttacked:
             case TurnEventKind.HullDamaged:
@@ -110,10 +100,10 @@ export class PlaybackStateApplier {
             .filter(isShipMovedEvent)
             .find((event) => event.shipId === shipId);
         const segment = nextMove?.hulls.find((s) => s.hullId === finalHull.id);
-        if (!segment) return hull;
+        if (!segment || !nextMove) return hull;
 
         hull.location = segment.from;
-        hull.orientation = nextMove.startingOrientation;
+        hull.orientation = nextMove?.startingOrientation;
         return hull;
     }
 
@@ -137,6 +127,12 @@ export class PlaybackStateApplier {
         const ship = playback.ships.find((s) => s.id === event.shipId);
         if (!ship) return;
         ship.destroyed = true;
+    }
+
+    private applyEffectCreation(playback: IPlainGameState, event: IEffectCreatedEvent): void {
+        const finalEffect = this.finalState.effects.find((effect) => effect.id === event.effectId);
+        if (!finalEffect) return;
+        upsertById(playback.effects, clone(finalEffect));
     }
 
     private applyDetonation(playback: IPlainGameState, event: IEffectDetonatedEvent): void {

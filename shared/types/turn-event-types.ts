@@ -14,6 +14,7 @@ export const TurnEventKind = {
     HullDamaged: "HullDamaged",
     ShipDestroyed: "ShipDestroyed",
     EffectDetonated: "EffectDetonated",
+    EffectCreated: "EffectCreated",
     CardPlayed: "CardPlayed",
 } as const;
 
@@ -91,6 +92,15 @@ export interface IEffectDetonatedEvent extends ITurnEventBase {
     location: ICellLoc;
 }
 
+/** An on-board effect (Flare, Airstrike marker) appearing — the playback
+ *  shows its sprite from this step on. */
+export interface IEffectCreatedEvent extends ITurnEventBase {
+    kind: typeof TurnEventKind.EffectCreated;
+    effectId: string;
+    refNo: string;
+    location: ICellLoc;
+}
+
 export interface ICardPlayedEvent extends ITurnEventBase {
     kind: typeof TurnEventKind.CardPlayed;
     cardId: string;
@@ -104,6 +114,7 @@ export type ITurnEvent =
     | IHullDamagedEvent
     | IShipDestroyedEvent
     | IEffectDetonatedEvent
+    | IEffectCreatedEvent
     | ICardPlayedEvent;
 
 export const isShipDeployedEvent = (e: ITurnEvent): e is IShipDeployedEvent =>
@@ -117,4 +128,6 @@ export const isShipDestroyedEvent = (e: ITurnEvent): e is IShipDestroyedEvent =>
     e.kind === TurnEventKind.ShipDestroyed;
 export const isEffectDetonatedEvent = (e: ITurnEvent): e is IEffectDetonatedEvent =>
     e.kind === TurnEventKind.EffectDetonated;
+export const isEffectCreatedEvent = (e: ITurnEvent): e is IEffectCreatedEvent =>
+    e.kind === TurnEventKind.EffectCreated;
 export const isCardPlayedEvent = (e: ITurnEvent): e is ICardPlayedEvent => e.kind === TurnEventKind.CardPlayed;

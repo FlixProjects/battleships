@@ -2,6 +2,7 @@ import {
     ITurnEvent,
     TurnEventKind,
     isCardPlayedEvent,
+    isEffectCreatedEvent,
     isEffectDetonatedEvent,
     isHullDamagedEvent,
     isShipAttackedEvent,
@@ -64,6 +65,14 @@ const sampleEvents: ITurnEvent[] = [
         location: [2, 3],
     },
     {
+        kind: TurnEventKind.EffectCreated,
+        playerId: "p1",
+        visibleToPlayerIds: ["p1"],
+        effectId: "e2",
+        refNo: "flare_persistent",
+        location: [1, 5],
+    },
+    {
         kind: TurnEventKind.CardPlayed,
         playerId: "p1",
         visibleToPlayerIds: ["p1"],
@@ -87,6 +96,7 @@ describe("turn-event-types", () => {
             isHullDamagedEvent,
             isShipDestroyedEvent,
             isEffectDetonatedEvent,
+            isEffectCreatedEvent,
             isCardPlayedEvent,
         ];
         // sampleEvents is ordered to match the guard order one-to-one.
@@ -112,6 +122,8 @@ describe("turn-event-types", () => {
                     return event.shipId;
                 case TurnEventKind.EffectDetonated:
                     return event.refNo;
+                case TurnEventKind.EffectCreated:
+                    return event.effectId;
                 case TurnEventKind.CardPlayed:
                     return event.cardId;
                 default: {
@@ -123,6 +135,6 @@ describe("turn-event-types", () => {
             }
         };
 
-        expect(sampleEvents.map(describeEvent)).toEqual(["s1", "s1", "s2", "h1", "s1", "airstrike", "c1"]);
+        expect(sampleEvents.map(describeEvent)).toEqual(["s1", "s1", "s2", "h1", "s1", "airstrike", "e2", "c1"]);
     });
 });

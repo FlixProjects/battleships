@@ -85,6 +85,7 @@ declare global {
     interface Window {
         __animations?: IRecordedAnimation[];
         __lastAnimationAt?: number;
+        __effectsAtMoveStart?: string[][];
     }
 }
 
@@ -409,6 +410,36 @@ export class PageHelper {
             document.addEventListener("animationend", markActive, true);
             document.addEventListener("transitionend", markActive, true);
         });
+    }
+
+    // Notes which effect sprites are on the board each time a ship starts moving, from here on
+    async recordEffectsAtMoveStart() {
+        await this.page.evaluate(() => {
+            window.__effectsAtMoveStart = [];
+            if (document.body.dataset.effectRecorder) return;
+            document.body.dataset.effectRecorder = "on";
+
+            document.addEventListener(
+                "transitionrun",
+                (event) => {
+                    const target = event.target;
+                    if (!(target instanceof HTMLElement) || !target.closest("#gameBoardContainer")) return;
+                    if (event.propertyName !== "transform" || !target.firstElementChild?.id) return;
+
+                    const sprites = document.querySelectorAll<HTMLElement>("#gameBoardStaticLayer > *");
+                    const effects = Array.from(sprites)
+                        .map((sprite) => sprite.style.backgroundImage || (sprite.getAttribute("alt") ?? ""))
+                        .map((label) => /flare|airstrike/.exec(label)?.[0] ?? "")
+                        .filter((label) => label !== "");
+                    window.__effectsAtMoveStart?.push(effects);
+                },
+                true,
+            );
+        });
+    }
+
+    async effectsAtMoveStart(): Promise<string[][]> {
+        return await this.page.evaluate(() => window.__effectsAtMoveStart ?? []);
     }
 
     async recordedAnimations(): Promise<IRecordedAnimation[]> {

@@ -123,6 +123,39 @@ describe("PlaybackStateApplier", () => {
         expect(playback.hulls[0].location).toEqual([2, 0]);
     });
 
+    it("puts a created effect on the board from the final state, at its event", () => {
+        const finalState = buildFinalPlainState();
+        const playback = clone(finalState);
+        playback.effects = [];
+        const events: ITurnEvent[] = [
+            {
+                kind: TurnEventKind.EffectCreated,
+                playerId: "player2",
+                visibleToPlayerIds: ["player2"],
+                effectId: "fx1",
+                refNo: EFFECT_REF_NO.airstrike,
+                location: [2, 2],
+            },
+            {
+                kind: TurnEventKind.EffectCreated,
+                playerId: "player2",
+                visibleToPlayerIds: ["player2"],
+                effectId: "gone-by-round-end",
+                refNo: EFFECT_REF_NO.airstrike,
+                location: [3, 3],
+            },
+        ];
+        const applier = new PlaybackStateApplier(finalState, events);
+
+        applier.apply(playback, 0);
+        expect(playback.effects).toEqual(finalState.effects);
+
+        // Not in the viewer's final state → nothing to draw, and no duplicate on a re-apply.
+        applier.apply(playback, 1);
+        applier.apply(playback, 0);
+        expect(playback.effects).toEqual(finalState.effects);
+    });
+
     it("marks the ship destroyed and drops the detonated effect", () => {
         const finalState = buildFinalPlainState();
         const playback = clone(finalState);

@@ -58,6 +58,31 @@ test("the round replay moves the ship", async () => {
     expect(await helper.recordedAnimations()).toContainEqual({ kind: "move", shipId: bobShipId });
 });
 
+test("the round replay shows a played Flare from the moment it was played", async () => {
+    await helper.startGameWithFlagships();
+    await helper.stackHand(["flare"]);
+
+    // The Flare is played before the move, so it must already be up when the replay moves the ship
+    await helper.supportCard("flare").click();
+    await expect.poll(async () => (await helper.highlightedTiles()).length).toBeGreaterThan(0);
+    await helper.clickTile("2/3");
+    await expect.poll(() => helper.pendingActionCount()).toBe(1);
+    await helper.recordAnimations();
+    await helper.moveShip(ALICE_FRONT, "3/1");
+    await helper.waitForAnimationsToSettle();
+    await helper.submitTurn();
+
+    await helper.switchPlayer();
+    await helper.submitTurn();
+
+    await helper.recordEffectsAtMoveStart();
+    await helper.switchPlayer();
+
+    const effectsAtMoveStart = await helper.effectsAtMoveStart();
+    expect(effectsAtMoveStart.length).toBeGreaterThan(0);
+    effectsAtMoveStart.forEach((effects) => expect(effects).toContain("flare"));
+});
+
 test("the round replay shows the shot to the attacker and the hit to the target", async () => {
     await helper.startGameWithFlagships();
 

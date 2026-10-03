@@ -8,11 +8,6 @@ import { DestroyedAnimation } from "../models/animations";
 import { HitAnimation } from "../models/animations/HitAnimation";
 import { getElementsFromIds } from "./game-helper";
 
-/**
- * Maps one recorded `ITurnEvent` to the `FECommand` that animates it, or
- * undefined when the event has no animation of its own (a deploy pops in with
- * the runner's post-event render; card plays aren't animated in v1).
- */
 export const turnEventToCommand = (event: ITurnEvent): FECommand | undefined => {
     switch (event.kind) {
         case TurnEventKind.ShipMoved:
@@ -39,6 +34,7 @@ export const turnEventToCommand = (event: ITurnEvent): FECommand | undefined => 
         case TurnEventKind.EffectDetonated:
             return new FEEffectDetonationAnimationCommand({ location: event.location });
         case TurnEventKind.ShipDeployed:
+        case TurnEventKind.EffectCreated:
         case TurnEventKind.CardPlayed:
             return undefined;
     }

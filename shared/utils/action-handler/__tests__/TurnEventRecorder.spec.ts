@@ -9,7 +9,7 @@ import { BasicShipAttackSignal } from "../../../models/signals/BasicShipAttackSi
 import { BasicShipMoveSignal } from "../../../models/signals/BasicShipMoveSignal";
 import { GamePersistentEffectsTickSignal } from "../../../models/signals/GamePersistentEffectsTickSignal";
 import { PlayCardSignal } from "../../../models/signals/PlayCardSignal";
-import { EffectAnchor, EffectKind, ICard, IDeck, TurnEventKind, isShipMovedEvent } from "../../../types";
+import { EffectAnchor, EffectKind, ICard, IDeck, TurnEventKind, isEffectCreatedEvent, isShipMovedEvent } from "../../../types";
 import { TurnEventRecorder } from "../TurnEventRecorder";
 
 const gameStateBuilder = new GameStateBuilder();
@@ -302,5 +302,63 @@ describe("TurnEventRecorder — card play", () => {
         const cardPlayed = recorder.collect().find((e) => e.kind === TurnEventKind.CardPlayed);
         expect(cardPlayed).toMatchObject({ playerId: "player1", cardId: "card-airstrike", cardName: "Airstrike" });
         expect(cardPlayed?.visibleToPlayerIds).toEqual(["player1"]); // no location → hand-private
+    });
+
+    it("records EffectCreated for each on-board effect the card places, seen by whoever sees its tile", () => {
+        const card: ICard = {
+            id: "card-airstrike",
+            deckId: "deck-1",
+            instanceId: "card-airstrike",
+            kind: CardKind.Support,
+            refNo: SUPPORT_REF_NO.airstrike,
+            name: "Airstrike",
+            commandPointCost: 1,
+            effectTemplates: [
+                {
+                    refNo: EFFECT_REF_NO.airstrike,
+                    kind: EffectKind.Damage,
+                    anchor: EffectAnchor.AnyTile,
+                    range: 1,
+                    damage: 1,
+                    duration: 1,
+                    existsOnBoard: true,
+                },
+            ],
+        };
+        const deck: IDeck = {
+            id: "deck-1",
+            playerId: "player1",
+            faction: Faction.THE_UNITED_DEFENSE_FLEET,
+            cards: [],
+            played: [],
+        };
+        const gameState = gameStateBuilder.build({
+            players: [
+                buildPlayer1.build({ hand: ["card-airstrike"], deck: "deck-1", commandPoints: 2, maxCommandPoints: 2 }),
+                buildPlayer2.build(),
+            ],
+            cards: [card],
+            decks: [deck],
+        });
+        const { recorder, engine } = buildRecordingEngine(gameState);
+
+        const resolved = engine.runWithSignal(
+            new PlayCardSignal({
+                targetId: "card-airstrike",
+                payload: {
+                    playerId: "player1",
+                    cardPayload: { kind: "Support", targetCell: [2, 3], orientation: "horizontal" },
+                },
+            }),
+        );
+        recorder.stampVisibility({ player1: new Set(), player2: new Set(["2/3"]) });
+
+        const created = recorder.collect().filter(isEffectCreatedEvent);
+        expect(created.length).toBeGreaterThan(0);
+        expect(created.map((e) => e.effectId).sort()).toEqual(resolved.effects.map((e) => e.id).sort());
+        created.forEach((event) => {
+            const seenByOpponent = event.location.join("/") === "2/3";
+            expect(event.visibleToPlayerIds).toEqual(seenByOpponent ? ["player1", "player2"] : ["player1"]);
+        });
     });
 });
