@@ -156,6 +156,79 @@ describe("PlaybackStateApplier", () => {
         expect(playback.effects).toEqual(finalState.effects);
     });
 
+    describe("a Flare landing", () => {
+        // player2 is the viewer; player1's ship1 sits on 2/2 and was hidden at round start
+        const flareAt = (location: ICellLoc) => ({
+            id: "flare1",
+            refNo: EFFECT_REF_NO.flarePersistent,
+            kind: EffectKind.Vision,
+            playerId: "player2",
+            duration: 2,
+            isActive: true,
+            createdOnRound: 1,
+            expiresAfterRound: 3,
+            existsOnBoard: true,
+            location,
+            range: 1,
+        });
+        const flareCreated = (location: ICellLoc): ITurnEvent => ({
+            kind: TurnEventKind.EffectCreated,
+            playerId: "player2",
+            visibleToPlayerIds: ["player2"],
+            effectId: "flare1",
+            refNo: EFFECT_REF_NO.flarePersistent,
+            location,
+        });
+        const buildStates = (flareLocation: ICellLoc) => {
+            const finalState = buildFinalPlainState();
+            finalState.effects = [flareAt(flareLocation)];
+            const playback = clone(finalState);
+            playback.effects = [];
+            playback.ships = [];
+            playback.hulls = [];
+            playback.players[0].ships = [];
+            return { finalState, playback };
+        };
+
+        it("reveals a ship already sitting in its light, though the ship has no event of its own", () => {
+            const { finalState, playback } = buildStates([2, 3]);
+
+            new PlaybackStateApplier(finalState, [flareCreated([2, 3])], "player2").apply(playback, 0);
+
+            expect(playback.ships.map((s) => s.id)).toEqual(["ship1"]);
+            expect(playback.hulls[0].location).toEqual([2, 2]);
+        });
+
+        it("leaves a ship outside its light hidden", () => {
+            const { finalState, playback } = buildStates([4, 6]);
+
+            new PlaybackStateApplier(finalState, [flareCreated([4, 6])], "player2").apply(playback, 0);
+
+            expect(playback.ships).toEqual([]);
+        });
+
+        it("leaves a ship that deploys later in the round to its own deploy event", () => {
+            const { finalState, playback } = buildStates([2, 3]);
+            const events: ITurnEvent[] = [
+                flareCreated([2, 3]),
+                {
+                    kind: TurnEventKind.ShipDeployed,
+                    playerId: "player1",
+                    visibleToPlayerIds: ["player1", "player2"],
+                    shipId: "ship1",
+                    location: [2, 2],
+                },
+            ];
+            const applier = new PlaybackStateApplier(finalState, events, "player2");
+
+            applier.apply(playback, 0);
+            expect(playback.ships).toEqual([]);
+
+            applier.apply(playback, 1);
+            expect(playback.ships.map((s) => s.id)).toEqual(["ship1"]);
+        });
+    });
+
     it("marks the ship destroyed and drops the detonated effect", () => {
         const finalState = buildFinalPlainState();
         const playback = clone(finalState);

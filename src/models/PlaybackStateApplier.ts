@@ -7,8 +7,11 @@ import {
     IShipMovedEvent,
     ITurnEvent,
     TurnEventKind,
+    isShipDeployedEvent,
     isShipMovedEvent,
 } from "@shared/types";
+import { GameState } from "@shared/models/GameState";
+import { locationToKey } from "@shared/utils/helpers";
 import clone from "lodash.clonedeep";
 
 const upsertById = <T extends { id: string }>(list: T[], item: T): void => {
@@ -24,6 +27,7 @@ export class PlaybackStateApplier {
     constructor(
         private readonly finalState: IPlainGameState,
         private readonly events: ITurnEvent[],
+        private readonly viewerId?: string,
     ) {}
 
     public ensurePresence(playback: IPlainGameState, index: number): boolean {
@@ -56,6 +60,7 @@ export class PlaybackStateApplier {
                 return;
             case TurnEventKind.EffectCreated:
                 this.applyEffectCreation(playback, event);
+                this.revealShipsInVision(playback, index);
                 return;
             case TurnEventKind.ShipAttacked:
             case TurnEventKind.HullDamaged:
@@ -133,6 +138,34 @@ export class PlaybackStateApplier {
         const finalEffect = this.finalState.effects.find((effect) => effect.id === event.effectId);
         if (!finalEffect) return;
         upsertById(playback.effects, clone(finalEffect));
+    }
+
+    /**
+     * New vision (a Flare) shows ships that were already sitting there: one
+     * deployed unseen earlier has no event of its own left to bring it onto the
+     * board. Ships still to deploy this round are left to their deploy event.
+     */
+    private revealShipsInVision(playback: IPlainGameState, index: number): void {
+        const viewerId = this.viewerId;
+        if (!viewerId) return;
+
+        const visibleTiles = new GameState(playback).getVisibleTilesforPlayer(viewerId);
+        const deploysLater = new Set(
+            this.events
+                .slice(index + 1)
+                .filter(isShipDeployedEvent)
+                .map((event) => event.shipId),
+        );
+
+        this.finalState.ships
+            .filter((ship) => ship.deployed && !ship.destroyed && !deploysLater.has(ship.id))
+            .filter((ship) =>
+                (this.finalState.hulls ?? [])
+                    .filter((hull) => hull.shipId === ship.id && hull.location)
+                    .map((hull) => this.hullAtPreEventPosition(hull, ship.id, index))
+                    .some((hull) => visibleTiles.has(locationToKey(hull.location))),
+            )
+            .forEach((ship) => this.spawnShipIfMissing(playback, ship.id, ship.playerId, index));
     }
 
     private applyDetonation(playback: IPlainGameState, event: IEffectDetonatedEvent): void {

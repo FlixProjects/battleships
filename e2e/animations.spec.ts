@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { PageHelper } from "./helpers/PageHelper";
+import { FLAGSHIP_REF_NO, FRIGATE_REF_NO, PageHelper } from "./helpers/PageHelper";
 
 // Flagships are the only guaranteed card, so every scenario is fought with them.
 // Alice's hulls sit on 2/0 + 2/1 (front) and Bob's on 2/6 + 2/5 (front): 4 tiles apart,
@@ -75,12 +75,77 @@ test("the round replay shows a played Flare from the moment it was played", asyn
     await helper.switchPlayer();
     await helper.submitTurn();
 
-    await helper.recordEffectsAtMoveStart();
+    await helper.recordBoardAtMoveStart();
     await helper.switchPlayer();
 
-    const effectsAtMoveStart = await helper.effectsAtMoveStart();
-    expect(effectsAtMoveStart.length).toBeGreaterThan(0);
-    effectsAtMoveStart.forEach((effects) => expect(effects).toContain("flare"));
+    const boards = await helper.boardAtMoveStart();
+    expect(boards.length).toBeGreaterThan(0);
+    boards.forEach((board) => expect(board.effects).toContain("flare"));
+});
+
+// One opening round, resolved in alternating order with P1 (the creator) holding initiative:
+//   P1 deploys flagship → P2 deploys flagship → P1 plays Flare beside it → P2 deploys frigate
+//   → P1 deploys frigate → P2 moves frigate
+// P1 resolves the round, so the replay under test plays as P1's submit returns.
+test.describe("the opening-round replay, seen by the player who lit a Flare beside the enemy flagship", () => {
+    const FLARE_TILE = "1/5";
+    const P2_FRIGATE_TILE = "1/6";
+
+    const playOpeningRound = async () => {
+        const gameCode = await helper.createGame("Alice");
+        await helper.handOverToNewPlayer();
+        await helper.joinGame("Bob", gameCode);
+
+        // P2 (Bob): flagship, frigate, then move the frigate
+        await helper.stackHand([FRIGATE_REF_NO]);
+        await helper.deployFlagship(BOB_REAR);
+        await helper.deployShipCard(FRIGATE_REF_NO, P2_FRIGATE_TILE);
+        await helper.recordAnimations();
+        await helper.moveToFirstDestination(P2_FRIGATE_TILE);
+        await helper.waitForAnimationsToSettle();
+        await helper.submitTurn();
+
+        // P1 (Alice): flagship, Flare beside P2's flagship, then a frigate
+        await helper.switchPlayer();
+        const alice = await helper.readPlayerView();
+        expect(alice.initiative).toBe(alice.playerId);
+        await helper.stackHand(["flare", FRIGATE_REF_NO]);
+        await helper.deployFlagship("2/0");
+        await helper.supportCard("flare").click();
+        await expect.poll(async () => (await helper.highlightedTiles()).length).toBeGreaterThan(0);
+        await helper.clickTile(FLARE_TILE);
+        await expect.poll(() => helper.pendingActionCount()).toBe(2);
+        await helper.deployShipCard(FRIGATE_REF_NO);
+
+        await helper.recordBoardAtMoveStart();
+        await helper.submitTurn();
+
+        const view = await helper.readPlayerView();
+        const theirShips = view.ships.filter((ship) => ship.playerId !== view.playerId && ship.deployed);
+
+        return {
+            boards: await helper.boardAtMoveStart(),
+            theirFlagshipId: theirShips.find((ship) => ship.refNo === FLAGSHIP_REF_NO)?.id,
+            theirFrigateId: theirShips.find((ship) => ship.refNo === FRIGATE_REF_NO)?.id,
+        };
+    };
+
+    test("replays the enemy frigate's move with the Flare already lit", async () => {
+        const { boards, theirFrigateId } = await playOpeningRound();
+
+        expect(theirFrigateId).toBeDefined();
+        // A move animates in several steps (turn, slide), each noted separately
+        expect(new Set(boards.map((board) => board.movingShipId))).toEqual(new Set([theirFrigateId]));
+        boards.forEach((board) => expect(board.effects).toContain("flare"));
+    });
+
+    test("shows the enemy flagship from the moment the Flare lands, though it deployed unseen", async () => {
+        const { boards, theirFlagshipId } = await playOpeningRound();
+
+        expect(theirFlagshipId).toBeDefined();
+        expect(boards.length).toBeGreaterThan(0);
+        expect(boards[0].shipIds).toContain(theirFlagshipId);
+    });
 });
 
 test("the round replay shows the shot to the attacker and the hit to the target", async () => {

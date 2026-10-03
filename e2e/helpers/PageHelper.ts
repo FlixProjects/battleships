@@ -65,6 +65,10 @@ export const FLAGSHIP_REF_NO = "tudf_flagship0";
 
 export type TSupportRefNo = "flare" | "inspire" | "airstrike";
 
+export const FRIGATE_REF_NO = "tudf_frigate0";
+
+type TShipCardRefNo = typeof FRIGATE_REF_NO;
+
 export interface IBoardMarks {
     highlighted: string[];
     targeted: string[];
@@ -81,11 +85,17 @@ export interface IRecordedAnimation {
     shipId?: string;
 }
 
+export interface IBoardAtMoveStart {
+    movingShipId: string;
+    effects: string[];
+    shipIds: string[];
+}
+
 declare global {
     interface Window {
         __animations?: IRecordedAnimation[];
         __lastAnimationAt?: number;
-        __effectsAtMoveStart?: string[][];
+        __boardAtMoveStart?: IBoardAtMoveStart[];
     }
 }
 
@@ -412,12 +422,12 @@ export class PageHelper {
         });
     }
 
-    // Notes which effect sprites are on the board each time a ship starts moving, from here on
-    async recordEffectsAtMoveStart() {
+    // Notes which effects and ships are drawn on the board each time a ship starts moving, from here on
+    async recordBoardAtMoveStart() {
         await this.page.evaluate(() => {
-            window.__effectsAtMoveStart = [];
-            if (document.body.dataset.effectRecorder) return;
-            document.body.dataset.effectRecorder = "on";
+            window.__boardAtMoveStart = [];
+            if (document.body.dataset.boardRecorder) return;
+            document.body.dataset.boardRecorder = "on";
 
             document.addEventListener(
                 "transitionrun",
@@ -426,20 +436,27 @@ export class PageHelper {
                     if (!(target instanceof HTMLElement) || !target.closest("#gameBoardContainer")) return;
                     if (event.propertyName !== "transform" || !target.firstElementChild?.id) return;
 
-                    const sprites = document.querySelectorAll<HTMLElement>("#gameBoardStaticLayer > *");
-                    const effects = Array.from(sprites)
+                    const layer = "#gameBoardStaticLayer";
+                    const effects = Array.from(document.querySelectorAll<HTMLElement>(`${layer} > *`))
                         .map((sprite) => sprite.style.backgroundImage || (sprite.getAttribute("alt") ?? ""))
                         .map((label) => /flare|airstrike/.exec(label)?.[0] ?? "")
                         .filter((label) => label !== "");
-                    window.__effectsAtMoveStart?.push(effects);
+                    const shipIds = Array.from(document.querySelectorAll(`${layer} img[alt]`)).map(
+                        (sprite) => sprite.getAttribute("alt") ?? "",
+                    );
+                    window.__boardAtMoveStart?.push({
+                        movingShipId: target.firstElementChild.id,
+                        effects,
+                        shipIds: Array.from(new Set(shipIds)),
+                    });
                 },
                 true,
             );
         });
     }
 
-    async effectsAtMoveStart(): Promise<string[][]> {
-        return await this.page.evaluate(() => window.__effectsAtMoveStart ?? []);
+    async boardAtMoveStart(): Promise<IBoardAtMoveStart[]> {
+        return await this.page.evaluate(() => window.__boardAtMoveStart ?? []);
     }
 
     async recordedAnimations(): Promise<IRecordedAnimation[]> {
@@ -458,7 +475,7 @@ export class PageHelper {
 
     // Hands are shuffled, so swap the wanted support cards in from the draw pile.
     // Local mode posts the stored game with every request, so the server plays along.
-    async stackHand(refNos: TSupportRefNo[]) {
+    async stackHand(refNos: (TSupportRefNo | TShipCardRefNo)[]) {
         await this.page.evaluate(
             ({ wanted, flagshipRefNo }) => {
                 const playerId = sessionStorage.getItem("fp-current-player") ?? "";
@@ -484,6 +501,33 @@ export class PageHelper {
             { wanted: refNos, flagshipRefNo: FLAGSHIP_REF_NO },
         );
         await this.refresh();
+    }
+
+    // Ship cards are labelled by ship id, so look up the current player's undeployed ships of that type.
+    // Selects the card, then deploys on the given tile (or the first one offered) and returns it.
+    async deployShipCard(refNo: TShipCardRefNo, tileId?: string) {
+        const shipIds = await this.page.evaluate((wanted) => {
+            const playerId = sessionStorage.getItem("fp-current-player") ?? "";
+            const { gameState } = JSON.parse(sessionStorage.getItem("fp-player-states") ?? "{}")[playerId];
+            return gameState.ships
+                .filter(
+                    (ship: { refNo: string; playerId: string; deployed?: boolean }) =>
+                        ship.refNo === wanted && ship.playerId === playerId && !ship.deployed,
+                )
+                .map((ship: { id: string }) => ship.id);
+        }, refNo);
+        const staged = await this.pendingActionCount();
+
+        await this.page
+            .locator(shipIds.map((id: string) => `.card-row img[alt="${id}"]`).join(", "))
+            .first()
+            .click();
+        await expect.poll(async () => (await this.highlightedTiles()).length).toBeGreaterThan(0);
+        const target = tileId ?? (await this.highlightedTiles())[0];
+        await this.clickTile(target);
+        await expect.poll(() => this.pendingActionCount()).toBe(staged + 1);
+
+        return target;
     }
 
     // The deck holds duplicates (e.g. two Flares), so take the first copy in hand
