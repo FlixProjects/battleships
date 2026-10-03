@@ -1,7 +1,18 @@
-import { CardKind, DEFAULT_CONFIG, Faction, PLAYER_REF_NO } from "@shared/config/constants";
+import {
+    CardKind,
+    CELL_NODE_REF_NO,
+    DEFAULT_CONFIG,
+    Faction,
+    MAP_REF_NO,
+    PLAYER_REF_NO,
+} from "@shared/config/constants";
 import { Deck } from "@shared/models/Deck";
 import { IGameConfig } from "@shared/types/config-types";
 import {
+    IBoard,
+    IBoardConfig,
+    ICellLoc,
+    ICellNode,
     IDeckTemplateEntry,
     IEffectOverride,
     IEffectTemplate,
@@ -10,13 +21,14 @@ import {
     IPlainPlayer,
     TEffectRefNo,
     TFaction,
+    TMapRefNo,
     TPlayerRefNo,
     TShipRefNo,
     TSupportRefNo,
 } from "@shared/types/types";
 import { mergician } from "mergician";
 import { v7 as uuidv7 } from "uuid";
-import { resolveEffectTemplate } from "../effect-helper";
+import { locationToKey } from "../helpers";
 
 interface IPlayerContextParams {
     player: IPlainPlayer;
@@ -75,6 +87,15 @@ interface ILoadEffectTemplateParams {
     effectOverride: IEffectOverride;
 }
 
+interface ILoadMapParams {
+    mapRefNo?: TMapRefNo;
+}
+
+interface ILoadCellNodeParams {
+    boardConfig: IBoardConfig;
+    location: ICellLoc;
+}
+
 // separate from GameStateBuild in /factories which is only for tests
 export class GameStateBuilder {
     private gameState: IPlainGameState;
@@ -98,6 +119,22 @@ export class GameStateBuilder {
 
     public overrideConfig(config: Partial<IGameConfig>) {
         this.config = mergician(this.config, config) as IGameConfig;
+        return this;
+    }
+
+    public loadMap(_params: ILoadMapParams = {}) {
+        const { mapRefNo } = this.loadParams({ mapRefNo: MAP_REF_NO.default }, _params);
+        const boardConfig = this.config.boardConfig[mapRefNo];
+        const board: IBoard = {};
+
+        for (let col = 0; col < boardConfig.columns; col++) {
+            for (let row = 0; row < boardConfig.rows; row++) {
+                const cellNode = this.loadCellNode({ boardConfig, location: [col, row] });
+                board[locationToKey(cellNode.location)] = cellNode;
+            }
+        }
+        this.gameState.board = board;
+
         return this;
     }
 
@@ -222,7 +259,9 @@ export class GameStateBuilder {
             name: supportTemplate.name,
             description: supportTemplate.description,
             commandPointCost: supportTemplate.commandPointCost,
-            effectTemplates: supportTemplate.effectTemplates.map(resolveEffectTemplate),
+            effectTemplates: supportTemplate.effectTemplates.map((effectOverride) =>
+                this.loadEffectTemplate({ effectOverride }),
+            ),
             imgSrc: supportTemplate.imgSrc,
         };
         return card;
@@ -232,6 +271,15 @@ export class GameStateBuilder {
         const effectTemplate = this.config.effectsConfig[effectOverride.refNo as TEffectRefNo];
         if (!effectTemplate) throw new Error(`Effect template with refNo ${effectOverride.refNo} not found in config`);
         return { ...effectTemplate, ...effectOverride } as IEffectTemplate;
+    }
+
+    private loadCellNode({ boardConfig, location }: ILoadCellNodeParams): ICellNode {
+        const cellNodeRefNo = boardConfig.nodes[locationToKey(location)]?.refNo ?? CELL_NODE_REF_NO.default;
+        return {
+            ...this.config.cellConfig[cellNodeRefNo],
+            id: uuidv7(),
+            location,
+        };
     }
 
     private loadHand({ deck, player, playerConfigRefNo }: ILoadHandParams) {
