@@ -169,8 +169,8 @@ export class GameStateBuilder {
         };
     }
 
-    private loadCards({ deck }: ILoadCardsParams) {
-        const deckConfig = this.config.factionConfig[this.currentPlayer.faction].deck;
+    private loadCards({ deck, player }: ILoadCardsParams) {
+        const deckConfig = this.config.factionConfig[player.faction].deck;
         const cards = deckConfig
             .map((c) => this.loadCard({ cardEntry: c, deck, refNo: c.refNo }))
             .filter((c) => c !== undefined);
