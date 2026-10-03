@@ -34,8 +34,9 @@ interface ILoadSupportParams {
 // separate from GameStateBuild in /factories which is only for tests
 export class GameStateBuilder {
     private gameState: IPlainGameState;
-
     private config: IGameConfig = DEFAULT_CONFIG;
+
+    private currentPlayerId: string = "";
 
     constructor(existingGameState?: IPlainGameState) {
         if (existingGameState) {
@@ -77,6 +78,8 @@ export class GameStateBuilder {
         if (this.gameState.players.length < 2) {
             this.gameState.players.push(newPlayer);
         }
+    public setCurrentPlayerId(playerId: string) {
+        this.currentPlayerId = playerId;
         return this;
     }
 
