@@ -21,6 +21,16 @@ interface ILoadEmptyNewPlayerParams {
     playerConfigRefNo?: TPlayerRefNo;
 }
 
+interface ILoadShipParams {
+    refNo: TShipRefNo;
+    deckId: string;
+}
+
+interface ILoadSupportParams {
+    refNo: TSupportRefNo;
+    deckId: string;
+}
+
 // separate from GameStateBuild in /factories which is only for tests
 export class GameStateBuilder {
     private gameState: IPlainGameState;
