@@ -169,7 +169,11 @@ export class GameStateBuilder {
     private loadCards({ deck, player }: ILoadCardsParams) {
         const deckConfig = this.config.factionConfig[player.faction].deck;
         const cards = deckConfig
-            .flatMap((c) => Array(c.count).map(() => this.loadCard({ cardEntry: c, deck, refNo: c.refNo })))
+            .flatMap((c) =>
+                Array(c.count)
+                    .fill(c)
+                    .map(() => this.loadCard({ cardEntry: c, deck, refNo: c.refNo })),
+            )
             .filter((c) => c !== undefined);
         deck.cards = cards.map((c) => c.id);
         this.gameState.cards.push(...cards);
