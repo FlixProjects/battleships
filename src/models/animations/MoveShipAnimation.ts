@@ -1,6 +1,7 @@
 import { COMPONENT_ID } from "@shared/constants";
 import { ICellLoc, INewOldHullLocMap } from "@shared/types";
 import { SegmentBuilder } from "@shared/utils/segment-builder";
+import { appConfig } from "../../config/app-config";
 import { IMoveShipAnimationProps } from "../../types/animations/types";
 import { BaseAnimation } from "./Animation";
 import { PivotWrapper } from "./PivotWrapper";
@@ -18,9 +19,16 @@ export class MoveShipAnimation extends BaseAnimation {
         const gameBoard = document.getElementById(COMPONENT_ID.GAME_BOARD_STATIC_LAYER) as HTMLDivElement;
         const gameBoardRect = gameBoard.getBoundingClientRect();
 
-        const hullElements = Array.from(hullMap.keys()).map((k) =>
-            gameBoard.querySelector(`[id='${k}']`),
-        ) as HTMLElement[];
+        const hullElements = Array.from(hullMap.keys())
+            .map((k) => gameBoard.querySelector<HTMLElement>(`[id='${k}']`))
+            .filter((element): element is HTMLElement => !!element);
+        if (hullElements.length !== hullMap.size) {
+            if (appConfig.deployEnv === "local") {
+                console.log(`Skipping move animation: a sprite of ship ${shipId} is not on the board`);
+            }
+            return;
+        }
+
         const ship = this.animationLayer.wrapAndCopyToLayer(this.id, hullElements, shipId);
 
         const segmentBuilder = new SegmentBuilder();

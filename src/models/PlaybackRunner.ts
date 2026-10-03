@@ -1,7 +1,7 @@
 import { IPlainAppState, IPlainGameState, ITurnEvent, TurnEventKind } from "@shared/types";
 import clone from "lodash.clonedeep";
 import { gameManager } from "..";
-import { updateComponents } from "../components/component-helper";
+import { getComponents, updateComponents } from "../components/component-helper";
 import { queueCommand } from "../utils/game-helper";
 import { turnEventToCommand } from "../utils/turn-event-translator";
 import { animationManager } from "./AnimationManager";
@@ -60,7 +60,7 @@ export class PlaybackRunner {
 
         const finalAppState = this.captureAppState();
         const playback = clone(rewindState);
-        const applier = new PlaybackStateApplier(finalAppState.gameState, events);
+        const applier = new PlaybackStateApplier(finalAppState.gameState, events, gameManager.getCurrentPlayerId());
 
         const swallowClickAndSkip = (e: MouseEvent) => {
             e.stopPropagation();
@@ -69,18 +69,24 @@ export class PlaybackRunner {
         };
         document.addEventListener("click", swallowClickAndSkip, { capture: true });
 
+        // An earlier interaction's animation may still be running, and the board won't draw a ship it thinks is animating
+        animationManager.clear();
+        getComponents().div.gameBoard.clearAnimatingMap();
+
         try {
             this.renderTransient(finalAppState, playback);
             for (let i = 0; i < events.length; i++) {
                 if (this.skipRequested) break;
                 await this.playEvent(finalAppState, playback, applier, events[i], i);
             }
+        } catch (error) {
+            // The replay is cosmetic, so a failed step must not strand the player on the rewound state
+            console.error("Playback failed", error);
         } finally {
             document.removeEventListener("click", swallowClickAndSkip, { capture: true });
             this.playing = false;
+            this.restore(finalAppState);
         }
-
-        this.restore(finalAppState);
     }
 
     private async playEvent(
