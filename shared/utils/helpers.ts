@@ -152,6 +152,7 @@ export const buildPlayerStartingState = (playerId: string, faction: TFaction): I
     const shipEntries = deck.filter((e) => e.kind === CardKind.Ship);
     const supportEntries = deck.filter((e) => e.kind === CardKind.Support);
 
+    // FIXME: do we need to populate ships before they are even deployed?
     const ships: IPlainShip[] = shipEntries.flatMap((entry: IDeckTemplateEntry) =>
         Array.from({ length: entry.count }, () => getShip(entry.refNo as TShipRefNo, playerId)),
     );

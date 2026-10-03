@@ -34,6 +34,7 @@ export interface IGameBoard {
     updateSelectableTiles: (validCells: [number, number][], options?: TSetSelectableOptions) => void;
     addToAnimatingMap: (elementId: string, animationId: string) => void;
     removeFromAnimatingMap: (elementId: string) => void;
+    clearAnimatingMap: () => void;
     renderShip: (ship: IShip, hulls: IHull[], isFirstPlayer?: boolean) => void;
 }
 

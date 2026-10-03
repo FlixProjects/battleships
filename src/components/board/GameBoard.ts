@@ -131,6 +131,10 @@ export class GameBoard extends BaseComponent {
         this.elementsCurrentlyAnimatingMap.delete(elementId);
     }
 
+    public clearAnimatingMap() {
+        this.elementsCurrentlyAnimatingMap.clear();
+    }
+
     private renderBoardOverlay() {
         this.gameBoardContainer = document.createElement("div");
         this.gameBoardContainer.id = ANIMATION_LAYER_ID;
