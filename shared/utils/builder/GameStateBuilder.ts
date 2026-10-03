@@ -40,6 +40,7 @@ interface ILoadEmptyNewPlayerParams {
 
 interface ILoadHandParams extends IPlayerContextParams {
     deck: Deck;
+    playerConfigRefNo?: TPlayerRefNo;
     pinnedCardId?: string;
 }
 
@@ -71,6 +72,7 @@ export class GameStateBuilder {
     private gameState: IPlainGameState;
     private config: IGameConfig = DEFAULT_CONFIG;
 
+    private playerConfigRefNo: TPlayerRefNo = PLAYER_REF_NO.default;
     private currentPlayer: IPlainPlayer;
 
     constructor(existingGameState?: IPlainGameState) {
@@ -105,7 +107,7 @@ export class GameStateBuilder {
                 id: uuidv7(),
                 name: "UnknownPlayer",
                 order: 1,
-                playerConfigRefNo: PLAYER_REF_NO.default,
+                playerConfigRefNo: this.playerConfigRefNo,
             },
             _params,
         );
@@ -120,7 +122,7 @@ export class GameStateBuilder {
             ...playerParams,
             ...this.config.playersConfig[playerConfigRefNo],
         };
-
+        this.playerConfigRefNo = playerConfigRefNo;
         if (this.gameState.players.length < 2) {
             this.gameState.players.push(newPlayer);
         }
@@ -214,8 +216,10 @@ export class GameStateBuilder {
         return card;
     }
 
-    private loadHand({ deck, player }: ILoadHandParams) {
-        const drawnCards = deck.draw(this.config.playersConfig[PLAYER_REF_NO.default].maxHandSize);
+    private loadHand({ deck, player, playerConfigRefNo }: ILoadHandParams) {
+        const drawnCards = deck.draw(
+            this.config.playersConfig[playerConfigRefNo ?? this.playerConfigRefNo].maxHandSize,
+        );
         player.hand = drawnCards.map((c) => c.id);
         return;
     }
