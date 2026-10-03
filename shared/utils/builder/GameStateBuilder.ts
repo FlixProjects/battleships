@@ -4,6 +4,7 @@ import { IFactionConfig, IPlainGameState, IPlainPlayer, TFaction, TPlayerRefNo }
 import { mergician } from "mergician";
 import { v7 as uuidv7 } from "uuid";
 import { resolveEffectTemplate } from "../effect-helper";
+import { Deck } from "@shared/models/Deck";
 
 interface ILoadPlayerFactionParams {
     playerId: string;
@@ -31,6 +32,10 @@ interface ILoadSupportParams {
     deckId: string;
 }
 
+interface ILoadDeckParams {   
+    faction: TFaction;    
+    pinnedCardId?: string;
+}
 // separate from GameStateBuild in /factories which is only for tests
 export class GameStateBuilder {
     private gameState: IPlainGameState;
@@ -86,6 +91,19 @@ export class GameStateBuilder {
     public build(override: Partial<IPlainGameState> = {}): IPlainGameState {
         return mergician(override, this.gameState) as IPlainGameState;
     }
+    private loadDeck(params: ILoadDeckParams) {
+        const { faction, pinnedCardId } = params;
+        const deckDomain = Deck.create({
+            id: uuidv7(),
+            playerId: this.currentPlayerId,
+            faction,
+            cards: [],
+            pinnedCardId, // TODO: we should accept multiple cards
+        });
+        this.gameState.decks.push(deckDomain.toPlain());
+        return this;
+    }
+
     // TODO: do we need playerId?
     private loadShipCard({ refNo, deckId }: ILoadShipParams) {
         const shipTemplate = this.config.shipsConfig[refNo];
