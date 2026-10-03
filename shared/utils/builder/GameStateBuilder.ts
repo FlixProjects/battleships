@@ -140,7 +140,7 @@ export class GameStateBuilder {
     }
 
     public build(override: Partial<IPlainGameState> = {}): IPlainGameState {
-        return mergician(override, this.gameState) as IPlainGameState;
+        return mergician(this.gameState, override) as IPlainGameState;
     }
 
     private loadDeck(params: ILoadDeckParams) {
