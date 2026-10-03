@@ -11,6 +11,15 @@ module.exports = {
     },
     transformIgnorePatterns: ["/node_modules/(?!jose/)"], // node_modules is not transformed by default; jose must be. Jest assumes packages are CJS, but jose is ESM. Has to be used with transform above
     testPathIgnorePatterns: ["/node_modules/", "<rootDir>/e2e/"],
+    // Playwright and `sam build` write into the repo during an e2e run; none of it should re-trigger watch mode
+    watchPathIgnorePatterns: [
+        "<rootDir>/e2e/",
+        "<rootDir>/test-results/",
+        "<rootDir>/playwright-report/",
+        "<rootDir>/blob-report/",
+        "<rootDir>/battleships-lambda/.aws-sam/",
+    ],
+    modulePathIgnorePatterns: ["<rootDir>/battleships-lambda/.aws-sam/"], // bundled lambda copies of shared code
     setupFilesAfterEnv: ['./jest.setup.ts'],
     preset: "ts-jest",
     moduleNameMapper: {
