@@ -9,7 +9,7 @@ import {
     TFaction,
     TPlayerRefNo,
     TShipRefNo,
-    TSupportRefNo
+    TSupportRefNo,
 } from "@shared/types/types";
 import { mergician } from "mergician";
 import { v7 as uuidv7 } from "uuid";
@@ -36,6 +36,11 @@ interface ILoadEmptyNewPlayerParams {
     id?: string;
     order?: number;
     playerConfigRefNo?: TPlayerRefNo;
+}
+
+interface ILoadHandParams extends IPlayerContextParams {
+    deck: Deck;
+    pinnedCardId?: string;
 }
 
 interface ILoadCardParams extends ICardContextParams {
@@ -139,18 +144,28 @@ export class GameStateBuilder {
     private loadDeck(params: ILoadDeckParams) {
         const { faction, pinnedCardId, player } = params;
         const deckId = uuidv7();
-        const deck = Deck.create({
+        const deckDomain = Deck.create({
             id: deckId,
             playerId: player.id,
             faction,
             cards: [],
             pinnedCardId, // TODO: we should accept multiple cards
-        }).toPlain();
+        });
+        const deck = deckDomain.toPlain();
 
         this.gameState.decks.push(deck);
         player.deck = deck.id;
+        const loadHand = () => this.loadHand({ deck: deckDomain, player });
+        const loadCards = () => this.loadCards({ deck, player });
         return {
-            loadCards: () => this.loadCards({ deck, player }),
+            loadCards: () => {
+                this.loadCards({ deck, player });
+                return { loadHand };
+            },
+            loadHand: () => {
+                this.loadHand({ deck: deckDomain, player });
+                return { loadCards };
+            },
         };
     }
 
@@ -161,6 +176,7 @@ export class GameStateBuilder {
             .filter((c) => c !== undefined);
         deck.cards = cards.map((c) => c.id);
         this.gameState.cards.push(...cards);
+        return this;
     }
 
     private loadCard({ cardEntry, deck }: ILoadCardParams) {
@@ -201,6 +217,12 @@ export class GameStateBuilder {
             imgSrc: supportTemplate.imgSrc,
         };
         return card;
+    }
+
+    private loadHand({ deck, player }: ILoadHandParams) {
+        const drawnCards = deck.draw(this.config.playersConfig[PLAYER_REF_NO.default].maxHandSize);
+        player.hand = drawnCards.map((c) => c.id);
+        return;
     }
 
     private loadParams<T>(defaults: T, _param: Partial<T>): T {
