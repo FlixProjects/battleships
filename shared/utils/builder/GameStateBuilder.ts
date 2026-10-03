@@ -3,9 +3,12 @@ import { Deck } from "@shared/models/Deck";
 import { IGameConfig } from "@shared/types/config-types";
 import {
     IDeckTemplateEntry,
+    IEffectOverride,
+    IEffectTemplate,
     IPlainDeck,
     IPlainGameState,
     IPlainPlayer,
+    TEffectRefNo,
     TFaction,
     TPlayerRefNo,
     TShipRefNo,
@@ -67,6 +70,11 @@ interface ILoadCardsParams {
     deck: IPlainDeck;
     player: IPlainPlayer;
 }
+
+interface ILoadEffectTemplateParams {
+    effectOverride: IEffectOverride;
+}
+
 // separate from GameStateBuild in /factories which is only for tests
 export class GameStateBuilder {
     private gameState: IPlainGameState;
@@ -218,6 +226,12 @@ export class GameStateBuilder {
             imgSrc: supportTemplate.imgSrc,
         };
         return card;
+    }
+
+    private loadEffectTemplate({ effectOverride }: ILoadEffectTemplateParams): IEffectTemplate {
+        const effectTemplate = this.config.effectsConfig[effectOverride.refNo as TEffectRefNo];
+        if (!effectTemplate) throw new Error(`Effect template with refNo ${effectOverride.refNo} not found in config`);
+        return { ...effectTemplate, ...effectOverride } as IEffectTemplate;
     }
 
     private loadHand({ deck, player, playerConfigRefNo }: ILoadHandParams) {

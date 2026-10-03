@@ -28,6 +28,7 @@ export const hasEffect = (refNo: string): boolean => effectConstructors.has(refN
 
 /**
  * Only used at game creation time to create plain effects
+ * TODO: remove once GameStateBuilder is implemented
  */
 export const resolveEffectTemplate = (override: IEffectOverride): IEffectTemplate => {
     const base = EFFECTS_CONFIG[override.refNo as TEffectRefNo];
