@@ -3,6 +3,7 @@ import { IGameConfig } from "@shared/types/config-types";
 import { IFactionConfig, IPlainGameState, IPlainPlayer, TFaction, TPlayerRefNo } from "@shared/types/types";
 import { mergician } from "mergician";
 import { v7 as uuidv7 } from "uuid";
+import { resolveEffectTemplate } from "../effect-helper";
 
 interface ILoadPlayerFactionParams {
     playerId: string;
@@ -79,8 +80,20 @@ export class GameStateBuilder {
             deckId,
             instanceId: uuidv7(), // new implementation: we try to avoid pre-creation of ships
             kind: CardKind.Ship,
-            refNo: ship.refNo,
-            name: ship.name,
+
+    private loadSupportCard({ refNo, deckId }: ILoadSupportParams) {
+        const supportTemplate = this.config.supportsConfig[refNo];
+        this.gameState.cards.push({
+            id: uuidv7(),
+            deckId,
+            instanceId: uuidv7(),
+            kind: CardKind.Support,
+            refNo,
+            name: supportTemplate.name,
+            description: supportTemplate.description,
+            commandPointCost: supportTemplate.commandPointCost,
+            effectTemplates: supportTemplate.effectTemplates.map(resolveEffectTemplate),
+            imgSrc: supportTemplate.imgSrc,
         });
     }
 
