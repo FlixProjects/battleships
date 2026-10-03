@@ -1,6 +1,15 @@
-import { DEFAULT_CONFIG, Faction, PLAYER_REF_NO } from "@shared/config/constants";
+import { CardKind, DEFAULT_CONFIG, Faction, PLAYER_REF_NO } from "@shared/config/constants";
 import { IGameConfig } from "@shared/types/config-types";
-import { IFactionConfig, IPlainGameState, IPlainPlayer, TFaction, TPlayerRefNo } from "@shared/types/types";
+import {
+    IFactionConfig,
+    IPlainCard,
+    IPlainGameState,
+    IPlainPlayer,
+    TFaction,
+    TPlayerRefNo,
+    TShipRefNo,
+    TSupportRefNo,
+} from "@shared/types/types";
 import { mergician } from "mergician";
 import { v7 as uuidv7 } from "uuid";
 import { resolveEffectTemplate } from "../effect-helper";
@@ -80,9 +89,14 @@ export class GameStateBuilder {
             ...playerParams,
             ...this.config.playersConfig[playerConfigRefNo],
         };
+
         if (this.gameState.players.length < 2) {
             this.gameState.players.push(newPlayer);
         }
+
+        return this;
+    }
+
     public setCurrentPlayerId(playerId: string) {
         this.currentPlayerId = playerId;
         return this;
