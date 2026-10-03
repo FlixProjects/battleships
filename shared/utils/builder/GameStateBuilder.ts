@@ -1,22 +1,29 @@
 import { CardKind, DEFAULT_CONFIG, Faction, PLAYER_REF_NO } from "@shared/config/constants";
+import { Deck } from "@shared/models/Deck";
 import { IGameConfig } from "@shared/types/config-types";
 import {
-    IFactionConfig,
-    IPlainCard,
+    IDeckTemplateEntry,
+    IPlainDeck,
     IPlainGameState,
     IPlainPlayer,
     TFaction,
     TPlayerRefNo,
     TShipRefNo,
-    TSupportRefNo,
+    TSupportRefNo
 } from "@shared/types/types";
 import { mergician } from "mergician";
 import { v7 as uuidv7 } from "uuid";
 import { resolveEffectTemplate } from "../effect-helper";
-import { Deck } from "@shared/models/Deck";
 
-interface ILoadPlayerFactionParams {
-    playerId: string;
+interface IPlayerContextParams {
+    player: IPlainPlayer;
+}
+
+interface ICardContextParams {
+    deck: IPlainDeck;
+}
+
+interface ILoadPlayerFactionParams extends IPlayerContextParams {
     faction: TFaction;
 }
 
@@ -31,41 +38,60 @@ interface ILoadEmptyNewPlayerParams {
     playerConfigRefNo?: TPlayerRefNo;
 }
 
-interface ILoadShipParams {
+interface ILoadCardParams extends ICardContextParams {
+    refNo: TShipRefNo | TSupportRefNo;
+    cardEntry: IDeckTemplateEntry;
+}
+
+interface ILoadShipCardParams extends ICardContextParams {
     refNo: TShipRefNo;
-    deckId: string;
 }
 
-interface ILoadSupportParams {
+interface ILoadSupportCardParams extends ICardContextParams {
     refNo: TSupportRefNo;
-    deckId: string;
 }
 
-interface ILoadDeckParams {   
-    faction: TFaction;    
+interface ILoadDeckParams {
+    player: IPlainPlayer;
+    faction: TFaction;
     pinnedCardId?: string;
+}
+
+interface ILoadCardsParams {
+    deck: IPlainDeck;
+    player: IPlainPlayer;
 }
 // separate from GameStateBuild in /factories which is only for tests
 export class GameStateBuilder {
     private gameState: IPlainGameState;
     private config: IGameConfig = DEFAULT_CONFIG;
 
-    private currentPlayerId: string = "";
+    private currentPlayer: IPlainPlayer;
 
     constructor(existingGameState?: IPlainGameState) {
         if (existingGameState) {
             this.gameState = existingGameState;
+            return;
         }
+        this.loadFreshGameState();
     }
 
     public loadCode(code: string) {
         this.gameState.code = code;
+        return this;
     }
 
-    public loadMap() {}
-
-    public loadPlayerFaction(_params: ILoadPlayerFactionParams, overrideFaction: Partial<IFactionConfig> = {}) {
+    public overrideConfig(config: Partial<IGameConfig>) {
+        this.config = mergician(this.config, config) as IGameConfig;
         return this;
+    }
+
+    public loadPlayerFaction(_params: ILoadPlayerFactionParams) {
+        _params.player.faction = _params.faction;
+        return {
+            loadDeck: (pinnedCardId: string) =>
+                this.loadDeck({ ..._params, faction: _params.player.faction, pinnedCardId }),
+        };
     }
 
     public loadEmptyNewPlayer(_params: ILoadEmptyNewPlayerParams) {
@@ -94,48 +120,77 @@ export class GameStateBuilder {
             this.gameState.players.push(newPlayer);
         }
 
-        return this;
+        return {
+            loadFaction: (faction: TFaction) => this.loadPlayerFaction({ player: newPlayer, faction }),
+        };
     }
 
-    public setCurrentPlayerId(playerId: string) {
-        this.currentPlayerId = playerId;
+    public setCurrentPlayer(playerId: string) {
+        const player = this.gameState.players.find((p) => p.id === playerId);
+        if (!player) throw new Error(`Player with id ${playerId} not found in game state`);
+        this.currentPlayer = player;
         return this;
     }
 
     public build(override: Partial<IPlainGameState> = {}): IPlainGameState {
         return mergician(override, this.gameState) as IPlainGameState;
     }
+
     private loadDeck(params: ILoadDeckParams) {
-        const { faction, pinnedCardId } = params;
-        const deckDomain = Deck.create({
-            id: uuidv7(),
-            playerId: this.currentPlayerId,
+        const { faction, pinnedCardId, player } = params;
+        const deckId = uuidv7();
+        const deck = Deck.create({
+            id: deckId,
+            playerId: player.id,
             faction,
             cards: [],
             pinnedCardId, // TODO: we should accept multiple cards
-        });
-        this.gameState.decks.push(deckDomain.toPlain());
-        return this;
+        }).toPlain();
+
+        this.gameState.decks.push(deck);
+        player.deck = deck.id;
+        return {
+            loadCards: () => this.loadCards({ deck, player }),
+        };
+    }
+
+    private loadCards({ deck }: ILoadCardsParams) {
+        const deckConfig = this.config.factionConfig[this.currentPlayer.faction].deck;
+        const cards = deckConfig
+            .map((c) => this.loadCard({ cardEntry: c, deck, refNo: c.refNo }))
+            .filter((c) => c !== undefined);
+        deck.cards = cards.map((c) => c.id);
+        this.gameState.cards.push(...cards);
+    }
+
+    private loadCard({ cardEntry, deck }: ILoadCardParams) {
+        switch (cardEntry.kind) {
+            case CardKind.Ship:
+                return this.loadShipCard({ refNo: cardEntry.refNo, deck });
+            case CardKind.Support:
+                return this.loadSupportCard({ refNo: cardEntry.refNo, deck });
+        }
     }
 
     // TODO: do we need playerId?
-    private loadShipCard({ refNo, deckId }: ILoadShipParams) {
+    private loadShipCard({ refNo, deck }: ILoadShipCardParams) {
         const shipTemplate = this.config.shipsConfig[refNo];
-        this.gameState.cards.push({
+        const card = {
             id: uuidv7(),
-            deckId,
+            deckId: deck.id,
             instanceId: uuidv7(), // new implementation: we try to avoid pre-creation of ships
             kind: CardKind.Ship,
             refNo: shipTemplate.refNo,
             name: shipTemplate.name,
-        });
+        };
+        return card;
     }
 
-    private loadSupportCard({ refNo, deckId }: ILoadSupportParams) {
+    private loadSupportCard({ refNo, deck }: ILoadSupportCardParams) {
         const supportTemplate = this.config.supportsConfig[refNo];
-        this.gameState.cards.push({
+        const card = {
             id: uuidv7(),
-            deckId,
+            deckId: deck.id,
             instanceId: uuidv7(),
             kind: CardKind.Support,
             refNo,
@@ -144,14 +199,15 @@ export class GameStateBuilder {
             commandPointCost: supportTemplate.commandPointCost,
             effectTemplates: supportTemplate.effectTemplates.map(resolveEffectTemplate),
             imgSrc: supportTemplate.imgSrc,
-        });
+        };
+        return card;
     }
 
     private loadParams<T>(defaults: T, _param: Partial<T>): T {
         return { ...defaults, ..._param };
     }
 
-    private loadFreshGameState(params: ILoadFreshGameStateParams) {
+    private loadFreshGameState(params: ILoadFreshGameStateParams = {}) {
         this.gameState = {
             code: "",
             currentRound: 0,
