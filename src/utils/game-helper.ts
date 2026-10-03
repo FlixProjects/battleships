@@ -122,6 +122,6 @@ export const isWaitingForOtherPlayer = (gameState: { players: { id: string; read
     return isWaitingForOtherPlayer;
 };
 
-export const queueCommand = async (command: FECommand) => {
-    await game.queueCommand(command);
+export const queueCommand = async (command: FECommand) => {    
+    await game?.queueCommand(command);
 };
