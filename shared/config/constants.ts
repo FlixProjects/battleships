@@ -380,6 +380,7 @@ export const PLAYERS_CONFIG: TPlayersConfig = {
     [PLAYER_REF_NO.default]: {
         maxCommandPoints: 2,
         commandPoints: 2,
+        maxHandSize: MAX_HAND_SIZE,
     },
 };
 

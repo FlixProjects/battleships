@@ -573,6 +573,7 @@ export interface ICellNodeConfig {
 export interface IPlayerConfig {
     maxCommandPoints: number;
     commandPoints: number;
+    maxHandSize: number;
 }
 
 export interface IPathTraveller {
