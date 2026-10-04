@@ -1,5 +1,5 @@
 import type { FP_CLIENT_TOKEN } from "@shared/constants";
-import { IAction, IResult, IPlainGameState } from "@shared/types";
+import { IAction, IGameConfig, IResult, IPlainGameState } from "@shared/types";
 import { JWK } from "jose";
 
 export interface GetGameRequest {
@@ -11,6 +11,7 @@ export interface JoinGameRequest {
     gameCode: string;
     playerName: string;
     gameState?: IPlainGameState; // for local
+    overrideConfig?: Partial<IGameConfig>; // for local
 }
 
 export interface SubmitActionRequest {
@@ -21,6 +22,7 @@ export interface SubmitActionRequest {
 
 export interface CreateGameRequest {
     playerName: string;
+    overrideConfig?: Partial<IGameConfig>; // for local
 }
 
 export interface SignedRequest {

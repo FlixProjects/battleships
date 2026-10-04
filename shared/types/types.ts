@@ -8,7 +8,6 @@ import {
     IGameCreateEffectSignalPayload,
     IGameCreateHullSignalPayload,
     IGameProjectVisibilitySignalPayload,
-    IGameRefillHandsSignalPayload,
     IGameRemoveSubmissionCommandPointsSignalPayload,
     IGetValidAttackCellsQueryPayload,
     IGetValidAttackCellsQueryResult,
@@ -184,6 +183,7 @@ export interface IPlayer {
     pendingActions: IPlayerAction[];
     maxCommandPoints: number;
     commandPoints: number;
+    maxHandSize?: number;
     faction: TFaction;
     hand: string[]; // Card IDs currently in this player's hand
     deck: string; // Deck ID
@@ -525,6 +525,7 @@ export interface IPlainPlayer {
     pendingActions: string[];
     maxCommandPoints: number;
     commandPoints: number;
+    maxHandSize?: number;
     faction: TFaction;
     hand: string[];
     deck: string;
@@ -758,10 +759,6 @@ export interface IGameCreateEffectSignalHandleCtx extends ISignalHandleCtx {
 
 export interface IGameRemoveSubmissionCommandPointsSignalHandleCtx extends ISignalHandleCtx {
     signal: ISignal & { payload: IGameRemoveSubmissionCommandPointsSignalPayload };
-}
-
-export interface IGameRefillHandsSignalHandleCtx extends ISignalHandleCtx {
-    signal: ISignal & { payload: IGameRefillHandsSignalPayload };
 }
 
 export interface IGameProjectVisibilitySignalHandleCtx extends ISignalHandleCtx {

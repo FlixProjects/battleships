@@ -200,3 +200,52 @@ describe("GameState.playCard", () => {
         expect(state.players[0].hand).toEqual(["c1"]);
     });
 });
+
+describe("GameState.refillHands", () => {
+    const buildTwoPlayerState = (p1: IPlayer, p2: IPlayer) => {
+        const p1Cards = Array.from({ length: 8 }, (_, i) => makeCard(`p1-c${i + 1}`, "deck-1"));
+        const p2Cards = Array.from({ length: 8 }, (_, i) => makeCard(`p2-c${i + 1}`, "deck-2"));
+
+        return new GameState(
+            buildState({
+                players: [p1, p2],
+                cards: [...p1Cards, ...p2Cards],
+                decks: [buildDeck("deck-1", "p1", p1Cards), buildDeck("deck-2", "p2", p2Cards)],
+            }),
+        );
+    };
+
+    it("refills each player to their own maxHandSize", () => {
+        const state = buildTwoPlayerState(
+            { ...buildPlayer("p1", "deck-1", []), maxHandSize: 2 },
+            { ...buildPlayer("p2", "deck-2", []), maxHandSize: 6 },
+        );
+
+        state.refillHands();
+
+        expect(state.getPlayer("p1").hand).toEqual(["p1-c1", "p1-c2"]);
+        expect(state.getPlayer("p2").hand).toHaveLength(6);
+    });
+
+    it("falls back to MAX_HAND_SIZE for a player saved without a maxHandSize", () => {
+        const state = buildTwoPlayerState(buildPlayer("p1", "deck-1", []), buildPlayer("p2", "deck-2", []));
+
+        state.refillHands();
+
+        expect(state.getPlayer("p1").hand).toHaveLength(MAX_HAND_SIZE);
+        expect(state.getPlayer("p2").hand).toHaveLength(MAX_HAND_SIZE);
+    });
+
+    it("keeps a player's maxHandSize across toPlain and rehydration", () => {
+        const state = buildTwoPlayerState(
+            { ...buildPlayer("p1", "deck-1", []), maxHandSize: 6 },
+            buildPlayer("p2", "deck-2", []),
+        );
+
+        const rehydrated = new GameState(state.toPlain());
+        rehydrated.refillHands();
+
+        expect(rehydrated.toPlain().players[0].maxHandSize).toBe(6);
+        expect(rehydrated.getPlayer("p1").hand).toHaveLength(6);
+    });
+});

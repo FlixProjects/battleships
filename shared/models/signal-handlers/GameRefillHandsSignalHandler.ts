@@ -1,11 +1,10 @@
-import { IGameRefillHandsSignalHandleCtx } from "@shared/types/types";
+import { ISignalHandleCtx } from "@shared/types/types";
 import { SignalHandler } from "./SignalHandler";
 
 export class GameRefillHandsSignalHandler extends SignalHandler {
-    handle(ctx: IGameRefillHandsSignalHandleCtx) {
+    handle(ctx: ISignalHandleCtx) {
         const { gsm, saveNewState } = ctx;
-        const { maxHandSize } = ctx.signal.payload;
-        gsm.gameState.refillHands(maxHandSize);
+        gsm.gameState.refillHands();
         saveNewState(gsm.gameState);
     }
 }

@@ -21,7 +21,6 @@ import {
     IPlayerRemoveCardFromHandSignalHandleCtx,
     IPlayerSpendCommandPointsSignalHandleCtx,
     IReceiveShipAttackSignalHandleCtx,
-    IGameRefillHandsSignalHandleCtx,
     IGameRemoveSubmissionCommandPointsSignalHandleCtx,
     ISignalHandleCtx,
     ISignalHandleCtxBase,
@@ -50,7 +49,7 @@ export type SignalCtxMap = {
     [SignalType.GameRotateInitiative]: ISignalHandleCtx;
     [SignalType.GameRemoveSubmissionCommandPoints]: IGameRemoveSubmissionCommandPointsSignalHandleCtx;
     [SignalType.GameRemoveExpiredEffects]: ISignalHandleCtx;
-    [SignalType.GameRefillHands]: IGameRefillHandsSignalHandleCtx;
+    [SignalType.GameRefillHands]: ISignalHandleCtx;
     [SignalType.GameProjectVisibility]: IGameProjectVisibilitySignalHandleCtx;
     [SignalType.EffectAttackLocation]: IEffectAttackLocationSignalHandleCtx;
     [SignalType.ReceiveEffectAttackLocation]: IReceiveEffectAttackLocationSignalHandleCtx;

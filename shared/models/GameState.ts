@@ -574,9 +574,9 @@ export class GameState extends GameStateEntity implements IGameState {
         return this;
     }
 
-    refillHands(maxHandSize: number) {
+    refillHands() {
         if (this.isOver) return this;
-        this.players.forEach((player) => this.refillPlayerHand(player.id, maxHandSize));
+        this.players.forEach((player) => this.refillPlayerHand(player.id, player.maxHandSize));
         return this;
     }
 }

@@ -1,3 +1,4 @@
+import { MAX_HAND_SIZE } from "../../config/constants";
 import { IPlayer, IPlayerAction, IShip, TFaction } from "../../types";
 import { Action } from "../actions/Action";
 import { Listener } from "../listeners/Listener";
@@ -19,20 +20,35 @@ export class PlayerEntity extends GameObjectEntity<PlayerEntity> implements IPla
     pendingActions: IPlayerAction[];
     maxCommandPoints: number;
     commandPoints: number;
+    maxHandSize: number;
     faction: TFaction;
     hand: string[];
     deck: string;
 
     constructor(props: IPlayer) {
         super();
-        const { id, name, order, ready, ships, maxCommandPoints, commandPoints, pendingActions, faction, hand, deck } =
-            props;
+        const {
+            id,
+            name,
+            order,
+            ready,
+            ships,
+            maxCommandPoints,
+            commandPoints,
+            maxHandSize,
+            pendingActions,
+            faction,
+            hand,
+            deck,
+        } = props;
         this.id = id;
         this.name = name;
         this.order = order;
         this.ready = ready;
         this.commandPoints = commandPoints;
         this.maxCommandPoints = maxCommandPoints;
+        // games saved before hand size became per-player have none
+        this.maxHandSize = maxHandSize ?? MAX_HAND_SIZE;
         this.faction = faction;
         this.hand = hand ?? [];
         this.deck = deck;

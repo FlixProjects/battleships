@@ -1,4 +1,3 @@
-import { MAX_HAND_SIZE } from "../../config/constants";
 import { GameStateManager } from "../../models";
 import { GameEngine as GameEngineV2 } from "../../models/GameEngine";
 import { GamePersistentEffectsTickSignal } from "../../models/signals/GamePersistentEffectsTickSignal";
@@ -77,7 +76,7 @@ export class ActionResolver {
     }
 
     public resolveHandRefill() {
-        this.runSignal(new GameRefillHandsSignal({ payload: { maxHandSize: MAX_HAND_SIZE } }));
+        this.runSignal(new GameRefillHandsSignal());
     }
 
     private resolveTurn() {

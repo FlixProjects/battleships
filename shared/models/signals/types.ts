@@ -128,10 +128,6 @@ export interface IGameRemoveSubmissionCommandPointsSignalPayload extends ISignal
     playerId: string;
 }
 
-export interface IGameRefillHandsSignalPayload extends ISignalPayload {
-    maxHandSize: number;
-}
-
 export interface IGameProjectVisibilitySignalPayload extends ISignalPayload {
     visibleTiles: Set<string>;
 }
