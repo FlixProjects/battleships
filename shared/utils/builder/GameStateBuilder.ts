@@ -11,109 +11,38 @@ import { Deck, RandomFn } from "@shared/models/Deck";
 import { IGameConfig } from "@shared/types/config-types";
 import {
     IBoard,
-    IBoardConfig,
-    ICellLoc,
     ICellNode,
-    IDeckTemplateEntry,
-    IEffectOverride,
     IEffectTemplate,
     IPlainCard,
-    IPlainDeck,
     IPlainGameState,
     IPlainPlayer,
     IPlainShip,
     TEffectRefNo,
     TFaction,
-    TMapRefNo,
     TPlayerRefNo,
     TShipRefNo,
-    TSupportRefNo,
 } from "@shared/types/types";
 import { mergician } from "mergician";
 import { v7 as uuidv7 } from "uuid";
 import { locationToKey } from "../helpers";
 import { ShipCard } from "@shared/models";
-
-interface IPlayerContextParams {
-    player: IPlainPlayer;
-}
-
-interface IDeckDomainContextParams {
-    deckDomain: Deck;
-}
-
-interface IDeckContextParams {
-    deck: IPlainDeck;
-}
-
-interface ICardContextParams {
-    deckId: string;
-}
-
-interface ILoadPlayerFactionParams extends IPlayerContextParams {
-    faction: TFaction;
-}
-
-interface ILoadFreshGameStateParams {
-    code?: string;
-}
-
-interface ILoadEmptyNewPlayerParams {
-    name: string;
-    id?: string;
-    order?: number;
-    playerConfigRefNo?: TPlayerRefNo;
-}
-
-interface ILoadHandParams extends IPlayerContextParams, IDeckContextParams, IDeckDomainContextParams {
-    playerConfigRefNo?: TPlayerRefNo;
-    rngFn?: RandomFn;
-}
-
-interface ILoadCardParams extends ICardContextParams {
-    refNo: TShipRefNo | TSupportRefNo;
-    cardEntry: IDeckTemplateEntry;
-}
-
-interface ILoadShipCardParams extends ICardContextParams {
-    refNo: TShipRefNo;
-}
-
-interface ILoadSupportCardParams extends ICardContextParams {
-    refNo: TSupportRefNo;
-}
-
-interface ILoadEmptyDeckParams {
-    player: IPlainPlayer;
-    faction: TFaction;
-}
-
-interface ILoadCardsParams extends IDeckDomainContextParams, IDeckContextParams, IPlayerContextParams {}
-
-interface ILoadCardsToDeckParams extends IDeckDomainContextParams, IDeckContextParams, IPlayerContextParams {
-    cards: IPlainCard[];
-}
-
-interface ILoadShipsParams extends IDeckDomainContextParams, IDeckContextParams, IPlayerContextParams {
-    cards: IPlainCard[];
-}
-
-interface ILoadShipParams extends IPlayerContextParams {
-    card: IPlainCard;
-}
-
-interface ILoadEffectTemplateParams {
-    effectOverride: IEffectOverride;
-}
-
-interface ILoadMapParams {
-    mapRefNo?: TMapRefNo;
-}
-
-interface ILoadCellNodeParams {
-    boardConfig: IBoardConfig;
-    location: ICellLoc;
-}
+import {
+    ILoadPlayerFactionParams,
+    ILoadFreshGameStateParams,
+    ILoadEmptyNewPlayerParams,
+    ILoadHandParams,
+    ILoadCardParams,
+    ILoadShipCardParams,
+    ILoadSupportCardParams,
+    ILoadEmptyDeckParams,
+    ILoadCardsParams,
+    ILoadCardsToDeckParams,
+    ILoadShipsParams,
+    ILoadShipParams,
+    ILoadEffectTemplateParams,
+    ILoadMapParams,
+    ILoadCellNodeParams,
+} from "./types";
 
 // separate from GameStateBuild in /factories which is only for tests
 export class GameStateBuilder {
