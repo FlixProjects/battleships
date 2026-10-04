@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import { type TConfigOverride, TEST_BOARD, withTestConfig } from "./test-config";
 
 // Local mode (DEPLOY_ENV=local) keeps the game in the tab's sessionStorage in
 // place of S3, so both players share one tab and swap via "Switch Player".
@@ -255,7 +256,20 @@ export class PageHelper {
         await expect(this.page.locator("#createGameBtn")).toBeVisible();
     }
 
-    async createGame(playerName: string): Promise<string> {
+    // The local backend builds a player's side of the game from the config sent along with the request:
+    // the test config, with any override a spec layers on top
+    private async sendConfigOverride(path: RegExp, override?: TConfigOverride) {
+        const overrideConfig = withTestConfig(override);
+
+        await this.page.route(
+            path,
+            (route) => route.continue({ postData: { ...route.request().postDataJSON(), overrideConfig } }),
+            { times: 1 },
+        );
+    }
+
+    async createGame(playerName: string, overrideConfig?: TConfigOverride): Promise<string> {
+        await this.sendConfigOverride(/\/api\/create/, overrideConfig);
         await this.page.locator("#playerName").fill(playerName);
         await this.clickAndWaitFor(/\/api\/create/, () => this.page.locator("#createGameBtn").click());
         await expect(this.page.locator("#switchPlayerBtn")).toBeVisible();
@@ -275,11 +289,12 @@ export class PageHelper {
         return response.status();
     }
 
-    async joinGame(playerName: string, gameCode: string) {
+    async joinGame(playerName: string, gameCode: string, overrideConfig?: TConfigOverride) {
+        await this.sendConfigOverride(/\/api\/join/, overrideConfig);
         await this.page.locator("#playerName").fill(playerName);
         await this.page.locator("#joinCode").fill(gameCode);
         await this.clickAndWaitFor(/\/api\/join/, () => this.page.locator("#joinGameBtn").click());
-        await expect(this.page.locator(".tile")).toHaveCount(35);
+        await expect(this.page.locator(".tile")).toHaveCount(TEST_BOARD.rows * TEST_BOARD.columns);
     }
 
     // The creator hands the tab over; the second player signs in as a fresh guest

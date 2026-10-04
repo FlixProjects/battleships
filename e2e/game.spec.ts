@@ -118,6 +118,52 @@ test.describe("joining", () => {
     });
 });
 
+test.describe("creating and joining with a config override", () => {
+    const deck = [
+        { kind: "Ship" as const, refNo: "tudf_flagship0" as const, count: 1 },
+        { kind: "Support" as const, refNo: "flare" as const, count: 1 },
+        { kind: "Support" as const, refNo: "inspire" as const, count: 1 },
+        { kind: "Support" as const, refNo: "airstrike" as const, count: 1 },
+    ];
+    const deckRefNos = deck.map((entry) => entry.refNo).sort();
+
+    test("deals the creator's hand from the overridden deck", async () => {
+        await helper.createGame("Alice", { factionConfig: { THE_UNITED_DEFENSE_FLEET: { deck } } });
+
+        expect((await helper.handRefNos()).sort()).toEqual(deckRefNos);
+    });
+
+    test("deals the joiner's hand from their own overridden deck", async () => {
+        const gameCode = await helper.createGame("Alice");
+        await helper.handOverToNewPlayer();
+        await helper.joinGame("Bob", gameCode, { factionConfig: { THE_UNITED_DEFENSE_FLEET: { deck } } });
+
+        expect((await helper.handRefNos()).sort()).toEqual(deckRefNos);
+    });
+
+    test("refills each hand to that player's overridden size once the round resolves", async () => {
+        const gameCode = await helper.createGame("Alice", { playersConfig: { default: { maxHandSize: 6 } } });
+        await helper.handOverToNewPlayer();
+        await helper.joinGame("Bob", gameCode, { playersConfig: { default: { maxHandSize: 5 } } });
+
+        await helper.deployFlagship(BOB_REAR);
+        await helper.submitTurn();
+        await helper.switchPlayer();
+        await helper.deployFlagship(ALICE_REAR);
+        await helper.submitTurn();
+
+        expect(await helper.handRefNos()).toHaveLength(6);
+        await helper.switchPlayer();
+        expect(await helper.handRefNos()).toHaveLength(5);
+    });
+
+    test("sizes the creator's hand from the overridden players config", async () => {
+        await helper.createGame("Alice", { playersConfig: { default: { maxHandSize: 7 } } });
+
+        expect(await helper.handRefNos()).toHaveLength(7);
+    });
+});
+
 test.describe("deploying", () => {
     test("the server places the flagship on the tile the board offered", async () => {
         await startJoinedGame();
