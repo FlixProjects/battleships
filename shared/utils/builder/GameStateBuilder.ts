@@ -7,7 +7,7 @@ import {
     PLAYER_REF_NO,
     SHIP_REF_NO,
 } from "@shared/config/constants";
-import { Deck } from "@shared/models/Deck";
+import { Deck, RandomFn } from "@shared/models/Deck";
 import { IGameConfig } from "@shared/types/config-types";
 import {
     IBoard,
@@ -66,7 +66,7 @@ interface ILoadEmptyNewPlayerParams {
 
 interface ILoadHandParams extends IPlayerContextParams, IDeckContextParams, IDeckDomainContextParams {
     playerConfigRefNo?: TPlayerRefNo;
-    rngFn?: () => number;
+    rngFn?: RandomFn;
 }
 
 interface ILoadCardParams extends ICardContextParams {
@@ -233,7 +233,7 @@ export class GameStateBuilder {
         deck.cards = cards.map((c) => c.id);
         deckDomain.loadPlainCards(cards);
         return {
-            loadHand: () => this.loadHand({ deckDomain, deck, player }),
+            loadHand: (rngFn: RandomFn) => this.loadHand({ rngFn, deckDomain, deck, player }),
         };
     }
 
@@ -242,13 +242,13 @@ export class GameStateBuilder {
 
         // FIXME: we hardcode the pinned card for now
         const flagshipCardId = deckDomain.cards
-            .filter((c) => c.isShipCard)
+            .filter((c) => c.isShipCard())
             .find((c): c is ShipCard => c.refNo === SHIP_REF_NO.tudf_flagship0)?.id;
 
         deckDomain.shuffleOnce(flagshipCardId, rngFn ?? Math.random);
         const drawn = deckDomain.draw(maxHandSize);
         player.hand = drawn.map((c) => c.id);
-        deck.cards = deck.cards.filter((c) => !player.hand.includes(c));
+        deck.cards = deckDomain.toPlain().cards.filter((c) => !player.hand.includes(c));
         return;
     }
 

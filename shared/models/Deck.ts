@@ -1,3 +1,4 @@
+import { createCard } from "@shared/utils/card-helper";
 import { ICard, IDeck, IGameState, IPlainCard, IPlainDeck, TFaction } from "../types";
 import { Card } from "./Card";
 import { DeckEntity } from "./entities/DeckEntity";
@@ -87,7 +88,7 @@ export class Deck extends DeckEntity {
     }
 
     public loadPlainCards(cards: IPlainCard[]): void {
-        this.cards = cards.map((c) => new Card(c));
+        this.cards = cards.map((c) => createCard(c));
     }
 
     public static toDomain(plain: IPlainDeck, state: IGameState): Deck {

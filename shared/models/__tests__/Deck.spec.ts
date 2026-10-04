@@ -2,6 +2,8 @@ import { ICard } from "../../types";
 import { Card } from "../Card";
 import { CardKind, Faction } from "../../config/constants";
 import { Deck } from "../Deck";
+import { ShipCard } from "../ShipCard";
+import { GameState } from "../GameState";
 
 const makeCard = (id: string, refNo: string, deckId = "deck-1"): ICard => ({
     id,
@@ -11,6 +13,10 @@ const makeCard = (id: string, refNo: string, deckId = "deck-1"): ICard => ({
     refNo,
     name: refNo, // FIXME: should pass in name
 });
+
+const makeCards = (ids: string[]) => ids.map((id) => makeCard(id, "frigate0"));
+
+const cardIds = (cards: ICard[]) => cards.map((c) => c.id);
 
 const baseProps = (cards: ICard[], played: ICard[] = []) => ({
     id: "deck-1",
@@ -64,6 +70,175 @@ describe("Deck", () => {
             const deckA = Deck.create({ ...baseProps(cards), rng: seeded([0.1, 0.5, 0.9]) });
             const deckB = Deck.create({ ...baseProps(cards), rng: seeded([0.1, 0.5, 0.9]) });
             expect(deckA.cards.map((c) => c.id)).toEqual(deckB.cards.map((c) => c.id));
+        });
+    });
+
+    describe("Deck.create (defaults)", () => {
+        it("starts with an empty played pile", () => {
+            const deck = Deck.create(baseProps(makeCards(["c1", "c2"]), makeCards(["c3"])));
+
+            expect(deck.played).toEqual([]);
+        });
+
+        it("keeps every card when shuffling with the default rng", () => {
+            const deck = Deck.create(baseProps(makeCards(["c1", "c2", "c3", "c4"])));
+
+            expect(cardIds(deck.cards).sort()).toEqual(["c1", "c2", "c3", "c4"]);
+        });
+    });
+
+    describe("shuffleOnce", () => {
+        it("reorders the cards using the given rng", () => {
+            const deck = new Deck(baseProps(makeCards(["c1", "c2", "c3", "c4"])));
+
+            deck.shuffleOnce(undefined, () => 0);
+
+            expect(cardIds(deck.cards)).toEqual(["c2", "c3", "c4", "c1"]);
+        });
+
+        it("keeps the order when the rng always picks the current card", () => {
+            const deck = new Deck(baseProps(makeCards(["c1", "c2", "c3", "c4"])));
+
+            deck.shuffleOnce(undefined, () => 0.999);
+
+            expect(cardIds(deck.cards)).toEqual(["c1", "c2", "c3", "c4"]);
+        });
+
+        it("holds the pinned card at the top and shuffles the rest", () => {
+            const deck = new Deck(baseProps(makeCards(["c1", "c2", "c3", "c4"])));
+
+            deck.shuffleOnce("c3", () => 0);
+
+            expect(cardIds(deck.cards)).toEqual(["c3", "c2", "c4", "c1"]);
+        });
+
+        it("shuffles every card when the pinned card is not in the deck", () => {
+            const deck = new Deck(baseProps(makeCards(["c1", "c2", "c3", "c4"])));
+
+            deck.shuffleOnce("missing", () => 0);
+
+            expect(cardIds(deck.cards)).toEqual(["c2", "c3", "c4", "c1"]);
+        });
+
+        it("leaves an empty or single-card deck as it is", () => {
+            const emptyDeck = new Deck(baseProps([]));
+            const singleCardDeck = new Deck(baseProps(makeCards(["c1"])));
+
+            emptyDeck.shuffleOnce(undefined, () => 0);
+            singleCardDeck.shuffleOnce(undefined, () => 0);
+
+            expect(emptyDeck.cards).toEqual([]);
+            expect(cardIds(singleCardDeck.cards)).toEqual(["c1"]);
+        });
+
+        it("does not touch the played pile", () => {
+            const deck = new Deck(baseProps(makeCards(["c1", "c2", "c3"]), makeCards(["c4", "c5"])));
+
+            deck.shuffleOnce(undefined, () => 0);
+
+            expect(cardIds(deck.played)).toEqual(["c4", "c5"]);
+        });
+    });
+
+    describe("loadPlainCards", () => {
+        it("replaces the deck's cards with the given cards in order", () => {
+            const deck = new Deck(baseProps(makeCards(["c1"])));
+
+            deck.loadPlainCards(makeCards(["c3", "c2", "c4"]));
+
+            expect(cardIds(deck.cards)).toEqual(["c3", "c2", "c4"]);
+            expect(deck.size).toBe(3);
+        });
+
+        it("hydrates the cards so they can be shuffled and drawn", () => {
+            const deck = Deck.create(baseProps([]));
+
+            deck.loadPlainCards(makeCards(["c1", "c2", "c3", "c4"]));
+            deck.shuffleOnce("c3", () => 0);
+
+            expect(cardIds(deck.draw(2))).toEqual(["c3", "c2"]);
+            expect(cardIds(deck.cards)).toEqual(["c4", "c1"]);
+        });
+
+        it("hydrates each card into its concrete card class", () => {
+            const deck = new Deck(baseProps([]));
+
+            deck.loadPlainCards(makeCards(["c1"]));
+
+            expect(deck.cards[0]).toBeInstanceOf(ShipCard);
+        });
+
+        it("does not touch the played pile", () => {
+            const deck = new Deck(baseProps([], makeCards(["c9"])));
+
+            deck.loadPlainCards(makeCards(["c1"]));
+
+            expect(cardIds(deck.played)).toEqual(["c9"]);
+        });
+    });
+
+    describe("toPlain", () => {
+        it("flattens cards and played to ids in their current order", () => {
+            const deck = new Deck(baseProps(makeCards(["c2", "c1"]), makeCards(["c4", "c3"])));
+
+            expect(deck.toPlain()).toEqual({
+                id: "deck-1",
+                playerId: "p1",
+                faction: Faction.THE_UNITED_DEFENSE_FLEET,
+                cards: ["c2", "c1"],
+                played: ["c4", "c3"],
+            });
+        });
+
+        it("reflects the shuffled order and drawn cards", () => {
+            const deck = new Deck(baseProps(makeCards(["c1", "c2", "c3", "c4"])));
+
+            deck.shuffleOnce(undefined, () => 0);
+            deck.draw(1);
+
+            expect(deck.toPlain().cards).toEqual(["c3", "c4", "c1"]);
+        });
+    });
+
+    describe("Deck.toDomain", () => {
+        const stateWith = (ids: string[]) =>
+            new GameState({
+                code: "ABCD",
+                currentRound: 0,
+                players: [],
+                ships: [],
+                cards: makeCards(ids),
+                decks: [],
+                winners: [],
+                isOver: false,
+            });
+
+        it("hydrates cards and played from the state's cards in the plain order", () => {
+            const plain = new Deck(baseProps(makeCards(["c3", "c1"]), makeCards(["c2"]))).toPlain();
+
+            const deck = Deck.toDomain(plain, stateWith(["c1", "c2", "c3"]));
+
+            expect(cardIds(deck.cards)).toEqual(["c3", "c1"]);
+            expect(cardIds(deck.played)).toEqual(["c2"]);
+            expect(deck.toPlain()).toEqual(plain);
+        });
+
+        it("skips card ids that are missing from the state", () => {
+            const plain = new Deck(baseProps(makeCards(["c1", "c2"]))).toPlain();
+
+            const deck = Deck.toDomain(plain, stateWith(["c2"]));
+
+            expect(cardIds(deck.cards)).toEqual(["c2"]);
+        });
+    });
+
+    describe("size", () => {
+        it("counts the cards left in the deck, not the played pile", () => {
+            const deck = new Deck(baseProps(makeCards(["c1", "c2", "c3"]), makeCards(["c4"])));
+
+            deck.draw(1);
+
+            expect(deck.size).toBe(2);
         });
     });
 
