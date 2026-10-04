@@ -1,13 +1,8 @@
 import { FP_GAME_STATE } from "@shared/constants";
 import { GameConfig } from "@shared/index";
 import { IPlainGameState } from "@shared/types";
-import {
-    applyStartingStateToPlayer,
-    buildPlayerStartingState,
-    createNewGameState,
-    generateGameCode,
-    initialiseNewPlayer,
-} from "@shared/utils";
+import { generateGameCode } from "@shared/utils";
+import { GameStateBuilder } from "@shared/utils/builder/GameStateBuilder";
 import { v7 as uuidv7 } from "uuid";
 import { gameManager } from "..";
 import { isLocal } from "../config/app-config";
@@ -63,7 +58,9 @@ export class ResetLocalGameButton extends HTMLButton {
         const player1Id = uuidv7();
         const player2Id = uuidv7();
 
-        const initialGameState: IPlainGameState = createNewGameState(gameCode, player1Id, player1Name);
+        const builder = new GameStateBuilder().loadCode(gameCode).loadMap();
+        this.loadPlayer(builder, { id: player1Id, name: player1Name, order: 0 });
+        const player1GameState: IPlainGameState = builder.build({ initiative: player1Id });
 
         // sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(initialGameState));
 
@@ -73,18 +70,14 @@ export class ResetLocalGameButton extends HTMLButton {
         gameManager.saveAppState({
             status: GameConfig.AppStatus.Initialised,
             loading: false,
-            gameState: initialGameState,
+            gameState: player1GameState,
         });
 
-        const player2 = initialiseNewPlayer({ id: player2Id, name: player2Name, order: 1 });
-        const player2Starting = buildPlayerStartingState(player2Id, GameConfig.Faction.THE_UNITED_DEFENSE_FLEET);
-        applyStartingStateToPlayer(player2, player2Starting);
-
-        initialGameState.ships.push(...player2Starting.ships);
-        initialGameState.cards.push(...player2Starting.cards);
-        initialGameState.decks.push(player2Starting.deck);
-        initialGameState.players.push(player2);
-        initialGameState.currentRound++;
+        this.loadPlayer(builder, { id: player2Id, name: player2Name, order: 1 });
+        const initialGameState: IPlainGameState = builder.build({
+            initiative: player1Id,
+            currentRound: player1GameState.currentRound + 1,
+        });
 
         sessionStorage.setItem(FP_GAME_STATE, JSON.stringify(initialGameState));
 
@@ -97,6 +90,16 @@ export class ResetLocalGameButton extends HTMLButton {
 
         setGameCode(gameCode);
         updateComponents();
+    }
+
+    private loadPlayer(builder: GameStateBuilder, player: { id: string; name: string; order: number }) {
+        builder
+            .loadEmptyNewPlayer(player)
+            .loadFaction(GameConfig.Faction.THE_UNITED_DEFENSE_FLEET)
+            .loadDeck()
+            .loadCards()
+            .loadShips()
+            .loadHand(Math.random);
     }
 
     async onClick() {
