@@ -67,7 +67,11 @@ export type TSupportRefNo = "flare" | "inspire" | "airstrike";
 
 export const FRIGATE_REF_NO = "tudf_frigate0";
 
-type TShipCardRefNo = typeof FRIGATE_REF_NO;
+export const DESTROYER_REF_NO = "tudf_destroyer0";
+
+type TShipCardRefNo = typeof FRIGATE_REF_NO | typeof DESTROYER_REF_NO;
+
+type TLineOrientation = "vertical" | "horizontal";
 
 export interface IBoardMarks {
     highlighted: string[];
@@ -533,6 +537,49 @@ export class PageHelper {
     // The deck holds duplicates (e.g. two Flares), so take the first copy in hand
     supportCard(refNo: TSupportRefNo) {
         return this.page.locator(`.card-row img[alt="${refNo}"]`).first();
+    }
+
+    private async pickSupportTarget(refNo: TSupportRefNo, tileId: string) {
+        await this.supportCard(refNo).click();
+        await expect.poll(async () => (await this.highlightedTiles()).length).toBeGreaterThan(0);
+        await this.clickTile(tileId);
+    }
+
+    async playFlare(tileId: string) {
+        const staged = await this.pendingActionCount();
+        await this.pickSupportTarget("flare", tileId);
+        await expect.poll(() => this.pendingActionCount()).toBe(staged + 1);
+    }
+
+    // Inspire has no target; any board click confirms it
+    async playInspire() {
+        const staged = await this.pendingActionCount();
+        await this.pickSupportTarget("inspire", "0/3");
+        await expect.poll(() => this.pendingActionCount()).toBe(staged + 1);
+    }
+
+    async playAirstrike(centerTileId: string, orientation: TLineOrientation) {
+        const staged = await this.pendingActionCount();
+        await this.pickSupportTarget("airstrike", centerTileId);
+        await expect(this.pathMenu).toBeVisible();
+        if ((await this.drawnLineOrientation()) !== orientation) {
+            await this.page.locator("#path-menu-right").click();
+            await expect.poll(() => this.drawnLineOrientation()).toBe(orientation);
+        }
+        await this.page.locator("#path-menu-confirm").click();
+        await expect.poll(() => this.pendingActionCount()).toBe(staged + 1);
+    }
+
+    // A vertical line keeps one x across all of its drawn points
+    private async drawnLineOrientation(): Promise<TLineOrientation | null> {
+        const points = await this.drawnRoute();
+        if (!points) return null;
+
+        const xs = points
+            .trim()
+            .split(/\s+/)
+            .map((point) => Number(point.split(",")[0]));
+        return xs.every((x) => x === xs[0]) ? "vertical" : "horizontal";
     }
 
     async handRefNos(): Promise<string[]> {
