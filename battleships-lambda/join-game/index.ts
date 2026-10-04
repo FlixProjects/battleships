@@ -6,7 +6,7 @@ import { ERROR_MESSAGES } from "../../shared/constants";
 import type { JoinGameRequest } from "../../shared/types/domains";
 import { ErrorCode } from "../../shared/types/response-types";
 import type { IPlainGameState } from "../../shared/types/types";
-import { applyStartingStateToPlayer, buildPlayerStartingState, initialiseNewPlayer } from "../../shared/utils/helpers";
+import { GameStateBuilder } from "../../shared/utils/builder/GameStateBuilder";
 import { GAMES_TABLE, getDocClient } from "../lib/dynamo";
 import { getGamesBucket, isLocal } from "../lib/env";
 import { ErrorApiResponse } from "../lib/response/error-response";
@@ -25,7 +25,7 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
             return new ErrorApiResponse(ErrorCode.BAD_REQUEST).setMessage(ERROR_MESSAGES.MISSING_GAME_CODE).build();
         }
 
-        // initialiseNewPlayer declares name as required, see create-game
+        // loadEmptyNewPlayer declares name as required, see create-game
         if (!playerName) {
             return new ErrorApiResponse(ErrorCode.BAD_REQUEST).setMessage(ERROR_MESSAGES.MISSING_PLAYER_NAME).build();
         }
@@ -56,27 +56,22 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
             return new ErrorApiResponse(ErrorCode.CONFLICT).setMessage(ERROR_MESSAGES.GAME_FULL).build();
         }
 
-        const newPlayer = initialiseNewPlayer({
-            id: auth.userId,
-            name: playerName,
-            order: gameState.players.length,
-        });
-        const starting = buildPlayerStartingState(auth.userId, GameConfig.Faction.THE_UNITED_DEFENSE_FLEET);
-        applyStartingStateToPlayer(newPlayer, starting);
-
-        gameState.ships.push(...starting.ships);
-        gameState.cards.push(...starting.cards);
-        gameState.effects.push(...starting.effects);
-        gameState.decks.push(starting.deck);
-        gameState.players.push(newPlayer);
-        gameState.currentRound++;
+        const builder = new GameStateBuilder(gameState);
+        builder
+            .loadEmptyNewPlayer({ id: auth.userId, name: playerName, order: gameState.players.length })
+            .loadFaction(GameConfig.Faction.THE_UNITED_DEFENSE_FLEET)
+            .loadDeck()
+            .loadCards()
+            .loadShips()
+            .loadHand(Math.random);
+        const joinedGameState: IPlainGameState = builder.build({ currentRound: gameState.currentRound + 1 });
 
         if (!isLocal()) {
             await s3.send(
                 new PutObjectCommand({
                     Bucket: getGamesBucket(),
                     Key: `games/${gameCode}.json`,
-                    Body: JSON.stringify(gameState),
+                    Body: JSON.stringify(joinedGameState),
                     ContentType: "application/json",
                 }),
             );
@@ -90,7 +85,7 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
             }),
         );
 
-        return new ApiResponse().setBody({ playerId: auth.userId, gameCode, gameState }).build();
+        return new ApiResponse().setBody({ playerId: auth.userId, gameCode, gameState: joinedGameState }).build();
     } catch (err) {
         console.error("join-game failed", err);
         return new InternalServerErrorApiResponse().build();
