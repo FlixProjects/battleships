@@ -739,7 +739,7 @@ describe("ActionResolver", () => {
 
     describe("resolveAction (PlayCard: Support card → Flare)", () => {
         // Support cards carry effectTemplates; playing one mints + persists the
-        // Effect. Mirrors what buildPlayerStartingState produces.
+        // Effect. Mirrors what GameStateBuilder produces.
         const buildFlareCardEntities = () => {
             const card: ICard = {
                 id: "card-flare",

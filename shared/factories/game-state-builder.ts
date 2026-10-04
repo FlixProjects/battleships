@@ -1,6 +1,6 @@
 import { IGameStateData } from "../types";
 import { GameState } from "../models";
-import { getNewBoard } from "../utils";
+import { GameStateBuilder as GameStateSeedBuilder } from "../utils/builder/GameStateBuilder";
 
 export class GameStateBuilder {
     private defaultProps: IGameStateData;
@@ -17,7 +17,7 @@ export class GameStateBuilder {
             decks: [],
             winners: [],
             isOver: false,
-            board: getNewBoard(),
+            board: new GameStateSeedBuilder().loadMap().build().board,
             ...defaultOverrides,
         };
     }

@@ -1,6 +1,5 @@
-import { EFFECTS_CONFIG } from "../config/constants";
 import { Effect } from "../models/effects/Effect";
-import { IEffect, IEffectOverride, IEffectTemplate, TEffectRefNo } from "../types";
+import { IEffect } from "../types";
 
 type EffectConstructor = new (props: Readonly<IEffect>) => Effect;
 
@@ -25,15 +24,3 @@ export const createEffect = (props: Readonly<IEffect>): Effect => {
 };
 
 export const hasEffect = (refNo: string): boolean => effectConstructors.has(refNo);
-
-/**
- * Only used at game creation time to create plain effects
- * TODO: remove once GameStateBuilder is implemented
- */
-export const resolveEffectTemplate = (override: IEffectOverride): IEffectTemplate => {
-    const base = EFFECTS_CONFIG[override.refNo as TEffectRefNo];
-    if (!base) {
-        throw new Error(`resolveEffectTemplate: unknown effect refNo '${override.refNo}'`);
-    }
-    return { ...base, ...override } as IEffectTemplate;
-};

@@ -43,7 +43,7 @@ export class SupportCard extends Card {
 
     constructor(props: Readonly<ICard>) {
         super(props);
-        // Resolved data is persisted on the card at creation (buildPlayerStartingState).
+        // Resolved data is persisted on the card at creation (GameStateBuilder).
         // Never re-derive from SUPPORTS_CONFIG. `name` lives on the Card base.
         this.description = props.description ?? "";
         this.commandPointCost = props.commandPointCost ?? 0;
