@@ -12,6 +12,8 @@ import {
 import { RandomFn } from "@shared/models/Deck";
 import { GameState } from "@shared/models/GameState";
 import { IGameConfig } from "@shared/types/config-types";
+import { ActionTypes, IPlayCardAction } from "@shared/types/action-types";
+import { ActionResolver } from "../../action-handler/ActionResolver";
 import { GameStateBuilder } from "../GameStateBuilder";
 
 const faction = Faction.THE_UNITED_DEFENSE_FLEET;
@@ -25,8 +27,10 @@ const player2 = { id: "p2", name: "Player 2", order: 1 };
 const loadPlayerCards = (builder: GameStateBuilder, player = player1) =>
     builder.loadEmptyNewPlayer(player).loadFaction(faction).loadDeck().loadCards();
 
+const loadPlayerShips = (builder: GameStateBuilder, player = player1) => loadPlayerCards(builder, player).loadShips();
+
 const loadPlayerHand = (builder: GameStateBuilder, player = player1, rngFn: RandomFn = Math.random) =>
-    loadPlayerCards(builder, player).loadHand(rngFn);
+    loadPlayerShips(builder, player).loadHand(rngFn);
 
 const seededRng = (seed: number[]): RandomFn => {
     let i = 0;
@@ -236,7 +240,7 @@ describe("GameStateBuilder", () => {
             expect([...decks[0].cards].sort()).toEqual([...cardIds].sort());
         });
 
-        it("should not pre-create ships", () => {
+        it("should not create ships until loadShips is called", () => {
             const builder = new GameStateBuilder();
             loadPlayerCards(builder);
 
@@ -276,6 +280,127 @@ describe("GameStateBuilder", () => {
                 SUPPORT_REF_NO.inspire,
                 SUPPORT_REF_NO.inspire,
             ]);
+        });
+    });
+
+    describe("loadShips", () => {
+        it("should create a ship for every ship card, linked by the card's instanceId", () => {
+            const builder = new GameStateBuilder();
+            loadPlayerShips(builder);
+            const { ships, cards } = builder.build();
+            const shipCards = cards.filter((c) => c.kind === CardKind.Ship);
+
+            expect(ships.map((s) => s.id)).toEqual(shipCards.map((c) => c.instanceId));
+            expect(ships.map((s) => s.refNo)).toEqual(shipCards.map((c) => c.refNo));
+            expect(new Set(ships.map((s) => s.id)).size).toBe(shipCards.length);
+        });
+
+        it("should build an undeployed ship from the ships config", () => {
+            const builder = new GameStateBuilder();
+            loadPlayerShips(builder);
+            const { ships, cards } = builder.build();
+            const card = cards.find((c) => c.refNo === SHIP_REF_NO.tudf_destroyer0);
+            const shipTemplate = DEFAULT_CONFIG.shipsConfig[SHIP_REF_NO.tudf_destroyer0];
+
+            expect(ships.find((s) => s.id === card?.instanceId)).toEqual({
+                ...shipTemplate,
+                id: card?.instanceId,
+                playerId: "p1",
+                hulls: [],
+                remainingMovement: shipTemplate.movementRange,
+                remainingAttacks: shipTemplate.attackCountMax,
+                destroyed: false,
+                deployed: false,
+            });
+        });
+
+        it("should link the ships to the player", () => {
+            const builder = new GameStateBuilder();
+            loadPlayerShips(builder);
+            const { ships, players } = builder.build();
+
+            expect(ships.every((s) => s.playerId === "p1")).toBe(true);
+            expect(players[0].ships).toEqual(ships.map((s) => s.id));
+        });
+
+        it("should keep each player's ships separate", () => {
+            const builder = new GameStateBuilder();
+            loadPlayerShips(builder);
+            loadPlayerShips(builder, player2);
+            const { ships, players } = builder.build();
+
+            players.forEach((player) => {
+                expect(player.ships).toEqual(ships.filter((s) => s.playerId === player.id).map((s) => s.id));
+                expect(player.ships).toHaveLength(ships.length / 2);
+            });
+        });
+
+        it("should build the ships from an overridden ships config", () => {
+            const builder = new GameStateBuilder().overrideConfig({
+                shipsConfig: {
+                    [SHIP_REF_NO.tudf_frigate0]: { movementRange: 9, attackCountMax: 3, commandPointCost: 0 },
+                },
+            } as Partial<IGameConfig>);
+            loadPlayerShips(builder);
+            const { ships } = builder.build();
+            const frigates = ships.filter((s) => s.refNo === SHIP_REF_NO.tudf_frigate0);
+            const destroyer = ships.find((s) => s.refNo === SHIP_REF_NO.tudf_destroyer0);
+
+            frigates.forEach((frigate) => {
+                expect(frigate).toMatchObject({
+                    movementRange: 9,
+                    remainingMovement: 9,
+                    attackCountMax: 3,
+                    remainingAttacks: 3,
+                    commandPointCost: 0,
+                });
+            });
+            expect(destroyer?.movementRange).toBe(
+                DEFAULT_CONFIG.shipsConfig[SHIP_REF_NO.tudf_destroyer0].movementRange,
+            );
+        });
+
+        it("should only create ships for the ship cards of an overridden faction deck", () => {
+            const builder = new GameStateBuilder().overrideConfig({
+                factionConfig: {
+                    [faction]: {
+                        deck: [
+                            { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_flagship0, count: 1 },
+                            { kind: CardKind.Support, refNo: SUPPORT_REF_NO.inspire, count: 3 },
+                        ],
+                    },
+                },
+            } as Partial<IGameConfig>);
+            loadPlayerShips(builder);
+
+            expect(builder.build().ships.map((s) => s.refNo)).toEqual([SHIP_REF_NO.tudf_flagship0]);
+        });
+
+        it("should let the flagship card in the starting hand be played to deploy its ship", () => {
+            const builder = new GameStateBuilder().loadCode("ABCD").loadMap();
+            loadPlayerHand(builder);
+            loadPlayerHand(builder, player2);
+            const gameState = builder.build({ initiative: "p1", currentRound: 1 });
+            const [flagshipCardId] = gameState.players[0].hand;
+            const flagshipCard = gameState.cards.find((c) => c.id === flagshipCardId);
+
+            const next = new ActionResolver("p1", new GameState(gameState)).resolveAction({
+                id: "play-flagship",
+                type: ActionTypes.PLAY_CARD,
+                playerId: "p1",
+                round: 1,
+                order: 0,
+                commandPointCost: 0,
+                cardId: flagshipCardId,
+                payload: { kind: "Ship", location: [1, 0] },
+            } as IPlayCardAction);
+            const flagship = next.ships.find((s) => s.id === flagshipCard?.instanceId);
+
+            expect(flagship?.deployed).toBe(true);
+            expect(next.hulls?.filter((h) => h.shipId === flagship?.id)).toHaveLength(
+                flagship?.hullTemplates.length ?? 0,
+            );
+            expect(next.players.find((p) => p.id === "p1")?.hand).not.toContain(flagshipCardId);
         });
     });
 

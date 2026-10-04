@@ -21,6 +21,7 @@ import {
     IPlainDeck,
     IPlainGameState,
     IPlainPlayer,
+    IPlainShip,
     TEffectRefNo,
     TFaction,
     TMapRefNo,
@@ -91,6 +92,14 @@ interface ILoadCardsParams extends IDeckDomainContextParams, IDeckContextParams,
 
 interface ILoadCardsToDeckParams extends IDeckDomainContextParams, IDeckContextParams, IPlayerContextParams {
     cards: IPlainCard[];
+}
+
+interface ILoadShipsParams extends IDeckDomainContextParams, IDeckContextParams, IPlayerContextParams {
+    cards: IPlainCard[];
+}
+
+interface ILoadShipParams extends IPlayerContextParams {
+    card: IPlainCard;
 }
 
 interface ILoadEffectTemplateParams {
@@ -233,7 +242,29 @@ export class GameStateBuilder {
         deck.cards = cards.map((c) => c.id);
         deckDomain.loadPlainCards(cards);
         return {
+            loadShips: () => this.loadShips({ deckDomain, deck, cards, player }),
+        };
+    }
+
+    private loadShips({ deckDomain, deck, cards, player }: ILoadShipsParams) {
+        const ships = cards.filter((c) => c.kind === CardKind.Ship).map((card) => this.loadShip({ card, player }));
+        this.gameState.ships.push(...ships);
+        player.ships = ships.map((s) => s.id);
+        return {
             loadHand: (rngFn: RandomFn) => this.loadHand({ rngFn, deckDomain, deck, player }),
+        };
+    }
+
+    private loadShip({ card, player }: ILoadShipParams): IPlainShip {
+        const shipTemplate = this.config.shipsConfig[card.refNo as TShipRefNo];
+        return {
+            ...shipTemplate,
+            id: card.instanceId,
+            playerId: player.id,
+            hulls: [],
+            remainingMovement: shipTemplate.movementRange,
+            remainingAttacks: shipTemplate.attackCountMax,
+            destroyed: false,
         };
     }
 
@@ -267,7 +298,7 @@ export class GameStateBuilder {
         const card = {
             id: uuidv7(),
             deckId,
-            instanceId: uuidv7(), // new implementation: we try to avoid pre-creation of ships
+            instanceId: uuidv7(), // the id of the ship created for this card in loadShips
             kind: CardKind.Ship,
             refNo: shipTemplate.refNo,
             name: shipTemplate.name,
