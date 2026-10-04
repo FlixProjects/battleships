@@ -1,4 +1,4 @@
-import { ICard, IDeck, IGameState, IPlainDeck, TFaction } from "../types";
+import { ICard, IDeck, IGameState, IPlainCard, IPlainDeck, TFaction } from "../types";
 import { Card } from "./Card";
 import { DeckEntity } from "./entities/DeckEntity";
 
@@ -42,7 +42,7 @@ export class Deck extends DeckEntity {
             cards: props.cards,
             played: [],
         });
-        deck.shuffleOnce(props.pinnedCardId, props.rng ?? Math.random);
+        deck.shuffleOnce(props.pinnedCardId, props.rng ?? Math.random); // TODO: decouple shuffle from create
         return deck;
     }
 
@@ -62,11 +62,7 @@ export class Deck extends DeckEntity {
         return this.cards.length;
     }
 
-    /**
-     * Fisher–Yates shuffle, with optional pinning. Private so the only way to
-     * trigger it is via `Deck.create()` — guaranteeing one shuffle per deck.
-     */
-    private shuffleOnce(pinnedCardId: string | undefined, rng: RandomFn): void {
+    public shuffleOnce(pinnedCardId: string | undefined, rng: RandomFn): void {
         const pinned: Card[] = [];
         const rest: Card[] = [];
         this.cards.forEach((c) => (c.id === pinnedCardId ? pinned.push(c) : rest.push(c)));
@@ -88,6 +84,10 @@ export class Deck extends DeckEntity {
             cards: this.cards.map((c) => c.id),
             played: this.played.map((c) => c.id),
         };
+    }
+
+    public loadPlainCards(cards: IPlainCard[]): void {
+        this.cards = cards.map((c) => new Card(c));
     }
 
     public static toDomain(plain: IPlainDeck, state: IGameState): Deck {

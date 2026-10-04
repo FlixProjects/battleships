@@ -336,7 +336,7 @@ export const FACTION_CONFIG: TFactionsConfig = {
         name: "The United Defense Fleet",
         deck: [
             // Ships
-            { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_flagship0, count: 1 },
+            { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_flagship0, count: 1 }, // TOOD: find a way to indicate card should be pinned (e.g. isPinned+count 1 of that card refNo)
             { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_frigate0, count: 4 },
             { kind: CardKind.Ship, refNo: SHIP_REF_NO.tudf_destroyer0, count: 2 },
             // Supports
