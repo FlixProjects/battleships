@@ -66,7 +66,7 @@ interface ILoadEmptyNewPlayerParams {
 
 interface ILoadHandParams extends IPlayerContextParams, IDeckContextParams, IDeckDomainContextParams {
     playerConfigRefNo?: TPlayerRefNo;
-    pinnedCardId?: string;
+    rngFn?: () => number;
 }
 
 interface ILoadCardParams extends ICardContextParams {
@@ -75,12 +75,10 @@ interface ILoadCardParams extends ICardContextParams {
 }
 
 interface ILoadShipCardParams extends ICardContextParams {
-    deckId: string;
     refNo: TShipRefNo;
 }
 
 interface ILoadSupportCardParams extends ICardContextParams {
-    deckId: string;
     refNo: TSupportRefNo;
 }
 
@@ -214,28 +212,21 @@ export class GameStateBuilder {
         player.deck = deckDomain.id;
 
         return {
-            loadCards: () => this.loadCards({ deckDomain: deckDomain, deck: deck, player }),
+            loadCards: () => this.loadCards({ deckDomain, deck, player }),
         };
     }
 
-    // can we try loading cards first before deck
     private loadCards({ deckDomain, deck, player }: ILoadCardsParams) {
         const deckConfig = this.config.factionConfig[player.faction].deck;
         const cards: IPlainCard[] = deckConfig
             .flatMap((c) =>
                 Array(c.count)
                     .fill(c)
-                    .map(() => {
-                        const card = this.loadCard({ cardEntry: c, deckId: deck.id, refNo: c.refNo });
-
-                        return card;
-                    }),
+                    .map(() => this.loadCard({ cardEntry: c, deckId: deck.id, refNo: c.refNo })),
             )
             .filter((c) => c !== undefined);
         this.gameState.cards.push(...cards);
-        return {
-            loadCardsToDeck: () => this.loadCardsToDeck({ deckDomain, deck, cards, player }),
-        };
+        return this.loadCardsToDeck({ deckDomain, deck, cards, player });
     }
 
     private loadCardsToDeck({ deckDomain, deck, cards, player }: ILoadCardsToDeckParams) {
@@ -246,7 +237,7 @@ export class GameStateBuilder {
         };
     }
 
-    private loadHand({ deckDomain, deck, player, playerConfigRefNo }: ILoadHandParams) {
+    private loadHand({ deckDomain, deck, player, playerConfigRefNo, rngFn }: ILoadHandParams) {
         const { maxHandSize } = this.config.playersConfig[playerConfigRefNo ?? this.playerConfigRefNo];
 
         // FIXME: we hardcode the pinned card for now
@@ -254,7 +245,7 @@ export class GameStateBuilder {
             .filter((c) => c.isShipCard)
             .find((c): c is ShipCard => c.refNo === SHIP_REF_NO.tudf_flagship0)?.id;
 
-        deckDomain.shuffleOnce(flagshipCardId, Math.random);
+        deckDomain.shuffleOnce(flagshipCardId, rngFn ?? Math.random);
         const drawn = deckDomain.draw(maxHandSize);
         player.hand = drawn.map((c) => c.id);
         deck.cards = deck.cards.filter((c) => !player.hand.includes(c));
