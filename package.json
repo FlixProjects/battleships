@@ -8,6 +8,7 @@
         "build": "webpack --config webpack.config.js --mode=development",
         "serve": "webpack serve --mode=development",
         "dev": "npm run serve",
+        "dev:stop": "lsof -ti tcp:8080 -sTCP:LISTEN | xargs -r kill -9",
         "test:e2e": "playwright test",
         "test:e2e:ui": "playwright test --ui"
     },
