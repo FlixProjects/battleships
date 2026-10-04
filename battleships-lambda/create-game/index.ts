@@ -33,7 +33,11 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
 
         // the token subject is the id get-game and submit-action match a caller
         // against, so the player is the authenticated user rather than a fresh uuid
-        const builder = new GameStateBuilder().loadCode(gameCode).loadMap();
+        const builder = new GameStateBuilder();
+        if (isLocal() && body.overrideConfig) {
+            builder.overrideConfig(body.overrideConfig);
+        }
+        builder.loadCode(gameCode).loadMap();
         builder
             .loadEmptyNewPlayer({ id: auth.userId, name: playerName, order: 0 })
             .loadFaction(Faction.THE_UNITED_DEFENSE_FLEET)

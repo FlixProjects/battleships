@@ -57,6 +57,9 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
         }
 
         const builder = new GameStateBuilder(gameState);
+        if (isLocal() && body.overrideConfig) {
+            builder.overrideConfig(body.overrideConfig);
+        }
         builder
             .loadEmptyNewPlayer({ id: auth.userId, name: playerName, order: gameState.players.length })
             .loadFaction(GameConfig.Faction.THE_UNITED_DEFENSE_FLEET)
