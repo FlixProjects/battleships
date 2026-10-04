@@ -1,0 +1,7 @@
+{
+    "watch": [".", "../shared"],
+    "ext": "ts,yaml",
+    "ignore": [".aws-sam", "dist", "node_modules", "**/__tests__/**"],
+    "exec": "sam build --cached --parallel && sam local start-api --docker-network battleships-local --skip-pull-image --warm-containers EAGER",
+    "signal": "SIGINT"
+}
