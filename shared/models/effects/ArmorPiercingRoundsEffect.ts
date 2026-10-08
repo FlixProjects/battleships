@@ -1,4 +1,4 @@
-import type { IPlainEffect, ISignalHandleCtx } from "../../types";
+import type { ICellLoc, IGameState, IPlainEffect, ISignalHandleCtx } from "../../types";
 import { EFFECT_REF_NO } from "../../config/constants";
 import { registerEffect } from "../../utils/effect-helper";
 import { Effect } from "./Effect";
@@ -26,6 +26,10 @@ export class ArmorPiercingRoundsEffect extends Effect {
 
     public appliesToAttacker(shipId: string): boolean {
         return this.attachedEntityId === shipId;
+    }
+
+    public getAffectedLocations(gameState: IGameState): ICellLoc[] {
+        return (gameState.hulls ?? []).filter((h) => h.shipId === this.attachedEntityId).map((h) => h.location);
     }
 
     public resolve(_ctx: ISignalHandleCtx): void {

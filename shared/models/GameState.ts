@@ -404,15 +404,32 @@ export class GameState extends GameStateEntity implements IGameState {
             if (p.id === currentPlayerId) return; // current player see's own enitities
             p.ships.forEach((s) => s.removeInvisibleHullLocations());
             p.removeInvisibleShips();
+            p.hand = [];
+            p.pendingActions = [];
         });
         // Keep the current player's own Effects (active or pre-created/inactive);
         // prune only the opponent's Effects they can't see.
         obscured.effects = obscured.effects.filter((e) => e.playerId === currentPlayerId || e.isVisible);
+        obscured.actions = obscured.actions.filter((a) => a.playerId === currentPlayerId);
+        obscured.removeOtherPlayersCards(currentPlayerId);
         obscured.lastTurnEvents = obscured.lastTurnEvents
             .filter((event) => event.visibleToPlayerIds.includes(currentPlayerId))
             .map((event) => GameState.toViewerTurnEvent(event, currentPlayerId));
         obscured.linkPlayerShips({ reverse: true }).linkShipHulls({ reverse: true });
         return obscured;
+    }
+
+    // A player's cards — hand, draw pile and played — are never sent to anyone else.
+    private removeOtherPlayersCards(currentPlayerId: string) {
+        const ownDeckIds = new Set(this.decks.filter((d) => d.playerId === currentPlayerId).map((d) => d.id));
+
+        this.cards = this.cards.filter((card) => ownDeckIds.has(card.deckId));
+        this.decks.forEach((deck) => {
+            if (ownDeckIds.has(deck.id)) return;
+            deck.cards = [];
+            deck.played = [];
+        });
+        return this;
     }
 
     /**

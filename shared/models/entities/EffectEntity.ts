@@ -1,5 +1,7 @@
-import { IEffect, TEffectKind, TEffectRefNo } from "../../types";
+import { ICellLoc, IEffect, IGameState, TEffectKind, TEffectRefNo } from "../../types";
 import { locationToKey } from "../../utils/helpers";
+import { Listener } from "../listeners/Listener";
+import { SignalType } from "../signals/types";
 import { GameObjectWithVisibilityEntity } from "./GameObjectWithVisibilityEntity";
 
 export class EffectEntity extends GameObjectWithVisibilityEntity<EffectEntity> implements IEffect {
@@ -20,14 +22,20 @@ export class EffectEntity extends GameObjectWithVisibilityEntity<EffectEntity> i
         Object.assign(this, props);
     }
 
-    public projectVisibility(visibleTiles: Set<string>) {
-        if (!this.existsOnBoard || !this.location) {
-            this.isVisible = false;
-            return this;
-        }
-        if (visibleTiles.has(locationToKey(this.location))) {
-            this.isVisible = true;
-        }
+    // Seen by whoever sees its own tile or the entity it acts on.
+    public projectVisibility(visibleTiles: Set<string>, affectedLocations: ICellLoc[] = []) {
+        const ownLocations = this.existsOnBoard && this.location ? [this.location] : [];
+        this.isVisible = [...ownLocations, ...affectedLocations].some((loc) => visibleTiles.has(locationToKey(loc)));
         return this;
+    }
+
+    public getAffectedLocations(_gameState: IGameState): ICellLoc[] {
+        return [];
+    }
+
+    protected createProjectVisibilityListener() {
+        return new Listener([SignalType.GameProjectVisibility], (ctx) => {
+            this.projectVisibility(ctx.signal.payload.visibleTiles, this.getAffectedLocations(ctx.gsm.gameState));
+        });
     }
 }
