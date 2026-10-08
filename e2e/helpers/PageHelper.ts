@@ -38,7 +38,7 @@ export interface IWireGameState {
     ships: { id: string; playerId: string }[];
     hulls?: { shipId: string }[];
     cards: { id: string }[];
-    decks: { playerId: string; cards: string[] }[];
+    decks: { playerId: string; cards: string[]; played: string[] }[];
     actions?: { playerId: string }[];
 }
 
@@ -607,6 +607,17 @@ export class PageHelper {
                 (cardId) => gameState.cards.find((card: { id: string }) => card.id === cardId)?.refNo ?? "",
             );
         });
+    }
+
+    // The whole local game, as the server would hold it — not what any one player is sent
+    async storedCardIds(playerId: string): Promise<string[]> {
+        return await this.page.evaluate((ownerId) => {
+            const state = JSON.parse(sessionStorage.getItem("fp-game-state") ?? "{}");
+            const hand: string[] = state.players.find((p: { id: string }) => p.id === ownerId)?.hand ?? [];
+            const deck = state.decks.find((d: { playerId: string }) => d.playerId === ownerId);
+
+            return [...hand, ...(deck?.cards ?? []), ...(deck?.played ?? [])];
+        }, playerId);
     }
 
     get pathMenu() {

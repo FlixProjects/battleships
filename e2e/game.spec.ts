@@ -465,28 +465,30 @@ test.describe("fog of war", () => {
     });
 
     test("the opponent's orders stay private", async () => {
-        // Known leak: obscureOtherPlayer never prunes actions, so submitted orders (and past deploys) are sent
-        test.fail();
         const { bobId } = await switchToHiddenBob();
         await helper.attack(BOB_FRONT, ALICE_REAR);
         await helper.submitTurn();
 
         const wire = await helper.switchPlayer();
+        const bob = wire.players.find((player) => player.id === bobId);
 
+        expect(bob?.pendingActions).toEqual([]);
         expect((wire.actions ?? []).filter((action) => action.playerId === bobId)).toEqual([]);
     });
 
-    test("the opponent's hand and draw pile stay private", async () => {
-        // Known leak: obscureOtherPlayer never prunes cards, hands or decks
-        test.fail();
+    test("the opponent's cards stay private, played or not", async () => {
         const { bobId } = await switchToHiddenBob();
         await helper.submitTurn();
+        const secretCardIds = await helper.storedCardIds(bobId);
+        expect(secretCardIds.length).toBeGreaterThan(0);
 
         const wire = await helper.switchPlayer();
         const bob = wire.players.find((player) => player.id === bobId);
         const bobDeck = wire.decks.find((deck) => deck.playerId === bobId);
-        const secretCardIds = [...(bob?.hand ?? []), ...(bobDeck?.cards ?? [])];
 
+        expect(bob?.hand).toEqual([]);
+        expect(bobDeck?.cards).toEqual([]);
+        expect(bobDeck?.played).toEqual([]);
         expect(wire.cards.filter((card) => secretCardIds.includes(card.id))).toEqual([]);
     });
 });
