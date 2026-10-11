@@ -283,6 +283,20 @@ terraform apply
 This creates the lambdas with their function URLs and IAM roles, the S3 bucket, the CloudFront
 distribution, the DynamoDB tables, the SSM auth-secret parameter and the GitHub CI role.
 
+The site is served from `battleships.<domain>` (`local.domain_name` in `main.tf`). The domain's DNS
+is on Cloudflare, not Route 53, so its two records are added by hand:
+
+1. `terraform apply -target=aws_acm_certificate.site`, then add the CNAME from the
+   `acm_validation_records` output as **DNS only** (grey cloud). The full `terraform apply` waits on
+   this record until ACM issues the certificate.
+2. After the full apply, point a `battleships` CNAME at the `cloudfront_domain_name` output,
+   **proxied** (orange cloud).
+
+Because Cloudflare proxies the site, CloudFront only ever sees Cloudflare's servers. That is why the
+distribution has no geo restriction (country rules go in Cloudflare) and why Cloudflare needs a cache
+rule that bypasses its cache for this hostname — otherwise a deploy stays stale behind it, since the
+workflows only invalidate CloudFront. Cloudflare's SSL/TLS mode must be **Full (strict)**.
+
 ### 7. Manual steps after the first apply
 
 1. **Set the auth-token secret.** Terraform creates the SSM parameter with a placeholder value and
@@ -326,7 +340,7 @@ settings, create the `prd-deploy` environment and add:
 | --- | --- | --- |
 | `IAMROLE_GITHUB` | secret | ARN of `battleships-prd-github-ci-agent` (IAM console) |
 | `CLOUDFRONT_DISTRIBUTION_ID` | secret | ID of the CloudFront distribution |
-| `BASE_API_URL` | secret | the deployed API URL |
+| `BASE_API_URL` | secret | the deployed API URL, `https://battleships.<domain>/api` |
 | `DEPLOY_ENV` | secret and variable | the deployed environment name (not `local`) |
 
 ## TypeScript configuration decisions

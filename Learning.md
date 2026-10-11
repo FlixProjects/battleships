@@ -9,6 +9,7 @@ on, a **Now:** line says what it does today. For setup steps see [README-setup.m
 - [GitHub Actions to AWS (OIDC)](#github-actions-to-aws-oidc)
 - [Lambda permissions](#lambda-permissions)
 - [CloudFront](#cloudfront)
+- [Custom domain (ACM certificate)](#custom-domain-acm-certificate)
 - [Cookies](#cookies)
 - [API Gateway (not used)](#api-gateway-not-used)
 - [Auth design](#auth-design)
@@ -181,6 +182,43 @@ don't trigger a preflight.
 
 **Now:** the `auth-edge-*` lambdas are deprecated. Auth runs in the regional lambdas (`withAuth`).
 
+## Custom domain (ACM certificate)
+
+Goal: serve the site from `battleships.<domain>` instead of `<cf-id>.cloudfront.net`. One
+subdomain per project means each project is its own browser origin (separate cookies and storage).
+
+1. **Buy a custom domain**. Wherever its nameservers point is where DNS records are
+   managed. Mine points at Cloudflare, so records are added there, not in AWS.
+2. **Create a certificate in ACM** for the subdomain, with **DNS validation**. It has to be in
+   **`us-east-1`**, whatever region the rest of the stack is in, because CloudFront only reads
+   certificates from there.
+3. **Copy the CNAME from the certificate and create it in the domain's DNS.** ACM shows a CNAME
+   **name** and a CNAME **value**; both are needed, as the two halves of one record:
+
+    | DNS field | From ACM | Looks like |
+    | --- | --- | --- |
+    | Type | | `CNAME` |
+    | Name | CNAME name | `_3a1b2c….battleships.<domain>.` |
+    | Target | CNAME value | `_9f8e7d….acm-validations.aws.` |
+
+    ACM looks up the name, and if it gets its own value back it knows I control the domain and
+    issues the certificate (status goes from *Pending validation* to *Issued*).
+
+4. Attach the certificate to the CloudFront distribution, add the subdomain as an **alternate
+   domain name**, and point a `battleships` CNAME at `<cf-id>.cloudfront.net`.
+
+- The validation record must be **DNS only** (grey cloud in Cloudflare), and it stays there for
+  good: ACM rechecks it to renew the certificate automatically.
+- Paste the full CNAME name. Cloudflare trims the `.<domain>` part itself, and the trailing dot
+  doesn't matter.
+- A certificate generated in Cloudflare's dashboard (Origin CA) can't be used instead. Browsers
+  don't trust it, and CloudFront only accepts a custom domain on a publicly trusted certificate.
+
+**Now:** `terraform/acm.tf` creates the certificate through the `aws.global` (`us-east-1`) provider
+and outputs the validation record (`acm_validation_records`); `terraform/cloudfront.tf` sets the
+alias and certificate. The two Cloudflare records are still added by hand; see
+[README-setup.md](./README-setup.md).
+
 ## Cookies
 
 - Setting `Cache-Control: no-cache="Set-Cookie"` or `no-store, no-cache, must-revalidate` on the
@@ -257,3 +295,7 @@ Rule: methods that a base constructor calls should be prototype methods, not arr
 - **Obscured (fog-of-war) game states threw in `toPlain()`.** A `lodash.clonedeep` copy left
   plain objects mixed in with domain entities. Projections have to be rebuilt with
   `new GameState(...)` so every entity is a domain object again.
+- **`403` from CloudFront after proxying the custom domain through Cloudflare.** With the DNS
+  record proxied (orange cloud), CloudFront sees Cloudflare's server as the visitor, so its geo
+  restriction (Singapore only) judged the wrong location. Disabling the CloudFront geo restriction
+  fixed it; a country rule would have to live in Cloudflare instead.

@@ -1,6 +1,7 @@
 locals {
-  region = "ap-southeast-1"
-
+  region       = "ap-southeast-1"
+  project_name = "battleships"
+  base_domain = "<REPLACE_WITH_YOUR_DOMAIN>"
   github_ci_agent = {
     prd : true
   }
@@ -27,6 +28,10 @@ locals {
   }
   create_cloudfront_distribution = {
     prd : true,
+  }
+  # each project gets its own subdomain (and so its own browser origin)
+  domain_name = {
+    prd : format("%s.%s", local.project_name, local.base_domain),
   }
   create_dynamodb = {
     prd : true,

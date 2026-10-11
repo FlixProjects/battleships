@@ -26,6 +26,7 @@ resource "aws_cloudfront_distribution" "battleships" {
   count               = local.create_cloudfront_distribution[terraform.workspace] ? 1 : 0
   enabled             = true
   default_root_object = "index.html"
+  aliases             = [local.domain_name[terraform.workspace]]
   # ── S3 origin (static site) ──────────────────────────────────────────────
   dynamic "origin" {
     for_each = local.create_s3[terraform.workspace] ? [1] : []
@@ -102,13 +103,17 @@ resource "aws_cloudfront_distribution" "battleships" {
 
   restrictions {
     geo_restriction {
-      restriction_type = "whitelist"
-      locations        = ["SG"]
+      # Using Cloudflare proxy for WAF-like features, 
+      # so can't use CloudFront to block countries (it would block Cloudflare too).
+      restriction_type = "none"
     }
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    cloudfront_default_certificate = false
+    acm_certificate_arn      = aws_acm_certificate_validation.site[0].certificate_arn
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1.2_2021"
   }
 }
 
