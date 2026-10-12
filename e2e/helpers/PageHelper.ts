@@ -554,6 +554,15 @@ export class PageHelper {
         return this.page.locator(`.card-row img[alt="${refNo}"]`).first();
     }
 
+    // The info cell at the end of a card's row opens its details without selecting the card
+    cardInfoCell(refNo: TSupportRefNo) {
+        return this.page.locator(`.card-row:has(img[alt="${refNo}"]) > div:last-child`).first();
+    }
+
+    get actionPanelToggle() {
+        return this.page.getByRole("button", { name: "Toggle action panel" });
+    }
+
     private async pickSupportTarget(refNo: TSupportRefNo, tileId: string) {
         await this.supportCard(refNo).click();
         await expect.poll(async () => (await this.highlightedTiles()).length).toBeGreaterThan(0);

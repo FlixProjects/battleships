@@ -2,8 +2,10 @@ import { Z_INDEX } from "@shared/constants";
 import { GameConfig } from "@shared/index";
 import { IAppState } from "@shared/types";
 import { gameManager } from "../..";
+import { isCompactViewport } from "../../utils/game-helper";
 import { getAppScreen } from "../../utils/screen-helper";
 import { BaseComponent } from "../BaseComponent";
+import { getComponents } from "../component-helper";
 import { Hand } from "../hand/Hand";
 import { InitiativeDisplay } from "./InitiativeDisplay";
 import { PlaybackButton } from "./PlaybackButton";
@@ -57,6 +59,11 @@ export class ActionPanel extends BaseComponent {
         this.renderSubmitButton();
         this.renderToggleHandle();
 
+        // A rebuild must not slide back in over details that are still showing
+        if (isCompactViewport() && getComponents().div.detailsPanel.opened) {
+            this.setOpen(false);
+        }
+
         document.body.appendChild(this.ref); // TODO: Move to component-helper
         return this.ref;
     }
@@ -70,11 +77,20 @@ export class ActionPanel extends BaseComponent {
         this.setOpen(true);
     }
 
+    public get opened() {
+        return this.isOpen;
+    }
+
     private setOpen(open: boolean) {
+        if (!this.ref) return;
         this.isOpen = open;
         this.ref.style.transform = open ? SHOWN_TRANSFORM : HIDDEN_TRANSFORM;
         if (this.handleRef) {
             this.handleRef.textContent = open ? "‹" : "›";
+        }
+        // Small screens only fit one side panel at a time
+        if (open && isCompactViewport()) {
+            getComponents().div.detailsPanel.close();
         }
     }
 

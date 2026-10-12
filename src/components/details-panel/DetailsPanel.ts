@@ -2,8 +2,10 @@ import { ASSET_PATHS, COLOR_RGBA, SELECTABLE_ID, Z_INDEX } from "@shared/constan
 import { GameConfig } from "@shared/index";
 import { IAppState } from "@shared/types";
 import { interactionManager } from "../..";
+import { isCompactViewport } from "../../utils/game-helper";
 import { getAppScreen } from "../../utils/screen-helper";
 import { BaseComponent } from "../BaseComponent";
+import { getComponents } from "../component-helper";
 import { Icon } from "../icon/Icon";
 import { StatBadge } from "../ships/StatBadge";
 import { DetailsHullRow, DetailsHullValue, DetailsViewModel } from "../../models/details/DetailsViewModel";
@@ -14,10 +16,13 @@ const SHOWN_TRANSFORM = "translateY(-50%) translateX(0)";
 /**
  * Right-side slide-out mirroring ActionPanel. Read-only and decoupled from the
  * domain: it renders a generic DetailsViewModel (ship or effect). Coexists with
- * the left ActionPanel. Built once, then toggled via open(vm) / close().
+ * the left ActionPanel, except on a compact viewport where the two take turns.
+ * Built once, then toggled via open(vm) / close().
  */
 export class DetailsPanel extends BaseComponent {
     private built = false;
+    private isOpen = false;
+    private restoreActionPanel = false;
 
     public updateState(_state?: IAppState): void {
         if (!this.built) this.build();
@@ -47,16 +52,34 @@ export class DetailsPanel extends BaseComponent {
         // Force reflow so the transform transition animates from the hidden state.
         void this.ref.offsetWidth;
         this.ref.style.transform = SHOWN_TRANSFORM;
+        this.isOpen = true;
+
+        // Small screens only fit one side panel at a time
+        const { actionPanel } = getComponents().div;
+        if (isCompactViewport() && actionPanel.opened) {
+            actionPanel.close();
+            this.restoreActionPanel = true;
+        }
+    }
+
+    public get opened() {
+        return this.isOpen;
     }
 
     public close(): void {
         if (!this.built) return;
+        this.isOpen = false;
         this.ref.style.transform = HIDDEN_TRANSFORM;
         window.setTimeout(() => {
             if (this.ref.style.transform === HIDDEN_TRANSFORM) {
                 this.ref.style.display = "none";
             }
         }, 250);
+
+        if (this.restoreActionPanel) {
+            this.restoreActionPanel = false;
+            getComponents().div.actionPanel.open();
+        }
     }
 
     private render(vm: DetailsViewModel): void {

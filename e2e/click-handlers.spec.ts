@@ -88,13 +88,62 @@ test.describe("ShowShipDetailsClickHandler", () => {
         await helper.stackHand(["flare"]);
         const panel = page.locator("#details-panel");
 
-        await page.locator(`.card-row:has(img[alt="flare"]) > div:last-child`).first().click();
+        await helper.cardInfoCell("flare").click();
         await expect(panel).toBeInViewport();
         await expect(panel).toContainText("Flare");
         expect(await helper.highlightedTiles()).toEqual([]);
 
         await panel.getByRole("button", { name: "Close details" }).click();
         await expect(panel).not.toBeInViewport();
+    });
+
+    test("stays open alongside the action panel on a wide screen", async ({ page }) => {
+        await helper.stackHand(["flare"]);
+
+        await helper.cardInfoCell("flare").click();
+
+        await expect(page.locator("#details-panel")).toBeInViewport();
+        await expect(helper.turnButton).toBeInViewport();
+    });
+
+    test.describe("on a small screen", () => {
+        test.beforeEach(async ({ page }) => {
+            await helper.stackHand(["flare"]);
+            await page.setViewportSize({ width: 600, height: 900 });
+        });
+
+        test("opening the details slides the action panel away, and closing them brings it back", async ({
+            page,
+        }) => {
+            const panel = page.locator("#details-panel");
+
+            await helper.cardInfoCell("flare").click();
+            await expect(panel).toBeInViewport();
+            await expect(helper.turnButton).not.toBeInViewport();
+
+            await panel.getByRole("button", { name: "Close details" }).click();
+            await expect(panel).not.toBeInViewport();
+            await expect(helper.turnButton).toBeInViewport();
+        });
+
+        test("pulling the action panel back closes the details", async ({ page }) => {
+            const panel = page.locator("#details-panel");
+            await helper.cardInfoCell("flare").click();
+            await expect(panel).toBeInViewport();
+
+            await helper.actionPanelToggle.click();
+
+            await expect(helper.turnButton).toBeInViewport();
+            await expect(panel).not.toBeInViewport();
+        });
+
+        test("details opened from a ship's menu also slide the action panel away", async ({ page }) => {
+            await helper.selectShip(ALICE_FRONT);
+            await page.locator("#select-action-tooltip").click();
+
+            await expect(page.locator("#details-panel")).toBeInViewport();
+            await expect(helper.turnButton).not.toBeInViewport();
+        });
     });
 });
 
