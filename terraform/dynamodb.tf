@@ -103,9 +103,11 @@ data "aws_iam_policy_document" "lambda_to_dynamodb" {
     sid    = "AllowGameTableAccess"
     effect = "Allow"
 
-    # create-game puts a row, get-games queries by userId; nothing updates or
-    # deletes a game row yet, so those stay off until something needs them
+    # create-game puts a row, get-games queries by userId and deletes expired
+    # rows, join-game reads the creator's row for createdAt
     actions = [
+      "dynamodb:BatchWriteItem",
+      "dynamodb:GetItem",
       "dynamodb:PutItem",
       "dynamodb:Query",
     ]
