@@ -2,7 +2,7 @@ import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 import type { LambdaFunctionURLEvent } from "aws-lambda";
 import { DAYS_TO_GAME_EXPIRY, MS_PER_DAY } from "../../shared/config/constants";
 import type { GetGamesResponse } from "../../shared/types/domains";
-import { GAMES_TABLE, getDocClient } from "../lib/dynamo";
+import { batchDeleteItems, GAMES_TABLE, getDocClient } from "../lib/dynamo";
 import { InternalServerErrorApiResponse } from "../lib/response/internal-server-error-response";
 import { ApiResponse } from "../lib/response/response";
 import { type PlainApiResponse } from "../lib/response/types";
@@ -34,6 +34,11 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
                 expiredGameCodes.push(i.gameCode);
             }
         });
+
+        await batchDeleteItems(
+            GAMES_TABLE,
+            expiredGameCodes.map((gameCode) => ({ userId, gameCode })),
+        );
 
         const responseBody: GetGamesResponse = {
             games: validGameCodes,

@@ -1,5 +1,5 @@
 import { DynamoDBClient, DynamoDBClientConfig } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { BatchWriteCommand, DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { isLocal } from "./env";
 
 const DEFAULT_REGION = "ap-southeast-1";
@@ -28,4 +28,36 @@ export const getDocClient = (): DynamoDBDocumentClient => {
     });
 
     return docClient;
+};
+
+// DynamoDB caps BatchWriteItem at 25 requests per call
+const BATCH_WRITE_LIMIT = 25;
+
+// best-effort: failed or unprocessed deletes are logged rather than thrown
+export const batchDeleteItems = async (tableName: string, keys: Record<string, string>[]): Promise<void> => {
+    const batches: Record<string, string>[][] = [];
+    for (let idx = 0; idx < keys.length; idx += BATCH_WRITE_LIMIT) {
+        batches.push(keys.slice(idx, idx + BATCH_WRITE_LIMIT));
+    }
+
+    const results = await Promise.allSettled(
+        batches.map((batch) =>
+            getDocClient().send(
+                new BatchWriteCommand({
+                    RequestItems: { [tableName]: batch.map((key) => ({ DeleteRequest: { Key: key } })) },
+                }),
+            ),
+        ),
+    );
+
+    results.forEach((result, idx) => {
+        if (result.status === "rejected") {
+            console.error(`batch delete from ${tableName} failed`, batches[idx], result.reason);
+            return;
+        }
+        const unprocessed = result.value.UnprocessedItems?.[tableName];
+        if (unprocessed?.length) {
+            console.error(`batch delete from ${tableName} left ${unprocessed.length} items undeleted`);
+        }
+    });
 };
