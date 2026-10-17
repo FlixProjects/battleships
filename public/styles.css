@@ -41,6 +41,8 @@ body {
     flex-direction: column;
     gap: 24px;
     padding: 32px;
+    /* clears the fixed footer so it never covers the last of the content */
+    padding-bottom: 64px;
     align-items: center;
 }
 
@@ -201,6 +203,16 @@ body {
 
 /* footer */
 .footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    padding: 8px 16px;
+    text-align: center;
+    /* translucent so the body gradient shows through; blur keeps scrolled content legible underneath */
+    background: rgba(15, 23, 36, 0.6);
+    backdrop-filter: blur(6px);
     color: var(--muted);
     font-size: 12px;
 }
