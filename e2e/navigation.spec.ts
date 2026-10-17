@@ -8,6 +8,13 @@ test.beforeEach(async ({ page }) => {
     await page.goto("/");
 });
 
+test("the page container is blank until the bundle mounts it", async ({ page }) => {
+    await page.route("**/bundle.js", (route) => route.abort());
+    await page.reload();
+
+    await expect(page.locator("#page-container")).toBeEmpty();
+});
+
 test("the menu is hidden on the login screen", async ({ page }) => {
     await helper.expectScreen("Login");
     await expect(page.locator("#hamburger-menu")).toBeHidden();

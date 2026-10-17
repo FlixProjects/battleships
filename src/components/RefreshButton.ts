@@ -4,15 +4,40 @@ import { refresh } from "../utils/game-helper";
 import { HTMLButton } from "./native/Button";
 
 export class RefreshButton extends HTMLButton {
-    public ref = document.getElementById("refreshBtn") as HTMLButtonElement;
-
     constructor() {
         super();
         this.build();
     }
 
     build() {
+        const statusBar = document.getElementById("status-bar");
+
+        if (!statusBar || statusBar.querySelector("#refreshBtn")) {
+            return this.ref;
+        }
+
+        this.ref = document.createElement("button");
+        this.ref.id = "refreshBtn";
+        this.ref.className = "btn icon-btn";
+        this.ref.title = "Refresh Game";
+
+        const icon = document.createElement("img");
+        icon.src = "assets/refresh-icon.svg";
+        icon.alt = "Refresh";
+        icon.className = "refresh-icon";
+        icon.draggable = false;
+        this.ref.appendChild(icon);
+
         this.addClickEventListener();
+
+        // Sits right after the status text, ahead of the game code and switch-player button.
+        const status = statusBar.querySelector("#status");
+        if (status) {
+            status.after(this.ref);
+        } else {
+            statusBar.prepend(this.ref);
+        }
+
         return this.ref;
     }
 
@@ -31,6 +56,7 @@ export class RefreshButton extends HTMLButton {
     }
 
     updateState(appState: Partial<IAppState>) {
+        this.build();
         const { status } = appState;
 
         switch (status) {
