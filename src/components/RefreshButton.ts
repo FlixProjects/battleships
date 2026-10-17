@@ -1,9 +1,12 @@
 import { GameConfig } from "@shared/index";
 import { IAppState } from "@shared/types";
+import SpinCssAnimStyle from "../css-anim-styles/models/spin-style";
 import { refresh } from "../utils/game-helper";
 import { HTMLButton } from "./native/Button";
 
 export class RefreshButton extends HTMLButton {
+    private icon: HTMLImageElement;
+
     constructor() {
         super();
         this.build();
@@ -18,16 +21,12 @@ export class RefreshButton extends HTMLButton {
 
         this.ref = document.createElement("button");
         this.ref.id = "refreshBtn";
-        this.ref.className = "btn icon-btn";
         this.ref.title = "Refresh Game";
+        // .btn supplies the :hover/:active/:disabled states from styles.css
+        this.ref.className = "btn";
+        this.addStyles();
 
-        const icon = document.createElement("img");
-        icon.src = "assets/refresh-icon.svg";
-        icon.alt = "Refresh";
-        icon.className = "refresh-icon";
-        icon.draggable = false;
-        this.ref.appendChild(icon);
-
+        this.buildIcon();
         this.addClickEventListener();
 
         // Sits right after the status text, ahead of the game code and switch-player button.
@@ -41,6 +40,33 @@ export class RefreshButton extends HTMLButton {
         return this.ref;
     }
 
+    // Only properties the .btn interaction states leave alone, so those rules still apply.
+    addStyles() {
+        const style = this.ref.style;
+        style.display = "flex";
+        style.alignItems = "center";
+        style.justifyContent = "center";
+        style.background = "var(--glass-2)";
+        style.border = "none";
+        style.borderRadius = "8px";
+        style.transition = "background 0.2s ease, transform 0.1s ease";
+    }
+
+    private buildIcon() {
+        this.icon = document.createElement("img");
+        this.icon.src = "assets/refresh-icon.svg";
+        this.icon.alt = "Refresh";
+        this.icon.draggable = false;
+
+        const style = this.icon.style;
+        style.height = "20px";
+        // the svg is black; render it white
+        style.filter = "brightness(0) invert(1)";
+        style.transition = "transform 0.4s ease";
+
+        this.ref.appendChild(this.icon);
+    }
+
     async onClick() {
         this.spin();
         await refresh();
@@ -48,16 +74,16 @@ export class RefreshButton extends HTMLButton {
     }
 
     spin() {
-        this.ref.classList.add("loading");
+        new SpinCssAnimStyle().attachTo(this.icon);
     }
 
     stopSpin() {
-        this.ref.classList.remove("loading");
+        this.icon.style.animation = "";
     }
 
-    updateState(appState: Partial<IAppState>) {
+    updateState(appState?: Partial<IAppState>) {
         this.build();
-        const { status } = appState;
+        const status = appState?.status;
 
         switch (status) {
             case GameConfig.AppStatus.Initialised:

@@ -7,11 +7,11 @@ export class StatusText extends HTMLSpan {
         this.build();
     }
 
-    updateState(appState: Partial<IAppState>) {
+    updateState(appState?: Partial<IAppState>) {
         this.build();
-        const { status } = appState;
+        const status = appState?.status;
 
-        this.ref.innerText = status;
+        this.ref.innerText = status ?? "";
     }
 
     build() {
@@ -23,7 +23,7 @@ export class StatusText extends HTMLSpan {
 
         const status = document.createElement("div");
         status.id = "status";
-        status.className = "status";
+        this.addContainerStyles(status);
         status.append("Status: ");
 
         this.ref = document.createElement("span");
@@ -34,5 +34,20 @@ export class StatusText extends HTMLSpan {
         statusBar.prepend(status);
 
         return this.ref;
+    }
+
+    private addContainerStyles(status: HTMLDivElement) {
+        const style = status.style;
+        style.display = "flex";
+        style.alignItems = "center";
+        style.justifyContent = "center";
+        style.height = "40px";
+        style.width = "fit-content";
+        style.padding = "8px 12px";
+        style.borderRadius = "10px";
+        style.background = "var(--glass-2)";
+        style.color = "var(--muted)";
+        style.fontSize = "13px";
+        style.fontWeight = "500";
     }
 }
