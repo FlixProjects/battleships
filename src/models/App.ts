@@ -1,37 +1,34 @@
-import { DEFAULT_APP_STATE, FP_AUTH_TOKEN } from "@shared/constants";
+import { DEFAULT_APP_STATE } from "@shared/constants";
 import { GameConfig } from "@shared/index";
-import { IAppState, TGameStateManagerCtor } from "@shared/types";
+import { IAppState } from "@shared/types";
 import { gameManager } from "..";
 import { getGame } from "../apis/get-game";
 import { updateComponents } from "../components/component-helper";
 import { loadStyles } from "../css-anim-styles";
-import { getCookie } from "../utils/cookie-helper";
 import { getGameCode, isWaitingForOtherPlayer } from "../utils/game-helper";
 import { setAppScreen } from "../utils/screen-helper";
 import { transformPlainAppStateToFEDomain } from "../utils/transformers";
-import { FEGameStateManager } from "./FEGameStateManager";
 
 export class App {
     private _state: IAppState = transformPlainAppStateToFEDomain(DEFAULT_APP_STATE);
-    private GSM: TGameStateManagerCtor = FEGameStateManager;
     public async start() {
         loadStyles();
         const gameCode = getGameCode();
-        const authToken = getCookie(FP_AUTH_TOKEN);
+        const isLoggedIn = gameManager.isLoggedIn;
 
-        if (gameCode && authToken) {
+        if (gameCode && isLoggedIn) {
             setAppScreen(GameConfig.AppScreen.Game);
             return await this.fetchExistingSession();
         }
 
-        const hasExistingStaleSession = gameCode && !authToken;
-        const isLoggedInButNoData = !gameCode && authToken;
+        const hasExistingStaleSession = gameCode && !isLoggedIn;
+        const isLoggedInButNoData = !gameCode && isLoggedIn;
 
         if (hasExistingStaleSession) {
             this.clearStaleSession();
         } else if (isLoggedInButNoData) {
             setAppScreen(GameConfig.AppScreen.Games);
-        } else if (!authToken) {
+        } else if (!isLoggedIn) {
             setAppScreen(GameConfig.AppScreen.Login);
         }
 

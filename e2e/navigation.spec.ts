@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { PageHelper } from "./helpers/PageHelper";
 
 let helper: PageHelper;
@@ -32,6 +32,30 @@ test("the lobby stays put on reload without a game", async ({ page }) => {
     await page.reload();
 
     await helper.expectScreen("Lobby");
+});
+
+// Prod sets the auth cookie HttpOnly, so the page can never read it
+const makeAuthCookieHttpOnly = async (page: Page) => {
+    const context = page.context();
+    const authCookies = (await context.cookies()).filter((cookie) => cookie.name === "fp-auth-token");
+    await context.addCookies(authCookies.map((cookie) => ({ ...cookie, httpOnly: true })));
+};
+
+test("the lobby stays put on reload when the auth cookie is HttpOnly", async ({ page }) => {
+    await helper.guestLogin();
+    await makeAuthCookieHttpOnly(page);
+    await page.reload();
+
+    await helper.expectScreen("Lobby");
+});
+
+test("the game stays put on reload when the auth cookie is HttpOnly", async ({ page }) => {
+    await helper.guestLogin();
+    await helper.createGame("Alice");
+    await makeAuthCookieHttpOnly(page);
+    await page.reload();
+
+    await helper.expectScreen("Game");
 });
 
 test("the game menu item does nothing without a game", async () => {
