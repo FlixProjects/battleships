@@ -60,7 +60,11 @@ export const getGame = async (_gameCode: string, config?: GetGameConfig) => {
         let newGameState = responseData.gameState;
         gameManager.trackRoundSnapshots(currentPlayerId, newGameState);
 
-        if (resolveLocalActions) {
+        // there should never be a case of both ready (since round will resolve in that case)
+        // and reset both players to ready:false
+        const roundNotResolved = responseData.gameState.players.some((p) => p.ready);
+
+        if (resolveLocalActions || roundNotResolved) {
             const gsm = new FEGameStateManager(newGameState);
             gsm.resolveLocalActionsForPlayer(currentPlayerId);
             newGameState = gsm.gameState.toPlain();

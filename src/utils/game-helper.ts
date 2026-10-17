@@ -66,7 +66,7 @@ export const getColorFilter = (color: TColor) => {
 
 export const refresh = async () => {
     const gameCode = getGameCode();
-    if(gameCode) {
+    if (gameCode) {
         await getGame(gameCode);
     }
 };
@@ -122,6 +122,6 @@ export const isWaitingForOtherPlayer = (gameState: { players: { id: string; read
     return isWaitingForOtherPlayer;
 };
 
-export const queueCommand = async (command: FECommand) => {    
+export const queueCommand = async (command: FECommand) => {
     await game?.queueCommand(command);
 };

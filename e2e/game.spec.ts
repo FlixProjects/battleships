@@ -217,20 +217,58 @@ test.describe("deploying", () => {
     });
 });
 
+const ownFlagshipTiles = async () => {
+    const [view, flagshipId] = await Promise.all([helper.readPlayerView(), helper.ownFlagshipId()]);
+    return view.hulls.filter((hull) => hull.shipId === flagshipId).map(tileOf);
+};
+
+// A page reload restores the session through App.start, the in-game button through refresh(); each
+// fetches the round still open on the server and must lay the player's submitted orders back over it.
+const refreshes: [string, (page: Page) => Promise<unknown>][] = [
+    [
+        "page reload",
+        async (page) => {
+            await page.reload();
+            await helper.waitForReplay();
+        },
+    ],
+    ["refresh button", () => helper.refresh()],
+];
+
 test.describe("submitting", () => {
-    test("a submitted turn stays locked across a reload", async ({ page }) => {
-        await startJoinedGame();
-        await helper.deployFlagship(BOB_REAR);
-        await helper.submitTurn();
+    for (const [refreshName, refreshGame] of refreshes) {
+        test(`a submitted deploy stays on the board across a ${refreshName}`, async ({ page }) => {
+            await startJoinedGame();
+            await helper.deployFlagship(BOB_REAR);
+            await helper.submitTurn();
+            const submittedTiles = await ownFlagshipTiles();
+            expect(submittedTiles).toContain(BOB_REAR);
 
-        await expect(helper.turnButton).toHaveText("Awaiting other player");
-        await expect(helper.turnButton).toBeDisabled();
+            await refreshGame(page);
 
-        await page.reload();
-        await helper.waitForReplay();
-        await expect(helper.turnButton).toHaveText("Awaiting other player");
-        await expect(helper.turnButton).toBeDisabled();
-    });
+            await expect(helper.turnButton).toHaveText("Awaiting other player");
+            await expect(helper.turnButton).toBeDisabled();
+            expect(await ownFlagshipTiles()).toEqual(submittedTiles);
+            // the test acts faster than the staged move animates, so let the sprites settle
+            await expect(() => expectSpritesOverOwnHulls(page)).toPass();
+        });
+
+        test(`a submitted move stays put across a ${refreshName}`, async ({ page }) => {
+            await helper.startGameWithFlagships();
+            const startTiles = await ownFlagshipTiles();
+            await helper.moveToFirstDestination(ALICE_FRONT);
+            await helper.submitTurn();
+            const submittedTiles = await ownFlagshipTiles();
+            expect(submittedTiles).not.toEqual(startTiles);
+
+            await refreshGame(page);
+
+            await expect(helper.turnButton).toHaveText("Awaiting other player");
+            expect(await ownFlagshipTiles()).toEqual(submittedTiles);
+            // the test acts faster than the staged move animates, so let the sprites settle
+            await expect(() => expectSpritesOverOwnHulls(page)).toPass();
+        });
+    }
 
     test("a double click submits once", async ({ page }) => {
         await helper.startGameWithFlagships();
