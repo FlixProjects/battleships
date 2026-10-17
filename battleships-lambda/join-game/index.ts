@@ -1,5 +1,5 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { LambdaFunctionURLEvent } from "aws-lambda";
 import * as GameConfig from "../../shared/config/constants";
 import { ERROR_MESSAGES } from "../../shared/constants";
@@ -56,6 +56,20 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
             return new ErrorApiResponse(ErrorCode.CONFLICT).setMessage(ERROR_MESSAGES.GAME_FULL).build();
         }
 
+        // the table has no gameCode index, so the existing row is looked up under the creator's userId
+        const creatorId = gameState.players[0]?.id ?? "";
+        const { Item: existingGame } = await getDocClient().send(
+            new GetCommand({
+                TableName: GAMES_TABLE,
+                Key: { userId: creatorId, gameCode },
+                ProjectionExpression: "createdAt",
+            }),
+        );
+        const createdAt = (existingGame as { createdAt?: string } | undefined)?.createdAt;
+        if (!createdAt) {
+            return new ErrorApiResponse(ErrorCode.NOT_FOUND).setMessage(ERROR_MESSAGES.GAME_NOT_FOUND).build();
+        }
+
         const builder = new GameStateBuilder(gameState);
         if (isLocal() && body.overrideConfig) {
             builder.overrideConfig(body.overrideConfig);
@@ -84,7 +98,7 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
         await getDocClient().send(
             new PutCommand({
                 TableName: GAMES_TABLE,
-                Item: { userId: auth.userId, gameCode, createdAt: now, updatedAt: now },
+                Item: { userId: auth.userId, gameCode, createdAt, updatedAt: now },
             }),
         );
 
