@@ -1,11 +1,17 @@
 import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 import type { LambdaFunctionURLEvent } from "aws-lambda";
+import { DAYS_TO_GAME_EXPIRY, MS_PER_DAY } from "../../shared/config/constants";
 import type { GetGamesResponse } from "../../shared/types/domains";
 import { GAMES_TABLE, getDocClient } from "../lib/dynamo";
 import { InternalServerErrorApiResponse } from "../lib/response/internal-server-error-response";
 import { ApiResponse } from "../lib/response/response";
 import { type PlainApiResponse } from "../lib/response/types";
 import { withAuth } from "../lib/with-auth";
+
+interface GameItem {
+    gameCode: string;
+    createdAt?: string;
+}
 
 export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Promise<PlainApiResponse> => {
     try {
@@ -17,9 +23,20 @@ export const handler = withAuth(async (event: LambdaFunctionURLEvent, auth): Pro
                 ExpressionAttributeValues: { ":userId": userId },
             }),
         );
+        const expiryCutoff = Date.now() - DAYS_TO_GAME_EXPIRY * MS_PER_DAY;
+        const expiredGameCodes: string[] = [];
+        const validGameCodes: string[] = [];
+
+        ((Items ?? []) as GameItem[]).forEach((i) => {
+            if (i.createdAt !== undefined && Date.parse(i.createdAt) > expiryCutoff) {
+                validGameCodes.push(i.gameCode);
+            } else {
+                expiredGameCodes.push(i.gameCode);
+            }
+        });
+
         const responseBody: GetGamesResponse = {
-            // FIXME: add proper typing
-            games: (Items as { gameCode: string }[])?.map((i) => i.gameCode),
+            games: validGameCodes,
         };
 
         return new ApiResponse().setBody(responseBody).build();

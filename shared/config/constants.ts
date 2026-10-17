@@ -331,6 +331,9 @@ export const MAX_HAND_SIZE = 4;
 
 export const MAX_PLAYERS = 2;
 
+export const DAYS_TO_GAME_EXPIRY = 1;
+export const MS_PER_DAY = 24 * 60 * 60 * 1000
+
 export const FACTION_CONFIG: TFactionsConfig = {
     [Faction.THE_UNITED_DEFENSE_FLEET]: {
         name: "The United Defense Fleet",
