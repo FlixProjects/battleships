@@ -8,7 +8,7 @@ import { TEST_CONFIG, type TConfigOverride } from "./helpers/test-config";
 // Writes the raw video and markers.json; scripts/cut-how-to-play-clips.mjs cuts the clips.
 // Alice (row 0) is recorded; Bob (row 6) only deploys and passes.
 
-const OUT_DIR = path.resolve("test-results/how-to-play");
+const OUT_DIR = path.resolve(".recordings/how-to-play");
 const VIEWPORT = { width: 1280, height: 800 };
 const BEAT = 900;
 // Pause after each visible interaction so viewers can see its effect
@@ -167,6 +167,16 @@ test("record the How to Play game", async ({ browser }) => {
 const recordGame = async (page: Page, rec: Recorder) => {
     const helper = new PageHelper(page);
 
+    const showShipDetails = async (tileId: string) => {
+        await helper.selectShip(tileId);
+        await rec.pause(400);
+        await page.locator("#select-action-tooltip").click();
+        await expect(page.locator("#details-panel")).toBeInViewport();
+        await rec.pause(2500);
+        await page.getByRole("button", { name: "Close details" }).click();
+        await rec.pause(600);
+    };
+
     const commandPoints = page.getByText(/^Command Points:/);
     const hand = page.locator(".card-row").first().locator("..");
     const playbackButton = page.getByRole("button", { name: "Playback" });
@@ -241,6 +251,11 @@ const recordGame = async (page: Page, rec: Recorder) => {
     rec.endMark();
     await rec.clearSpotlight(hand);
 
+    // 6 (cont.): any ship's action menu has an info button
+    await rec.mark("details");
+    await showShipDetails(ALICE_FLAGSHIP_FRONT);
+    rec.endMark();
+
     // Round 2 — 8: move, 7: a support card
     await rec.mark("move");
     await helper.moveShip(ALICE_FRIGATE, ALICE_FRIGATE_STATION);
@@ -283,6 +298,11 @@ const recordGame = async (page: Page, rec: Recorder) => {
     await rec.pause(1500);
     rec.endMark();
     await rec.clearSpotlight(playbackButton);
+
+    // 6 (cont.): an enemy ship's menu only has the info button
+    await rec.mark("details");
+    await showShipDetails(BOB_FLAGSHIP_FRONT);
+    rec.endMark();
 
     // Round 3 — 9: attack
     await rec.mark("attack");

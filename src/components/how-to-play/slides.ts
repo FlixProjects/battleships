@@ -48,9 +48,9 @@ export const HOW_TO_PLAY_SLIDES: IHowToPlaySlide[] = [
         media: clip("05-hand.mp4"),
     },
     {
-        title: "Card Details",
+        title: "Details",
         description:
-            "Press the info button at the end of a card to see what it does, its cost and its stats, without playing it.",
+            "Press the info button at the end of a card to see what it does, its cost and its stats, without playing it. Select any ship, yours or the enemy's, and press the info button in its menu to see its details.",
         media: clip("06-details.mp4"),
     },
     {

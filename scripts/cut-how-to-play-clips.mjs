@@ -1,10 +1,11 @@
 // Cuts the How to Play clips out of the video recorded by e2e/how-to-play.record.spec.ts.
 // Needs ffmpeg-static: npm install --no-save ffmpeg-static
+// Cuts every clip by default; --only 06-details,13-game-end cuts just those.
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
-const RECORDING_DIR = path.resolve("test-results/how-to-play");
+const RECORDING_DIR = path.resolve(".recordings/how-to-play");
 const OUT_DIR = path.resolve("public/assets/how-to-play");
 const WIDTH = 960;
 const LEAD_IN = 0.2;
@@ -87,11 +88,35 @@ const cutClip = (ffmpeg, video, segments, outFile) => {
     );
 };
 
+// --only 06-details,00-rules limits the run to those outputs (matched by name without extension)
+const parseOnly = () => {
+    const index = process.argv.indexOf("--only");
+    if (index < 0) return null;
+    const names = (process.argv[index + 1] ?? "").split(",").filter(Boolean);
+    if (names.length === 0) {
+        console.error("--only needs a comma-separated list, e.g. --only 06-details,00-rules");
+        process.exit(1);
+    }
+    return new Set(names);
+};
+
+const only = parseOnly();
+const isWanted = (file) => !only || only.has(path.parse(file).name);
+
+if (only) {
+    const known = new Set([...Object.keys(CLIPS), "00-rules.png"].map((file) => path.parse(file).name));
+    const unknown = [...only].filter((name) => !known.has(name));
+    if (unknown.length > 0) {
+        console.error(`Unknown output(s): ${unknown.join(", ")}. Known: ${[...known].join(", ")}`);
+        process.exit(1);
+    }
+}
+
 const ffmpeg = await loadFfmpeg();
 const { video, segments } = loadMarkers();
 mkdirSync(OUT_DIR, { recursive: true });
 
-for (const [file, names] of Object.entries(CLIPS)) {
+for (const [file, names] of Object.entries(CLIPS).filter(([file]) => isWanted(file))) {
     const clipSegments = names.flatMap((name) => segments[name] ?? []);
     if (clipSegments.length === 0) {
         console.warn(`skip ${file}: no segments recorded for ${names.join(", ")}`);
@@ -102,12 +127,12 @@ for (const [file, names] of Object.entries(CLIPS)) {
     console.log(`${file}  ${sizeOf(outFile)}`);
 }
 
-const still = path.join(OUT_DIR, "00-rules.png");
-execFileSync(
-    ffmpeg,
-    ["-y", "-loglevel", "error", "-i", path.join(RECORDING_DIR, "00-rules.png"), "-vf", `scale=${WIDTH}:-2`, still],
-    {
-        stdio: "inherit",
-    },
-);
-console.log(`00-rules.png  ${sizeOf(still)}`);
+if (isWanted("00-rules.png")) {
+    const still = path.join(OUT_DIR, "00-rules.png");
+    execFileSync(
+        ffmpeg,
+        ["-y", "-loglevel", "error", "-i", path.join(RECORDING_DIR, "00-rules.png"), "-vf", `scale=${WIDTH}:-2`, still],
+        { stdio: "inherit" },
+    );
+    console.log(`00-rules.png  ${sizeOf(still)}`);
+}
