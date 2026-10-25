@@ -167,6 +167,31 @@ npx playwright test e2e/game.spec.ts --workers=2   # one file, fewer parallel br
   sessionStorage, and the tests switch players with the Switch Player control
   (see `e2e/helpers/PageHelper.ts`).
 
+### Recording the How to Play clips (optional)
+
+Run from: **repo root**. Docker must be running.
+
+The lobby's How to Play modal plays short clips from `public/assets/how-to-play/`. They are committed,
+so you only need this when the UI has changed and the clips are out of date.
+
+```bash
+npm install --no-save ffmpeg-static                       # not in package.json; `npm ci` removes it again
+RECORD_HOW_TO_PLAY=1 npx playwright test e2e/how-to-play.record.spec.ts --workers=1
+node scripts/cut-how-to-play-clips.mjs
+```
+
+- **The recording spec plays one scripted game** in local hot-seat mode and saves the raw video, a
+  still for the first slide, and `markers.json` (when each step starts and ends) to
+  `.recordings/how-to-play/` (gitignored). It's kept out of `test-results/` because Playwright
+  empties that folder on every run. Without `RECORD_HOW_TO_PLAY` the spec is skipped, so
+  `npm run test:e2e` never runs it.
+- **The cutting script** reads the markers, cuts one H.264 `.mp4` per slide (960 px wide, no audio)
+  and writes them to `public/assets/how-to-play/`, printing each file's size. It cuts every clip by
+  default. To replace only some, name them: `node scripts/cut-how-to-play-clips.mjs --only 06-details,00-rules`.
+  Each recording is a new game, so clips cut from different recordings show different game codes.
+- **Slide text lives in `src/components/how-to-play/slides.ts`.** To add a slide, add a marked step
+  to the recording spec, map it to a file in `CLIPS` in the cutting script, and add the slide.
+
 ## Local DynamoDB
 
 `battleships-lambda/docker-compose.yml` runs DynamoDB Local plus a browser UI:
