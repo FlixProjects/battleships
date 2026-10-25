@@ -44,6 +44,7 @@ export const TILE_SIZE_PX = 48;
 export const TILE_GAP_PX = 0;
 
 export const Z_INDEX = {
+    MODAL: "2000",
     TOAST: "100",
     ACTION_PANEL: "100",
     DETAILS_PANEL: "100",

@@ -7,6 +7,7 @@ import { getAppScreen } from "../utils/screen-helper";
 import { BaseComponent } from "./BaseComponent";
 import { GameRow } from "./games/GameRow";
 import { GamesContainer } from "./games/GamesContainer";
+import { HOW_TO_PLAY_ROW_ID } from "./how-to-play/HowToPlayRow";
 
 /**
  * Lobby-only list of the games the player has joined, shown directly below
@@ -62,10 +63,10 @@ export class GamesPage extends BaseComponent {
 
         this.buildHeading();
 
-        // Sits directly below the create/join controls.
-        const controls = card.querySelector("#controls");
-        if (controls) {
-            controls.insertAdjacentElement("afterend", this.ref);
+        // Sits below the create/join controls and the How to Play row.
+        const anchor = card.querySelector(`#${HOW_TO_PLAY_ROW_ID}`) ?? card.querySelector("#controls");
+        if (anchor) {
+            anchor.insertAdjacentElement("afterend", this.ref);
         } else {
             card.prepend(this.ref);
         }

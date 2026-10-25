@@ -20,6 +20,8 @@ import { StatusText } from "./StatusText";
 import { SwitchPlayerButton } from "./SwitchPlayerButton";
 import { HamburgerMenu } from "./HamburgerMenu";
 import { HeroSection } from "./HeroSection";
+import { HowToPlayModal } from "./how-to-play/HowToPlayModal";
+import { HowToPlayRow } from "./how-to-play/HowToPlayRow";
 
 export const loadComponents = () => {
     return {
@@ -29,8 +31,10 @@ export const loadComponents = () => {
         loginPage: new LoginPage(),
         gamePage: new GamePage(),
         gameActions: new GameActions(),
-        // Mounts below #controls, so it must stay after gameActions.
+        // Mount below #controls, so they must stay after gameActions.
+        howToPlayRow: new HowToPlayRow(),
         gamesPage: new GamesPage(),
+        howToPlayModal: new HowToPlayModal(),
         statusText: new StatusText(),
 
         playerNameInput: new PlayerNameInput(),
@@ -95,6 +99,8 @@ const getStaticComponents = () => {
             loginPage: _components.loginPage,
             gamePage: _components.gamePage,
             gameActions: _components.gameActions,
+            howToPlayRow: _components.howToPlayRow,
+            howToPlayModal: _components.howToPlayModal,
             gamesPage: _components.gamesPage,
             playerCards: _components.playerCardsContainer,
             gameBoard: _components.gameBoard,
