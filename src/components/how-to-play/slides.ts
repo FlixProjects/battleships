@@ -38,13 +38,13 @@ export const HOW_TO_PLAY_SLIDES: IHowToPlaySlide[] = [
     {
         title: "Command Points",
         description:
-            "Orders cost command points: deploying a ship, moving, attacking and most support cards. You get 2 each round, and deploying your flagship is free.",
+            "Orders cost command points: deploying a ship, moving, attacking and most support cards. You refill up to your maximum (default: 2) each round, and deploying your flagship is free.",
         media: clip("04-command-points.mp4"),
     },
     {
         title: "Your Hand",
         description:
-            "Your hand holds up to 4 cards: ships to deploy and supports to play. Cards you play are replaced from your deck when the round ends.",
+            "Your hand holds up to 4 cards: ships to deploy and supports to play. Cards you play are replaced from your deck when the round ends. There are limited number of each card in your faction's deck.",
         media: clip("05-hand.mp4"),
     },
     {

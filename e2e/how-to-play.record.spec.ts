@@ -11,6 +11,8 @@ import { TEST_CONFIG, type TConfigOverride } from "./helpers/test-config";
 const OUT_DIR = path.resolve("test-results/how-to-play");
 const VIEWPORT = { width: 1280, height: 800 };
 const BEAT = 900;
+// Pause after each visible interaction so viewers can see its effect
+const INTERACTION_DELAY = 500;
 
 const ALICE_FLAGSHIP = "4/0";
 const ALICE_FLAGSHIP_FRONT = "4/1";
@@ -42,6 +44,33 @@ const storedFlagshipHealth = async (page: Page, playerName: string) =>
 
 // Local-only controls stay clickable but don't show in the clips
 const HIDE_DEV_CONTROLS = `#switchPlayerBtn, #resetLocalGameButtonContainer { opacity: 0 !important; }`;
+
+type TActionArg = string | number | boolean | object | undefined;
+type TAction = (...args: TActionArg[]) => Promise<void>;
+
+// Wraps visible interactions (clicks, typing, key presses) so each is followed by a pause.
+// fill() is left out: the helpers only use it to re-enter text already typed on screen.
+// Returns a function that restores the originals.
+const delayInteractions = (page: Page, ms: number) => {
+    const targets: [object, string[]][] = [
+        [Object.getPrototypeOf(page.locator("body")), ["click", "dblclick", "press", "pressSequentially", "check"]],
+        [Object.getPrototypeOf(page.mouse), ["click", "dblclick"]],
+        [Object.getPrototypeOf(page.keyboard), ["press"]],
+    ];
+    const originals = targets.flatMap(([proto, names]) =>
+        names.map((name) => ({ proto, name, original: Reflect.get(proto, name) as TAction })),
+    );
+
+    originals.forEach(({ proto, name, original }) => {
+        Reflect.set(proto, name, async function (this: object, ...args: TActionArg[]) {
+            const result = await original.apply(this, args);
+            await new Promise((resolve) => setTimeout(resolve, ms));
+            return result;
+        });
+    });
+
+    return () => originals.forEach(({ proto, name, original }) => Reflect.set(proto, name, original));
+};
 
 interface ISegment {
     start: number;
@@ -118,9 +147,25 @@ test("record the How to Play game", async ({ browser }) => {
         });
     }, HIDE_DEV_CONTROLS);
 
+    // Fail a stuck step quickly instead of waiting out the whole test timeout
+    context.setDefaultTimeout(30_000);
+
     const page = await context.newPage();
-    const helper = new PageHelper(page);
     const rec = new Recorder(page);
+    const restoreInteractions = delayInteractions(page, INTERACTION_DELAY);
+    try {
+        await recordGame(page, rec);
+    } finally {
+        restoreInteractions();
+    }
+
+    const videoPath = (await page.video()?.path()) ?? "";
+    await context.close();
+    rec.save(videoPath);
+});
+
+const recordGame = async (page: Page, rec: Recorder) => {
+    const helper = new PageHelper(page);
 
     const commandPoints = page.getByText(/^Command Points:/);
     const hand = page.locator(".card-row").first().locator("..");
@@ -260,8 +305,4 @@ test("record the How to Play game", async ({ browser }) => {
     await expect(page.getByText("You won!")).toBeVisible();
     await rec.pause(3000);
     rec.endMark();
-
-    const videoPath = (await page.video()?.path()) ?? "";
-    await context.close();
-    rec.save(videoPath);
-});
+};
